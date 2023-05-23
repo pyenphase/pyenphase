@@ -24,6 +24,10 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
+httpx = ">=0.24.0"
+lxml = ">=4.9.2"
+pyjwt = ">=2.7.0"
+awesomeversion = ">=22.9.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"
