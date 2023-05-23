@@ -1,30 +1,29 @@
+"""Envoy authentication methods."""
+
 import asyncio
 import json
 
 import httpx
 
 from .exceptions import EnvoyAuthenticationError
-from .firmware import EnvoyFirmware
-
-"""Envoy authentication methods."""
 
 
 class EnvoyTokenAuth:
     def __init__(
         self,
-        client,
-        cloud_username=None,
-        cloud_password=None,
-        envoy_serial=None,
-        token=None,
-    ):
+        client: httpx.AsyncClient | None = None,
+        cloud_username: str | None = None,
+        cloud_password: str | None = None,
+        envoy_serial: str | None = None,
+        token: str | None = None,
+    ) -> None:
         self.cloud_client = client or httpx.AsyncClient()
         self.cloud_username = cloud_username
         self.cloud_password = cloud_password
         self.envoy_serial = envoy_serial
         self._token = token
 
-        async def fetch_token(self):
+        async def fetch_token(self) -> None:  # type: ignore
             # Login to Enlighten to obtain a session ID
             data = {"user[email]": cloud_username, "user[password]": cloud_password}
             req = await self.cloud_client.post(
@@ -66,23 +65,27 @@ class EnvoyTokenAuth:
 
     @property
     def token(self) -> str:
+        assert self._token is not None  # nosec
         return self._token
 
     @property
-    def token_header(self) -> str:
+    def token_header(self) -> str | None:
         if not self._token:
             return None
         return f"Bearer {self._token}"
 
 
 class EnvoyLegacyAuth:
-    def __init__(self, host, username, password):
+    """Class for legacy Envoy authentication."""
+
+    def __init__(self, host: str, username: str, password: str) -> None:
         self.host = host
-        self.username = username
-        self.password = password
+        self.local_username = username
+        self.local_password = password
 
     @property
     def local_auth(self) -> httpx.DigestAuth:
+        """Digest authentication for local Envoy."""
         if not self.local_username or not self.local_password:
             return None
         return httpx.DigestAuth(self.local_username, self.local_password)
