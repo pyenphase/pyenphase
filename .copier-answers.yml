@@ -1,0 +1,19 @@
+# Changes here will be overwritten by Copier
+_commit: 038bdbe
+_src_path: gh:browniebroke/pypackage-template
+add_me_as_contributor: false
+copyright_year: '2023'
+documentation: true
+email: cgarwood@gmail.com
+full_name: pyenphase
+github_username: pyenphase
+initial_commit: true
+open_source_license: MIT
+package_name: pyenphase
+project_name: pyenphase
+project_short_description: Library to control enphase envoy
+project_slug: pyenphase
+run_poetry_install: true
+setup_github: false
+setup_pre_commit: true
+
