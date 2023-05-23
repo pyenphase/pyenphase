@@ -1,6 +1,5 @@
 """Envoy authentication methods."""
 
-import asyncio
 import json
 
 import httpx
@@ -23,24 +22,28 @@ class EnvoyTokenAuth:
         self.envoy_serial = envoy_serial
         self._token = token
 
-        async def fetch_token(self) -> None:  # type: ignore
-            # Login to Enlighten to obtain a session ID
-            data = {"user[email]": cloud_username, "user[password]": cloud_password}
-            req = await self.cloud_client.post(
-                "https://enlighten.enphaseenergy.com/login.json?", data=data
-            )
-            response = json.loads(req.text)
+    async def setup(self) -> None:
+        """Obtain the token for Envoy authentication."""
+        # Login to Enlighten to obtain a session ID
+        data = {
+            "user[email]": self.cloud_username,
+            "user[password]": self.cloud_password,
+        }
+        req = await self.cloud_client.post(
+            "https://enlighten.enphaseenergy.com/login.json?", data=data
+        )
+        response = json.loads(req.text)
 
-            # Obtain the token
-            data = {
-                "session_id": response["session_id"],
-                "serial_num": envoy_serial,
-                "username": cloud_username,
-            }
-            req = await self.cloud_client.post(
-                "https://entrez.enphaseenrgy.com/tokens", json=data
-            )
-            self._token = req.text
+        # Obtain the token
+        data = {
+            "session_id": response["session_id"],
+            "serial_num": self.envoy_serial,
+            "username": self.cloud_username,
+        }
+        req = await self.cloud_client.post(
+            "https://entrez.enphaseenrgy.com/tokens", json=data
+        )
+        self._token = req.text
 
         # If a token wasn't provided, fetch it from the cloud API
         if not self._token:
@@ -54,8 +57,6 @@ class EnvoyTokenAuth:
                 raise EnvoyAuthenticationError(
                     "Your firmware requires token authentication, but no envoy serial number was provided to obtain the token."
                 )
-
-            asyncio.run(fetch_token(self))
 
         # Verify we have adequate credentials
         if not self.token:

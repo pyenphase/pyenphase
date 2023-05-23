@@ -1,25 +1,28 @@
 import httpx
 from awesomeversion import AwesomeVersion
-from lxml import etree
+from lxml import etree  # nosec
 
 from .exceptions import EnvoyFirmwareCheckError
+from .ssl import NO_VERIFY_SSL_CONTEXT
 
 
 class EnvoyFirmware:
     """Class for querying and determining the Envoy firmware version."""
 
-    async def __init__(self, host) -> str:
-        self._client = httpx.AsyncClient(verify=False)
+    def __init__(self, host: str) -> None:
+        self._client = httpx.AsyncClient(verify=NO_VERIFY_SSL_CONTEXT)  # nosec
         self._host = host
 
+    async def setup(self) -> None:
+        """Obtain the firmware version for Envoy authentication."""
         # <envoy>/info will return XML with the firmware version
         try:
-            result = await self._client.get(f"{self.host}/info")
+            result = await self._client.get(f"{self._host}/info")
         except httpx.HTTPError:
-            raise EnvoyFirmwareCheckError("Unable to query firmware version")
+            raise EnvoyFirmwareCheckError(500, "Unable to query firmware version")
 
         if result.status_code == 200:
-            xml = etree.fromstring(result.content)
+            xml = etree.fromstring(result.content)  # nosec
             self.firmware_version = xml.findtext("package[@nameW='app']/version")
 
         # If we get a different status code, raise an exception
