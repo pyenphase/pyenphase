@@ -9,7 +9,7 @@
 project = "pyenphase"
 copyright = "2023, pyenphase"
 author = "pyenphase"
-release = "0.0.0"
+release = "0.0.2"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
