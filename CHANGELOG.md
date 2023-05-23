@@ -1,3 +1,16 @@
 # Changelog
 
 <!--next-version-placeholder-->
+
+## v0.0.3 (2023-05-23)
+### Fix
+* Permission ([`89f9399`](https://github.com/pyenphase/pyenphase/commit/89f9399bccafcc611d83e264d8f4795d43a7f34e))
+* Permission ([`c73e3ed`](https://github.com/pyenphase/pyenphase/commit/c73e3ed86106d6a9b4ea78c37c1a3133ef0af458))
+* Permission ([`39e5209`](https://github.com/pyenphase/pyenphase/commit/39e520904e649bb37bd13c790d221b455b4dc90b))
+* Permission ([`2068511`](https://github.com/pyenphase/pyenphase/commit/2068511f19a8c2c9ac8322937c830762cba27a16))
+* Test publish ([#2](https://github.com/pyenphase/pyenphase/issues/2)) ([`e3df6b2`](https://github.com/pyenphase/pyenphase/commit/e3df6b264ca55dc12b75dd602cc1f92fa3a54950))
+* Update ci python version ([#1](https://github.com/pyenphase/pyenphase/issues/1)) ([`4c2dd2e`](https://github.com/pyenphase/pyenphase/commit/4c2dd2e70464b884b9d8a02ccaf39f04f46ab270))
+* Drop 3.12 ([`8e0c0f4`](https://github.com/pyenphase/pyenphase/commit/8e0c0f40ad38152bc13a85566d67c7e86345d291))
+* Lint ([`683691c`](https://github.com/pyenphase/pyenphase/commit/683691c730e1ef4c491348d66dce70cd75917fd1))
+* Typing ([`a75ae30`](https://github.com/pyenphase/pyenphase/commit/a75ae303ef4f98cfafe95081901df7ce88f4fb9e))
+* Bump versions ([`eef5623`](https://github.com/pyenphase/pyenphase/commit/eef56234a9353d110b174b445da1cfb4034d7c1f))
