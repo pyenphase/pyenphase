@@ -1,12 +1,14 @@
 import contextlib
+import logging
 import ssl
-from typing import Union
 
 import httpx
 from awesomeversion import AwesomeVersion
 
-from .auth import EnvoyLegacyAuth, EnvoyTokenAuth
+from .auth import EnvoyAuth, EnvoyTokenAuth
 from .firmware import EnvoyFirmware
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def create_no_verify_ssl_context() -> ssl.SSLContext:
@@ -34,29 +36,41 @@ _NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 class Envoy:
     """Class for querying and determining the Envoy firmware version."""
 
-    def __init__(self, host: str, auth: Union[EnvoyLegacyAuth, EnvoyTokenAuth]) -> None:
+    def __init__(self, host: str) -> None:
         """Initialize the Envoy class."""
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._client = httpx.AsyncClient(verify=_NO_VERIFY_SSL_CONTEXT)  # nosec
-        self.auth = auth
+        self.auth: EnvoyAuth | None = None
         self._host = host
-        self._firmware = EnvoyFirmware(self._host)
+        self._firmware = EnvoyFirmware(self._client, self._host)
 
-        if AwesomeVersion(self._firmware.firmware_version) < AwesomeVersion("3.9.0"):
+    async def setup(self) -> None:
+        """Obtain the firmware version for later Envoy authentication."""
+        await self._firmware.setup()
+
+    async def authenticate(
+        self, username: str | None = None, password: str | None = None
+    ) -> None:
+        """Authenticate to the Envoy based on firmware version."""
+        if self._firmware.version < AwesomeVersion("3.9.0"):
             # Legacy Envoy firmware
             pass
 
-        if (
-            AwesomeVersion("3.9.0")
-            <= AwesomeVersion(self._firmware.firmware_version)
-            < AwesomeVersion("7.0.0")
-        ):
+        if AwesomeVersion("3.9.0") <= self._firmware.version < AwesomeVersion("7.0.0"):
             # Envoy firmware using old envoy/installer authentication
             pass
 
-        if AwesomeVersion(self._firmware.firmware_version) >= AwesomeVersion("7.0.0"):
+        if self._firmware.version >= AwesomeVersion("7.0.0"):
             # Envoy firmware using new token authentication
-            pass
+            _LOGGER.debug("Authenticating to Envoy using token authentication")
+            if (
+                self.auth is None
+                and username is not None
+                and password is not None
+                and self._firmware.serial is not None
+            ):
+                self.auth = EnvoyTokenAuth(username, password, self._firmware.serial)
+                await self.auth.setup()
 
     @property
     def host(self) -> str:
@@ -66,4 +80,4 @@ class Envoy:
     @property
     def firmware(self) -> str:
         """Return the Envoy firmware version."""
-        return self._firmware.firmware_version
+        return self._firmware.version
