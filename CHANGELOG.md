@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0 (2023-05-28)
+### Feature
+* Add initial cloud auth support ([#6](https://github.com/pyenphase/pyenphase/issues/6)) ([`28f4872`](https://github.com/pyenphase/pyenphase/commit/28f4872625a01ee209153d489de566b7ba2302e6))
+
 ## v0.0.3 (2023-05-23)
 ### Fix
 * Permission ([`89f9399`](https://github.com/pyenphase/pyenphase/commit/89f9399bccafcc611d83e264d8f4795d43a7f34e))
