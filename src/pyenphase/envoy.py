@@ -1,6 +1,7 @@
 import contextlib
 import logging
 import ssl
+from typing import Any
 
 import httpx
 from awesomeversion import AwesomeVersion
@@ -58,11 +59,13 @@ class Envoy:
         """Authenticate to the Envoy based on firmware version."""
         if self._firmware.version < AwesomeVersion("3.9.0"):
             # Legacy Envoy firmware
-            pass
+            _LOGGER.debug("Authenticating to Envoy using legacy authentication")
 
         if AwesomeVersion("3.9.0") <= self._firmware.version < AwesomeVersion("7.0.0"):
             # Envoy firmware using old envoy/installer authentication
-            pass
+            _LOGGER.debug(
+                "Authenticating to Envoy using envoy/installer authentication"
+            )
 
         if self._firmware.version >= AwesomeVersion("7.0.0"):
             # Envoy firmware using new token authentication
@@ -82,13 +85,11 @@ class Envoy:
             await self.auth.setup(self._client)
         else:
             _LOGGER.error(
-                "You must include a token or username/password to authenticate to the Envoy."
+                "You must include username/password or token to authenticate to the Envoy."
             )
-            raise EnvoyAuthenticationRequired(
-                "Could not determine authentication method based on firmware version."
-            )
+            raise EnvoyAuthenticationRequired("Could not setup authentication object.")
 
-    async def request(self, endpoint: str) -> None:
+    async def request(self, endpoint: str) -> dict[str, Any]:
         """Make a request to the Envoy."""
         if self.auth is None:
             raise EnvoyAuthenticationRequired(
@@ -103,7 +104,7 @@ class Envoy:
             },
             cookies=self.auth.cookies,
         )
-        return r
+        return r.json()
 
     @property
     def host(self) -> str:

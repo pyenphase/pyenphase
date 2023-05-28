@@ -24,7 +24,7 @@ class EnvoyAuth:
         raise NotImplementedError
 
     @property
-    def cookies(self) -> str:
+    def cookies(self) -> dict[str, str]:
         """Return the Envoy cookie."""
         raise NotImplementedError
 
@@ -75,6 +75,8 @@ class EnvoyTokenAuth(EnvoyAuth):
                     "Unable to login to Enlighten to obtain session ID."
                 )
             response = json.loads(req.text)
+            self._is_consumer = response["is_consumer"]
+            self._manager_token = response["manager_token"]
 
             # Obtain the token
             data = {
@@ -116,8 +118,17 @@ class EnvoyTokenAuth(EnvoyAuth):
         return self._token
 
     @property
-    def cookies(self) -> str:
+    def manager_token(self) -> str:
+        assert self._manager_token is not None  # nosec
+        return self._manager_token
+
+    @property
+    def cookies(self) -> dict[str, str]:
         return self._cookies
+
+    @property
+    def is_consumer(self) -> bool:
+        return self._is_consumer
 
 
 class EnvoyLegacyAuth(EnvoyAuth):

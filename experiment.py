@@ -1,5 +1,6 @@
 import asyncio
 import os
+from pprint import pprint
 
 import httpx
 from awesomeversion import AwesomeVersion
@@ -23,25 +24,35 @@ async def main() -> None:
 
     # Test https://enphase.com/download/iq-gateway-access-using-local-apis-or-local-ui-token-based-authentication-tech-brief endpoints
 
+    live: httpx.Response = await envoy.request("/ivp/livedata/status")
+    print(("LIVE", "=" * 80))
+    pprint(live)
+
     prod: httpx.Response = await envoy.request("/production.json")
-    print(prod.text)
+    print("PRODUCTION", "=" * 80)
+    pprint(prod)
 
     meter_details: httpx.Response = await envoy.request("/ivp/meters")
-    print(meter_details.text)
+    print("=" * 80)
+    pprint(meter_details)
 
     meter_readings: httpx.Response = await envoy.request("/ivp/meters/readings")
-    print(meter_readings.text)
+    print("=" * 80)
+    pprint(meter_readings)
 
     inverters: httpx.Response = await envoy.request("/api/v1/production/inverters")
-    print(inverters.text)
+    print("=" * 80)
+    pprint(inverters)
 
     meters_live: httpx.Response = await envoy.request("/ivp/livedata/status")
-    print(meters_live.text)
+    print("=" * 80)
+    pprint(meters_live)
 
     load_consumption: httpx.Response = await envoy.request(
         "/ivp/meters/reports/consumption"
     )
-    print(load_consumption.text)
+    print("=" * 80)
+    pprint(load_consumption)
 
 
 asyncio.run(main())
