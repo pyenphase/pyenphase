@@ -14,13 +14,18 @@ class EnvoyAuth:
         """Initialize the EnvoyAuth class."""
         pass
 
-    async def setup(self) -> None:
+    async def setup(self, client: httpx.AsyncClient, host: str) -> None:
         """Obtain the token for Envoy authentication."""
         raise NotImplementedError
 
     @property
     def token(self) -> str:
         """Return the Envoy token."""
+        raise NotImplementedError
+
+    @property
+    def cookies(self) -> str:
+        """Return the Envoy cookie."""
         raise NotImplementedError
 
 
@@ -37,7 +42,7 @@ class EnvoyTokenAuth(EnvoyAuth):
         self.envoy_serial = envoy_serial
         self._token = token
 
-    async def setup(self, client: httpx.AsyncClient | None = None) -> None:
+    async def setup(self, client: httpx.AsyncClient, host: str) -> None:
         """Obtain the token for Envoy authentication."""
 
         if not self._token:
@@ -52,11 +57,9 @@ class EnvoyTokenAuth(EnvoyAuth):
                     "Your firmware requires token authentication, but no envoy serial number was provided to obtain the token."
                 )
 
-            if client is None:
-                # Create a new client if one was not provided
-                self.cloud_client = (
-                    httpx.AsyncClient()
-                )  # we require a new client that checks SSL certs
+            self.cloud_client = (
+                httpx.AsyncClient()
+            )  # we require a new client that checks SSL certs
 
             # Login to Enlighten to obtain a session ID
             data = {
@@ -93,16 +96,27 @@ class EnvoyTokenAuth(EnvoyAuth):
                 "Unable to obtain token for Envoy authentication."
             )
 
+        # Verify the token and obtain cookie with session ID necessary for some API calls
+        req = await client.get(
+            f"https://{host}/auth/check_jwt",
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
+
+        if req.status_code != 200:
+            raise EnvoyAuthenticationError(
+                "Unable to verify token for Envoy authentication."
+            )
+
+        self._cookies = req.cookies
+
     @property
     def token(self) -> str:
         assert self._token is not None  # nosec
         return self._token
 
     @property
-    def token_header(self) -> str | None:
-        if not self._token:
-            return None
-        return f"Bearer {self._token}"
+    def cookies(self) -> str:
+        return self._cookies
 
 
 class EnvoyLegacyAuth(EnvoyAuth):

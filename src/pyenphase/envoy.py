@@ -49,7 +49,10 @@ class Envoy:
         await self._firmware.setup()
 
     async def authenticate(
-        self, username: str | None = None, password: str | None = None
+        self,
+        username: str | None = None,
+        password: str | None = None,
+        token: str | None = None,
     ) -> None:
         """Authenticate to the Envoy based on firmware version."""
         if self._firmware.version < AwesomeVersion("3.9.0"):
@@ -63,14 +66,39 @@ class Envoy:
         if self._firmware.version >= AwesomeVersion("7.0.0"):
             # Envoy firmware using new token authentication
             _LOGGER.debug("Authenticating to Envoy using token authentication")
-            if (
+            if token is not None:
+                self.auth = EnvoyTokenAuth(token=token)
+            elif (
                 self.auth is None
                 and username is not None
                 and password is not None
                 and self._firmware.serial is not None
             ):
                 self.auth = EnvoyTokenAuth(username, password, self._firmware.serial)
-                await self.auth.setup()
+
+        if self.auth is not None:
+            await self.auth.setup(self._client, self._host)
+        else:
+            _LOGGER.error(
+                "You must include a token or username/password to authenticate to the Envoy."
+            )
+
+    async def request(self, endpoint: str) -> None:
+        """Make a request to the Envoy."""
+        if self.auth is None:
+            raise Exception(
+                "You must authenticate to the Envoy before making requests."
+            )
+
+        r = await self._client.get(
+            f"https://{self._host}{endpoint}",
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Bearer {self.auth.token}",
+            },
+            cookies=self.auth.cookies,
+        )
+        return r
 
     @property
     def host(self) -> str:
