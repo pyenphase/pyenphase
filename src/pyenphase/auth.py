@@ -7,45 +7,39 @@ import httpx
 from .exceptions import EnvoyAuthenticationError
 
 
-class EnvoyTokenAuth:
+class EnvoyAuth:
+    """Base class for Envoy authentication."""
+
+    def __init__(self) -> None:
+        """Initialize the EnvoyAuth class."""
+        pass
+
+    async def setup(self) -> None:
+        """Obtain the token for Envoy authentication."""
+        raise NotImplementedError
+
+    @property
+    def token(self) -> str:
+        """Return the Envoy token."""
+        raise NotImplementedError
+
+
+class EnvoyTokenAuth(EnvoyAuth):
     def __init__(
         self,
-        client: httpx.AsyncClient | None = None,
         cloud_username: str | None = None,
         cloud_password: str | None = None,
         envoy_serial: str | None = None,
         token: str | None = None,
     ) -> None:
-        self.cloud_client = client or httpx.AsyncClient()
         self.cloud_username = cloud_username
         self.cloud_password = cloud_password
         self.envoy_serial = envoy_serial
         self._token = token
 
-    async def setup(self) -> None:
+    async def setup(self, client: httpx.AsyncClient | None = None) -> None:
         """Obtain the token for Envoy authentication."""
-        # Login to Enlighten to obtain a session ID
-        data = {
-            "user[email]": self.cloud_username,
-            "user[password]": self.cloud_password,
-        }
-        req = await self.cloud_client.post(
-            "https://enlighten.enphaseenergy.com/login.json?", data=data
-        )
-        response = json.loads(req.text)
 
-        # Obtain the token
-        data = {
-            "session_id": response["session_id"],
-            "serial_num": self.envoy_serial,
-            "username": self.cloud_username,
-        }
-        req = await self.cloud_client.post(
-            "https://entrez.enphaseenrgy.com/tokens", json=data
-        )
-        self._token = req.text
-
-        # If a token wasn't provided, fetch it from the cloud API
         if not self._token:
             # Raise if we don't have cloud credentials
             if not self.cloud_username or not self.cloud_password:
@@ -57,6 +51,41 @@ class EnvoyTokenAuth:
                 raise EnvoyAuthenticationError(
                     "Your firmware requires token authentication, but no envoy serial number was provided to obtain the token."
                 )
+
+            if client is None:
+                # Create a new client if one was not provided
+                self.cloud_client = (
+                    httpx.AsyncClient()
+                )  # we require a new client that checks SSL certs
+
+            # Login to Enlighten to obtain a session ID
+            data = {
+                "user[email]": self.cloud_username,
+                "user[password]": self.cloud_password,
+            }
+            req = await self.cloud_client.post(
+                "https://enlighten.enphaseenergy.com/login/login.json?", data=data
+            )
+            if req.status_code != 200:
+                raise EnvoyAuthenticationError(
+                    "Unable to login to Enlighten to obtain session ID."
+                )
+            response = json.loads(req.text)
+
+            # Obtain the token
+            data = {
+                "session_id": response["session_id"],
+                "serial_num": self.envoy_serial,
+                "username": self.cloud_username,
+            }
+            req = await self.cloud_client.post(
+                "https://entrez.enphaseenergy.com/tokens", json=data
+            )
+            if req.status_code != 200:
+                raise EnvoyAuthenticationError(
+                    "Unable to obtain token for Envoy authentication."
+                )
+            self._token = req.text
 
         # Verify we have adequate credentials
         if not self.token:
@@ -76,7 +105,7 @@ class EnvoyTokenAuth:
         return f"Bearer {self._token}"
 
 
-class EnvoyLegacyAuth:
+class EnvoyLegacyAuth(EnvoyAuth):
     """Class for legacy Envoy authentication."""
 
     def __init__(self, host: str, username: str, password: str) -> None:
