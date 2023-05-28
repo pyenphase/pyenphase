@@ -6,6 +6,7 @@ import httpx
 from awesomeversion import AwesomeVersion
 
 from .auth import EnvoyAuth, EnvoyTokenAuth
+from .exceptions import EnvoyAuthenticationRequired
 from .firmware import EnvoyFirmware
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,26 +68,30 @@ class Envoy:
             # Envoy firmware using new token authentication
             _LOGGER.debug("Authenticating to Envoy using token authentication")
             if token is not None:
-                self.auth = EnvoyTokenAuth(token=token)
+                self.auth = EnvoyTokenAuth(self.host, token=token)
             elif (
-                self.auth is None
-                and username is not None
+                username is not None
                 and password is not None
                 and self._firmware.serial is not None
             ):
-                self.auth = EnvoyTokenAuth(username, password, self._firmware.serial)
+                self.auth = EnvoyTokenAuth(
+                    self.host, username, password, self._firmware.serial
+                )
 
         if self.auth is not None:
-            await self.auth.setup(self._client, self._host)
+            await self.auth.setup(self._client)
         else:
             _LOGGER.error(
                 "You must include a token or username/password to authenticate to the Envoy."
+            )
+            raise EnvoyAuthenticationRequired(
+                "Could not determine authentication method based on firmware version."
             )
 
     async def request(self, endpoint: str) -> None:
         """Make a request to the Envoy."""
         if self.auth is None:
-            raise Exception(
+            raise EnvoyAuthenticationRequired(
                 "You must authenticate to the Envoy before making requests."
             )
 

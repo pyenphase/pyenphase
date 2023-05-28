@@ -10,11 +10,11 @@ from .exceptions import EnvoyAuthenticationError
 class EnvoyAuth:
     """Base class for Envoy authentication."""
 
-    def __init__(self) -> None:
+    def __init__(self, host: str) -> None:
         """Initialize the EnvoyAuth class."""
         pass
 
-    async def setup(self, client: httpx.AsyncClient, host: str) -> None:
+    async def setup(self, client: httpx.AsyncClient) -> None:
         """Obtain the token for Envoy authentication."""
         raise NotImplementedError
 
@@ -32,17 +32,19 @@ class EnvoyAuth:
 class EnvoyTokenAuth(EnvoyAuth):
     def __init__(
         self,
+        host: str,
         cloud_username: str | None = None,
         cloud_password: str | None = None,
         envoy_serial: str | None = None,
         token: str | None = None,
     ) -> None:
+        self.host = host
         self.cloud_username = cloud_username
         self.cloud_password = cloud_password
         self.envoy_serial = envoy_serial
         self._token = token
 
-    async def setup(self, client: httpx.AsyncClient, host: str) -> None:
+    async def setup(self, client: httpx.AsyncClient) -> None:
         """Obtain the token for Envoy authentication."""
 
         if not self._token:
@@ -57,9 +59,8 @@ class EnvoyTokenAuth(EnvoyAuth):
                     "Your firmware requires token authentication, but no envoy serial number was provided to obtain the token."
                 )
 
-            self.cloud_client = (
-                httpx.AsyncClient()
-            )  # we require a new client that checks SSL certs
+            # we require a new client that checks SSL certs
+            self.cloud_client = httpx.AsyncClient()
 
             # Login to Enlighten to obtain a session ID
             data = {
@@ -98,7 +99,7 @@ class EnvoyTokenAuth(EnvoyAuth):
 
         # Verify the token and obtain cookie with session ID necessary for some API calls
         req = await client.get(
-            f"https://{host}/auth/check_jwt",
+            f"https://{self.host}/auth/check_jwt",
             headers={"Authorization": f"Bearer {self.token}"},
         )
 
