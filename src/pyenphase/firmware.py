@@ -16,7 +16,7 @@ class EnvoyFirmware:
         """Obtain the firmware version for Envoy authentication."""
         # <envoy>/info will return XML with the firmware version
         try:
-            result = await self._client.get(f"https://{self._host}/info")
+            result = await self._client.get(f"http://{self._host}/info")
         except httpx.HTTPError:
             raise EnvoyFirmwareCheckError(500, "Unable to query firmware version")
 
@@ -26,7 +26,7 @@ class EnvoyFirmware:
                 if (software_tag := device_tag.find("software")) is not None:
                     self._firmware_version = AwesomeVersion(
                         software_tag.text[1:]
-                    )  # need to strip off the leading 'D'
+                    )  # need to strip off the leading 'R' or 'D'
                 if (sn_tag := device_tag.find("sn")) is not None:
                     self._serial_number = sn_tag.text
                 return
