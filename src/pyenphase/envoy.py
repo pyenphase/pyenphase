@@ -5,10 +5,11 @@ from typing import Any
 
 import httpx
 from awesomeversion import AwesomeVersion
+from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyTokenAuth
 from .exceptions import EnvoyAuthenticationRequired
-from .firmware import EnvoyFirmware
+from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,6 +47,10 @@ class Envoy:
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
 
+    @retry(
+        retry=retry_if_exception_type(EnvoyFirmwareCheckError),
+        wait=wait_random_exponential(multiplier=2, max=10),
+    )
     async def setup(self) -> None:
         """Obtain the firmware version for later Envoy authentication."""
         await self._firmware.setup()
