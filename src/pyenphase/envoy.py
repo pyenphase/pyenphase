@@ -1,12 +1,15 @@
 import contextlib
 import logging
 import ssl
+from typing import Any
 
 import httpx
 from awesomeversion import AwesomeVersion
+from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyTokenAuth
-from .firmware import EnvoyFirmware
+from .exceptions import EnvoyAuthenticationRequired
+from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,33 +47,69 @@ class Envoy:
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
 
+    @retry(
+        retry=retry_if_exception_type(EnvoyFirmwareCheckError),
+        wait=wait_random_exponential(multiplier=2, max=10),
+    )
     async def setup(self) -> None:
         """Obtain the firmware version for later Envoy authentication."""
         await self._firmware.setup()
 
     async def authenticate(
-        self, username: str | None = None, password: str | None = None
+        self,
+        username: str | None = None,
+        password: str | None = None,
+        token: str | None = None,
     ) -> None:
         """Authenticate to the Envoy based on firmware version."""
         if self._firmware.version < AwesomeVersion("3.9.0"):
             # Legacy Envoy firmware
-            pass
+            _LOGGER.debug("Authenticating to Envoy using legacy authentication")
 
         if AwesomeVersion("3.9.0") <= self._firmware.version < AwesomeVersion("7.0.0"):
             # Envoy firmware using old envoy/installer authentication
-            pass
+            _LOGGER.debug(
+                "Authenticating to Envoy using envoy/installer authentication"
+            )
 
         if self._firmware.version >= AwesomeVersion("7.0.0"):
             # Envoy firmware using new token authentication
             _LOGGER.debug("Authenticating to Envoy using token authentication")
-            if (
-                self.auth is None
-                and username is not None
+            if token is not None:
+                self.auth = EnvoyTokenAuth(self.host, token=token)
+            elif (
+                username is not None
                 and password is not None
                 and self._firmware.serial is not None
             ):
-                self.auth = EnvoyTokenAuth(username, password, self._firmware.serial)
-                await self.auth.setup()
+                self.auth = EnvoyTokenAuth(
+                    self.host, username, password, self._firmware.serial
+                )
+
+        if self.auth is not None:
+            await self.auth.setup(self._client)
+        else:
+            _LOGGER.error(
+                "You must include username/password or token to authenticate to the Envoy."
+            )
+            raise EnvoyAuthenticationRequired("Could not setup authentication object.")
+
+    async def request(self, endpoint: str) -> dict[str, Any]:
+        """Make a request to the Envoy."""
+        if self.auth is None:
+            raise EnvoyAuthenticationRequired(
+                "You must authenticate to the Envoy before making requests."
+            )
+
+        r = await self._client.get(
+            f"https://{self._host}{endpoint}",
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Bearer {self.auth.token}",
+            },
+            cookies=self.auth.cookies,
+        )
+        return r.json()
 
     @property
     def host(self) -> str:

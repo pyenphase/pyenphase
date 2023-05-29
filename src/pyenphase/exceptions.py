@@ -11,3 +11,10 @@ class EnvoyAuthenticationError(Exception):
 
     def __init__(self, status: str) -> None:
         self.status = status
+
+
+class EnvoyAuthenticationRequired(Exception):
+    """Exception raised when authentication hasn't been setup."""
+
+    def __init__(self, status: str) -> None:
+        self.status = status
