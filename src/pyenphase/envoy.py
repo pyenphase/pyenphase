@@ -78,6 +78,13 @@ class Envoy:
             _LOGGER.debug(
                 "Authenticating to Envoy using envoy/installer authentication"
             )
+            serial = self._firmware.serial
+            if username is None:
+                username = "installer"
+                password = EnvoyUtils.get_password(self._firmware.serial, "installer")
+            elif username == "envoy" and password is None:
+                # The default password for the envoy user is the first 6 digits of the serial number
+                password = serial[:6]
 
         if self._firmware.version >= AUTH_TOKEN_MIN_VERSION:
             # Envoy firmware using new token authentication
