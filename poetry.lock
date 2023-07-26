@@ -1121,6 +1121,18 @@ files = [
 ]
 
 [[package]]
+name = "types-orjson"
+version = "3.6.2"
+description = "Typing stubs for orjson"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-orjson-3.6.2.tar.gz", hash = "sha256:cf9afcc79a86325c7aff251790338109ed6f6b1bab09d2d4262dd18c85a3c638"},
+    {file = "types_orjson-3.6.2-py3-none-any.whl", hash = "sha256:22ee9a79236b6b0bfb35a0684eded62ad930a88a56797fa3c449b026cf7dbfe4"},
+]
+
+[[package]]
 name = "urllib3"
 version = "2.0.4"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -1204,4 +1216,4 @@ ifaddr = ">=0.1.7"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "3d56628361892fb0b1808defcc7424f65dd773298add797159bed739c549cb44"
+content-hash = "eb17ac169729bf865f52ff3f4318ea7a71917b9542d925020c5482046cbaa219"

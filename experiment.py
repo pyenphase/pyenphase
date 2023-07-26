@@ -3,8 +3,6 @@ import logging
 import os
 from pprint import pprint
 
-import httpx
-
 from pyenphase.envoy import Envoy
 
 logging.basicConfig(level=logging.DEBUG)
@@ -25,7 +23,10 @@ async def main() -> None:
 
     end_points = [
         "/ivp/livedata/status",
+        "/api/v1/production",
+        "/api/v1/production/inverters",
         "/production.json",
+        "/production",
         "/ivp/meters",
         "/ivp/meters/readings",
         "/api/v1/production/inverters",
