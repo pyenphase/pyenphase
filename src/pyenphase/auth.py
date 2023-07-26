@@ -20,12 +20,20 @@ class EnvoyAuth:
         """Obtain the token for Envoy authentication."""
 
     @abstractproperty
-    def token(self) -> str:
-        """Return the Envoy token."""
-
-    @abstractproperty
     def cookies(self) -> dict[str, str]:
         """Return the Envoy cookie."""
+
+    @abstractproperty
+    def auth(self) -> httpx.DigestAuth | None:
+        """Return the httpx auth object."""
+
+    @abstractproperty
+    def headers(self) -> dict[str, str]:
+        """Return the auth headers."""
+
+    @abstractmethod
+    def get_endpoint_url(self, endpoint: str) -> str:
+        """Return the URL for the endpoint."""
 
 
 class EnvoyTokenAuth(EnvoyAuth):
@@ -129,6 +137,20 @@ class EnvoyTokenAuth(EnvoyAuth):
     def is_consumer(self) -> bool:
         return self._is_consumer
 
+    @property
+    def auth(self) -> None:
+        """No auth required for token authentication."""
+        return None
+
+    @property
+    def headers(self) -> dict[str, str]:
+        """Return the headers for Envoy authentication."""
+        return {"Authorization": f"Bearer {self.token}"}
+
+    def get_endpoint_url(self, endpoint: str) -> str:
+        """Return the URL for the endpoint."""
+        return f"https://{self.host}{endpoint}"
+
 
 class EnvoyLegacyAuth(EnvoyAuth):
     """Class for legacy Envoy authentication."""
@@ -139,7 +161,7 @@ class EnvoyLegacyAuth(EnvoyAuth):
         self.local_password = password
 
     @property
-    def local_auth(self) -> httpx.DigestAuth:
+    def auth(self) -> httpx.DigestAuth:
         """Digest authentication for local Envoy."""
         if not self.local_username or not self.local_password:
             return None
@@ -148,3 +170,16 @@ class EnvoyLegacyAuth(EnvoyAuth):
     async def setup(self, client: httpx.AsyncClient) -> None:
         """Setup auth"""
         # No setup required for legacy authentication
+
+    @property
+    def headers(self) -> dict[str, str]:
+        """Return the headers for legacy Envoy authentication."""
+        return {}
+
+    def get_endpoint_url(self, endpoint: str) -> str:
+        """Return the URL for the endpoint."""
+        return f"http://{self.host}{endpoint}"
+
+    @property
+    def cookies(self) -> dict[str, str]:
+        return {}

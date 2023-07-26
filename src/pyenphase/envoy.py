@@ -17,6 +17,9 @@ _LOGGER = logging.getLogger(__name__)
 TIMEOUT = 15
 LEGACY_ENVOY_VERSION = AwesomeVersion("3.9.0")
 AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
+DEFAULT_HEADERS = {
+    "Accept": "application/json",
+}
 
 
 def create_no_verify_ssl_context() -> ssl.SSLContext:
@@ -119,12 +122,10 @@ class Envoy:
             )
 
         r = await self._client.get(
-            f"https://{self._host}{endpoint}",
-            headers={
-                "Accept": "application/json",
-                "Authorization": f"Bearer {self.auth.token}",
-            },
+            self.auth.get_endpoint_url(endpoint),
+            headers={**DEFAULT_HEADERS, **self.auth.headers},
             cookies=self.auth.cookies,
+            auth=self.auth.auth,
         )
         return r.json()
 
