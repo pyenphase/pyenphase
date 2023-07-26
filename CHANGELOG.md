@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.0 (2023-07-26)
+
+### Feature
+
+* Use sessionId cookie to have access to some endpoints ([#7](https://github.com/pyenphase/pyenphase/issues/7)) ([`09a1a8a`](https://github.com/pyenphase/pyenphase/commit/09a1a8aa30f2e3be1aa636f2488dc736f4d4f476))
+
 ## v0.1.0 (2023-05-28)
 ### Feature
 * Add initial cloud auth support ([#6](https://github.com/pyenphase/pyenphase/issues/6)) ([`28f4872`](https://github.com/pyenphase/pyenphase/commit/28f4872625a01ee209153d489de566b7ba2302e6))
