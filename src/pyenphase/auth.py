@@ -1,6 +1,7 @@
 """Envoy authentication methods."""
 
 import json
+from abc import abstractmethod, abstractproperty
 
 import httpx
 
@@ -14,19 +15,17 @@ class EnvoyAuth:
         """Initialize the EnvoyAuth class."""
         pass
 
+    @abstractmethod
     async def setup(self, client: httpx.AsyncClient) -> None:
         """Obtain the token for Envoy authentication."""
-        raise NotImplementedError
 
-    @property
+    @abstractproperty
     def token(self) -> str:
         """Return the Envoy token."""
-        raise NotImplementedError
 
-    @property
+    @abstractproperty
     def cookies(self) -> dict[str, str]:
         """Return the Envoy cookie."""
-        raise NotImplementedError
 
 
 class EnvoyTokenAuth(EnvoyAuth):
@@ -145,3 +144,7 @@ class EnvoyLegacyAuth(EnvoyAuth):
         if not self.local_username or not self.local_password:
             return None
         return httpx.DigestAuth(self.local_username, self.local_password)
+
+    async def setup(self, client: httpx.AsyncClient) -> None:
+        """Setup auth"""
+        # No setup required for legacy authentication
