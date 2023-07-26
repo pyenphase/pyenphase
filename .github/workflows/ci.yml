@@ -22,16 +22,15 @@ jobs:
           python-version: "3.10"
       - uses: pre-commit/action@v3.0.0
 
-  # Make sure commit messages follow the conventional commits convention:
+  # Make sure pre title follow the conventional commits convention:
   # https://www.conventionalcommits.org
   commitlint:
-    name: Lint Commit Messages
+    name: Lint PR Title
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: wagoid/commitlint-github-action@v5.4.1
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
     strategy:
