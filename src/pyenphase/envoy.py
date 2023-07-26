@@ -4,14 +4,23 @@ import ssl
 from typing import Any
 
 import httpx
+import orjson
 from awesomeversion import AwesomeVersion
+from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
-from .auth import EnvoyAuth, EnvoyTokenAuth
+from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .exceptions import EnvoyAuthenticationRequired
 from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
 
 _LOGGER = logging.getLogger(__name__)
+
+TIMEOUT = 15
+LEGACY_ENVOY_VERSION = AwesomeVersion("3.9.0")
+AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
+DEFAULT_HEADERS = {
+    "Accept": "application/json",
+}
 
 
 def create_no_verify_ssl_context() -> ssl.SSLContext:
@@ -42,7 +51,9 @@ class Envoy:
     def __init__(self, host: str) -> None:
         """Initialize the Envoy class."""
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
-        self._client = httpx.AsyncClient(verify=_NO_VERIFY_SSL_CONTEXT)  # nosec
+        self._client = httpx.AsyncClient(
+            verify=_NO_VERIFY_SSL_CONTEXT, timeout=TIMEOUT
+        )  # nosec
         self.auth: EnvoyAuth | None = None
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
@@ -62,17 +73,27 @@ class Envoy:
         token: str | None = None,
     ) -> None:
         """Authenticate to the Envoy based on firmware version."""
-        if self._firmware.version < AwesomeVersion("3.9.0"):
+        if self._firmware.version < LEGACY_ENVOY_VERSION:
             # Legacy Envoy firmware
             _LOGGER.debug("Authenticating to Envoy using legacy authentication")
 
-        if AwesomeVersion("3.9.0") <= self._firmware.version < AwesomeVersion("7.0.0"):
+        if LEGACY_ENVOY_VERSION <= self._firmware.version < AUTH_TOKEN_MIN_VERSION:
             # Envoy firmware using old envoy/installer authentication
             _LOGGER.debug(
                 "Authenticating to Envoy using envoy/installer authentication"
             )
+            full_serial = self._firmware.serial
+            if username is None:
+                username = "installer"
+                password = EnvoyUtils.get_password(full_serial, username)
+            elif username == "envoy" and password is None:
+                # The default password for the envoy user is the first 6 digits of the serial number
+                password = full_serial[:6]
 
-        if self._firmware.version >= AwesomeVersion("7.0.0"):
+            if username and password:
+                self.auth = EnvoyLegacyAuth(self.host, username, password)
+
+        if self._firmware.version >= AUTH_TOKEN_MIN_VERSION:
             # Envoy firmware using new token authentication
             _LOGGER.debug("Authenticating to Envoy using token authentication")
             if token is not None:
@@ -86,13 +107,13 @@ class Envoy:
                     self.host, username, password, self._firmware.serial
                 )
 
-        if self.auth is not None:
-            await self.auth.setup(self._client)
-        else:
+        if not self.auth:
             _LOGGER.error(
                 "You must include username/password or token to authenticate to the Envoy."
             )
             raise EnvoyAuthenticationRequired("Could not setup authentication object.")
+
+        await self.auth.setup(self._client)
 
     async def request(self, endpoint: str) -> dict[str, Any]:
         """Make a request to the Envoy."""
@@ -101,15 +122,14 @@ class Envoy:
                 "You must authenticate to the Envoy before making requests."
             )
 
-        r = await self._client.get(
-            f"https://{self._host}{endpoint}",
-            headers={
-                "Accept": "application/json",
-                "Authorization": f"Bearer {self.auth.token}",
-            },
+        response = await self._client.get(
+            self.auth.get_endpoint_url(endpoint),
+            headers={**DEFAULT_HEADERS, **self.auth.headers},
             cookies=self.auth.cookies,
+            follow_redirects=True,
+            auth=self.auth.auth,
         )
-        return r.json()
+        return orjson.loads(response.text)
 
     @property
     def host(self) -> str:

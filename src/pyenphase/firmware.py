@@ -2,7 +2,7 @@ import httpx
 from awesomeversion import AwesomeVersion
 from lxml import etree  # nosec
 
-from .exceptions import EnvoyFirmwareCheckError
+from .exceptions import EnvoyFirmwareCheckError, EnvoyFirmwareFatalCheckError
 
 
 class EnvoyFirmware:
@@ -17,6 +17,8 @@ class EnvoyFirmware:
         # <envoy>/info will return XML with the firmware version
         try:
             result = await self._client.get(f"http://{self._host}/info")
+        except httpx.ConnectError:
+            raise EnvoyFirmwareFatalCheckError(500, "Unable to connect to Envoy")
         except httpx.HTTPError:
             raise EnvoyFirmwareCheckError(500, "Unable to query firmware version")
 
