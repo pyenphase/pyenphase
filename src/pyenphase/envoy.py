@@ -4,6 +4,7 @@ import ssl
 from typing import Any
 
 import httpx
+import orjson
 from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
@@ -121,13 +122,13 @@ class Envoy:
                 "You must authenticate to the Envoy before making requests."
             )
 
-        r = await self._client.get(
+        response = await self._client.get(
             self.auth.get_endpoint_url(endpoint),
             headers={**DEFAULT_HEADERS, **self.auth.headers},
             cookies=self.auth.cookies,
             auth=self.auth.auth,
         )
-        return r.json()
+        return orjson.loads(response.text)
 
     @property
     def host(self) -> str:
