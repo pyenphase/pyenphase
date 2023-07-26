@@ -8,7 +8,7 @@ from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
-from .auth import EnvoyAuth, EnvoyTokenAuth
+from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .exceptions import EnvoyAuthenticationRequired
 from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
 
@@ -81,10 +81,13 @@ class Envoy:
             full_serial = self._firmware.serial
             if username is None:
                 username = "installer"
-                password = EnvoyUtils.get_password(full_serial, "installer")
+                password = EnvoyUtils.get_password(full_serial, username)
             elif username == "envoy" and password is None:
                 # The default password for the envoy user is the first 6 digits of the serial number
                 password = full_serial[:6]
+
+            if username and password:
+                self.auth = EnvoyLegacyAuth(self.host, username, password)
 
         if self._firmware.version >= AUTH_TOKEN_MIN_VERSION:
             # Envoy firmware using new token authentication
