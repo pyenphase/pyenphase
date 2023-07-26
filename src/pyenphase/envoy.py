@@ -126,6 +126,7 @@ class Envoy:
             self.auth.get_endpoint_url(endpoint),
             headers={**DEFAULT_HEADERS, **self.auth.headers},
             cookies=self.auth.cookies,
+            follow_redirects=True,
             auth=self.auth.auth,
         )
         return orjson.loads(response.text)
