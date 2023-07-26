@@ -30,12 +30,13 @@ async def main() -> None:
         "/ivp/meters",
         "/ivp/meters/readings",
         "/api/v1/production/inverters",
-        "/ivp/livedata/status" "/ivp/meters/reports/consumption",
+        "/ivp/livedata/status",
+        "/ivp/meters/reports/consumption",
     ]
 
     for end_point in end_points:
         try:
-            json_dict = await envoy.request("/ivp/livedata/status")
+            json_dict = await envoy.request(end_point)
         except Exception as e:
             print(e)
             continue
