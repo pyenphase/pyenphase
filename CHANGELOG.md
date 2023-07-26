@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (2023-07-26)
+
+### Feature
+
+* Add support for legacy firmware ([#11](https://github.com/pyenphase/pyenphase/issues/11)) ([`49cb15c`](https://github.com/pyenphase/pyenphase/commit/49cb15c58cde38dc41ff30c24c3365c491605274))
+
 ## v0.2.0 (2023-07-26)
 
 ### Feature
