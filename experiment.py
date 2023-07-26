@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 async def main() -> None:
-    envoy = Envoy("envoy.local")
+    envoy = Envoy(os.environ.get("ENVOY_HOST", "envoy.local"))
 
     await envoy.setup()
 
