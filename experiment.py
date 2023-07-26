@@ -4,7 +4,6 @@ import os
 from pprint import pprint
 
 import httpx
-from awesomeversion import AwesomeVersion
 
 from pyenphase.envoy import Envoy
 
@@ -21,9 +20,6 @@ async def main() -> None:
     token = os.environ.get("ENVOY_TOKEN")
 
     await envoy.authenticate(username=username, password=password, token=token)
-
-    if envoy.auth is not None:
-        print(envoy.auth.token)
 
     # Test https://enphase.com/download/iq-gateway-access-using-local-apis-or-local-ui-token-based-authentication-tech-brief endpoints
 

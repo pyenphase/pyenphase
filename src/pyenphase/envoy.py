@@ -106,13 +106,13 @@ class Envoy:
                     self.host, username, password, self._firmware.serial
                 )
 
-        if self.auth is not None:
-            await self.auth.setup(self._client)
-        else:
+        if not self.auth:
             _LOGGER.error(
                 "You must include username/password or token to authenticate to the Envoy."
             )
             raise EnvoyAuthenticationRequired("Could not setup authentication object.")
+
+        await self.auth.setup(self._client)
 
     async def request(self, endpoint: str) -> dict[str, Any]:
         """Make a request to the Envoy."""
