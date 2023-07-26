@@ -21,6 +21,7 @@ jobs:
         with:
           python-version: "3.10"
       - uses: pre-commit/action@v3.0.0
+      - uses: amannn/action-semantic-pull-request@v5
 
   # Make sure commit messages follow the conventional commits convention:
   # https://www.conventionalcommits.org
