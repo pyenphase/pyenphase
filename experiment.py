@@ -16,11 +16,11 @@ async def main() -> None:
 
     await envoy.setup()
 
-    if envoy.firmware >= AwesomeVersion("7.0.0"):
-        username = os.environ.get("ENVOY_USERNAME")
-        password = os.environ.get("ENVOY_PASSWORD")
-        token = os.environ.get("ENVOY_TOKEN")
-        await envoy.authenticate(username=username, password=password, token=token)
+    username = os.environ.get("ENVOY_USERNAME")
+    password = os.environ.get("ENVOY_PASSWORD")
+    token = os.environ.get("ENVOY_TOKEN")
+
+    await envoy.authenticate(username=username, password=password, token=token)
 
     if envoy.auth is not None:
         print(envoy.auth.token)

@@ -5,6 +5,7 @@ from typing import Any
 
 import httpx
 from awesomeversion import AwesomeVersion
+from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyTokenAuth
