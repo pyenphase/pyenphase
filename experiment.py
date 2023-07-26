@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from pprint import pprint
 
@@ -6,6 +7,8 @@ import httpx
 from awesomeversion import AwesomeVersion
 
 from pyenphase.envoy import Envoy
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 async def main() -> None:

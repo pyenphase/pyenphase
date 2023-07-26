@@ -13,6 +13,10 @@ from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
 
 _LOGGER = logging.getLogger(__name__)
 
+TIMEOUT = 15
+LEGACY_ENVOY_VERSION = AwesomeVersion("3.9.0")
+AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
+
 
 def create_no_verify_ssl_context() -> ssl.SSLContext:
     """Return an SSL context that does not verify the server certificate.
@@ -42,7 +46,9 @@ class Envoy:
     def __init__(self, host: str) -> None:
         """Initialize the Envoy class."""
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
-        self._client = httpx.AsyncClient(verify=_NO_VERIFY_SSL_CONTEXT)  # nosec
+        self._client = httpx.AsyncClient(
+            verify=_NO_VERIFY_SSL_CONTEXT, timeout=TIMEOUT
+        )  # nosec
         self.auth: EnvoyAuth | None = None
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
@@ -62,17 +68,17 @@ class Envoy:
         token: str | None = None,
     ) -> None:
         """Authenticate to the Envoy based on firmware version."""
-        if self._firmware.version < AwesomeVersion("3.9.0"):
+        if self._firmware.version < LEGACY_ENVOY_VERSION:
             # Legacy Envoy firmware
             _LOGGER.debug("Authenticating to Envoy using legacy authentication")
 
-        if AwesomeVersion("3.9.0") <= self._firmware.version < AwesomeVersion("7.0.0"):
+        if LEGACY_ENVOY_VERSION <= self._firmware.version < AUTH_TOKEN_MIN_VERSION:
             # Envoy firmware using old envoy/installer authentication
             _LOGGER.debug(
                 "Authenticating to Envoy using envoy/installer authentication"
             )
 
-        if self._firmware.version >= AwesomeVersion("7.0.0"):
+        if self._firmware.version >= AUTH_TOKEN_MIN_VERSION:
             # Envoy firmware using new token authentication
             _LOGGER.debug("Authenticating to Envoy using token authentication")
             if token is not None:
