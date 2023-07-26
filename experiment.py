@@ -23,35 +23,23 @@ async def main() -> None:
 
     # Test https://enphase.com/download/iq-gateway-access-using-local-apis-or-local-ui-token-based-authentication-tech-brief endpoints
 
-    live: httpx.Response = await envoy.request("/ivp/livedata/status")
-    print(("LIVE", "=" * 80))
-    pprint(live)
+    end_points = [
+        "/ivp/livedata/status",
+        "/production.json",
+        "/ivp/meters",
+        "/ivp/meters/readings",
+        "/api/v1/production/inverters",
+        "/ivp/livedata/status" "/ivp/meters/reports/consumption",
+    ]
 
-    prod: httpx.Response = await envoy.request("/production.json")
-    print("PRODUCTION", "=" * 80)
-    pprint(prod)
-
-    meter_details: httpx.Response = await envoy.request("/ivp/meters")
-    print("=" * 80)
-    pprint(meter_details)
-
-    meter_readings: httpx.Response = await envoy.request("/ivp/meters/readings")
-    print("=" * 80)
-    pprint(meter_readings)
-
-    inverters: httpx.Response = await envoy.request("/api/v1/production/inverters")
-    print("=" * 80)
-    pprint(inverters)
-
-    meters_live: httpx.Response = await envoy.request("/ivp/livedata/status")
-    print("=" * 80)
-    pprint(meters_live)
-
-    load_consumption: httpx.Response = await envoy.request(
-        "/ivp/meters/reports/consumption"
-    )
-    print("=" * 80)
-    pprint(load_consumption)
+    for end_point in end_points:
+        try:
+            json_dict = await envoy.request("/ivp/livedata/status")
+        except Exception as e:
+            print(e)
+            continue
+        print((end_point.upper(), "=" * 80))
+        pprint(json_dict)
 
 
 asyncio.run(main())
