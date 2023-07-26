@@ -38,8 +38,9 @@ async def main() -> None:
         except Exception as e:
             print(e)
             continue
-        print((end_point.upper(), "=" * 80))
+        print((end_point, "=" * 80))
         pprint(json_dict)
+        print((end_point, "=" * 80))
 
 
 asyncio.run(main())
