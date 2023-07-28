@@ -1,5 +1,7 @@
 """Model for the Enpower/IQ System Controller."""
 
+# Data Source: URL_ENSEMBLE_INVENTORY
+
 from typing import Any
 
 
