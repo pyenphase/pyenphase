@@ -3,7 +3,7 @@
 from typing import Any
 
 
-class Enpower:
+class EnvoyEnpower:
     def __init__(self, data: dict[str, Any]) -> None:
         """Initialize."""
         self._data = data
