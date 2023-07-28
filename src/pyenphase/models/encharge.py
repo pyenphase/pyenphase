@@ -111,6 +111,10 @@ class EnvoyEncharge:
         return self._data["temperature"]
 
     @property
+    def temperature_unit(self) -> str:
+        return "C"
+
+    @property
     def zigbee_dongle_fw_version(self) -> str:
         """Return the Zigbee dongle firmware version."""
         return self._data["zigbee_dongle_fw_version"]
