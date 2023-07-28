@@ -2,6 +2,8 @@
 
 from typing import Any
 
+# Data Source: URL_ENSEMBLE_INVENTORY, URL_ENCHARGE_BATTERY
+
 
 class EnvoyEncharge:
     def __init__(self, data: dict[str, Any]) -> None:
@@ -118,3 +120,18 @@ class EnvoyEncharge:
     def zigbee_dongle_fw_version(self) -> str:
         """Return the Zigbee dongle firmware version."""
         return self._data["zigbee_dongle_fw_version"]
+
+    @property
+    def apparent_power_mva(self) -> int:
+        """Return the apparent power in MVA."""
+        return self._data["apparent_power_mva"]
+
+    @property
+    def real_power_mw(self) -> int:
+        """Return the real power in MW."""
+        return self._data["real_power_mw"]
+
+    @property
+    def soc(self) -> int:
+        """Return the state of charge."""
+        return self._data["soc"]
