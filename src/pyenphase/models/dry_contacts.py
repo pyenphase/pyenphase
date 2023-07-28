@@ -1,4 +1,5 @@
 """Model for the Enpower dry contact relays."""
+# Data Source: URL_DRY_CONTACT_STATUS, URL_DRY_CONTACT_SETTINGS
 
 from typing import Any
 
