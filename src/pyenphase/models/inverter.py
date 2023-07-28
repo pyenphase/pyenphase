@@ -4,9 +4,7 @@ from typing import Any
 
 
 class EnvoyInverter:
-    __slots__ = (
-        "_data",
-    )
+    __slots__ = ("_data",)
 
     def __init__(self, data: dict[str, Any]) -> None:
         """Initialize."""
