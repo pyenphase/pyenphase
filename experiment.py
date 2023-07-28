@@ -33,6 +33,8 @@ async def main() -> None:
         "/ivp/livedata/status",
         "/ivp/meters/reports/consumption",
         "/ivp/ensemble/inventory",
+        "/ivp/ensemble/dry_contacts",
+        "/ivp/ss/dry_contact_settings",
     ]
 
     for end_point in end_points:
