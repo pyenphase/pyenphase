@@ -2,7 +2,7 @@
 
 from typing import Any
 
-# Data Source: URL_ENSEMBLE_INVENTORY, URL_ENCHARGE_BATTERY
+# Data Source: URL_ENSEMBLE_INVENTORY (primary) & URL_ENCHARGE_BATTERY
 
 
 class EnvoyEncharge:
@@ -104,6 +104,7 @@ class EnvoyEncharge:
     @property
     def serial_number(self) -> str:
         """Return the Encharge serial number."""
+        # Matches both API endpoints
         return self._data["serial_num"]
 
     @property
@@ -124,14 +125,17 @@ class EnvoyEncharge:
     @property
     def apparent_power_mva(self) -> int:
         """Return the apparent power in MVA."""
+        # From URL_ENCHARGE_BATTERY
         return self._data["apparent_power_mva"]
 
     @property
     def real_power_mw(self) -> int:
         """Return the real power in MW."""
+        # From URL_ENCHARGE_BATTERY
         return self._data["real_power_mw"]
 
     @property
     def soc(self) -> int:
         """Return the state of charge."""
+        # From URL_ENCHARGE_BATTERY
         return self._data["soc"]
