@@ -6,10 +6,6 @@ from typing import Any
 class EnvoyInverter:
     __slots__ = (
         "_data",
-        "serial_number",
-        "last_report_date",
-        "last_report_watts",
-        "max_report_watts",
     )
 
     def __init__(self, data: dict[str, Any]) -> None:
