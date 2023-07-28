@@ -1,5 +1,5 @@
 """Model for the Enpower dry contact relays."""
-# Data Source: URL_DRY_CONTACT_STATUS, URL_DRY_CONTACT_SETTINGS
+# Data Source: URL_DRY_CONTACT_SETTINGS (primary) & URL_DRY_CONTACT_STATUS
 
 from typing import Any
 
@@ -12,11 +12,13 @@ class EnvoyDryContact:
     @property
     def id(self) -> str:
         """Return the relay ID."""
+        # Matches between both API endpoints
         return self._data["id"]
 
     @property
     def status(self) -> str:
         """Return the relay status (opened/closed)."""
+        # From URL_DRY_CONTACT_STATUS
         return self._data["status"]
 
     @property
