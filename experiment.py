@@ -29,8 +29,6 @@ async def main() -> None:
         "/production",
         "/ivp/meters",
         "/ivp/meters/readings",
-        "/api/v1/production/inverters",
-        "/ivp/livedata/status",
         "/ivp/meters/reports/consumption",
         "/ivp/ensemble/inventory",
         "/ivp/ensemble/dry_contacts",
