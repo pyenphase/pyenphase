@@ -1,6 +1,8 @@
 # System Production
-URL_INVERTER_PRODUCTION = "/api/v1/production/inverters"
-URL_PRODUCTION = "/production.json"
+URL_PRODUCTION_INVERTERS = "/api/v1/production/inverters"
+URL_PRODUCTION_V1 = "/api/v1/production"
+URL_PRODUCTION_JSON = "/production.json"
+URL_PRODUCTION = "/production"
 
 # Battery and Enpower Status
 URL_DRY_CONTACT_STATUS = "/ivp/ensemble/dry_contacts"

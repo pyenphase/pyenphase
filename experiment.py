@@ -21,6 +21,8 @@ async def main() -> None:
 
     # Test https://enphase.com/download/iq-gateway-access-using-local-apis-or-local-ui-token-based-authentication-tech-brief endpoints
 
+    print(await envoy.update())
+
     end_points = [
         "/ivp/livedata/status",
         "/api/v1/production",

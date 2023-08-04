@@ -1,4 +1,6 @@
 import contextlib
+import enum
+import json
 import logging
 import ssl
 from typing import Any
@@ -10,8 +12,17 @@ from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
-from .exceptions import EnvoyAuthenticationRequired
+from .const import (
+    URL_PRODUCTION,
+    URL_PRODUCTION_INVERTERS,
+    URL_PRODUCTION_JSON,
+    URL_PRODUCTION_V1,
+)
+from .exceptions import EnvoyAuthenticationRequired, EnvoyProbeFailed
 from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
+from .models.envoy import EnvoyData
+from .models.inverter import EnvoyInverter
+from .models.system_production import EnvoySystemProduction
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,8 +56,15 @@ def create_no_verify_ssl_context() -> ssl.SSLContext:
 _NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 
 
+class SupportedFeatures(enum.IntFlag):
+    INVERTERS = 1
+    DRY_CONTACTS = 2
+    ENCHARGE = 4
+    ENPOWER = 8
+
+
 class Envoy:
-    """Class for querying and determining the Envoy firmware version."""
+    """Class for communicating with an envoy."""
 
     def __init__(self, host: str) -> None:
         """Initialize the Envoy class."""
@@ -57,6 +75,8 @@ class Envoy:
         self.auth: EnvoyAuth | None = None
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
+        self._supported_features: SupportedFeatures = SupportedFeatures(0)
+        self._production_endpoint: str | None = None
 
     @retry(
         retry=retry_if_exception_type(EnvoyFirmwareCheckError),
@@ -73,11 +93,7 @@ class Envoy:
         token: str | None = None,
     ) -> None:
         """Authenticate to the Envoy based on firmware version."""
-        if self._firmware.version < LEGACY_ENVOY_VERSION:
-            # Legacy Envoy firmware
-            _LOGGER.debug("Authenticating to Envoy using legacy authentication")
-
-        if LEGACY_ENVOY_VERSION <= self._firmware.version < AUTH_TOKEN_MIN_VERSION:
+        if self._firmware.version < AUTH_TOKEN_MIN_VERSION:
             # Envoy firmware using old envoy/installer authentication
             _LOGGER.debug(
                 "Authenticating to Envoy using envoy/installer authentication"
@@ -93,7 +109,7 @@ class Envoy:
             if username and password:
                 self.auth = EnvoyLegacyAuth(self.host, username, password)
 
-        if self._firmware.version >= AUTH_TOKEN_MIN_VERSION:
+        else:
             # Envoy firmware using new token authentication
             _LOGGER.debug("Authenticating to Envoy using token authentication")
             if token is not None:
@@ -115,7 +131,11 @@ class Envoy:
 
         await self.auth.setup(self._client)
 
-    async def request(self, endpoint: str) -> dict[str, Any]:
+    @retry(
+        retry=retry_if_exception_type((httpx.ReadError, httpx.RemoteProtocolError)),
+        wait=wait_random_exponential(multiplier=2, max=2),
+    )
+    async def request(self, endpoint: str) -> Any:
         """Make a request to the Envoy."""
         if self.auth is None:
             raise EnvoyAuthenticationRequired(
@@ -137,6 +157,66 @@ class Envoy:
         return self._host
 
     @property
-    def firmware(self) -> str:
+    def firmware(self) -> AwesomeVersion:
         """Return the Envoy firmware version."""
         return self._firmware.version
+
+    @property
+    def serial_number(self) -> str | None:
+        """Return the Envoy serial number."""
+        return self._firmware.serial
+
+    async def probe(self) -> None:
+        """Probe for model and supported features."""
+        for endpoint in (
+            URL_PRODUCTION_V1,
+            URL_PRODUCTION_JSON,
+            URL_PRODUCTION,
+        ):
+            try:
+                await self.request(endpoint)
+            except (json.JSONDecodeError, httpx.HTTPError) as e:
+                _LOGGER.debug("Production endpoint not found at %s: %s", endpoint, e)
+                continue
+            self._production_endpoint = endpoint
+            break
+
+        try:
+            await self.request(URL_PRODUCTION_INVERTERS)
+        except (json.JSONDecodeError, httpx.HTTPError) as e:
+            _LOGGER.debug("Inverters endpoint not found: %s", e)
+        else:
+            self._supported_features |= SupportedFeatures.INVERTERS
+
+    async def update(self) -> EnvoyData:
+        """Update data."""
+        if not self._production_endpoint:
+            await self.probe()
+
+        if not self._production_endpoint:
+            raise EnvoyProbeFailed("Unable to determine production endpoint")
+
+        production_data = await self.request(self._production_endpoint)
+        inverters: dict[str, EnvoyInverter] = {}
+        raw = {
+            "production": production_data,
+        }
+
+        if self._supported_features & SupportedFeatures.INVERTERS:
+            inverters_data: list[dict[str, Any]] = await self.request(
+                URL_PRODUCTION_INVERTERS
+            )
+            inverters = {
+                inverter["serialNumber"]: EnvoyInverter(inverter)
+                for inverter in inverters_data
+            }
+            raw["inverters"] = inverters_data
+
+        return EnvoyData(
+            system_production=EnvoySystemProduction(production_data),
+            inverters=inverters,
+            # Raw data is exposed so we can __eq__ the data to see if
+            # anything has changed and consumers of the library can
+            # avoid dispatching data if nothing has changed.
+            raw=raw,
+        )
