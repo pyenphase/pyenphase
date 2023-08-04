@@ -12,6 +12,12 @@ from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
+from .const import (
+    URL_PRODUCTION,
+    URL_PRODUCTION_INVERTERS,
+    URL_PRODUCTION_JSON,
+    URL_PRODUCTION_V1,
+)
 from .exceptions import EnvoyAuthenticationRequired, EnvoyProbeFailed
 from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
 from .models.envoy import EnvoyData
@@ -62,13 +68,6 @@ class Models(enum.Enum):
     MODEL_S = "PC"
     MODEL_C = "P"
     MODEL_LEGACY = "P0"
-
-
-ENDPOINT_URL_PRODUCTION_V1 = "/api/v1/production"
-ENDPOINT_URL_PRODUCTION_JSON = "/production.json"
-ENDPOINT_URL_PRODUCTION = "/production"
-
-ENDPOINT_URL_PRODUCTION_INVERTERS = "/api/v1/production/inverters"
 
 
 class Envoy:
@@ -177,9 +176,9 @@ class Envoy:
     async def probe(self) -> None:
         """Probe for model and supported features."""
         for endpoint in (
-            ENDPOINT_URL_PRODUCTION_V1,
-            ENDPOINT_URL_PRODUCTION_JSON,
-            ENDPOINT_URL_PRODUCTION,
+            URL_PRODUCTION_V1,
+            URL_PRODUCTION_JSON,
+            URL_PRODUCTION,
         ):
             try:
                 await self.request(endpoint)
@@ -190,7 +189,7 @@ class Envoy:
             break
 
         try:
-            await self.request(ENDPOINT_URL_PRODUCTION_INVERTERS)
+            await self.request(URL_PRODUCTION_INVERTERS)
         except (json.JSONDecodeError, httpx.HTTPError) as e:
             _LOGGER.debug("Inverters endpoint not found: %s", e)
         else:
@@ -212,7 +211,7 @@ class Envoy:
 
         if self._supported_features & SupportedFeatures.INVERTERS:
             inverters_data: list[dict[str, Any]] = await self.request(
-                ENDPOINT_URL_PRODUCTION_INVERTERS
+                URL_PRODUCTION_INVERTERS
             )
             inverters = {
                 inverter["serialNumber"]: EnvoyInverter(inverter)
