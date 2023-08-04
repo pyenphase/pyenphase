@@ -20,14 +20,3 @@ class EnvoySystemProduction:
         self.watt_hours_last_7_days = data["wattHoursSevenDays"]
         self.watt_hours_today = data["wattHoursToday"]
         self.watts_now = data["wattsNow"]
-
-    def __repr__(self) -> str:
-        """Return a representation of the system production."""
-        return (
-            f"<EnvoySystemProduction: "
-            f"watt_hours_lifetime={self.watt_hours_lifetime} "
-            f"watt_hours_last_7_days={self.watt_hours_last_7_days} "
-            f"watt_hours_today={self.watt_hours_today} "
-            f"watts_now={self.watts_now}"
-            ">"
-        )

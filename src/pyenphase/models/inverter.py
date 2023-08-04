@@ -19,13 +19,3 @@ class EnvoyInverter:
         self.last_report_date = data["lastReportDate"]
         self.last_report_watts = data["lastReportWatts"]
         self.max_report_watts = data["maxReportWatts"]
-
-    def __repr__(self) -> str:
-        """Return a representation of the inverter."""
-        return (
-            f"<EnvoyInverter: {self.serial_number} "
-            f"last_report_data={self.last_report_date} "
-            f"last_report_watts={self.last_report_watts} "
-            f"max_report_watts={self.max_report_watts}"
-            ">"
-        )

@@ -12,6 +12,8 @@ from .system_production import EnvoySystemProduction
 
 @dataclass(slots=True)
 class EnvoyData:
+    """Model for an envoy."""
+
     encharge: EnvoyEncharge | None
     enpower: EnvoyEnpower | None
     system_production: EnvoySystemProduction | None
