@@ -224,5 +224,8 @@ class Envoy:
             enpower=None,
             system_production=EnvoySystemProduction(production_data),
             inverters=inverters,
+            # Raw data is exposed so we can __eq__ the data to see if
+            # anything has changed and consumers of the library can
+            # avoid dispatching data if nothing has changed.
             raw=raw,
         )
