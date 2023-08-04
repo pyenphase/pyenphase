@@ -10,6 +10,16 @@ class EnvoyInverter:
         """Initialize."""
         self._data = data
 
+    def __repr__(self) -> str:
+        """Return a representation of the inverter."""
+        return (
+            f"<EnvoyInverter: {self.serial_number} "
+            f"last_report_data={self.last_report_date} "
+            f"last_report_watts={self.last_report_watts} "
+            f"max_report_watts={self.max_report_watts} "
+            ">"
+        )
+
     @property
     def serial_number(self) -> str:
         """Return the serial number."""

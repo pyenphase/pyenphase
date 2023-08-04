@@ -1,5 +1,6 @@
 import contextlib
 import enum
+import json
 import logging
 import ssl
 from typing import Any
@@ -138,6 +139,10 @@ class Envoy:
 
         await self.auth.setup(self._client)
 
+    @retry(
+        retry=retry_if_exception_type((httpx.ReadError, httpx.RemoteProtocolError)),
+        wait=wait_random_exponential(multiplier=2, max=2),
+    )
     async def request(self, endpoint: str) -> Any:
         """Make a request to the Envoy."""
         if self.auth is None:
@@ -178,14 +183,15 @@ class Envoy:
         ):
             try:
                 await self.request(endpoint)
-            except httpx.HTTPError as e:
+            except (json.JSONDecodeError, httpx.HTTPError) as e:
                 _LOGGER.debug("Production endpoint not found at %s: %s", endpoint, e)
                 continue
             self._production_endpoint = endpoint
+            break
 
         try:
             await self.request(ENDPOINT_URL_PRODUCTION_INVERTERS)
-        except httpx.HTTPError as e:
+        except (json.JSONDecodeError, httpx.HTTPError) as e:
             _LOGGER.debug("Inverters endpoint not found: %s", e)
         else:
             self._supported_features |= SupportedFeatures.INVERTERS
