@@ -1,14 +1,22 @@
 """Model for an Enphase microinverter."""
 
+from dataclasses import dataclass
 from typing import Any
 
 
+@dataclass(slots=True)
 class EnvoyInverter:
-    __slots__ = ("_data",)
+    serial_number: str
+    last_report_date: int
+    last_report_watts: int
+    max_report_watts: int
 
     def __init__(self, data: dict[str, Any]) -> None:
         """Initialize."""
-        self._data = data
+        self.serial_number = data["serialNumber"]
+        self.last_report_date = data["lastReportDate"]
+        self.last_report_watts = data["lastReportWatts"]
+        self.max_report_watts = data["maxReportWatts"]
 
     def __repr__(self) -> str:
         """Return a representation of the inverter."""
@@ -19,23 +27,3 @@ class EnvoyInverter:
             f"max_report_watts={self.max_report_watts}"
             ">"
         )
-
-    @property
-    def serial_number(self) -> str:
-        """Return the serial number."""
-        return self._data["serialNumber"]
-
-    @property
-    def last_report_date(self) -> int:
-        """Return the timestamp when the inverter last sent a report."""
-        return self._data["lastReportDate"]
-
-    @property
-    def last_report_watts(self) -> int:
-        """Return the production from the last report in watts."""
-        return self._data["lastReportWatts"]
-
-    @property
-    def max_report_watts(self) -> int:
-        """Return the maximum production of the inverter in watts."""
-        return self._data["maxReportWatts"]
