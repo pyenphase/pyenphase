@@ -6,6 +6,8 @@ from typing import Any
 
 @dataclass(slots=True)
 class EnvoyInverter:
+    """Model for an Enphase microinverter."""
+
     serial_number: str
     last_report_date: int
     last_report_watts: int
