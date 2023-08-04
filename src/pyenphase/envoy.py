@@ -26,7 +26,7 @@ from .models.system_production import EnvoySystemProduction
 
 _LOGGER = logging.getLogger(__name__)
 
-TIMEOUT = 15
+TIMEOUT = 20
 LEGACY_ENVOY_VERSION = AwesomeVersion("3.9.0")
 AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
 DEFAULT_HEADERS = {
@@ -58,9 +58,12 @@ _NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 
 class SupportedFeatures(enum.IntFlag):
     INVERTERS = 1
-    DRY_CONTACTS = 2
-    ENCHARGE = 4
-    ENPOWER = 8
+    METERING = 2
+    TOTAL_CONSUMPTION = 4
+    NET_CONSUMPTION = 8
+    DRY_CONTACTS = 16
+    ENCHARGE = 32
+    ENPOWER = 64
 
 
 class Envoy:
@@ -133,7 +136,7 @@ class Envoy:
 
     @retry(
         retry=retry_if_exception_type((httpx.ReadError, httpx.RemoteProtocolError)),
-        wait=wait_random_exponential(multiplier=2, max=2),
+        wait=wait_random_exponential(multiplier=2, max=3),
     )
     async def request(self, endpoint: str) -> Any:
         """Make a request to the Envoy."""
@@ -168,18 +171,42 @@ class Envoy:
 
     async def probe(self) -> None:
         """Probe for model and supported features."""
-        for endpoint in (
-            URL_PRODUCTION_V1,
-            URL_PRODUCTION_JSON,
-            URL_PRODUCTION,
-        ):
-            try:
-                await self.request(endpoint)
-            except (json.JSONDecodeError, httpx.HTTPError) as e:
-                _LOGGER.debug("Production endpoint not found at %s: %s", endpoint, e)
-                continue
-            self._production_endpoint = endpoint
-            break
+        try:
+            production_json: dict[str, Any] = await self.request(URL_PRODUCTION)
+        except (json.JSONDecodeError, httpx.HTTPError) as e:
+            _LOGGER.debug("Production endpoint not found at %s: %s", URL_PRODUCTION, e)
+        else:
+            production: list[dict[str, str | float | int]] | None = production_json.get(
+                "production"
+            )
+            if production:
+                for type_ in production:
+                    if type_["type"] == "eim" and type_["activeCount"]:
+                        self._supported_features |= SupportedFeatures.METERING
+                        break
+            consumption: list[
+                dict[str, str | float | int]
+            ] | None = production_json.get("consumption")
+            if consumption:
+                for meter in consumption:
+                    meter_type = meter["measurementType"]
+                    if meter_type == "total-consumption":
+                        self._supported_features |= SupportedFeatures.TOTAL_CONSUMPTION
+                    elif meter_type == "net-consumption":
+                        self._supported_features |= SupportedFeatures.NET_CONSUMPTION
+            self._production_endpoint = URL_PRODUCTION
+
+        if not self._production_endpoint:
+            for endpoint in (URL_PRODUCTION_V1, URL_PRODUCTION_JSON):
+                try:
+                    await self.request(endpoint)
+                except (json.JSONDecodeError, httpx.HTTPError) as e:
+                    _LOGGER.debug(
+                        "Production endpoint not found at %s: %s", endpoint, e
+                    )
+                    continue
+                self._production_endpoint = endpoint
+                break
 
         try:
             await self.request(URL_PRODUCTION_INVERTERS)
