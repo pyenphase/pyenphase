@@ -1,4 +1,5 @@
 import contextlib
+import enum
 import logging
 import ssl
 from typing import Any
@@ -10,8 +11,11 @@ from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
-from .exceptions import EnvoyAuthenticationRequired
+from .exceptions import EnvoyAuthenticationRequired, EnvoyProbeFailed
 from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
+from .models.envoy import EnvoyData
+from .models.inverter import EnvoyInverter
+from .models.system_production import EnvoySystemProduction
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,6 +49,27 @@ def create_no_verify_ssl_context() -> ssl.SSLContext:
 _NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 
 
+class SupportedFeatures(enum.IntFlag):
+    DRY_CONTACTS = 1
+    ENCHARGE = 2
+    ENPOWER = 4
+    INVERTERS = 8
+    SYSTEM_PRODUCTION = 16
+
+
+class Models(enum.Enum):
+    MODEL_S = "PC"
+    MODEL_C = "P"
+    MODEL_LEGACY = "P0"
+
+
+ENDPOINT_URL_PRODUCTION_V1 = "/api/v1/production"
+ENDPOINT_URL_PRODUCTION_JSON = "/production.json"
+ENDPOINT_URL_PRODUCTION = "/production"
+
+ENDPOINT_URL_PRODUCTION_INVERTERS = "/api/v1/production/inverters"
+
+
 class Envoy:
     """Class for communicating with an envoy."""
 
@@ -57,6 +82,8 @@ class Envoy:
         self.auth: EnvoyAuth | None = None
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
+        self._supported_features: SupportedFeatures = SupportedFeatures(0)
+        self._production_endpoint: str | None = None
 
     @retry(
         retry=retry_if_exception_type(EnvoyFirmwareCheckError),
@@ -111,7 +138,7 @@ class Envoy:
 
         await self.auth.setup(self._client)
 
-    async def request(self, endpoint: str) -> dict[str, Any]:
+    async def request(self, endpoint: str) -> Any:
         """Make a request to the Envoy."""
         if self.auth is None:
             raise EnvoyAuthenticationRequired(
@@ -133,7 +160,7 @@ class Envoy:
         return self._host
 
     @property
-    def firmware(self) -> str:
+    def firmware(self) -> AwesomeVersion:
         """Return the Envoy firmware version."""
         return self._firmware.version
 
@@ -141,3 +168,56 @@ class Envoy:
     def serial_number(self) -> str | None:
         """Return the Envoy serial number."""
         return self._firmware.serial
+
+    async def probe(self) -> None:
+        """Probe for model and supported features."""
+        for endpoint in (
+            ENDPOINT_URL_PRODUCTION_V1,
+            ENDPOINT_URL_PRODUCTION_JSON,
+            ENDPOINT_URL_PRODUCTION,
+        ):
+            try:
+                await self.request(endpoint)
+            except httpx.HTTPError as e:
+                _LOGGER.debug("Production endpoint not found at %s: %s", endpoint, e)
+                continue
+            self._production_endpoint = endpoint
+
+        try:
+            await self.request(ENDPOINT_URL_PRODUCTION_INVERTERS)
+        except httpx.HTTPError as e:
+            _LOGGER.debug("Inverters endpoint not found: %s", e)
+        else:
+            self._supported_features |= SupportedFeatures.INVERTERS
+
+    async def update(self) -> EnvoyData:
+        """Update data."""
+        if not self._production_endpoint:
+            await self.probe()
+
+        if not self._production_endpoint:
+            raise EnvoyProbeFailed("Unable to determine production endpoint")
+
+        production_data = await self.request(self._production_endpoint)
+        inverters: dict[str, EnvoyInverter] = {}
+        raw = {
+            "production": production_data,
+        }
+
+        if self._supported_features & SupportedFeatures.INVERTERS:
+            inverters_data: list[dict[str, Any]] = await self.request(
+                ENDPOINT_URL_PRODUCTION_INVERTERS
+            )
+            inverters = {
+                inverter["serialNumber"]: EnvoyInverter(inverter)
+                for inverter in inverters_data
+            }
+            raw["inverters"] = inverters_data
+
+        return EnvoyData(
+            encharge=None,
+            enpower=None,
+            system_production=EnvoySystemProduction(production_data),
+            inverters=inverters,
+            raw=raw,
+        )
