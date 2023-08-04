@@ -220,8 +220,6 @@ class Envoy:
             raw["inverters"] = inverters_data
 
         return EnvoyData(
-            encharge=None,
-            enpower=None,
             system_production=EnvoySystemProduction(production_data),
             inverters=inverters,
             # Raw data is exposed so we can __eq__ the data to see if
