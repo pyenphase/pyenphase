@@ -190,9 +190,9 @@ class Envoy:
             if consumption:
                 for meter in consumption:
                     meter_type = meter["measurementType"]
-                    if meter_type == "total-consumption":
+                    if meter_type == "total-consumption" and meter["activeCount"]:
                         self._supported_features |= SupportedFeatures.TOTAL_CONSUMPTION
-                    elif meter_type == "net-consumption":
+                    elif meter_type == "net-consumption" and meter["activeCount"]:
                         self._supported_features |= SupportedFeatures.NET_CONSUMPTION
             self._production_endpoint = URL_PRODUCTION
 
