@@ -16,7 +16,7 @@ class EnvoyInverter:
             f"<EnvoyInverter: {self.serial_number} "
             f"last_report_data={self.last_report_date} "
             f"last_report_watts={self.last_report_watts} "
-            f"max_report_watts={self.max_report_watts} "
+            f"max_report_watts={self.max_report_watts}"
             ">"
         )
 
