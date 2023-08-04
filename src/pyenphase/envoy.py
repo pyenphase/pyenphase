@@ -57,17 +57,10 @@ _NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 
 
 class SupportedFeatures(enum.IntFlag):
-    DRY_CONTACTS = 1
-    ENCHARGE = 2
-    ENPOWER = 4
-    INVERTERS = 8
-    SYSTEM_PRODUCTION = 16
-
-
-class Models(enum.Enum):
-    MODEL_S = "PC"
-    MODEL_C = "P"
-    MODEL_LEGACY = "P0"
+    INVERTERS = 1
+    DRY_CONTACTS = 2
+    ENCHARGE = 4
+    ENPOWER = 8
 
 
 class Envoy:
