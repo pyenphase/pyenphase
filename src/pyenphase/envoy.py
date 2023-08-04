@@ -46,7 +46,7 @@ _NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 
 
 class Envoy:
-    """Class for querying and determining the Envoy firmware version."""
+    """Class for communicating with an envoy."""
 
     def __init__(self, host: str) -> None:
         """Initialize the Envoy class."""
@@ -73,11 +73,7 @@ class Envoy:
         token: str | None = None,
     ) -> None:
         """Authenticate to the Envoy based on firmware version."""
-        if self._firmware.version < LEGACY_ENVOY_VERSION:
-            # Legacy Envoy firmware
-            _LOGGER.debug("Authenticating to Envoy using legacy authentication")
-
-        if LEGACY_ENVOY_VERSION <= self._firmware.version < AUTH_TOKEN_MIN_VERSION:
+        if self._firmware.version < AUTH_TOKEN_MIN_VERSION:
             # Envoy firmware using old envoy/installer authentication
             _LOGGER.debug(
                 "Authenticating to Envoy using envoy/installer authentication"
@@ -93,7 +89,7 @@ class Envoy:
             if username and password:
                 self.auth = EnvoyLegacyAuth(self.host, username, password)
 
-        if self._firmware.version >= AUTH_TOKEN_MIN_VERSION:
+        else:
             # Envoy firmware using new token authentication
             _LOGGER.debug("Authenticating to Envoy using token authentication")
             if token is not None:
@@ -140,3 +136,8 @@ class Envoy:
     def firmware(self) -> str:
         """Return the Envoy firmware version."""
         return self._firmware.version
+
+    @property
+    def serial_number(self) -> str | None:
+        """Return the Envoy serial number."""
+        return self._firmware.serial
