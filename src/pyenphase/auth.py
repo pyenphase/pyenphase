@@ -105,14 +105,15 @@ class EnvoyTokenAuth(EnvoyAuth):
             response = await self._post_json_with_cloud_client(
                 cloud_client,
                 "https://enlighten.enphaseenergy.com/login/login.json?",
-                {
+                data={
                     "user[email]": self.cloud_username,
                     "user[password]": self.cloud_password,
                 },
             )
             if response.status_code != 200:
                 raise EnvoyAuthenticationError(
-                    "Unable to login to Enlighten to obtain session ID."
+                    "Unable to login to Enlighten to obtain session ID: "
+                    f"{response.status_code}: {response.text}"
                 )
             response = orjson.loads(response.text)
             self._is_consumer = response["is_consumer"]
@@ -122,7 +123,7 @@ class EnvoyTokenAuth(EnvoyAuth):
             response = await self._post_json_with_cloud_client(
                 cloud_client,
                 "https://entrez.enphaseenergy.com/tokens",
-                {
+                json={
                     "session_id": response["session_id"],
                     "serial_num": self.envoy_serial,
                     "username": self.cloud_username,
@@ -130,7 +131,8 @@ class EnvoyTokenAuth(EnvoyAuth):
             )
             if response.status_code != 200:
                 raise EnvoyAuthenticationError(
-                    "Unable to obtain token for Envoy authentication."
+                    "Unable to obtain token for Envoy authentication: "
+                    f"{response.status_code}: {response.text}"
                 )
             return response.text
 
@@ -141,10 +143,14 @@ class EnvoyTokenAuth(EnvoyAuth):
         wait=wait_random_exponential(multiplier=2, max=3),
     )
     async def _post_json_with_cloud_client(
-        self, client: httpx.AsyncClient, url: str, data: dict[str, Any]
+        self,
+        client: httpx.AsyncClient,
+        url: str,
+        data: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
     ) -> httpx.Response:
         """Post to the Envoy API with the cloud client."""
-        return await client.post(url, json=data)
+        return await client.post(url, json=json, data=data)
 
     @property
     def token(self) -> str:
