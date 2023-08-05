@@ -22,11 +22,12 @@ from .exceptions import EnvoyAuthenticationRequired, EnvoyProbeFailed
 from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
 from .models.envoy import EnvoyData
 from .models.inverter import EnvoyInverter
+from .models.system_consumption import EnvoySystemConsumption
 from .models.system_production import EnvoySystemProduction
 
 _LOGGER = logging.getLogger(__name__)
 
-TIMEOUT = 15
+TIMEOUT = 20
 LEGACY_ENVOY_VERSION = AwesomeVersion("3.9.0")
 AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
 DEFAULT_HEADERS = {
@@ -58,9 +59,12 @@ _NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 
 class SupportedFeatures(enum.IntFlag):
     INVERTERS = 1
-    DRY_CONTACTS = 2
-    ENCHARGE = 4
-    ENPOWER = 8
+    METERING = 2
+    TOTAL_CONSUMPTION = 4
+    NET_CONSUMPTION = 8
+    DRY_CONTACTS = 16
+    ENCHARGE = 32
+    ENPOWER = 64
 
 
 class Envoy:
@@ -132,8 +136,10 @@ class Envoy:
         await self.auth.setup(self._client)
 
     @retry(
-        retry=retry_if_exception_type((httpx.ReadError, httpx.RemoteProtocolError)),
-        wait=wait_random_exponential(multiplier=2, max=2),
+        retry=retry_if_exception_type(
+            (httpx.NetworkError, httpx.TimeoutException, httpx.RemoteProtocolError)
+        ),
+        wait=wait_random_exponential(multiplier=2, max=3),
     )
     async def request(self, endpoint: str) -> Any:
         """Make a request to the Envoy."""
@@ -168,18 +174,42 @@ class Envoy:
 
     async def probe(self) -> None:
         """Probe for model and supported features."""
-        for endpoint in (
-            URL_PRODUCTION_V1,
-            URL_PRODUCTION_JSON,
-            URL_PRODUCTION,
-        ):
-            try:
-                await self.request(endpoint)
-            except (json.JSONDecodeError, httpx.HTTPError) as e:
-                _LOGGER.debug("Production endpoint not found at %s: %s", endpoint, e)
-                continue
-            self._production_endpoint = endpoint
-            break
+        try:
+            production_json: dict[str, Any] = await self.request(URL_PRODUCTION)
+        except (json.JSONDecodeError, httpx.HTTPError) as e:
+            _LOGGER.debug("Production endpoint not found at %s: %s", URL_PRODUCTION, e)
+        else:
+            production: list[dict[str, str | float | int]] | None = production_json.get(
+                "production"
+            )
+            if production:
+                for type_ in production:
+                    if type_["type"] == "eim" and type_["activeCount"]:
+                        self._supported_features |= SupportedFeatures.METERING
+                        break
+            consumption: list[
+                dict[str, str | float | int]
+            ] | None = production_json.get("consumption")
+            if consumption:
+                for meter in consumption:
+                    meter_type = meter["measurementType"]
+                    if meter_type == "total-consumption" and meter["activeCount"]:
+                        self._supported_features |= SupportedFeatures.TOTAL_CONSUMPTION
+                    elif meter_type == "net-consumption" and meter["activeCount"]:
+                        self._supported_features |= SupportedFeatures.NET_CONSUMPTION
+            self._production_endpoint = URL_PRODUCTION
+
+        if not self._production_endpoint:
+            for endpoint in (URL_PRODUCTION_V1, URL_PRODUCTION_JSON):
+                try:
+                    await self.request(endpoint)
+                except (json.JSONDecodeError, httpx.HTTPError) as e:
+                    _LOGGER.debug(
+                        "Production endpoint not found at %s: %s", endpoint, e
+                    )
+                    continue
+                self._production_endpoint = endpoint
+                break
 
         try:
             await self.request(URL_PRODUCTION_INVERTERS)
@@ -196,24 +226,39 @@ class Envoy:
         if not self._production_endpoint:
             raise EnvoyProbeFailed("Unable to determine production endpoint")
 
-        production_data = await self.request(self._production_endpoint)
+        production_endpoint = self._production_endpoint
+        supported_features = self._supported_features
+        system_consumption: EnvoySystemConsumption | None = None
+        production_data = await self.request(production_endpoint)
         inverters: dict[str, EnvoyInverter] = {}
-        raw = {
-            "production": production_data,
-        }
+        raw = {"production": production_data}
 
-        if self._supported_features & SupportedFeatures.INVERTERS:
+        if production_endpoint == URL_PRODUCTION:
+            if (
+                supported_features & SupportedFeatures.TOTAL_CONSUMPTION
+                or supported_features & SupportedFeatures.NET_CONSUMPTION
+            ):
+                system_consumption = EnvoySystemConsumption.from_production(
+                    production_data
+                )
+            system_production = EnvoySystemProduction.from_production(production_data)
+        else:
+            # Production endpoint is either URL_PRODUCTION_V1 or URL_PRODUCTION_JSON
+            system_production = EnvoySystemProduction.from_v1_api(production_data)
+
+        if supported_features & SupportedFeatures.INVERTERS:
             inverters_data: list[dict[str, Any]] = await self.request(
                 URL_PRODUCTION_INVERTERS
             )
             inverters = {
-                inverter["serialNumber"]: EnvoyInverter(inverter)
+                inverter["serialNumber"]: EnvoyInverter.from_v1_api(inverter)
                 for inverter in inverters_data
             }
             raw["inverters"] = inverters_data
 
         return EnvoyData(
-            system_production=EnvoySystemProduction(production_data),
+            system_production=system_production,
+            system_consumption=system_consumption,
             inverters=inverters,
             # Raw data is exposed so we can __eq__ the data to see if
             # anything has changed and consumers of the library can
