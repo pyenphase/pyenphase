@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.1 (2023-08-05)
+
+### Fix
+
+* Unclosed cloud client session ([#20](https://github.com/pyenphase/pyenphase/issues/20)) ([`b46282a`](https://github.com/pyenphase/pyenphase/commit/b46282a9f9ed20be4487582cd2461a02b7740de6))
+
 ## v0.6.0 (2023-08-05)
 
 ### Feature
