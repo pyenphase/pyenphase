@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2023-08-05)
+
+### Feature
+
+* Add update functions ([#16](https://github.com/pyenphase/pyenphase/issues/16)) ([`d2802e0`](https://github.com/pyenphase/pyenphase/commit/d2802e0e9322050d37e0affa4a87f127731c29a2))
+
 ## v0.3.0 (2023-07-26)
 
 ### Feature
