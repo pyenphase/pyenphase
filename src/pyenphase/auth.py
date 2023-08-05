@@ -2,9 +2,11 @@
 
 import ssl
 from abc import abstractmethod, abstractproperty
+from typing import Any
 
 import httpx
 import orjson
+from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .exceptions import EnvoyAuthenticationError
 
@@ -98,37 +100,51 @@ class EnvoyTokenAuth(EnvoyAuth):
     async def _obtain_token(self) -> None:
         """Obtain the token for Envoy authentication."""
         # we require a new client that checks SSL certs
-        async with httpx.AsyncClient(verify=_SSL_CONTEXT) as cloud_client:
+        async with httpx.AsyncClient(verify=_SSL_CONTEXT, timeout=10) as cloud_client:
             # Login to Enlighten to obtain a session ID
-            data = {
-                "user[email]": self.cloud_username,
-                "user[password]": self.cloud_password,
-            }
-            req = await cloud_client.post(
-                "https://enlighten.enphaseenergy.com/login/login.json?", data=data
+            response = await self._post_json_with_cloud_client(
+                cloud_client,
+                "https://enlighten.enphaseenergy.com/login/login.json?",
+                {
+                    "user[email]": self.cloud_username,
+                    "user[password]": self.cloud_password,
+                },
             )
-            if req.status_code != 200:
+            if response.status_code != 200:
                 raise EnvoyAuthenticationError(
                     "Unable to login to Enlighten to obtain session ID."
                 )
-            response = orjson.loads(req.text)
+            response = orjson.loads(response.text)
             self._is_consumer = response["is_consumer"]
             self._manager_token = response["manager_token"]
 
             # Obtain the token
-            data = {
-                "session_id": response["session_id"],
-                "serial_num": self.envoy_serial,
-                "username": self.cloud_username,
-            }
-            req = await cloud_client.post(
-                "https://entrez.enphaseenergy.com/tokens", json=data
+            response = await self._post_json_with_cloud_client(
+                cloud_client,
+                "https://entrez.enphaseenergy.com/tokens",
+                {
+                    "session_id": response["session_id"],
+                    "serial_num": self.envoy_serial,
+                    "username": self.cloud_username,
+                },
             )
-            if req.status_code != 200:
+            if response.status_code != 200:
                 raise EnvoyAuthenticationError(
                     "Unable to obtain token for Envoy authentication."
                 )
-            return req.text
+            return response.text
+
+    @retry(
+        retry=retry_if_exception_type(
+            (httpx.NetworkError, httpx.TimeoutException, httpx.RemoteProtocolError)
+        ),
+        wait=wait_random_exponential(multiplier=2, max=3),
+    )
+    async def _post_json_with_cloud_client(
+        self, client: httpx.AsyncClient, url: str, data: dict[str, Any]
+    ) -> httpx.Response:
+        """Post to the Envoy API with the cloud client."""
+        return await client.post(url, json=data)
 
     @property
     def token(self) -> str:
