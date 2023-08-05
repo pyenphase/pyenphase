@@ -22,6 +22,7 @@ from .exceptions import EnvoyAuthenticationRequired, EnvoyProbeFailed
 from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
 from .models.envoy import EnvoyData
 from .models.inverter import EnvoyInverter
+from .models.system_consumption import EnvoySystemConsumption
 from .models.system_production import EnvoySystemProduction
 
 _LOGGER = logging.getLogger(__name__)
@@ -223,24 +224,39 @@ class Envoy:
         if not self._production_endpoint:
             raise EnvoyProbeFailed("Unable to determine production endpoint")
 
-        production_data = await self.request(self._production_endpoint)
+        production_endpoint = self._production_endpoint
+        supported_features = self._supported_features
+        system_consumption: EnvoySystemConsumption | None = None
+        production_data = await self.request(production_endpoint)
         inverters: dict[str, EnvoyInverter] = {}
-        raw = {
-            "production": production_data,
-        }
+        raw = {"production": production_data}
 
-        if self._supported_features & SupportedFeatures.INVERTERS:
+        if production_endpoint == URL_PRODUCTION:
+            if (
+                supported_features & SupportedFeatures.TOTAL_CONSUMPTION
+                or supported_features & SupportedFeatures.NET_CONSUMPTION
+            ):
+                system_consumption = EnvoySystemConsumption.from_production(
+                    production_data
+                )
+            system_production = EnvoySystemProduction.from_production(production_data)
+        else:
+            # Production endpoint is either URL_PRODUCTION_V1 or URL_PRODUCTION_JSON
+            system_production = EnvoySystemProduction.from_v1_api(production_data)
+
+        if supported_features & SupportedFeatures.INVERTERS:
             inverters_data: list[dict[str, Any]] = await self.request(
                 URL_PRODUCTION_INVERTERS
             )
             inverters = {
-                inverter["serialNumber"]: EnvoyInverter(inverter)
+                inverter["serialNumber"]: EnvoyInverter.from_v1_api(inverter)
                 for inverter in inverters_data
             }
             raw["inverters"] = inverters_data
 
         return EnvoyData(
-            system_production=EnvoySystemProduction(production_data),
+            system_production=system_production,
+            system_consumption=system_consumption,
             inverters=inverters,
             # Raw data is exposed so we can __eq__ the data to see if
             # anything has changed and consumers of the library can
