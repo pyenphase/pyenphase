@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.0 (2023-08-05)
+
+### Feature
+
+* Export a few more models for type checking ([#21](https://github.com/pyenphase/pyenphase/issues/21)) ([`e2337c4`](https://github.com/pyenphase/pyenphase/commit/e2337c4b8bf69e816611e76e4239fdbea78bf6e9))
+
 ## v0.6.1 (2023-08-05)
 
 ### Fix
