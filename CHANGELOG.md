@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.1 (2023-08-05)
+
+### Fix
+
+* Legacy installer auth was not working ([#22](https://github.com/pyenphase/pyenphase/issues/22)) ([`a2dd5e5`](https://github.com/pyenphase/pyenphase/commit/a2dd5e55ccfc796d7e162ccc75bb116fde1ca631))
+
 ## v0.7.0 (2023-08-05)
 
 ### Feature
