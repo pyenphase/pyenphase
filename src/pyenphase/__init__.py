@@ -11,6 +11,7 @@ from .exceptions import (
     EnvoyFirmwareFatalCheckError,
     EnvoyProbeFailed,
 )
+from .models.envoy import EnvoyData
 from .models.inverter import EnvoyInverter
 from .models.system_consumption import EnvoySystemConsumption
 from .models.system_production import EnvoySystemProduction
@@ -18,6 +19,7 @@ from .models.system_production import EnvoySystemProduction
 __all__ = (
     AUTH_TOKEN_MIN_VERSION,
     "Envoy",
+    "EnvoyData",
     "EnvoyTokenAuth",
     "EnvoyError",
     "EnvoyCommunicationError",

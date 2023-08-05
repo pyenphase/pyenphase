@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.0 (2023-08-05)
+
+### Feature
+
+* Add EnvoyData to __all__ ([#23](https://github.com/pyenphase/pyenphase/issues/23)) ([`63f9ba9`](https://github.com/pyenphase/pyenphase/commit/63f9ba94f7d10945aa314836f9a7425cda28ae59))
+
 ## v0.7.1 (2023-08-05)
 
 ### Fix
