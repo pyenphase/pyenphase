@@ -128,7 +128,7 @@ class EnvoyTokenAuth(EnvoyAuth):
                 raise EnvoyAuthenticationError(
                     "Unable to obtain token for Envoy authentication."
                 )
-            self._token = req.text
+            return req.text
 
     @property
     def token(self) -> str:
