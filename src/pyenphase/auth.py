@@ -1,11 +1,20 @@
 """Envoy authentication methods."""
 
-import json
+import ssl
 from abc import abstractmethod, abstractproperty
 
 import httpx
+import orjson
 
 from .exceptions import EnvoyAuthenticationError
+
+
+def create_default_ssl_context() -> ssl.SSLContext:
+    """Return an default SSL context."""
+    return ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+
+
+_SSL_CONTEXT = create_default_ssl_context()
 
 
 class EnvoyAuth:
@@ -65,43 +74,10 @@ class EnvoyTokenAuth(EnvoyAuth):
                 raise EnvoyAuthenticationError(
                     "Your firmware requires token authentication, but no envoy serial number was provided to obtain the token."
                 )
-
-            # we require a new client that checks SSL certs
-            self.cloud_client = httpx.AsyncClient()
-
-            # Login to Enlighten to obtain a session ID
-            data = {
-                "user[email]": self.cloud_username,
-                "user[password]": self.cloud_password,
-            }
-            req = await self.cloud_client.post(
-                "https://enlighten.enphaseenergy.com/login/login.json?", data=data
-            )
-            if req.status_code != 200:
-                raise EnvoyAuthenticationError(
-                    "Unable to login to Enlighten to obtain session ID."
-                )
-            response = json.loads(req.text)
-            self._is_consumer = response["is_consumer"]
-            self._manager_token = response["manager_token"]
-
-            # Obtain the token
-            data = {
-                "session_id": response["session_id"],
-                "serial_num": self.envoy_serial,
-                "username": self.cloud_username,
-            }
-            req = await self.cloud_client.post(
-                "https://entrez.enphaseenergy.com/tokens", json=data
-            )
-            if req.status_code != 200:
-                raise EnvoyAuthenticationError(
-                    "Unable to obtain token for Envoy authentication."
-                )
-            self._token = req.text
+            self._token = await self._obtain_token()
 
         # Verify we have adequate credentials
-        if not self.token:
+        if not self._token:
             raise EnvoyAuthenticationError(
                 "Unable to obtain token for Envoy authentication."
             )
@@ -118,6 +94,41 @@ class EnvoyTokenAuth(EnvoyAuth):
             )
 
         self._cookies = req.cookies
+
+    async def _obtain_token(self) -> None:
+        """Obtain the token for Envoy authentication."""
+        # we require a new client that checks SSL certs
+        async with httpx.AsyncClient(verify=_SSL_CONTEXT) as cloud_client:
+            # Login to Enlighten to obtain a session ID
+            data = {
+                "user[email]": self.cloud_username,
+                "user[password]": self.cloud_password,
+            }
+            req = await cloud_client.post(
+                "https://enlighten.enphaseenergy.com/login/login.json?", data=data
+            )
+            if req.status_code != 200:
+                raise EnvoyAuthenticationError(
+                    "Unable to login to Enlighten to obtain session ID."
+                )
+            response = orjson.loads(req.text)
+            self._is_consumer = response["is_consumer"]
+            self._manager_token = response["manager_token"]
+
+            # Obtain the token
+            data = {
+                "session_id": response["session_id"],
+                "serial_num": self.envoy_serial,
+                "username": self.cloud_username,
+            }
+            req = await cloud_client.post(
+                "https://entrez.enphaseenergy.com/tokens", json=data
+            )
+            if req.status_code != 200:
+                raise EnvoyAuthenticationError(
+                    "Unable to obtain token for Envoy authentication."
+                )
+            self._token = req.text
 
     @property
     def token(self) -> str:

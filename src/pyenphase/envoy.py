@@ -70,11 +70,17 @@ class SupportedFeatures(enum.IntFlag):
 class Envoy:
     """Class for communicating with an envoy."""
 
-    def __init__(self, host: str) -> None:
+    def __init__(
+        self,
+        host: str,
+        client: httpx.AsyncClient | None = None,
+        timeout: float | None = None,
+    ) -> None:
         """Initialize the Envoy class."""
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
-        self._client = httpx.AsyncClient(
-            verify=_NO_VERIFY_SSL_CONTEXT, timeout=TIMEOUT
+        self._timeout = timeout or TIMEOUT
+        self._client = client or httpx.AsyncClient(
+            verify=_NO_VERIFY_SSL_CONTEXT
         )  # nosec
         self.auth: EnvoyAuth | None = None
         self._host = host
@@ -154,6 +160,7 @@ class Envoy:
             cookies=self.auth.cookies,
             follow_redirects=True,
             auth=self.auth.auth,
+            timeout=self._timeout,
         )
         return orjson.loads(response.text)
 
