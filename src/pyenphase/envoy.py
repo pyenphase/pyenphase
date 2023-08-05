@@ -110,10 +110,10 @@ class Envoy:
                 "Authenticating to Envoy using envoy/installer authentication"
             )
             full_serial = self._firmware.serial
-            if username is None:
+            if not username or username == "installer":
                 username = "installer"
                 password = EnvoyUtils.get_password(full_serial, username)
-            elif username == "envoy" and password is None:
+            elif username == "envoy" and not password:
                 # The default password for the envoy user is the first 6 digits of the serial number
                 password = full_serial[:6]
 
