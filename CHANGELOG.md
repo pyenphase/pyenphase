@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.5.0 (2023-08-05)
+
+### Feature
+
+* Add consumption api ([#17](https://github.com/pyenphase/pyenphase/issues/17)) ([`f094c4d`](https://github.com/pyenphase/pyenphase/commit/f094c4d129cbb26e0f6bf3cf9024967a0def46e7))
+
 ## v0.4.0 (2023-08-05)
 
 ### Feature
