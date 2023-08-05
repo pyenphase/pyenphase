@@ -136,7 +136,9 @@ class Envoy:
         await self.auth.setup(self._client)
 
     @retry(
-        retry=retry_if_exception_type((httpx.ReadError, httpx.RemoteProtocolError)),
+        retry=retry_if_exception_type(
+            (httpx.NetworkError, httpx.TimeoutException, httpx.RemoteProtocolError)
+        ),
         wait=wait_random_exponential(multiplier=2, max=3),
     )
     async def request(self, endpoint: str) -> Any:
