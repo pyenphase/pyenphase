@@ -4,10 +4,6 @@ on:
   pull_request:
   pull_request_target:
 
-concurrency:
-  group: ${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
   # Make sure pre title follow the conventional commits convention:
   # https://www.conventionalcommits.org
