@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.0 (2023-08-05)
+
+### Feature
+
+* Export names at top level ([#19](https://github.com/pyenphase/pyenphase/issues/19)) ([`b209357`](https://github.com/pyenphase/pyenphase/commit/b2093578d12978da49788ca08c3959d2c3fb3641))
+
 ## v0.5.0 (2023-08-05)
 
 ### Feature
