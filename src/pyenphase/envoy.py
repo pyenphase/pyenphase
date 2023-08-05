@@ -70,17 +70,24 @@ class SupportedFeatures(enum.IntFlag):
 class Envoy:
     """Class for communicating with an envoy."""
 
-    def __init__(self, host: str) -> None:
+    def __init__(
+        self,
+        host: str,
+        client: httpx.AsyncClient | None = None,
+        timeout: float | None = None,
+    ) -> None:
         """Initialize the Envoy class."""
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
-        self._client = httpx.AsyncClient(
-            verify=_NO_VERIFY_SSL_CONTEXT, timeout=TIMEOUT
+        self._timeout = timeout or TIMEOUT
+        self._client = client or httpx.AsyncClient(
+            verify=_NO_VERIFY_SSL_CONTEXT
         )  # nosec
         self.auth: EnvoyAuth | None = None
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
         self._supported_features: SupportedFeatures = SupportedFeatures(0)
         self._production_endpoint: str | None = None
+        self.data: EnvoyData | None = None
 
     @retry(
         retry=retry_if_exception_type(EnvoyFirmwareCheckError),
@@ -154,6 +161,7 @@ class Envoy:
             cookies=self.auth.cookies,
             follow_redirects=True,
             auth=self.auth.auth,
+            timeout=self._timeout,
         )
         return orjson.loads(response.text)
 
@@ -256,7 +264,7 @@ class Envoy:
             }
             raw["inverters"] = inverters_data
 
-        return EnvoyData(
+        data = EnvoyData(
             system_production=system_production,
             system_consumption=system_consumption,
             inverters=inverters,
@@ -265,3 +273,5 @@ class Envoy:
             # avoid dispatching data if nothing has changed.
             raw=raw,
         )
+        self.data = data
+        return data
