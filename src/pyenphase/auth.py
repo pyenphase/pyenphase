@@ -11,7 +11,7 @@ from .exceptions import EnvoyAuthenticationError
 
 def create_default_ssl_context() -> ssl.SSLContext:
     """Return an default SSL context."""
-    return ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    return ssl.create_default_context()
 
 
 _SSL_CONTEXT = create_default_ssl_context()
