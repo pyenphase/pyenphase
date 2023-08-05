@@ -1,5 +1,6 @@
 """Python wrapper for Enphase Envoy API."""
 
+from .auth import EnvoyTokenAuth
 from .envoy import AUTH_TOKEN_MIN_VERSION, Envoy
 from .exceptions import (
     EnvoyAuthenticationError,
@@ -19,6 +20,7 @@ __all__ = (
     AUTH_TOKEN_MIN_VERSION,
     "Envoy",
     "EnvoyData",
+    "EnvoyTokenAuth",
     "EnvoyError",
     "EnvoyCommunicationError",
     "EnvoyFirmwareCheckError",
