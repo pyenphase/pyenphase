@@ -87,6 +87,7 @@ class Envoy:
         self._firmware = EnvoyFirmware(self._client, self._host)
         self._supported_features: SupportedFeatures = SupportedFeatures(0)
         self._production_endpoint: str | None = None
+        self.data: EnvoyData | None = None
 
     @retry(
         retry=retry_if_exception_type(EnvoyFirmwareCheckError),
@@ -263,7 +264,7 @@ class Envoy:
             }
             raw["inverters"] = inverters_data
 
-        return EnvoyData(
+        data = EnvoyData(
             system_production=system_production,
             system_consumption=system_consumption,
             inverters=inverters,
@@ -272,3 +273,5 @@ class Envoy:
             # avoid dispatching data if nothing has changed.
             raw=raw,
         )
+        self.data = data
+        return data
