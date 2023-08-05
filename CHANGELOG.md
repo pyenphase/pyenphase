@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.0 (2023-08-05)
+
+### Feature
+
+* Add EnvoyTokenAuth to __all__ ([#24](https://github.com/pyenphase/pyenphase/issues/24)) ([`738f4c7`](https://github.com/pyenphase/pyenphase/commit/738f4c7b1385e1045e9ca5065e06b0816d6a398f))
+
 ## v0.8.0 (2023-08-05)
 
 ### Feature
