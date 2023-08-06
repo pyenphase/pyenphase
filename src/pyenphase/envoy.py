@@ -123,15 +123,15 @@ class Envoy:
         else:
             # Envoy firmware using new token authentication
             _LOGGER.debug("Authenticating to Envoy using token authentication")
-            if token is not None:
-                self.auth = EnvoyTokenAuth(self.host, token=token)
-            elif (
-                username is not None
-                and password is not None
-                and self._firmware.serial is not None
-            ):
+            if token or (username and password):
+                # Always pass all the data to the token auth class, even if some of it is None
+                # so that we can refresh the token if needed
                 self.auth = EnvoyTokenAuth(
-                    self.host, username, password, self._firmware.serial
+                    self.host,
+                    cloud_username=username,
+                    cloud_password=password,
+                    envoy_serial=self._firmware.serial,
+                    token=token,
                 )
 
         if not self.auth:
