@@ -22,3 +22,11 @@ def create_no_verify_ssl_context() -> ssl.SSLContext:
 
 
 NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
+
+
+def create_default_ssl_context() -> ssl.SSLContext:
+    """Return an default SSL context."""
+    return ssl.create_default_context()
+
+
+SSL_CONTEXT = create_default_ssl_context()
