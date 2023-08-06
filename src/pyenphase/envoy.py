@@ -87,6 +87,7 @@ class Envoy:
         self._firmware = EnvoyFirmware(self._client, self._host)
         self._supported_features: SupportedFeatures = SupportedFeatures(0)
         self._production_endpoint: str | None = None
+        self._consumption_endpoint: str | None = None
         self.data: EnvoyData | None = None
 
     @retry(
@@ -155,15 +156,22 @@ class Envoy:
                 "You must authenticate to the Envoy before making requests."
             )
 
+        url = self.auth.get_endpoint_url(endpoint)
         response = await self._client.get(
-            self.auth.get_endpoint_url(endpoint),
+            url,
             headers={**DEFAULT_HEADERS, **self.auth.headers},
             cookies=self.auth.cookies,
             follow_redirects=True,
             auth=self.auth.auth,
             timeout=self._timeout,
         )
-        return orjson.loads(response.text)
+        try:
+            return orjson.loads(response.text)
+        except orjson.JSONDecodeError as e:
+            _LOGGER.debug(
+                "Unable to decode response from Envoy endpoint %s: %s", url, e
+            )
+            raise
 
     @property
     def host(self) -> str:
@@ -182,42 +190,58 @@ class Envoy:
 
     async def probe(self) -> None:
         """Probe for model and supported features."""
-        try:
-            production_json: dict[str, Any] = await self.request(URL_PRODUCTION)
-        except (json.JSONDecodeError, httpx.HTTPError) as e:
-            _LOGGER.debug("Production endpoint not found at %s: %s", URL_PRODUCTION, e)
-        else:
-            production: list[dict[str, str | float | int]] | None = production_json.get(
-                "production"
-            )
-            if production:
-                for type_ in production:
-                    if type_["type"] == "eim" and type_["activeCount"]:
-                        self._supported_features |= SupportedFeatures.METERING
-                        break
-            consumption: list[
-                dict[str, str | float | int]
-            ] | None = production_json.get("consumption")
-            if consumption:
-                for meter in consumption:
-                    meter_type = meter["measurementType"]
-                    if meter_type == "total-consumption" and meter["activeCount"]:
-                        self._supported_features |= SupportedFeatures.TOTAL_CONSUMPTION
-                    elif meter_type == "net-consumption" and meter["activeCount"]:
-                        self._supported_features |= SupportedFeatures.NET_CONSUMPTION
-            self._production_endpoint = URL_PRODUCTION
+        for possible_endpoint in (URL_PRODUCTION, URL_PRODUCTION_JSON):
+            try:
+                production_json: dict[str, Any] = await self.request(possible_endpoint)
+            except (json.JSONDecodeError, httpx.HTTPError) as e:
+                _LOGGER.debug(
+                    "Production endpoint not found at %s: %s", possible_endpoint, e
+                )
+                continue
+            else:
+                production: list[
+                    dict[str, str | float | int]
+                ] | None = production_json.get("production")
+                if production:
+                    for type_ in production:
+                        if type_["type"] == "eim" and type_["activeCount"]:
+                            self._supported_features |= SupportedFeatures.METERING
+                            self._production_endpoint = possible_endpoint
+                            break
+
+                consumption: list[
+                    dict[str, str | float | int]
+                ] | None = production_json.get("consumption")
+                if consumption:
+                    for meter in consumption:
+                        meter_type = meter["measurementType"]
+                        if meter_type == "total-consumption":
+                            self._supported_features |= (
+                                SupportedFeatures.TOTAL_CONSUMPTION
+                            )
+                            if not self._consumption_endpoint:
+                                self._consumption_endpoint = possible_endpoint
+                        elif meter_type == "net-consumption":
+                            self._supported_features |= (
+                                SupportedFeatures.NET_CONSUMPTION
+                            )
+                            if not self._consumption_endpoint:
+                                self._consumption_endpoint = possible_endpoint
+
+                break
 
         if not self._production_endpoint:
-            for endpoint in (URL_PRODUCTION_V1, URL_PRODUCTION_JSON):
-                try:
-                    await self.request(endpoint)
-                except (json.JSONDecodeError, httpx.HTTPError) as e:
-                    _LOGGER.debug(
-                        "Production endpoint not found at %s: %s", endpoint, e
-                    )
-                    continue
-                self._production_endpoint = endpoint
-                break
+            try:
+                await self.request(URL_PRODUCTION_V1)
+            except (json.JSONDecodeError, httpx.HTTPError) as e:
+                _LOGGER.debug(
+                    "Production endpoint not found at %s: %s", URL_PRODUCTION_V1, e
+                )
+            else:
+                self._production_endpoint = URL_PRODUCTION_V1
+
+        if not self._production_endpoint:
+            raise EnvoyProbeFailed("Unable to determine production endpoint")
 
         try:
             await self.request(URL_PRODUCTION_INVERTERS)
@@ -235,24 +259,30 @@ class Envoy:
             raise EnvoyProbeFailed("Unable to determine production endpoint")
 
         production_endpoint = self._production_endpoint
+        consumption_endpoint = self._consumption_endpoint
         supported_features = self._supported_features
-        system_consumption: EnvoySystemConsumption | None = None
-        production_data = await self.request(production_endpoint)
-        inverters: dict[str, EnvoyInverter] = {}
-        raw = {"production": production_data}
 
-        if production_endpoint == URL_PRODUCTION:
-            if (
-                supported_features & SupportedFeatures.TOTAL_CONSUMPTION
-                or supported_features & SupportedFeatures.NET_CONSUMPTION
-            ):
-                system_consumption = EnvoySystemConsumption.from_production(
-                    production_data
-                )
+        production_data = await self.request(production_endpoint)
+        raw = {"production": production_data}
+        if consumption_endpoint == production_endpoint:
+            consumption_data = production_data
+        elif consumption_endpoint:
+            consumption_data = await self.request(consumption_endpoint)
+            raw["consumption"] = consumption_data
+
+        inverters: dict[str, EnvoyInverter] = {}
+
+        if production_endpoint in (URL_PRODUCTION, URL_PRODUCTION_JSON):
             system_production = EnvoySystemProduction.from_production(production_data)
         else:
-            # Production endpoint is either URL_PRODUCTION_V1 or URL_PRODUCTION_JSON
+            # Production endpoint is URL_PRODUCTION_V1
             system_production = EnvoySystemProduction.from_v1_api(production_data)
+
+        system_consumption: EnvoySystemConsumption | None = None
+        if consumption_endpoint:
+            system_consumption = EnvoySystemConsumption.from_production(
+                consumption_data
+            )
 
         if supported_features & SupportedFeatures.INVERTERS:
             inverters_data: list[dict[str, Any]] = await self.request(

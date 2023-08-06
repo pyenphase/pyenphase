@@ -21,8 +21,8 @@ class EnvoySystemConsumption:
         """Initialize from the production API."""
         consumption = data["consumption"][0]
         return cls(
-            watt_hours_lifetime=consumption["whLifetime"],
-            watt_hours_last_7_days=consumption["whLastSevenDays"],
-            watt_hours_today=consumption["whToday"],
-            watts_now=consumption["wNow"],
+            watt_hours_lifetime=int(round(consumption["whLifetime"])),
+            watt_hours_last_7_days=int(round(consumption["whLastSevenDays"])),
+            watt_hours_today=int(round(consumption["whToday"])),
+            watts_now=int(round(consumption["wNow"])),
         )
