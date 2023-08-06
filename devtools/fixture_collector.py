@@ -30,6 +30,10 @@ async def main() -> None:
         "/api/v1/production/inverters",
         "/production.json",
         "/production",
+        "/ivp/ensemble/power",
+        "/ivp/ensemble/inventory",
+        "/ivp/ensemble/dry_contacts",
+        "/ivp/ss/dry_contact_settings",
     ]
 
     for end_point in end_points:
