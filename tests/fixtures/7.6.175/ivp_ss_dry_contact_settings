@@ -1,0 +1,56 @@
+{
+    "dry_contacts": [
+        {
+            "gen_action": "none",
+            "grid_action": "none",
+            "id": "NC1",
+            "load_name": "",
+            "micro_grid_action": "none",
+            "mode": "manual",
+            "override": "false",
+            "pv_serial_nb": [],
+            "soc_high": 70.0,
+            "soc_low": 30.0,
+            "type": "NONE"
+        },
+        {
+            "gen_action": "none",
+            "grid_action": "none",
+            "id": "NC2",
+            "load_name": "",
+            "micro_grid_action": "none",
+            "mode": "manual",
+            "override": "false",
+            "pv_serial_nb": [],
+            "soc_high": 70.0,
+            "soc_low": 30.0,
+            "type": "NONE"
+        },
+        {
+            "gen_action": "none",
+            "grid_action": "none",
+            "id": "NO1",
+            "load_name": "",
+            "micro_grid_action": "none",
+            "mode": "manual",
+            "override": "false",
+            "pv_serial_nb": [],
+            "soc_high": 70.0,
+            "soc_low": 30.0,
+            "type": "NONE"
+        },
+        {
+            "gen_action": "none",
+            "grid_action": "none",
+            "id": "NO2",
+            "load_name": "",
+            "micro_grid_action": "none",
+            "mode": "manual",
+            "override": "false",
+            "pv_serial_nb": [],
+            "soc_high": 70.0,
+            "soc_low": 30.0,
+            "type": "NONE"
+        }
+    ]
+}
