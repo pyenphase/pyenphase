@@ -101,7 +101,9 @@ class EnvoyTokenAuth(EnvoyAuth):
     async def _obtain_token(self) -> None:
         """Obtain the token for Envoy authentication."""
         # we require a new client that checks SSL certs
-        async with httpx.AsyncClient(verify=_SSL_CONTEXT, timeout=10) as cloud_client:
+        async with httpx.AsyncClient(
+            verify=_SSL_CONTEXT, timeout=10, follow_redirects=True
+        ) as cloud_client:
             # Login to Enlighten to obtain a session ID
             response = await self._post_json_with_cloud_client(
                 cloud_client,
