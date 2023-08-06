@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.10.0 (2023-08-06)
+
+### Feature
+
+* Add the ability to refresh the token on demand ([#25](https://github.com/pyenphase/pyenphase/issues/25)) ([`d1e391c`](https://github.com/pyenphase/pyenphase/commit/d1e391ccd9fcc9fcb3636f6f4a101005998f9f60))
+
 ## v0.9.0 (2023-08-05)
 
 ### Feature

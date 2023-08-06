@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyenphase"
-version = "0.9.0"
+version = "0.10.0"
 description = "Library to control enphase envoy"
 authors = ["pyenphase <cgarwood@gmail.com>"]
 license = "MIT"
