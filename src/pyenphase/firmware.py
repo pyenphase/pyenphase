@@ -8,9 +8,21 @@ from .exceptions import EnvoyFirmwareCheckError, EnvoyFirmwareFatalCheckError
 class EnvoyFirmware:
     """Class for querying and determining the Envoy firmware version."""
 
+    __slots__ = (
+        "_client",
+        "_host",
+        "_firmware_version",
+        "_serial_number",
+        "_part_number",
+    )
+
     def __init__(self, _client: httpx.AsyncClient, host: str) -> None:
+        """Initialize the Envoy firmware version."""
         self._client = _client
         self._host = host
+        self._firmware_version: str | None = None
+        self._serial_number: str | None = None
+        self._part_number: str | None = None
 
     async def setup(self) -> None:
         """Obtain the firmware version for Envoy authentication."""
@@ -31,6 +43,8 @@ class EnvoyFirmware:
                     )  # need to strip off the leading 'R' or 'D'
                 if (sn_tag := device_tag.find("sn")) is not None:
                     self._serial_number = sn_tag.text
+                if (pn_tag := device_tag.find("pn")) is not None:
+                    self._part_number = pn_tag.text
                 return
 
         else:
@@ -42,5 +56,9 @@ class EnvoyFirmware:
         return self._firmware_version
 
     @property
-    def serial(self) -> str:
+    def serial(self) -> str | None:
         return self._serial_number
+
+    @property
+    def part_number(self) -> str | None:
+        return self._part_number

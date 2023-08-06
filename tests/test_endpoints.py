@@ -64,6 +64,7 @@ async def test_with_4_2_27_firmware():
     assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
     assert envoy._production_endpoint == "/api/v1/production"
     assert envoy._consumption_endpoint == "/production.json"
+    assert envoy.part_number == "800-00551-r02"
 
     assert data.system_consumption.watts_now == 5811
     assert (
@@ -112,6 +113,7 @@ async def test_with_5_0_49_firmware():
     assert envoy._supported_features & SupportedFeatures.INVERTERS
     assert envoy._production_endpoint == "/api/v1/production"
     assert envoy._consumption_endpoint is None
+    assert envoy.part_number == "800-00551-r02"
 
     assert not data.system_consumption
     assert data.system_production.watts_now == 4859
@@ -394,6 +396,7 @@ async def test_with_3_9_36_firmware():
     assert envoy._supported_features & SupportedFeatures.INVERTERS
     assert envoy._production_endpoint == "/api/v1/production"
     assert envoy._consumption_endpoint is None
+    assert envoy.part_number == "800-00069-r05"
 
     assert not data.system_consumption
     assert data.system_production.watts_now == 1271
@@ -508,6 +511,7 @@ async def test_with_3_17_3_firmware():
     assert envoy._supported_features & SupportedFeatures.INVERTERS
     assert envoy._production_endpoint == "/api/v1/production"
     assert envoy._consumption_endpoint is None
+    assert envoy.part_number == "800-00069-r05"
 
     assert not data.system_consumption
     assert data.system_production.watts_now == 5463
@@ -767,6 +771,7 @@ async def test_with_3_17_3_firmware():
 @pytest.mark.parametrize(
     (
         "version",
+        "part_number",
         "supported_features",
         "unsupported_features",
         "production_endpoint",
@@ -775,6 +780,7 @@ async def test_with_3_17_3_firmware():
     [
         (
             "7.3.130",
+            "800-00555-r03",
             SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
@@ -785,6 +791,7 @@ async def test_with_3_17_3_firmware():
         ),
         (
             "7.3.517",
+            "800-00555-r03",
             SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
@@ -797,6 +804,7 @@ async def test_with_3_17_3_firmware():
         ),
         (
             "7.6.175",
+            "800-00555-r03",
             SupportedFeatures.INVERTERS,
             SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
@@ -806,6 +814,7 @@ async def test_with_3_17_3_firmware():
         ),
         (
             "7.6.175_a",
+            "800-00555-r03",
             SupportedFeatures.INVERTERS,
             SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
@@ -820,6 +829,7 @@ async def test_with_3_17_3_firmware():
 @respx.mock
 async def test_with_7_x_firmware(
     version: str,
+    part_number: str,
     snapshot: SnapshotAssertion,
     supported_features: SupportedFeatures,
     unsupported_features: SupportedFeatures,
@@ -894,6 +904,7 @@ async def test_with_7_x_firmware(
     data = envoy.data
     assert data == snapshot
 
+    assert envoy.part_number == part_number
     assert envoy._production_endpoint == production_endpoint
     assert envoy._consumption_endpoint == consumption_endpoint
     assert envoy._supported_features & supported_features
