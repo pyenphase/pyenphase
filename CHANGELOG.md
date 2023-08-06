@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.0 (2023-08-06)
+
+### Feature
+
+* Add support for bifurcated endpoints ([#28](https://github.com/pyenphase/pyenphase/issues/28)) ([`7853cfd`](https://github.com/pyenphase/pyenphase/commit/7853cfd1ecb2e1cadf8e874f6d351c4efe408a79))
+
 ## v0.10.0 (2023-08-06)
 
 ### Feature

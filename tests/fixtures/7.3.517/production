@@ -1,0 +1,86 @@
+{
+    "consumption": [
+        {
+            "activeCount": 1,
+            "apprntPwr": 3055.579,
+            "measurementType": "total-consumption",
+            "pwrFactor": 0.86,
+            "reactPwr": 0.494,
+            "readingTime": 1691348086,
+            "rmsCurrent": 25.741,
+            "rmsVoltage": 237.413,
+            "type": "eim",
+            "vahLifetime": 34864895.418,
+            "vahToday": 29321.418,
+            "varhLagLifetime": -9012802.586,
+            "varhLagToday": 0.0,
+            "varhLeadLifetime": 12942059.838,
+            "varhLeadToday": 9848.838,
+            "wNow": 2636.12,
+            "whLastSevenDays": 433.171,
+            "whLifetime": 26869751.171,
+            "whToday": 28106.171
+        },
+        {
+            "activeCount": 1,
+            "apprntPwr": 1080.267,
+            "measurementType": "net-consumption",
+            "pwrFactor": 0.64,
+            "reactPwr": -417.361,
+            "readingTime": 1691348086,
+            "rmsCurrent": 9.101,
+            "rmsVoltage": 237.413,
+            "type": "eim",
+            "vahLifetime": 34864895.418,
+            "vahToday": 0,
+            "varhLagLifetime": 187382.979,
+            "varhLagToday": 0,
+            "varhLeadLifetime": 12942060.264,
+            "varhLeadToday": 0,
+            "wNow": 709.274,
+            "whLastSevenDays": 0,
+            "whLifetime": 8132470.296,
+            "whToday": 0
+        }
+    ],
+    "production": [
+        {
+            "activeCount": 22,
+            "readingTime": 1691348064,
+            "type": "inverters",
+            "wNow": 1896,
+            "whLifetime": 923583
+        },
+        {
+            "activeCount": 1,
+            "apprntPwr": 1976.65,
+            "measurementType": "production",
+            "pwrFactor": 0.98,
+            "reactPwr": 417.855,
+            "readingTime": 1691348086,
+            "rmsCurrent": 16.64,
+            "rmsVoltage": 237.51,
+            "type": "eim",
+            "vahLifetime": 24893612.021,
+            "vahToday": 10096.021,
+            "varhLagLifetime": 9200185.566,
+            "varhLagToday": 6531.566,
+            "varhLeadLifetime": 0.425,
+            "varhLeadToday": 0.425,
+            "wNow": 1926.847,
+            "whLastSevenDays": 217064.122,
+            "whLifetime": 18774214.122,
+            "whToday": 5460.122
+        }
+    ],
+    "storage": [
+        {
+            "activeCount": 0,
+            "readingTime": 0,
+            "state": "idle",
+            "type": "acb",
+            "wNow": 0,
+            "whNow": 0
+        }
+    ]
+}
