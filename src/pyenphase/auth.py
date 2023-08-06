@@ -49,7 +49,7 @@ class EnvoyAuth:
 
 
 class EnvoyTokenAuth(EnvoyAuth):
-    LOGIN_URL = "https://enlighten.enphaseenergy.com/login/login.json?"
+    JSON_LOGIN_URL = "https://enlighten.enphaseenergy.com/login/login.json?"
     TOKEN_URL = "https://entrez.enphaseenergy.com/tokens"  # nosec
 
     def __init__(
@@ -110,7 +110,7 @@ class EnvoyTokenAuth(EnvoyAuth):
             # Login to Enlighten to obtain a session ID
             response = await self._post_json_with_cloud_client(
                 cloud_client,
-                self.LOGIN_URL,
+                self.JSON_LOGIN_URL,
                 data={
                     "user[email]": self.cloud_username,
                     "user[password]": self.cloud_password,
@@ -119,7 +119,7 @@ class EnvoyTokenAuth(EnvoyAuth):
             if response.status_code != 200:
                 raise EnvoyAuthenticationError(
                     "Unable to login to Enlighten to obtain session ID from "
-                    f"{self.LOGIN_URL}: "
+                    f"{self.JSON_LOGIN_URL}: "
                     f"{response.status_code}: {response.text}"
                 )
             try:
