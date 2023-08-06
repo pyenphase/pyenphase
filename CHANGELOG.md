@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.0 (2023-08-06)
+
+### Feature
+
+* Probe for Encharge and Enpower support ([#26](https://github.com/pyenphase/pyenphase/issues/26)) ([`da2db7d`](https://github.com/pyenphase/pyenphase/commit/da2db7d8005c81153dff6b5802d3c4851dd79432))
+
 ## v0.11.0 (2023-08-06)
 
 ### Feature
