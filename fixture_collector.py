@@ -1,7 +1,7 @@
 import asyncio
+import json
 import logging
 import os
-import json
 
 from pyenphase.envoy import Envoy
 
