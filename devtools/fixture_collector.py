@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import zipfile
 
 from pyenphase.envoy import Envoy
 
@@ -43,8 +44,17 @@ async def main() -> None:
         except Exception:
             continue  # nosec
         file_name = end_point[1:].replace("/", "_")
-        with open(os.path.join(target_dir, file_name)) as fixture_file:
+        with open(os.path.join(target_dir, file_name), "w") as fixture_file:
             fixture_file.write(json.dumps(json_dict))
+
+    print(f"Fixtures written to {target_dir}")
+
+    zip_file_name = f"{target_dir}.zip"
+    with zipfile.ZipFile(zip_file_name, "w") as zip_file:
+        for file_name in os.listdir(target_dir):
+            zip_file.write(os.path.join(target_dir, file_name), file_name)
+
+    print(f"Zip file written to {zip_file_name}")
 
 
 asyncio.run(main())
