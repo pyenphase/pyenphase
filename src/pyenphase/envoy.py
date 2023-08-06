@@ -98,6 +98,7 @@ class Envoy:
                 password = EnvoyUtils.get_password(full_serial, username)
             elif username == "envoy" and not password:
                 # The default password for the envoy user is the first 6 digits of the serial number
+                assert full_serial is not None, "Serial must be set"  # nosec
                 password = full_serial[:6]
 
             if username and password:
@@ -164,6 +165,11 @@ class Envoy:
     def firmware(self) -> AwesomeVersion:
         """Return the Envoy firmware version."""
         return self._firmware.version
+
+    @property
+    def part_number(self) -> str | None:
+        """Return the Envoy part number."""
+        return self._firmware.part_number
 
     @property
     def serial_number(self) -> str | None:
