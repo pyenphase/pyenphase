@@ -1,6 +1,5 @@
 """Envoy authentication methods."""
 
-import logging
 import ssl
 from abc import abstractmethod, abstractproperty
 from typing import Any, cast
@@ -11,8 +10,6 @@ import orjson
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .exceptions import EnvoyAuthenticationError
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def create_default_ssl_context() -> ssl.SSLContext:
@@ -134,7 +131,6 @@ class EnvoyTokenAuth(EnvoyAuth):
                     f"{response.status_code}: {response.text}"
                 ) from err
 
-            _LOGGER.warning("response: %s", response)
             self._is_consumer = response["is_consumer"]
             self._manager_token = response["manager_token"]
 
