@@ -10,6 +10,7 @@ from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
+    URL_ENSEMBLE_INVENTORY,
     URL_PRODUCTION,
     URL_PRODUCTION_INVERTERS,
     URL_PRODUCTION_JSON,
@@ -31,6 +32,7 @@ _LOGGER = logging.getLogger(__name__)
 
 TIMEOUT = 20
 LEGACY_ENVOY_VERSION = AwesomeVersion("3.9.0")
+ENSEMBLE_MIN_VERSION = AwesomeVersion("5.0.0")
 AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
 DEFAULT_HEADERS = {
     "Accept": "application/json",
@@ -229,6 +231,27 @@ class Envoy:
             _LOGGER.debug("Inverters endpoint not found: %s", e)
         else:
             self._supported_features |= SupportedFeatures.INVERTERS
+
+        # Check for various Ensemble support
+        if self._firmware.version >= ENSEMBLE_MIN_VERSION:
+            # The Ensemble Inventory endpoint will tell us if we have Enpower or Encharge support
+            try:
+                result = await self.request(URL_ENSEMBLE_INVENTORY)
+            except ENDPOINT_PROBE_EXCEPTIONS as e:
+                _LOGGER.debug("Ensemble Inventory endpoint not found: %s", e)
+            else:
+                if not result:
+                    # Newer firmware with no Ensemble devices returns an empty list
+                    _LOGGER.debug("No Ensemble devices found")
+                    return
+
+                for item in result:
+                    if item["type"] == "ENPOWER":
+                        self._supported_features |= SupportedFeatures.ENPOWER
+                    if item["type"] == "ENCHARGE":
+                        self._supported_features |= SupportedFeatures.ENCHARGE
+        else:
+            _LOGGER.debug("Firmware too old for Ensemble support")
 
     async def update(self) -> EnvoyData:
         """Update data."""

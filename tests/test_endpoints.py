@@ -98,6 +98,7 @@ async def test_with_5_0_49_firmware():
             200, json=_load_json_fixture(version, "api_v1_production_inverters")
         )
     )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -379,6 +380,7 @@ async def test_with_3_9_36_firmware():
             200, json=_load_json_fixture(version, "api_v1_production_inverters")
         )
     )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -492,6 +494,7 @@ async def test_with_3_17_3_firmware():
             200, json=_load_json_fixture(version, "api_v1_production_inverters")
         )
     )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -800,6 +803,7 @@ async def test_with_7_3_130_firmware():
             200, json=_load_json_fixture(version, "api_v1_production_inverters")
         )
     )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -938,6 +942,7 @@ async def test_with_7_6_175_firmware():
             200, json=_load_json_fixture(version, "api_v1_production_inverters")
         )
     )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -1109,6 +1114,8 @@ async def test_with_7_3_517_firmware():
     assert envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
     assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
     assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert envoy._supported_features & SupportedFeatures.ENCHARGE
+    assert envoy._supported_features & SupportedFeatures.ENPOWER
 
     assert data.system_consumption.watts_now == 2636
     assert data.system_consumption.watt_hours_today == 28106
