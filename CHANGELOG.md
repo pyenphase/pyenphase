@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.0 (2023-08-06)
+
+### Feature
+
+* Add fixture collecting script ([#30](https://github.com/pyenphase/pyenphase/issues/30)) ([`5d66ee9`](https://github.com/pyenphase/pyenphase/commit/5d66ee96154bbd6238a27b6e449b6bb0aece3a54))
+
 ## v0.12.0 (2023-08-06)
 
 ### Feature
