@@ -2,7 +2,6 @@ import asyncio
 import logging
 import os
 from pprint import pprint
-import json
 
 from pyenphase.envoy import Envoy
 
@@ -22,12 +21,7 @@ async def main() -> None:
 
     # Test https://enphase.com/download/iq-gateway-access-using-local-apis-or-local-ui-token-based-authentication-tech-brief endpoints
 
-    # print(await envoy.update())
-
-    try:
-        os.mkdir("enphase")
-    except FileExistsError:
-        pass
+    print(await envoy.update())
 
     end_points = [
         "/ivp/livedata/status",
@@ -44,16 +38,13 @@ async def main() -> None:
     ]
 
     for end_point in end_points:
-        print((end_point, "=" * 80))
         try:
             json_dict = await envoy.request(end_point)
         except Exception as e:
             print(e)
             continue
+        print((end_point, "=" * 80))
         pprint(json_dict)
-        file_name = end_point[1:].replace("/", "_")
-        with open(f"enphase/{file_name}.txt") as fixture_file:
-            fixture_file.write(json.dumps(json_dict))
         print((end_point, "=" * 80))
 
 
