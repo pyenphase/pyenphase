@@ -1,3 +1,10 @@
+import json
+
+import httpx
+
+ENDPOINT_PROBE_EXCEPTIONS = (json.JSONDecodeError, httpx.HTTPError)
+
+
 class EnvoyError(Exception):
     """Base class for Envoy exceptions."""
 
