@@ -71,18 +71,7 @@ class EnvoyTokenAuth(EnvoyAuth):
 
     async def setup(self, client: httpx.AsyncClient) -> None:
         """Obtain the token for Envoy authentication."""
-
         if not self._token:
-            # Raise if we don't have cloud credentials
-            if not self.cloud_username or not self.cloud_password:
-                raise EnvoyAuthenticationError(
-                    "Your firmware requires token authentication, but no cloud credentials were provided to obtain the token."
-                )
-            # Raise if we are missing the envoy serial number
-            if not self.envoy_serial:
-                raise EnvoyAuthenticationError(
-                    "Your firmware requires token authentication, but no envoy serial number was provided to obtain the token."
-                )
             self._token = await self._obtain_token()
 
         # Verify we have adequate credentials
@@ -106,7 +95,19 @@ class EnvoyTokenAuth(EnvoyAuth):
 
     async def _obtain_token(self) -> None:
         """Obtain the token for Envoy authentication."""
-        # we require a new client that checks SSL certs
+        # Raise if we don't have cloud credentials
+        if not self.cloud_username or not self.cloud_password:
+            raise EnvoyAuthenticationError(
+                "Your firmware requires token authentication, "
+                " but no cloud credentials were provided to obtain the token."
+            )
+        # Raise if we are missing the envoy serial number
+        if not self.envoy_serial:
+            raise EnvoyAuthenticationError(
+                "Your firmware requires token authentication, "
+                "but no envoy serial number was provided to obtain the token."
+            )
+        # We require a new client that checks SSL certs
         async with httpx.AsyncClient(
             verify=_SSL_CONTEXT, timeout=10, follow_redirects=True
         ) as cloud_client:
