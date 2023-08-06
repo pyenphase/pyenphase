@@ -49,6 +49,9 @@ class EnvoyAuth:
 
 
 class EnvoyTokenAuth(EnvoyAuth):
+    LOGIN_URL = "https://enlighten.enphaseenergy.com/login/login.json?"
+    TOKEN_URL = "https://entrez.enphaseenergy.com/tokens"  # nosec
+
     def __init__(
         self,
         host: str,
@@ -107,7 +110,7 @@ class EnvoyTokenAuth(EnvoyAuth):
             # Login to Enlighten to obtain a session ID
             response = await self._post_json_with_cloud_client(
                 cloud_client,
-                "https://enlighten.enphaseenergy.com/login/login.json?",
+                self.LOGIN_URL,
                 data={
                     "user[email]": self.cloud_username,
                     "user[password]": self.cloud_password,
@@ -115,7 +118,8 @@ class EnvoyTokenAuth(EnvoyAuth):
             )
             if response.status_code != 200:
                 raise EnvoyAuthenticationError(
-                    "Unable to login to Enlighten to obtain session ID: "
+                    "Unable to login to Enlighten to obtain session ID from "
+                    f"{self.LOGIN_URL}: "
                     f"{response.status_code}: {response.text}"
                 )
             try:
@@ -131,7 +135,7 @@ class EnvoyTokenAuth(EnvoyAuth):
             # Obtain the token
             response = await self._post_json_with_cloud_client(
                 cloud_client,
-                "https://entrez.enphaseenergy.com/tokens",
+                self.TOKEN_URL,
                 json={
                     "session_id": response["session_id"],
                     "serial_num": self.envoy_serial,
@@ -140,7 +144,8 @@ class EnvoyTokenAuth(EnvoyAuth):
             )
             if response.status_code != 200:
                 raise EnvoyAuthenticationError(
-                    "Unable to obtain token for Envoy authentication: "
+                    "Unable to obtain token for Envoy authentication from "
+                    f"{self.TOKEN_URL}: "
                     f"{response.status_code}: {response.text}"
                 )
             return response.text
