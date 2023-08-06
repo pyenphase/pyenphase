@@ -237,7 +237,7 @@ class Envoy:
             # The Ensemble Inventory endpoint will tell us if we have Enpower or Encharge support
             try:
                 result = await self.request(URL_ENSEMBLE_INVENTORY)
-            except (json.JSONDecodeError, httpx.HTTPError) as e:
+            except ENDPOINT_PROBE_EXCEPTIONS as e:
                 _LOGGER.debug("Ensemble Inventory endpoint not found: %s", e)
             else:
                 if not result:
