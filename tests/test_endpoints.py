@@ -822,8 +822,19 @@ async def test_with_3_17_3_firmware():
             "/api/v1/production",
             None,
         ),
+        (
+            "7.6.175_with_cts",
+            "800-00654-r08",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION,
+            SupportedFeatures(0),
+            "/production",
+            "/production",
+        ),
     ],
-    ids=["7.3.130", "7.3.517", "7.6.175", "7.6.175_a"],
+    ids=["7.3.130", "7.3.517", "7.6.175", "7.6.175_a", "7.6.175_with_cts"],
 )
 @pytest.mark.asyncio
 @respx.mock
