@@ -1,8 +1,5 @@
-import contextlib
 import enum
-import json
 import logging
-import ssl
 from typing import Any
 
 import httpx
@@ -13,48 +10,33 @@ from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
+    URL_ENSEMBLE_INVENTORY,
     URL_PRODUCTION,
     URL_PRODUCTION_INVERTERS,
     URL_PRODUCTION_JSON,
     URL_PRODUCTION_V1,
 )
-from .exceptions import EnvoyAuthenticationRequired, EnvoyProbeFailed
+from .exceptions import (
+    ENDPOINT_PROBE_EXCEPTIONS,
+    EnvoyAuthenticationRequired,
+    EnvoyProbeFailed,
+)
 from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
 from .models.envoy import EnvoyData
 from .models.inverter import EnvoyInverter
 from .models.system_consumption import EnvoySystemConsumption
 from .models.system_production import EnvoySystemProduction
+from .ssl import NO_VERIFY_SSL_CONTEXT
 
 _LOGGER = logging.getLogger(__name__)
 
 TIMEOUT = 20
 LEGACY_ENVOY_VERSION = AwesomeVersion("3.9.0")
+ENSEMBLE_MIN_VERSION = AwesomeVersion("5.0.0")
 AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
 DEFAULT_HEADERS = {
     "Accept": "application/json",
 }
-
-
-def create_no_verify_ssl_context() -> ssl.SSLContext:
-    """Return an SSL context that does not verify the server certificate.
-    This is a copy of aiohttp's create_default_context() function, with the
-    ssl verify turned off and old SSL versions enabled.
-
-    https://github.com/aio-libs/aiohttp/blob/33953f110e97eecc707e1402daa8d543f38a189b/aiohttp/connector.py#L911
-    """
-    sslcontext = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    sslcontext.check_hostname = False
-    sslcontext.verify_mode = ssl.CERT_NONE
-    # Allow all ciphers rather than only Python 3.10 default
-    sslcontext.set_ciphers("DEFAULT")
-    with contextlib.suppress(AttributeError):
-        # This only works for OpenSSL >= 1.0.0
-        sslcontext.options |= ssl.OP_NO_COMPRESSION
-    sslcontext.set_default_verify_paths()
-    return sslcontext
-
-
-_NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 
 
 class SupportedFeatures(enum.IntFlag):
@@ -80,7 +62,7 @@ class Envoy:
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._timeout = timeout or TIMEOUT
         self._client = client or httpx.AsyncClient(
-            verify=_NO_VERIFY_SSL_CONTEXT
+            verify=NO_VERIFY_SSL_CONTEXT
         )  # nosec
         self.auth: EnvoyAuth | None = None
         self._host = host
@@ -193,7 +175,7 @@ class Envoy:
         for possible_endpoint in (URL_PRODUCTION, URL_PRODUCTION_JSON):
             try:
                 production_json: dict[str, Any] = await self.request(possible_endpoint)
-            except (json.JSONDecodeError, httpx.HTTPError) as e:
+            except ENDPOINT_PROBE_EXCEPTIONS as e:
                 _LOGGER.debug(
                     "Production endpoint not found at %s: %s", possible_endpoint, e
                 )
@@ -233,7 +215,7 @@ class Envoy:
         if not self._production_endpoint:
             try:
                 await self.request(URL_PRODUCTION_V1)
-            except (json.JSONDecodeError, httpx.HTTPError) as e:
+            except ENDPOINT_PROBE_EXCEPTIONS as e:
                 _LOGGER.debug(
                     "Production endpoint not found at %s: %s", URL_PRODUCTION_V1, e
                 )
@@ -245,10 +227,31 @@ class Envoy:
 
         try:
             await self.request(URL_PRODUCTION_INVERTERS)
-        except (json.JSONDecodeError, httpx.HTTPError) as e:
+        except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug("Inverters endpoint not found: %s", e)
         else:
             self._supported_features |= SupportedFeatures.INVERTERS
+
+        # Check for various Ensemble support
+        if self._firmware.version >= ENSEMBLE_MIN_VERSION:
+            # The Ensemble Inventory endpoint will tell us if we have Enpower or Encharge support
+            try:
+                result = await self.request(URL_ENSEMBLE_INVENTORY)
+            except ENDPOINT_PROBE_EXCEPTIONS as e:
+                _LOGGER.debug("Ensemble Inventory endpoint not found: %s", e)
+            else:
+                if not result:
+                    # Newer firmware with no Ensemble devices returns an empty list
+                    _LOGGER.debug("No Ensemble devices found")
+                    return
+
+                for item in result:
+                    if item["type"] == "ENPOWER":
+                        self._supported_features |= SupportedFeatures.ENPOWER
+                    if item["type"] == "ENCHARGE":
+                        self._supported_features |= SupportedFeatures.ENCHARGE
+        else:
+            _LOGGER.debug("Firmware too old for Ensemble support")
 
     async def update(self) -> EnvoyData:
         """Update data."""
