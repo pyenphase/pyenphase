@@ -1,3 +1,5 @@
+from os import listdir
+from os.path import isfile, join
 from pathlib import Path
 from typing import Any
 
@@ -786,10 +788,9 @@ async def test_with_3_17_3_firmware():
             SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
-            |
-            # SupportedFeatures.ENPOWER |
-            # SupportedFeatures.ENCHARGE |
-            SupportedFeatures.INVERTERS,
+            | SupportedFeatures.ENPOWER
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.INVERTERS,
             SupportedFeatures(0),
             "/production",
             "/production",
@@ -854,7 +855,31 @@ async def test_with_7_x_firmware(
             200, json=_load_json_fixture(version, "api_v1_production_inverters")
         )
     )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    respx.get("/ivp/ensemble/inventory").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "ivp_ensemble_inventory")
+        )
+    )
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "ivp_ensemble_dry_contacts" in files:
+        respx.get("/ivp/ensemble/dry_contacts").mock(
+            return_value=Response(
+                200, json=_load_json_fixture(version, "ivp_ensemble_dry_contacts")
+            )
+        )
+    if "ivp_ss_dry_contact_settings" in files:
+        respx.get("/ivp/ensemble/dry_contacts_settings").mock(
+            return_value=Response(
+                200, json=_load_json_fixture(version, "ivp_ss_dry_contact_settings")
+            )
+        )
+    if "ivp_ensemble_power" in files:
+        respx.get("/ivp/ensemble/power").mock(
+            return_value=Response(
+                200, json=_load_json_fixture(version, "ivp_ensemble_power")
+            )
+        )
 
     envoy = await _get_mock_envoy()
     data = envoy.data
