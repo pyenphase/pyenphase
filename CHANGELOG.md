@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.0 (2023-08-06)
+
+### Feature
+
+* Add part number ([#36](https://github.com/pyenphase/pyenphase/issues/36)) ([`5b1d46d`](https://github.com/pyenphase/pyenphase/commit/5b1d46dd7c64180fff3118b087330a48de6646fe))
+
 ## v0.13.0 (2023-08-06)
 
 ### Feature
