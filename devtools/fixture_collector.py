@@ -19,8 +19,9 @@ async def main() -> None:
 
     await envoy.authenticate(username=username, password=password, token=token)
 
+    target_dir = f"enphase-{envoy.firmware}"
     try:
-        os.mkdir(f"enphase-{envoy.firmware}")
+        os.mkdir(target_dir)
     except FileExistsError:
         pass
 
@@ -42,7 +43,7 @@ async def main() -> None:
         except Exception:
             continue  # nosec
         file_name = end_point[1:].replace("/", "_")
-        with open(f"enphase/{file_name}") as fixture_file:
+        with open(os.path.join(target_dir, file_name)) as fixture_file:
             fixture_file.write(json.dumps(json_dict))
 
 
