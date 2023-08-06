@@ -1,5 +1,6 @@
 """Envoy authentication methods."""
 
+import logging
 import ssl
 from abc import abstractmethod, abstractproperty
 from typing import Any, cast
@@ -10,6 +11,8 @@ import orjson
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .exceptions import EnvoyAuthenticationError
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def create_default_ssl_context() -> ssl.SSLContext:
@@ -129,6 +132,8 @@ class EnvoyTokenAuth(EnvoyAuth):
                     "Unable to decode response from Enlighten: "
                     f"{response.status_code}: {response.text}"
                 ) from err
+
+            _LOGGER.warning("response: %s", response)
             self._is_consumer = response["is_consumer"]
             self._manager_token = response["manager_token"]
 
@@ -168,13 +173,13 @@ class EnvoyTokenAuth(EnvoyAuth):
     )
     async def _post_json_with_cloud_client(
         self,
-        client: httpx.AsyncClient,
+        cloud_client: httpx.AsyncClient,
         url: str,
         data: dict[str, Any] | None = None,
         json: dict[str, Any] | None = None,
     ) -> httpx.Response:
         """Post to the Envoy API with the cloud client."""
-        return await client.post(url, json=json, data=data)
+        return await cloud_client.post(url, json=json, data=data)
 
     @property
     def token(self) -> str:
