@@ -1114,6 +1114,8 @@ async def test_with_7_3_517_firmware():
     assert envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
     assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
     assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert envoy._supported_features & SupportedFeatures.ENCHARGE
+    assert envoy._supported_features & SupportedFeatures.ENPOWER
 
     assert data.system_consumption.watts_now == 2636
     assert data.system_consumption.watt_hours_today == 28106
