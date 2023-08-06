@@ -37,8 +37,8 @@ class EnvoySystemProduction:
         now_source = inverters if inverters["activeCount"] else eim
 
         return cls(
-            watt_hours_lifetime=inverters["whLifetime"],
-            watt_hours_last_7_days=inverters["whLastSevenDays"],
-            watt_hours_today=inverters["whToday"],
-            watts_now=now_source["wNow"],
+            watt_hours_lifetime=int(round(inverters["whLifetime"])),
+            watt_hours_last_7_days=int(round(inverters["whLastSevenDays"])),
+            watt_hours_today=int(round(inverters["whToday"])),
+            watts_now=int(round(now_source["wNow"])),
         )

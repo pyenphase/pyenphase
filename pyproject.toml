@@ -36,6 +36,8 @@ orjson = ">=3.9.2"
 pytest = "^7.0"
 pytest-cov = "^3.0"
 types-orjson = "^3.6.2"
+respx = "^0.20.2"
+pytest-asyncio = "^0.21.1"
 
 [tool.poetry.group.docs]
 optional = true
