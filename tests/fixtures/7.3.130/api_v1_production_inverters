@@ -1,0 +1,86 @@
+[
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342432,
+      "lastReportWatts" : 13,
+      "maxReportWatts" : 347,
+      "serialNumber" : "202218036214"
+   },
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342462,
+      "lastReportWatts" : 17,
+      "maxReportWatts" : 346,
+      "serialNumber" : "202218028926"
+   },
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342643,
+      "lastReportWatts" : 12,
+      "maxReportWatts" : 347,
+      "serialNumber" : "202218029586"
+   },
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342613,
+      "lastReportWatts" : 17,
+      "maxReportWatts" : 348,
+      "serialNumber" : "202218035988"
+   },
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342553,
+      "lastReportWatts" : 8,
+      "maxReportWatts" : 345,
+      "serialNumber" : "202218024705"
+   },
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342554,
+      "lastReportWatts" : 14,
+      "maxReportWatts" : 346,
+      "serialNumber" : "202218023114"
+   },
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342525,
+      "lastReportWatts" : 16,
+      "maxReportWatts" : 348,
+      "serialNumber" : "202218037990"
+   },
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342555,
+      "lastReportWatts" : 14,
+      "maxReportWatts" : 345,
+      "serialNumber" : "202218034002"
+   },
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342464,
+      "lastReportWatts" : 9,
+      "maxReportWatts" : 347,
+      "serialNumber" : "202218026521"
+   },
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342465,
+      "lastReportWatts" : 10,
+      "maxReportWatts" : 350,
+      "serialNumber" : "202218025399"
+   },
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342584,
+      "lastReportWatts" : 9,
+      "maxReportWatts" : 346,
+      "serialNumber" : "202218036386"
+   },
+   {
+      "devType" : 1,
+      "lastReportDate" : 1691342674,
+      "lastReportWatts" : 20,
+      "maxReportWatts" : 348,
+      "serialNumber" : "202218031593"
+   }
+]
