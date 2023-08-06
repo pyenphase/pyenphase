@@ -1,6 +1,5 @@
 """Envoy authentication methods."""
 
-import ssl
 from abc import abstractmethod, abstractproperty
 from typing import Any, cast
 
@@ -10,14 +9,7 @@ import orjson
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .exceptions import EnvoyAuthenticationError
-
-
-def create_default_ssl_context() -> ssl.SSLContext:
-    """Return an default SSL context."""
-    return ssl.create_default_context()
-
-
-_SSL_CONTEXT = create_default_ssl_context()
+from .ssl import SSL_CONTEXT
 
 
 class EnvoyAuth:
@@ -106,7 +98,7 @@ class EnvoyTokenAuth(EnvoyAuth):
             )
         # We require a new client that checks SSL certs
         async with httpx.AsyncClient(
-            verify=_SSL_CONTEXT, timeout=10, follow_redirects=True
+            verify=SSL_CONTEXT, timeout=10, follow_redirects=True
         ) as cloud_client:
             # Login to Enlighten to obtain a session ID
             response = await self._post_json_with_cloud_client(
