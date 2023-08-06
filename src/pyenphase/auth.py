@@ -118,7 +118,13 @@ class EnvoyTokenAuth(EnvoyAuth):
                     "Unable to login to Enlighten to obtain session ID: "
                     f"{response.status_code}: {response.text}"
                 )
-            response = orjson.loads(response.text)
+            try:
+                response = orjson.loads(response.text)
+            except orjson.JSONDecodeError as err:
+                raise EnvoyAuthenticationError(
+                    "Unable to decode response from Enlighten: "
+                    f"{response.status_code}: {response.text}"
+                ) from err
             self._is_consumer = response["is_consumer"]
             self._manager_token = response["manager_token"]
 
