@@ -5,6 +5,7 @@ import orjson
 import pytest
 import respx
 from httpx import Response
+from syrupy import SnapshotAssertion
 
 from pyenphase import Envoy, EnvoyInverter
 from pyenphase.envoy import SupportedFeatures
@@ -761,11 +762,61 @@ async def test_with_3_17_3_firmware():
     }
 
 
+@pytest.mark.parametrize(
+    (
+        "version",
+        "supported_features",
+        "unsupported_features",
+        "production_endpoint",
+        "consumption_endpoint",
+    ),
+    [
+        (
+            "7.3.130",
+            SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.INVERTERS,
+            SupportedFeatures(0),
+            "/production",
+            "/production",
+        ),
+        (
+            "7.3.517",
+            SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            |
+            # SupportedFeatures.ENPOWER |
+            # SupportedFeatures.ENCHARGE |
+            SupportedFeatures.INVERTERS,
+            SupportedFeatures(0),
+            "/production",
+            "/production",
+        ),
+        (
+            "7.6.175",
+            SupportedFeatures.INVERTERS,
+            SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION,
+            "/api/v1/production",
+            None,
+        ),
+    ],
+    ids=["7.3.130", "7.3.517", "7.6.175"],
+)
 @pytest.mark.asyncio
 @respx.mock
-async def test_with_7_3_130_firmware():
-    """Verify with 7.3.130 firmware."""
-    version = "7.3.130"
+async def test_with_7_x_firmware(
+    version: str,
+    snapshot: SnapshotAssertion,
+    supported_features: SupportedFeatures,
+    unsupported_features: SupportedFeatures,
+    production_endpoint: str,
+    consumption_endpoint: str,
+) -> None:
+    """Verify with 7.x firmware."""
     respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
         return_value=Response(
             200,
@@ -807,365 +858,9 @@ async def test_with_7_3_130_firmware():
 
     envoy = await _get_mock_envoy()
     data = envoy.data
-    assert data is not None
+    assert data == snapshot
 
-    assert envoy._production_endpoint == "/production"
-    assert envoy._consumption_endpoint == "/production"
-    assert envoy._supported_features & SupportedFeatures.METERING
-    assert envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
-    assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
-    assert envoy._supported_features & SupportedFeatures.INVERTERS
-
-    assert data.system_consumption.watts_now == 1488
-    assert data.system_consumption.watt_hours_today == 15181
-    assert data.system_consumption.watt_hours_last_7_days == 365477
-    assert data.system_consumption.watt_hours_lifetime == 10154384
-    assert data.system_production.watts_now == 180
-    assert data.system_production.watt_hours_today == 87
-    assert data.system_production.watt_hours_last_7_days == 149973
-    assert data.system_production.watt_hours_lifetime == 3659507
-    assert data.inverters == {
-        "202218023114": EnvoyInverter(
-            serial_number="202218023114",
-            last_report_date=1691342554,
-            last_report_watts=14,
-            max_report_watts=346,
-        ),
-        "202218024705": EnvoyInverter(
-            serial_number="202218024705",
-            last_report_date=1691342553,
-            last_report_watts=8,
-            max_report_watts=345,
-        ),
-        "202218025399": EnvoyInverter(
-            serial_number="202218025399",
-            last_report_date=1691342465,
-            last_report_watts=10,
-            max_report_watts=350,
-        ),
-        "202218026521": EnvoyInverter(
-            serial_number="202218026521",
-            last_report_date=1691342464,
-            last_report_watts=9,
-            max_report_watts=347,
-        ),
-        "202218028926": EnvoyInverter(
-            serial_number="202218028926",
-            last_report_date=1691342462,
-            last_report_watts=17,
-            max_report_watts=346,
-        ),
-        "202218029586": EnvoyInverter(
-            serial_number="202218029586",
-            last_report_date=1691342643,
-            last_report_watts=12,
-            max_report_watts=347,
-        ),
-        "202218031593": EnvoyInverter(
-            serial_number="202218031593",
-            last_report_date=1691342674,
-            last_report_watts=20,
-            max_report_watts=348,
-        ),
-        "202218034002": EnvoyInverter(
-            serial_number="202218034002",
-            last_report_date=1691342555,
-            last_report_watts=14,
-            max_report_watts=345,
-        ),
-        "202218035988": EnvoyInverter(
-            serial_number="202218035988",
-            last_report_date=1691342613,
-            last_report_watts=17,
-            max_report_watts=348,
-        ),
-        "202218036214": EnvoyInverter(
-            serial_number="202218036214",
-            last_report_date=1691342432,
-            last_report_watts=13,
-            max_report_watts=347,
-        ),
-        "202218036386": EnvoyInverter(
-            serial_number="202218036386",
-            last_report_date=1691342584,
-            last_report_watts=9,
-            max_report_watts=346,
-        ),
-        "202218037990": EnvoyInverter(
-            serial_number="202218037990",
-            last_report_date=1691342525,
-            last_report_watts=16,
-            max_report_watts=348,
-        ),
-    }
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_7_6_175_firmware():
-    """Verify with 7.6.175 firmware."""
-    version = "7.6.175"
-    respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
-        return_value=Response(
-            200,
-            json={
-                "session_id": "1234567890",
-                "user_id": "1234567890",
-                "user_name": "test",
-                "first_name": "Test",
-                "is_consumer": True,
-                "manager_token": "1234567890",
-            },
-        )
-    )
-    respx.post("https://entrez.enphaseenergy.com/tokens").mock(
-        return_value=Response(200, text="token")
-    )
-    respx.get("/auth/check_jwt").mock(return_value=Response(200, json={}))
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, json=_load_json_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, json=_load_json_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-
-    envoy = await _get_mock_envoy()
-    data = envoy.data
-    assert data is not None
-
-    assert envoy._production_endpoint == "/api/v1/production"
-    assert envoy._consumption_endpoint is None
-    assert not (envoy._supported_features & SupportedFeatures.METERING)
-    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
-    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
-    assert envoy._supported_features & SupportedFeatures.INVERTERS
-
-    assert data.system_consumption is None
-    assert data.system_production.watts_now == 3391
-    assert data.system_production.watt_hours_today == 7883
-    assert data.system_production.watt_hours_last_7_days == 107011
-    assert data.system_production.watt_hours_lifetime == 8717473
-    assert data.inverters == {
-        "122146075749": EnvoyInverter(
-            serial_number="122146075749",
-            last_report_date=1691318584,
-            last_report_watts=270,
-            max_report_watts=296,
-        ),
-        "122146076029": EnvoyInverter(
-            serial_number="122146076029",
-            last_report_date=1691318494,
-            last_report_watts=281,
-            max_report_watts=297,
-        ),
-        "122146076125": EnvoyInverter(
-            serial_number="122146076125",
-            last_report_date=1691318704,
-            last_report_watts=229,
-            max_report_watts=297,
-        ),
-        "122146076128": EnvoyInverter(
-            serial_number="122146076128",
-            last_report_date=1691318674,
-            last_report_watts=245,
-            max_report_watts=297,
-        ),
-        "122146076272": EnvoyInverter(
-            serial_number="122146076272",
-            last_report_date=1691318672,
-            last_report_watts=243,
-            max_report_watts=297,
-        ),
-        "122146076336": EnvoyInverter(
-            serial_number="122146076336",
-            last_report_date=1691318523,
-            last_report_watts=275,
-            max_report_watts=296,
-        ),
-        "122146076488": EnvoyInverter(
-            serial_number="122146076488",
-            last_report_date=1691318612,
-            last_report_watts=260,
-            max_report_watts=297,
-        ),
-        "122146076492": EnvoyInverter(
-            serial_number="122146076492",
-            last_report_date=1691318556,
-            last_report_watts=273,
-            max_report_watts=297,
-        ),
-        "122146076500": EnvoyInverter(
-            serial_number="122146076500",
-            last_report_date=1691318613,
-            last_report_watts=259,
-            max_report_watts=297,
-        ),
-        "122146076518": EnvoyInverter(
-            serial_number="122146076518",
-            last_report_date=1691318462,
-            last_report_watts=290,
-            max_report_watts=297,
-        ),
-        "122146076618": EnvoyInverter(
-            serial_number="122146076618",
-            last_report_date=1691318643,
-            last_report_watts=250,
-            max_report_watts=297,
-        ),
-        "122146078718": EnvoyInverter(
-            serial_number="122146078718",
-            last_report_date=1691318583,
-            last_report_watts=273,
-            max_report_watts=297,
-        ),
-        "122146078769": EnvoyInverter(
-            serial_number="122146078769",
-            last_report_date=1691318673,
-            last_report_watts=243,
-            max_report_watts=297,
-        ),
-    }
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_7_3_517_firmware():
-    """Verify with 7.3.517 firmware."""
-    version = "7.3.517"
-    respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
-        return_value=Response(
-            200,
-            json={
-                "session_id": "1234567890",
-                "user_id": "1234567890",
-                "user_name": "test",
-                "first_name": "Test",
-                "is_consumer": True,
-                "manager_token": "1234567890",
-            },
-        )
-    )
-    respx.post("https://entrez.enphaseenergy.com/tokens").mock(
-        return_value=Response(200, text="token")
-    )
-    respx.get("/auth/check_jwt").mock(return_value=Response(200, json={}))
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, json=_load_json_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, json=_load_json_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/dry_contacts").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "ivp_ensemble_dry_contacts")
-        )
-    )
-    respx.get("/ivp/ss/dry_contacts_settings").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "ivp_ss_dry_contact_settings")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "ivp_ensemble_inventory")
-        )
-    )
-    respx.get("/ivp/ensemble/power").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "ivp_ensemble_power")
-        )
-    )
-    envoy = await _get_mock_envoy()
-    data = envoy.data
-    assert data is not None
-
-    assert envoy._production_endpoint == "/production"
-    assert envoy._consumption_endpoint == "/production"
-    assert envoy._supported_features & SupportedFeatures.METERING
-    assert envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
-    assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
-    assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert envoy._supported_features & SupportedFeatures.ENCHARGE
-    assert envoy._supported_features & SupportedFeatures.ENPOWER
-
-    assert data.system_consumption.watts_now == 2636
-    assert data.system_consumption.watt_hours_today == 28106
-    assert data.system_consumption.watt_hours_last_7_days == 433
-    assert data.system_consumption.watt_hours_lifetime == 26869751
-    assert data.system_production.watts_now == 1927
-    assert data.system_production.watt_hours_today == 5460
-    assert data.system_production.watt_hours_last_7_days == 217064
-    assert data.system_production.watt_hours_lifetime == 18774214
-    assert data.inverters == {
-        "555555001326": EnvoyInverter(
-            serial_number="555555001326",
-            last_report_date=1691347968,
-            last_report_watts=66,
-            max_report_watts=245,
-        ),
-        "555555001781": EnvoyInverter(
-            serial_number="555555001781",
-            last_report_date=1691348028,
-            last_report_watts=80,
-            max_report_watts=245,
-        ),
-        "555555002877": EnvoyInverter(
-            serial_number="555555002877",
-            last_report_date=1691347908,
-            last_report_watts=92,
-            max_report_watts=246,
-        ),
-        "555555003467": EnvoyInverter(
-            serial_number="555555003467",
-            last_report_date=1691347938,
-            last_report_watts=95,
-            max_report_watts=246,
-        ),
-        "555555003473": EnvoyInverter(
-            serial_number="555555003473",
-            last_report_date=1691347757,
-            last_report_watts=80,
-            max_report_watts=246,
-        ),
-        "555555003484": EnvoyInverter(
-            serial_number="555555003484",
-            last_report_date=1691347848,
-            last_report_watts=75,
-            max_report_watts=245,
-        ),
-        "555555003803": EnvoyInverter(
-            serial_number="555555003803",
-            last_report_date=1691347997,
-            last_report_watts=98,
-            max_report_watts=247,
-        ),
-    }
+    assert envoy._production_endpoint == production_endpoint
+    assert envoy._consumption_endpoint == consumption_endpoint
+    assert envoy._supported_features & supported_features
+    assert not envoy._supported_features & unsupported_features
