@@ -2,9 +2,10 @@
 
 import ssl
 from abc import abstractmethod, abstractproperty
-from typing import Any
+from typing import Any, cast
 
 import httpx
+import jwt
 import orjson
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
@@ -135,6 +136,16 @@ class EnvoyTokenAuth(EnvoyAuth):
                     f"{response.status_code}: {response.text}"
                 )
             return response.text
+
+    async def refresh(self) -> None:
+        """Refresh the token for Envoy authentication."""
+        self._token = await self._obtain_token()
+
+    @property
+    def expire_timestamp(self) -> int:
+        """Return the remaining seconds for the token."""
+        jwt_payload = jwt.decode(self.token, options={"verify_signature": False})
+        return cast(int, jwt_payload["exp"])
 
     @retry(
         retry=retry_if_exception_type(
