@@ -236,7 +236,7 @@ class Envoy:
             except (json.JSONDecodeError, httpx.HTTPError) as e:
                 _LOGGER.debug("Ensemble Inventory endpoint not found: %s", e)
             else:
-                if result == []:
+                if not result:
                     # Newer firmware with no Ensemble devices returns an empty list
                     _LOGGER.debug("No Ensemble devices found")
                     return
