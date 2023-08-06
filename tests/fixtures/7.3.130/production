@@ -1,0 +1,86 @@
+{
+   "consumption" : [
+      {
+         "activeCount" : 1,
+         "apprntPwr" : 5237.703,
+         "measurementType" : "total-consumption",
+         "pwrFactor" : 0.28,
+         "reactPwr" : -1563.916,
+         "readingTime" : 1691342720,
+         "rmsCurrent" : 21.708,
+         "rmsVoltage" : 241.282,
+         "type" : "eim",
+         "vahLifetime" : 14686272.679,
+         "vahToday" : 22487.679,
+         "varhLagLifetime" : 998203.693,
+         "varhLagToday" : 1456.693,
+         "varhLeadLifetime" : 10691668.261,
+         "varhLeadToday" : 13985.261,
+         "wNow" : 1487.654,
+         "whLastSevenDays" : 365477.252,
+         "whLifetime" : 10154384.252,
+         "whToday" : 15181.252
+      },
+      {
+         "activeCount" : 1,
+         "apprntPwr" : 2179.847,
+         "measurementType" : "net-consumption",
+         "pwrFactor" : 0.61,
+         "reactPwr" : -1595.09,
+         "readingTime" : 1691342720,
+         "rmsCurrent" : 18.131,
+         "rmsVoltage" : 241.257,
+         "type" : "eim",
+         "vahLifetime" : 14686272.679,
+         "vahToday" : 0,
+         "varhLagLifetime" : 258967.196,
+         "varhLagToday" : 0,
+         "varhLeadLifetime" : 10652521.7,
+         "varhLeadToday" : 0,
+         "wNow" : 1307.413,
+         "whLastSevenDays" : 0,
+         "whLifetime" : 7116678.51,
+         "whToday" : 0
+      }
+   ],
+   "production" : [
+      {
+         "activeCount" : 12,
+         "readingTime" : 1691342674,
+         "type" : "inverters",
+         "wNow" : 158,
+         "whLifetime" : 142373
+      },
+      {
+         "activeCount" : 1,
+         "apprntPwr" : 430.612,
+         "measurementType" : "production",
+         "pwrFactor" : 0.44,
+         "reactPwr" : -31.173,
+         "readingTime" : 1691342720,
+         "rmsCurrent" : 3.577,
+         "rmsVoltage" : 241.307,
+         "type" : "eim",
+         "vahLifetime" : 4846261.636,
+         "vahToday" : 1978.636,
+         "varhLagLifetime" : 739236.497,
+         "varhLagToday" : 1457.497,
+         "varhLeadLifetime" : 39146.561,
+         "varhLeadToday" : 40.561,
+         "wNow" : 180.24,
+         "whLastSevenDays" : 149972.523,
+         "whLifetime" : 3659506.523,
+         "whToday" : 86.523
+      }
+   ],
+   "storage" : [
+      {
+         "activeCount" : 0,
+         "readingTime" : 0,
+         "state" : "idle",
+         "type" : "acb",
+         "wNow" : 0,
+         "whNow" : 0
+      }
+   ]
+}
