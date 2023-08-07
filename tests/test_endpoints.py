@@ -822,8 +822,8 @@ async def test_with_3_17_3_firmware():
             None,
         ),
         (
-            "7.6.175_a",
-            "800-00555-r03",
+            "7.6.175_standard",
+            "800-00656-r06",
             SupportedFeatures.INVERTERS,
             "/api/v1/production",
             None,
@@ -845,7 +845,7 @@ async def test_with_3_17_3_firmware():
         "7.3.517",
         "7.6.114_without_cts",
         "7.6.175",
-        "7.6.175_a",
+        "7.6.175_standard",
         "7.6.175_with_cts",
     ],
 )
