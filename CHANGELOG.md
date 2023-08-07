@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.15.0 (2023-08-07)
+
+### Feature
+
+* Add Encharge battery support ([#40](https://github.com/pyenphase/pyenphase/issues/40)) ([`e1a96e9`](https://github.com/pyenphase/pyenphase/commit/e1a96e9de3ade6429561ef863ed8302b481e02df))
+
 ## v0.14.1 (2023-08-07)
 
 ### Fix
