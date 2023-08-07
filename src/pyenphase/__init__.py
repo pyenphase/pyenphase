@@ -11,6 +11,7 @@ from .exceptions import (
     EnvoyFirmwareFatalCheckError,
     EnvoyProbeFailed,
 )
+from .models.encharge import EnvoyEncharge, EnvoyEnchargePower
 from .models.envoy import EnvoyData
 from .models.inverter import EnvoyInverter
 from .models.system_consumption import EnvoySystemConsumption
@@ -31,4 +32,6 @@ __all__ = (
     "EnvoyInverter",
     "EnvoySystemConsumption",
     "EnvoySystemProduction",
+    "EnvoyEncharge",
+    "EnvoyEnchargePower",
 )
