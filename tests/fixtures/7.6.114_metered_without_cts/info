@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<envoy_info>
+  <time>1691413081</time>
+  <device>
+    <sn>122309122530</sn>
+    <pn>800-00656-r06</pn>
+    <software>D7.6.114</software>
+    <euaid>4c8675</euaid>
+    <seqnum>0</seqnum>
+    <apiver>1</apiver>
+    <imeter>false</imeter>
+  </device>
+  <web-tokens>true</web-tokens>
+  <package name='rootfs'>
+    <pn>500-00001-r01</pn>
+    <version>02.00.00</version>
+    <build>1210</build>
+  </package>
+  <package name='kernel'>
+    <pn>500-00011-r02</pn>
+    <version>04.04.225</version>
+    <build>3eb4d3</build>
+  </package>
+  <package name='boot'>
+    <pn>590-00019-r01</pn>
+    <version>02.00.01</version>
+    <build>1f421b</build>
+  </package>
+  <package name='app'>
+    <pn>500-00002-r01</pn>
+    <version>07.06.114</version>
+    <build>43769e</build>
+  </package>
+  <package name='devimg'>
+    <pn>500-00005-r01</pn>
+    <version>01.02.425</version>
+    <build>4903b9</build>
+  </package>
+  <package name='geo'>
+    <pn>500-00008-r01</pn>
+    <version>02.01.24</version>
+    <build>a74d96</build>
+  </package>
+  <package name='backbone'>
+    <pn>500-00010-r01</pn>
+    <version>07.00.20</version>
+    <build>176d57</build>
+  </package>
+  <package name='meter'>
+    <pn>500-00013-r01</pn>
+    <version>03.02.08</version>
+    <build>eaa252</build>
+  </package>
+  <package name='agf'>
+    <pn>500-00012-r01</pn>
+    <version>02.02.00</version>
+    <build>c40e9c</build>
+  </package>
+  <package name='essimg'>
+    <pn>500-00020-r01</pn>
+    <version>22.11.03</version>
+    <build>ded018</build>
+  </package>
+  <package name='security'>
+    <pn>500-00016-r01</pn>
+    <version>02.00.00</version>
+    <build>54a6dc</build>
+  </package>
+  <package name='pkgsec'>
+    <pn>500-00021-r01</pn>
+    <version>01.00.00</version>
+    <build>19ae14</build>
+  </package>
+  <build_info>
+    <build_id>ec2-user-envoy_uber-pkg_master:pkg-Feb-03-23-05:45:21</build_id>
+    <build_time_gmt>1675403272</build_time_gmt>
+    <release_ver>02.00.3704</release_ver>
+    <release_stage>700-GA</release_stage>
+  </build_info>
+</envoy_info>

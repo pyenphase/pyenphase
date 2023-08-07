@@ -774,7 +774,6 @@ async def test_with_3_17_3_firmware():
         "version",
         "part_number",
         "supported_features",
-        "unsupported_features",
         "production_endpoint",
         "consumption_endpoint",
     ),
@@ -782,11 +781,7 @@ async def test_with_3_17_3_firmware():
         (
             "5.0.62",
             "800-00551-r02",
-            SupportedFeatures.METERING
-            | SupportedFeatures.TOTAL_CONSUMPTION
-            | SupportedFeatures.NET_CONSUMPTION
-            | SupportedFeatures.INVERTERS,
-            SupportedFeatures(0),
+            SupportedFeatures.INVERTERS,
             "/api/v1/production",
             None,
         ),
@@ -797,7 +792,6 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.INVERTERS,
-            SupportedFeatures(0),
             "/production",
             "/production",
         ),
@@ -810,17 +804,20 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.ENPOWER
             | SupportedFeatures.ENCHARGE
             | SupportedFeatures.INVERTERS,
-            SupportedFeatures(0),
             "/production",
             "/production",
+        ),
+        (
+            "7.6.114_metered_without_cts",
+            "800-00656-r06",
+            SupportedFeatures.INVERTERS,
+            "/api/v1/production",
+            None,
         ),
         (
             "7.6.175",
             "800-00555-r03",
             SupportedFeatures.INVERTERS,
-            SupportedFeatures.METERING
-            | SupportedFeatures.TOTAL_CONSUMPTION
-            | SupportedFeatures.NET_CONSUMPTION,
             "/api/v1/production",
             None,
         ),
@@ -828,9 +825,6 @@ async def test_with_3_17_3_firmware():
             "7.6.175_a",
             "800-00555-r03",
             SupportedFeatures.INVERTERS,
-            SupportedFeatures.METERING
-            | SupportedFeatures.TOTAL_CONSUMPTION
-            | SupportedFeatures.NET_CONSUMPTION,
             "/api/v1/production",
             None,
         ),
@@ -841,12 +835,19 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION,
-            SupportedFeatures(0),
             "/production",
             "/production",
         ),
     ],
-    ids=["5.0.62", "7.3.130", "7.3.517", "7.6.175", "7.6.175_a", "7.6.175_with_cts"],
+    ids=[
+        "5.0.62",
+        "7.3.130",
+        "7.3.517",
+        "7.6.114_metered_without_cts",
+        "7.6.175",
+        "7.6.175_a",
+        "7.6.175_with_cts",
+    ],
 )
 @pytest.mark.asyncio
 @respx.mock
@@ -855,7 +856,6 @@ async def test_with_7_x_firmware(
     part_number: str,
     snapshot: SnapshotAssertion,
     supported_features: SupportedFeatures,
-    unsupported_features: SupportedFeatures,
     production_endpoint: str,
     consumption_endpoint: str,
 ) -> None:
@@ -938,5 +938,4 @@ async def test_with_7_x_firmware(
     assert envoy.part_number == part_number
     assert envoy._production_endpoint == production_endpoint
     assert envoy._consumption_endpoint == consumption_endpoint
-    assert envoy._supported_features & supported_features
-    assert not envoy._supported_features & unsupported_features
+    assert envoy._supported_features == supported_features
