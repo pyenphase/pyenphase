@@ -62,7 +62,10 @@ async def main() -> None:
         ) as metadata_file:
             metadata_file.write(
                 json.dumps(
-                    {"headers": response.headers.raw, "code": response.status_code}
+                    {
+                        "headers": {k: v for k, v in response.headers.items()},
+                        "code": response.status_code,
+                    }
                 )
             )
 
