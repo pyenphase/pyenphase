@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "server": "openresty/1.17.8.1",
+    "date": "Mon, 07 Aug 2023 13:55:33 GMT",
+    "content-type": "text/xml",
+    "content-length": "2176",
+    "connection": "keep-alive",
+    "pragma": "no-cache",
+    "expires": "1",
+    "cache-control": "no-cache",
+    "strict-transport-security": "max-age=63072000; includeSubdomains",
+    "x-frame-options": "DENY",
+    "x-content-type-options": "nosniff"
+  },
+  "code": 200
+}

@@ -825,8 +825,8 @@ async def test_with_3_17_3_firmware():
             None,
         ),
         (
-            "7.6.175_a",
-            "800-00555-r03",
+            "7.6.175_standard",
+            "800-00656-r06",
             SupportedFeatures.INVERTERS,
             SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
@@ -846,7 +846,14 @@ async def test_with_3_17_3_firmware():
             "/production",
         ),
     ],
-    ids=["5.0.62", "7.3.130", "7.3.517", "7.6.175", "7.6.175_a", "7.6.175_with_cts"],
+    ids=[
+        "5.0.62",
+        "7.3.130",
+        "7.3.517",
+        "7.6.175",
+        "7.6.175_standard",
+        "7.6.175_with_cts",
+    ],
 )
 @pytest.mark.asyncio
 @respx.mock
