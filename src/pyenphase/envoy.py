@@ -8,8 +8,11 @@ from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
+from pyenphase.models.encharge import EnvoyEncharge
+
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
+    URL_ENCHARGE_BATTERY,
     URL_ENSEMBLE_INVENTORY,
     URL_PRODUCTION,
     URL_PRODUCTION_INVERTERS,
@@ -300,10 +303,42 @@ class Envoy:
             }
             raw["inverters"] = inverters_data
 
+        # Update Enpower and Encharge data if supported
+        if (
+            supported_features & SupportedFeatures.ENCHARGE
+            or supported_features & SupportedFeatures.ENPOWER
+        ):
+            ensemble_inventory: list[dict[str, Any]] = await self.request(
+                URL_ENSEMBLE_INVENTORY
+            )
+
+            if supported_features & SupportedFeatures.ENCHARGE:
+                encharge: dict[str, EnvoyEncharge] = {}
+                encharge_power: dict[str, Any] = await self.request(
+                    URL_ENCHARGE_BATTERY
+                )
+                encharge_inventory: list[dict[str, Any]] = []
+                for item in ensemble_inventory:
+                    if item["type"] == "ENCHARGE":
+                        for device in item["devices"]:
+                            for power in encharge_power["devices:"]:
+                                if device["serial_num"] == power["serial_num"]:
+                                    device["power"] = power
+                                    break
+                            encharge_inventory.append(device)
+                        break
+
+                encharge = {
+                    battery["serial_num"]: EnvoyEncharge.from_api(battery)
+                    for battery in encharge_inventory
+                }
+                raw["encharge"] = encharge_inventory
+
         data = EnvoyData(
             system_production=system_production,
             system_consumption=system_consumption,
             inverters=inverters,
+            encharge=encharge,
             # Raw data is exposed so we can __eq__ the data to see if
             # anything has changed and consumers of the library can
             # avoid dispatching data if nothing has changed.

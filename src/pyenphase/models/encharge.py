@@ -1,141 +1,69 @@
 """Model for the Encharge/IQ Battery."""
-
-from typing import Any
-
 # Data Source: URL_ENSEMBLE_INVENTORY (primary) & URL_ENCHARGE_BATTERY
 
+from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import Any
+
+
+@dataclass(slots=True)
 class EnvoyEncharge:
-    def __init__(self, data: dict[str, Any]) -> None:
-        """Initialize."""
-        self._data = data
+    """Model for the Encharge/IQ battery."""
 
-    @property
-    def admin_state(self) -> int:
-        """Return the current admin state."""
-        return self._data["admin_state"]
+    admin_state: int
+    admin_state_str: str
+    bmu_firmware_version: str
+    comm_level_2_4_ghz: int
+    comm_level_sub_ghz: int
+    communicating: bool
+    dc_switch_off: bool
+    encharge_capacity: int
+    encharge_revision: int
+    firmware_loaded_date: int
+    firmware_version: str
+    installed_date: int
+    last_report_date: int
+    led_status: int
+    max_cell_temp: int
+    operating: bool
+    part_number: str
+    percent_full: int
+    serial_number: str
+    temperature: int
+    temperature_unit: str
+    zigbee_dongle_fw_version: str
+    apparent_power_mva: int
+    real_power_mw: int
+    soc: int
 
-    @property
-    def admin_state_str(self) -> str:
-        """Return the current admin state as a string."""
-        return self._data["admin_state_str"]
-
-    @property
-    def bmu_firmware_version(self) -> str:
-        """Return the BMU firmware version."""
-        return self._data["bmu_fm_version"]
-
-    @property
-    def comm_level_2_4_ghz(self) -> int:
-        """Return the current 2.4GHz communication level."""
-        return self._data["comm_level_2_4_ghz"]
-
-    @property
-    def comm_level_sub_ghz(self) -> int:
-        """Return the current sub-GHz communication level."""
-        return self._data["comm_level_sub_ghz"]
-
-    @property
-    def communicating(self) -> bool:
-        """Return if the Encharge is communicating with the Envoy."""
-        return self._data["communicating"]
-
-    @property
-    def dc_switch_off(self) -> bool:
-        """Return if the DC switch is off."""
-        return self._data["dc_switch_off"]
-
-    @property
-    def encharge_capacity(self) -> int:
-        """Return the Encharge battery capacity."""
-        return self._data["encharge_capacity"]
-
-    @property
-    def encharge_revision(self) -> int:
-        """Return the Encharge hardware revision."""
-        return self._data["encharge_revision"]
-
-    @property
-    def firmware_loaded_date(self) -> int:
-        """Return the date the firmware image was loaded."""
-        return self._data["img_load_date"]
-
-    @property
-    def firmware_version(self) -> str:
-        """Return the running firmware image version."""
-        return self._data["img_pnum_running"]
-
-    @property
-    def installed_date(self) -> int:
-        """Return the date the Encharge was installed."""
-        return self._data["installed"]
-
-    @property
-    def last_report_date(self) -> int:
-        """Return the timestamp when the Encharge last sent a report."""
-        return self._data["last_rpt_date"]
-
-    @property
-    def led_status(self) -> int:
-        """Return the current LED status."""
-        return self._data["led_status"]
-
-    @property
-    def max_cell_temp(self) -> int:
-        """Return the maximum cell temperature."""
-        # Encharge reports temperatures in Celsius
-        return self._data["max_cell_temp"]
-
-    @property
-    def operating(self) -> bool:
-        """Return if the Encharge is operating."""
-        return self._data["operating"]
-
-    @property
-    def part_number(self) -> str:
-        """Return the Encharge part number."""
-        return self._data["part_num"]
-
-    @property
-    def percent_full(self) -> int:
-        """Return the current battery charge level."""
-        return self._data["percent_full"]
-
-    @property
-    def serial_number(self) -> str:
-        """Return the Encharge serial number."""
-        # Matches both API endpoints
-        return self._data["serial_num"]
-
-    @property
-    def temperature(self) -> int:
-        """Return the current battery temperature."""
-        # Encharge reports temperatures in Celsius
-        return self._data["temperature"]
-
-    @property
-    def temperature_unit(self) -> str:
-        return "C"
-
-    @property
-    def zigbee_dongle_fw_version(self) -> str:
-        """Return the Zigbee dongle firmware version."""
-        return self._data["zigbee_dongle_fw_version"]
-
-    @property
-    def apparent_power_mva(self) -> int:
-        """Return the apparent power in MVA."""
-        # From URL_ENCHARGE_BATTERY
-        return self._data["apparent_power_mva"]
-
-    @property
-    def real_power_mw(self) -> int:
-        """Return the real power in MW."""
-        # From URL_ENCHARGE_BATTERY
-        return self._data["real_power_mw"]
-
-    @property
-    def soc(self) -> int:
-        """Return the state of charge."""
-        # From URL_ENCHARGE_BATTERY
-        return self._data["soc"]
+    @classmethod
+    def from_api(cls, data: dict[str, Any]) -> EnvoyEncharge:
+        """Initialize from the API."""
+        return cls(
+            admin_state=data["admin_state"],
+            admin_state_str=data["admin_state_str"],
+            bmu_firmware_version=data["bmu_fw_version"],
+            comm_level_2_4_ghz=data["comm_level_2_4_ghz"],
+            comm_level_sub_ghz=data["comm_level_sub_ghz"],
+            communicating=data["communicating"],
+            dc_switch_off=data["dc_switch_off"],
+            encharge_capacity=data["encharge_capacity"],
+            encharge_revision=data["encharge_rev"],
+            firmware_loaded_date=data["img_load_date"],
+            firmware_version=data["img_pnum_running"],
+            installed_date=data["installed"],
+            last_report_date=data["last_rpt_date"],
+            led_status=data["led_status"],
+            max_cell_temp=data["maxCellTemp"],
+            operating=data["operating"],
+            part_number=data["part_num"],
+            percent_full=data["percentFull"],
+            serial_number=data["serial_num"],
+            temperature=data["temperature"],
+            temperature_unit="C",
+            zigbee_dongle_fw_version=data["zigbee_dongle_fw_version"],
+            apparent_power_mva=data["power"]["apparent_power_mva"],
+            real_power_mw=data["power"]["real_power_mw"],
+            soc=data["power"]["soc"],
+        )

@@ -15,7 +15,7 @@ from .system_production import EnvoySystemProduction
 class EnvoyData:
     """Model for an envoy."""
 
-    encharge: EnvoyEncharge | None = None
+    encharge: dict[str, EnvoyEncharge] | None = None
     enpower: EnvoyEnpower | None = None
     system_consumption: EnvoySystemConsumption | None = None
     system_production: EnvoySystemProduction | None = None
