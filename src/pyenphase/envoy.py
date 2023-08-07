@@ -246,7 +246,7 @@ class Envoy:
             except ENDPOINT_PROBE_EXCEPTIONS as e:
                 _LOGGER.debug("Ensemble Inventory endpoint not found: %s", e)
             else:
-                if not result:
+                if not result or "error" in result:
                     # Newer firmware with no Ensemble devices returns an empty list
                     _LOGGER.debug("No Ensemble devices found")
                     return

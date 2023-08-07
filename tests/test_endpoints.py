@@ -779,6 +779,17 @@ async def test_with_3_17_3_firmware():
     ),
     [
         (
+            "5.0.62",
+            "800-00551-r02",
+            SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.INVERTERS,
+            SupportedFeatures(0),
+            "/api/v1/production",
+            None,
+        ),
+        (
             "7.3.130",
             "800-00555-r03",
             SupportedFeatures.METERING
@@ -834,7 +845,7 @@ async def test_with_3_17_3_firmware():
             "/production",
         ),
     ],
-    ids=["7.3.130", "7.3.517", "7.6.175", "7.6.175_a", "7.6.175_with_cts"],
+    ids=["5.0.62", "7.3.130", "7.3.517", "7.6.175", "7.6.175_a", "7.6.175_with_cts"],
 )
 @pytest.mark.asyncio
 @respx.mock
@@ -861,6 +872,8 @@ async def test_with_7_x_firmware(
             },
         )
     )
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
     respx.post("https://entrez.enphaseenergy.com/tokens").mock(
         return_value=Response(200, text="token")
     )
@@ -869,12 +882,20 @@ async def test_with_7_x_firmware(
         return_value=Response(200, text=_load_fixture(version, "info"))
     )
     respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, json=_load_json_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, json=_load_json_fixture(version, "production.json"))
-    )
+    if "production" in files:
+        respx.get("/production").mock(
+            return_value=Response(200, json=_load_json_fixture(version, "production"))
+        )
+    else:
+        respx.get("/production").mock(return_value=Response(404))
+    if "production.json" in files:
+        respx.get("/production.json").mock(
+            return_value=Response(
+                200, json=_load_json_fixture(version, "production.json")
+            )
+        )
+    else:
+        respx.get("/production.json").mock(return_value=Response(404))
     respx.get("/api/v1/production").mock(
         return_value=Response(
             200, json=_load_json_fixture(version, "api_v1_production")
@@ -890,8 +911,6 @@ async def test_with_7_x_firmware(
             200, json=_load_json_fixture(version, "ivp_ensemble_inventory")
         )
     )
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
     if "ivp_ensemble_dry_contacts" in files:
         respx.get("/ivp/ensemble/dry_contacts").mock(
             return_value=Response(
