@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.15.1 (2023-08-07)
+
+### Fix
+
+* Add Encharge classes to __all__ ([#42](https://github.com/pyenphase/pyenphase/issues/42)) ([`229a84d`](https://github.com/pyenphase/pyenphase/commit/229a84df72a1ec6292f47fe426c46890feb1b83e))
+
 ## v0.15.0 (2023-08-07)
 
 ### Feature
