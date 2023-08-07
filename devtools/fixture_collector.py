@@ -61,7 +61,9 @@ async def main() -> None:
             os.path.join(target_dir, f"{file_name}_log.json"), "w"
         ) as metadata_file:
             metadata_file.write(
-                json.dumps({"headers": response.headers, "code": response.status_code})
+                json.dumps(
+                    {"headers": response.headers.raw, "code": response.status_code}
+                )
             )
 
     print(f"Fixtures written to {target_dir}")
