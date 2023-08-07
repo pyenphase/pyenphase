@@ -1,0 +1,13 @@
+{
+  "headers": {
+    "server": "openresty/1.17.8.1",
+    "date": "Mon, 07 Aug 2023 13:55:33 GMT",
+    "content-type": "application/json",
+    "content-length": "3627",
+    "connection": "keep-alive",
+    "strict-transport-security": "max-age=63072000; includeSubdomains",
+    "x-frame-options": "DENY",
+    "x-content-type-options": "nosniff"
+  },
+  "code": 200
+}
