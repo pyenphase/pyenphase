@@ -1,1 +1,21 @@
-{"production":[{"type":"inverters","activeCount":24,"readingTime":1691416513,"wNow":5739,"whLifetime":174174}],"storage":[{"type":"acb","activeCount":0,"readingTime":0,"wNow":0,"whNow":0,"state":"idle"}]}
+{
+  "production": [
+    {
+      "type": "inverters",
+      "activeCount": 24,
+      "readingTime": 1691416513,
+      "wNow": 5739,
+      "whLifetime": 174174
+    }
+  ],
+  "storage": [
+    {
+      "type": "acb",
+      "activeCount": 0,
+      "readingTime": 0,
+      "wNow": 0,
+      "whNow": 0,
+      "state": "idle"
+    }
+  ]
+}
