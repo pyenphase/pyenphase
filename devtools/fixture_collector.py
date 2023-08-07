@@ -4,7 +4,7 @@ import logging
 import os
 import zipfile
 
-from pyenphase.envoy import Envoy
+from pyenphase.envoy import DEFAULT_HEADERS, Envoy
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -38,14 +38,31 @@ async def main() -> None:
         "/ivp/ss/dry_contact_settings",
     ]
 
+    assert envoy.auth  # nosec
+
     for end_point in end_points:
+        url = envoy.auth.get_endpoint_url(end_point)
         try:
-            json_dict = await envoy.request(end_point)
+            response = await envoy._client.get(
+                url,
+                headers={**DEFAULT_HEADERS, **envoy.auth.headers},
+                cookies=envoy.auth.cookies,
+                follow_redirects=True,
+                auth=envoy.auth.auth,
+                timeout=envoy._timeout,
+            )
         except Exception:
             continue  # nosec
         file_name = end_point[1:].replace("/", "_")
         with open(os.path.join(target_dir, file_name), "w") as fixture_file:
-            fixture_file.write(json.dumps(json_dict))
+            fixture_file.write(response.text)
+
+        with open(
+            os.path.join(target_dir, f"{file_name}_log.json"), "w"
+        ) as metadata_file:
+            metadata_file.write(
+                json.dumps({"headers": response.headers, "code": response.status_code})
+            )
 
     print(f"Fixtures written to {target_dir}")
 
