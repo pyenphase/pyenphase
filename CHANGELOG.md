@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.1 (2023-08-07)
+
+### Fix
+
+* Probe failures with 5.0.62 firmware ([#38](https://github.com/pyenphase/pyenphase/issues/38)) ([`314df6d`](https://github.com/pyenphase/pyenphase/commit/314df6d83c4dfd7c91970e61f86e34218ce46be8))
+
 ## v0.14.0 (2023-08-06)
 
 ### Feature
