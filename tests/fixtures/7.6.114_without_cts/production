@@ -1,0 +1,21 @@
+{
+    "production": [
+        {
+            "type": "inverters",
+            "activeCount": 13,
+            "readingTime": 1691413056,
+            "wNow": 586,
+            "whLifetime": 351236
+        }
+    ],
+    "storage": [
+        {
+            "type": "acb",
+            "activeCount": 0,
+            "readingTime": 0,
+            "wNow": 0,
+            "whNow": 0,
+            "state": "idle"
+        }
+    ]
+}

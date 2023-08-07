@@ -1,0 +1,93 @@
+[
+  {
+    "serialNumber": "482305021663",
+    "lastReportDate": 1691412935,
+    "devType": 1,
+    "lastReportWatts": 48,
+    "maxReportWatts": 329
+  },
+  {
+    "serialNumber": "482305022836",
+    "lastReportDate": 1691412935,
+    "devType": 1,
+    "lastReportWatts": 39,
+    "maxReportWatts": 330
+  },
+  {
+    "serialNumber": "482305023640",
+    "lastReportDate": 1691412965,
+    "devType": 1,
+    "lastReportWatts": 50,
+    "maxReportWatts": 330
+  },
+  {
+    "serialNumber": "482306060958",
+    "lastReportDate": 1691412754,
+    "devType": 1,
+    "lastReportWatts": 47,
+    "maxReportWatts": 330
+  },
+  {
+    "serialNumber": "482306074560",
+    "lastReportDate": 1691412755,
+    "devType": 1,
+    "lastReportWatts": 48,
+    "maxReportWatts": 330
+  },
+  {
+    "serialNumber": "482306075432",
+    "lastReportDate": 1691412757,
+    "devType": 1,
+    "lastReportWatts": 46,
+    "maxReportWatts": 330
+  },
+  {
+    "serialNumber": "482306075729",
+    "lastReportDate": 1691412758,
+    "devType": 1,
+    "lastReportWatts": 48,
+    "maxReportWatts": 330
+  },
+  {
+    "serialNumber": "482306076034",
+    "lastReportDate": 1691412759,
+    "devType": 1,
+    "lastReportWatts": 48,
+    "maxReportWatts": 330
+  },
+  {
+    "serialNumber": "482306083701",
+    "lastReportDate": 1691412936,
+    "devType": 1,
+    "lastReportWatts": 48,
+    "maxReportWatts": 330
+  },
+  {
+    "serialNumber": "482306083705",
+    "lastReportDate": 1691412937,
+    "devType": 1,
+    "lastReportWatts": 33,
+    "maxReportWatts": 329
+  },
+  {
+    "serialNumber": "482306083763",
+    "lastReportDate": 1691412760,
+    "devType": 1,
+    "lastReportWatts": 47,
+    "maxReportWatts": 330
+  },
+  {
+    "serialNumber": "482306083851",
+    "lastReportDate": 1691412938,
+    "devType": 1,
+    "lastReportWatts": 44,
+    "maxReportWatts": 330
+  },
+  {
+    "serialNumber": "482306101590",
+    "lastReportDate": 1691412939,
+    "devType": 1,
+    "lastReportWatts": 40,
+    "maxReportWatts": 330
+  }
+]
