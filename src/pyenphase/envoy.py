@@ -264,9 +264,6 @@ class Envoy:
         if not self._production_endpoint:
             await self.probe()
 
-        if not self._production_endpoint:
-            raise EnvoyProbeFailed("Unable to determine production endpoint")
-
         production_endpoint = self._production_endpoint
         consumption_endpoint = self._consumption_endpoint
         supported_features = self._supported_features
