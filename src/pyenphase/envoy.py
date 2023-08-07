@@ -8,8 +8,6 @@ from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
-from pyenphase.models.encharge import EnvoyEncharge
-
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
     URL_ENCHARGE_BATTERY,
@@ -25,6 +23,7 @@ from .exceptions import (
     EnvoyProbeFailed,
 )
 from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
+from .models.encharge import EnvoyEncharge
 from .models.envoy import EnvoyData
 from .models.inverter import EnvoyInverter
 from .models.system_consumption import EnvoySystemConsumption
