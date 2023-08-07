@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.0 (2023-08-07)
+
+### Feature
+
+* Collect headers as well as XML files ([#43](https://github.com/pyenphase/pyenphase/issues/43)) ([`82678be`](https://github.com/pyenphase/pyenphase/commit/82678be2bdcd59b77befc04883b2bb4693789f36))
+* Update 7.6.175 fixtures ([#45](https://github.com/pyenphase/pyenphase/issues/45)) ([`9c96475`](https://github.com/pyenphase/pyenphase/commit/9c96475f345786a24b5b786a4880a949a01cabd8))
+
 ## v0.15.1 (2023-08-07)
 
 ### Fix
