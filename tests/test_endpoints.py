@@ -32,6 +32,7 @@ async def _get_mock_envoy():
     await envoy.setup()
     await envoy.authenticate("username", "password")
     await envoy.update()
+    await envoy.update()  # make sure we can update twice
     return envoy
 
 
