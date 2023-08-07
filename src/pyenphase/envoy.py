@@ -304,6 +304,8 @@ class Envoy:
             raw["inverters"] = inverters_data
 
         # Update Enpower and Encharge data if supported
+        encharge: dict[str, EnvoyEncharge] | None = None
+
         if (
             supported_features & SupportedFeatures.ENCHARGE
             or supported_features & SupportedFeatures.ENPOWER
@@ -313,7 +315,6 @@ class Envoy:
             )
 
             if supported_features & SupportedFeatures.ENCHARGE:
-                encharge: dict[str, EnvoyEncharge] = {}
                 encharge_power: dict[str, Any] = await self.request(
                     URL_ENCHARGE_BATTERY
                 )
