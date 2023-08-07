@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.17.0 (2023-08-07)
+
+### Feature
+
+* Add fixtures for 7.6.114 without clamps ([#44](https://github.com/pyenphase/pyenphase/issues/44)) ([`4be0a33`](https://github.com/pyenphase/pyenphase/commit/4be0a339ed9ae458246f2260e03c5d4c89c58410))
+
 ## v0.16.0 (2023-08-07)
 
 ### Feature
