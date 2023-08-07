@@ -8,6 +8,24 @@ from typing import Any
 
 
 @dataclass(slots=True)
+class EnvoyEnchargePower:
+    """Model for the Encharge/IQ battery power."""
+
+    apparent_power_mva: int
+    real_power_mw: int
+    soc: int
+
+    @classmethod
+    def from_api(cls, power: dict[str, Any]) -> EnvoyEnchargePower:
+        """Initialize from the API."""
+        return cls(
+            apparent_power_mva=power["apparent_power_mva"],
+            real_power_mw=power["real_power_mw"],
+            soc=power["soc"],
+        )
+
+
+@dataclass(slots=True)
 class EnvoyEncharge:
     """Model for the Encharge/IQ battery."""
 
@@ -33,37 +51,31 @@ class EnvoyEncharge:
     temperature: int
     temperature_unit: str
     zigbee_dongle_fw_version: str
-    apparent_power_mva: int
-    real_power_mw: int
-    soc: int
 
     @classmethod
-    def from_api(cls, data: dict[str, Any]) -> EnvoyEncharge:
+    def from_api(cls, inventory: dict[str, Any]) -> EnvoyEncharge:
         """Initialize from the API."""
         return cls(
-            admin_state=data["admin_state"],
-            admin_state_str=data["admin_state_str"],
-            bmu_firmware_version=data["bmu_fw_version"],
-            comm_level_2_4_ghz=data["comm_level_2_4_ghz"],
-            comm_level_sub_ghz=data["comm_level_sub_ghz"],
-            communicating=data["communicating"],
-            dc_switch_off=data["dc_switch_off"],
-            encharge_capacity=data["encharge_capacity"],
-            encharge_revision=data["encharge_rev"],
-            firmware_loaded_date=data["img_load_date"],
-            firmware_version=data["img_pnum_running"],
-            installed_date=data["installed"],
-            last_report_date=data["last_rpt_date"],
-            led_status=data["led_status"],
-            max_cell_temp=data["maxCellTemp"],
-            operating=data["operating"],
-            part_number=data["part_num"],
-            percent_full=data["percentFull"],
-            serial_number=data["serial_num"],
-            temperature=data["temperature"],
+            admin_state=inventory["admin_state"],
+            admin_state_str=inventory["admin_state_str"],
+            bmu_firmware_version=inventory["bmu_fw_version"],
+            comm_level_2_4_ghz=inventory["comm_level_2_4_ghz"],
+            comm_level_sub_ghz=inventory["comm_level_sub_ghz"],
+            communicating=inventory["communicating"],
+            dc_switch_off=inventory["dc_switch_off"],
+            encharge_capacity=inventory["encharge_capacity"],
+            encharge_revision=inventory["encharge_rev"],
+            firmware_loaded_date=inventory["img_load_date"],
+            firmware_version=inventory["img_pnum_running"],
+            installed_date=inventory["installed"],
+            last_report_date=inventory["last_rpt_date"],
+            led_status=inventory["led_status"],
+            max_cell_temp=inventory["maxCellTemp"],
+            operating=inventory["operating"],
+            part_number=inventory["part_num"],
+            percent_full=inventory["percentFull"],
+            serial_number=inventory["serial_num"],
+            temperature=inventory["temperature"],
             temperature_unit="C",
-            zigbee_dongle_fw_version=data["zigbee_dongle_fw_version"],
-            apparent_power_mva=data["power"]["apparent_power_mva"],
-            real_power_mw=data["power"]["real_power_mw"],
-            soc=data["power"]["soc"],
+            zigbee_dongle_fw_version=inventory["zigbee_dongle_fw_version"],
         )
