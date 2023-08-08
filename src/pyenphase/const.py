@@ -1,4 +1,12 @@
+import enum
+
 import httpx
+from awesomeversion import AwesomeVersion
+
+# Versions
+LEGACY_ENVOY_VERSION = AwesomeVersion("3.9.0")
+ENSEMBLE_MIN_VERSION = AwesomeVersion("5.0.0")
+AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
 
 # System Production
 URL_PRODUCTION_INVERTERS = "/api/v1/production/inverters"
@@ -31,3 +39,13 @@ LOCAL_TIMEOUT = httpx.Timeout(
     timeout=10.0,
     read=60.0,
 )
+
+
+class SupportedFeatures(enum.IntFlag):
+    INVERTERS = 1
+    METERING = 2
+    TOTAL_CONSUMPTION = 4
+    NET_CONSUMPTION = 8
+    ENCHARGE = 16
+    ENPOWER = 32
+    PRODUCTION = 64

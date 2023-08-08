@@ -1,0 +1,81 @@
+import logging
+from typing import Any
+
+from awesomeversion import AwesomeVersion
+
+from ..const import URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
+from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
+from ..models.envoy import EnvoyData
+from ..models.system_consumption import EnvoySystemConsumption
+from ..models.system_production import EnvoySystemProduction
+from .base import EnvoyUpdater
+
+_LOGGER = logging.getLogger(__name__)
+
+
+class EnvoyProductionUpdater(EnvoyUpdater):
+    endpoint = URL_PRODUCTION
+    minimum_version = AwesomeVersion("0.0.0")
+
+    def should_probe(
+        self, envoy_version: AwesomeVersion, discovered_features: SupportedFeatures
+    ) -> bool:
+        """Return True if this endpoint should be probed."""
+        if SupportedFeatures.NET_CONSUMPTION not in discovered_features:
+            return True
+        if SupportedFeatures.PRODUCTION not in discovered_features:
+            return True
+        return False
+
+    async def probe(self) -> SupportedFeatures | None:
+        """Probe the Envoy for this endpoint and return SupportedFeatures."""
+        try:
+            production_json: dict[str, Any] = await self._json_probe_request(
+                URL_PRODUCTION
+            )
+        except ENDPOINT_PROBE_EXCEPTIONS as e:
+            _LOGGER.debug("Production endpoint not found at %s: %s", URL_PRODUCTION, e)
+            return None
+        else:
+            production: list[dict[str, str | float | int]] | None = production_json.get(
+                "production"
+            )
+            if production:
+                for type_ in production:
+                    if type_["type"] == "eim" and type_["activeCount"]:
+                        self._supported_features |= SupportedFeatures.METERING
+                        self._supported_features |= SupportedFeatures.PRODUCTION
+                        break
+
+            consumption: list[
+                dict[str, str | float | int]
+            ] | None = production_json.get("consumption")
+            if consumption:
+                for meter in consumption:
+                    meter_type = meter["measurementType"]
+                    if meter_type == "total-consumption":
+                        self._supported_features |= SupportedFeatures.TOTAL_CONSUMPTION
+                    elif meter_type == "net-consumption":
+                        self._supported_features |= SupportedFeatures.NET_CONSUMPTION
+
+        return self._supported_features
+
+    async def update(self, envoy_data: EnvoyData) -> None:
+        """Update the Envoy for this endpoint."""
+        production_data = await self._json_request(URL_PRODUCTION)
+        envoy_data.raw[URL_PRODUCTION] = production_data
+        if self._supported_features & SupportedFeatures.PRODUCTION:
+            envoy_data.system_production = EnvoySystemProduction.from_production(
+                production_data
+            )
+        if (
+            self._supported_features & SupportedFeatures.NET_CONSUMPTION
+            or self._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
+        ):
+            envoy_data.system_consumption = EnvoySystemConsumption.from_production(
+                production_data
+            )
+
+
+class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):
+    endpoint = URL_PRODUCTION_JSON
