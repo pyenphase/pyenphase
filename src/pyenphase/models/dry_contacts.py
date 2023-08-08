@@ -42,7 +42,7 @@ class EnvoyDryContactStatus:
         """Initialize from the API."""
         return cls(
             id=relay["id"],
-            status=relay["status"],
+            status=DryContactStatus(relay["status"]),
         )
 
 
