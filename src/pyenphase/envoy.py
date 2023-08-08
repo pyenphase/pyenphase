@@ -24,6 +24,7 @@ from .exceptions import (
 )
 from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
 from .models.encharge import EnvoyEncharge, EnvoyEnchargePower
+from .models.enpower import EnvoyEnpower
 from .models.envoy import EnvoyData
 from .models.inverter import EnvoyInverter
 from .models.system_consumption import EnvoySystemConsumption
@@ -305,32 +306,49 @@ class Envoy:
         # Update Enpower and Encharge data if supported
         encharge_inventory: dict[str, EnvoyEncharge] | None = None
         encharge_power: dict[str, EnvoyEnchargePower] | None = None
+        enpower: EnvoyEnpower | None = None
 
-        if supported_features & SupportedFeatures.ENCHARGE:
+        if (
+            supported_features & SupportedFeatures.ENCHARGE
+            or supported_features & SupportedFeatures.ENPOWER
+        ):
             ensemble_inventory_data: list[dict[str, Any]] = await self.request(
                 URL_ENSEMBLE_INVENTORY
             )
             raw["ensemble"] = ensemble_inventory_data
-            encharge_power_data: dict[str, Any] = await self.request(
-                URL_ENCHARGE_BATTERY
-            )
-            raw["encharge_power"] = encharge_power_data
-            power: dict[str, Any] = {
-                power["serial_num"]: power for power in encharge_power_data["devices:"]
-            }
-            inventory: dict[str, Any] = {}
-            for item in ensemble_inventory_data:
-                if item["type"] != "ENCHARGE":
-                    continue
-                inventory = {device["serial_num"]: device for device in item["devices"]}
 
-            encharge_inventory = {
-                serial: EnvoyEncharge.from_api(inventory[serial])
-                for serial in inventory
-            }
-            encharge_power = {
-                serial: EnvoyEnchargePower.from_api(power[serial]) for serial in power
-            }
+            if supported_features & SupportedFeatures.ENCHARGE:
+                encharge_power_data: dict[str, Any] = await self.request(
+                    URL_ENCHARGE_BATTERY
+                )
+                raw["encharge_power"] = encharge_power_data
+                power: dict[str, Any] = {
+                    power["serial_num"]: power
+                    for power in encharge_power_data["devices:"]
+                }
+                inventory: dict[str, Any] = {}
+                for item in ensemble_inventory_data:
+                    if item["type"] != "ENCHARGE":
+                        continue
+                    inventory = {
+                        device["serial_num"]: device for device in item["devices"]
+                    }
+
+                encharge_inventory = {
+                    serial: EnvoyEncharge.from_api(inventory[serial])
+                    for serial in inventory
+                }
+                encharge_power = {
+                    serial: EnvoyEnchargePower.from_api(power[serial])
+                    for serial in power
+                }
+            if supported_features & SupportedFeatures.ENPOWER:
+                for item in ensemble_inventory_data:
+                    if item["type"] != "ENPOWER":
+                        continue
+                    enpower_data = item["devices"][0]
+                raw["enpower"] = enpower_data
+                enpower = EnvoyEnpower.from_api(enpower_data)
 
         data = EnvoyData(
             system_production=system_production,
@@ -338,6 +356,7 @@ class Envoy:
             inverters=inverters,
             encharge_inventory=encharge_inventory,
             encharge_power=encharge_power,
+            enpower=enpower,
             # Raw data is exposed so we can __eq__ the data to see if
             # anything has changed and consumers of the library can
             # avoid dispatching data if nothing has changed.
