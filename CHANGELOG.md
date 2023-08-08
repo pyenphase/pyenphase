@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.1 (2023-08-08)
+
+### Fix
+
+* Add Enpower and DryContact classes to __all__ ([#50](https://github.com/pyenphase/pyenphase/issues/50)) ([`d37b5e9`](https://github.com/pyenphase/pyenphase/commit/d37b5e9b6e6f12d62ba57a2f6d745868adf67914))
+
 ## v1.1.0 (2023-08-08)
 
 ### Feature
