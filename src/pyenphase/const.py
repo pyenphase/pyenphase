@@ -1,8 +1,13 @@
+import httpx
+
 # System Production
 URL_PRODUCTION_INVERTERS = "/api/v1/production/inverters"
 URL_PRODUCTION_V1 = "/api/v1/production"
 URL_PRODUCTION_JSON = "/production.json"
 URL_PRODUCTION = "/production"
+
+# Authentication
+URL_AUTH_CHECK_JWT = "/auth/check_jwt"
 
 # Battery and Enpower Status
 URL_DRY_CONTACT_STATUS = "/ivp/ensemble/dry_contacts"
@@ -17,3 +22,12 @@ URL_TARIFF = "/admin/lib/tariff"
 URL_GEN_CONFIG = "/ivp/ss/gen_config"
 URL_GEN_MODE = "/ivp/ss/gen_mode"
 URL_GEN_SCHEDULE = "/ivp/ss/gen_schedule"
+
+
+LOCAL_TIMEOUT = httpx.Timeout(
+    # The envoy can be slow to respond but fast to connect to we
+    # need to set a long timeout for the read and a short timeout
+    # for the connect
+    timeout=10.0,
+    read=60.0,
+)

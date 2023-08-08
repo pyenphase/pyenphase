@@ -10,6 +10,7 @@ from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
+    LOCAL_TIMEOUT,
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
     URL_ENCHARGE_BATTERY,
@@ -24,7 +25,7 @@ from .exceptions import (
     EnvoyAuthenticationRequired,
     EnvoyProbeFailed,
 )
-from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
+from .firmware import EnvoyFirmware
 from .models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .models.encharge import EnvoyEncharge, EnvoyEnchargePower
 from .models.enpower import EnvoyEnpower
@@ -36,7 +37,7 @@ from .ssl import NO_VERIFY_SSL_CONTEXT
 
 _LOGGER = logging.getLogger(__name__)
 
-TIMEOUT = 20
+
 LEGACY_ENVOY_VERSION = AwesomeVersion("3.9.0")
 ENSEMBLE_MIN_VERSION = AwesomeVersion("5.0.0")
 AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
@@ -61,11 +62,11 @@ class Envoy:
         self,
         host: str,
         client: httpx.AsyncClient | None = None,
-        timeout: float | None = None,
+        timeout: float | httpx.Timeout | None = None,
     ) -> None:
         """Initialize the Envoy class."""
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
-        self._timeout = timeout or TIMEOUT
+        self._timeout = timeout or LOCAL_TIMEOUT
         self._client = client or httpx.AsyncClient(
             verify=NO_VERIFY_SSL_CONTEXT
         )  # nosec
@@ -77,10 +78,6 @@ class Envoy:
         self._consumption_endpoint: str | None = None
         self.data: EnvoyData | None = None
 
-    @retry(
-        retry=retry_if_exception_type(EnvoyFirmwareCheckError),
-        wait=wait_random_exponential(multiplier=2, max=10),
-    )
     async def setup(self) -> None:
         """Obtain the firmware version for later Envoy authentication."""
         await self._firmware.setup()
@@ -145,6 +142,7 @@ class Envoy:
             )
 
         url = self.auth.get_endpoint_url(endpoint)
+        _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
         response = await self._client.get(
             url,
             headers={**DEFAULT_HEADERS, **self.auth.headers},
