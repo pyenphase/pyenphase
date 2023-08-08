@@ -134,7 +134,32 @@ class Envoy:
         ),
         wait=wait_random_exponential(multiplier=2, max=3),
     )
+    async def probe_request(self, endpoint: str) -> httpx.Response:
+        """Make a probe request.
+
+        Probe requests are not retried on bad JSON responses.
+        """
+        await self._request(endpoint)
+
+    @retry(
+        retry=retry_if_exception_type(
+            (
+                httpx.NetworkError,
+                httpx.TimeoutException,
+                httpx.RemoteProtocolError,
+                orjson.JSONDecodeError,
+            )
+        ),
+        wait=wait_random_exponential(multiplier=2, max=3),
+    )
     async def request(self, endpoint: str) -> Any:
+        """Make a request to the Envoy.
+
+        Request retries on bad JSON responses which the Envoy sometimes returns.
+        """
+        return await self._request(endpoint)
+
+    async def _request(self, endpoint: str) -> Any:
         """Make a request to the Envoy."""
         if self.auth is None:
             raise EnvoyAuthenticationRequired(
@@ -183,7 +208,9 @@ class Envoy:
         """Probe for model and supported features."""
         for possible_endpoint in (URL_PRODUCTION, URL_PRODUCTION_JSON):
             try:
-                production_json: dict[str, Any] = await self.request(possible_endpoint)
+                production_json: dict[str, Any] = await self.probe_request(
+                    possible_endpoint
+                )
             except ENDPOINT_PROBE_EXCEPTIONS as e:
                 _LOGGER.debug(
                     "Production endpoint not found at %s: %s", possible_endpoint, e
@@ -223,7 +250,7 @@ class Envoy:
 
         if not self._production_endpoint:
             try:
-                await self.request(URL_PRODUCTION_V1)
+                await self.probe_request(URL_PRODUCTION_V1)
             except ENDPOINT_PROBE_EXCEPTIONS as e:
                 _LOGGER.debug(
                     "Production endpoint not found at %s: %s", URL_PRODUCTION_V1, e
@@ -235,7 +262,7 @@ class Envoy:
             raise EnvoyProbeFailed("Unable to determine production endpoint")
 
         try:
-            await self.request(URL_PRODUCTION_INVERTERS)
+            await self.probe_request(URL_PRODUCTION_INVERTERS)
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug("Inverters endpoint not found: %s", e)
         else:
@@ -245,7 +272,7 @@ class Envoy:
         if self._firmware.version >= ENSEMBLE_MIN_VERSION:
             # The Ensemble Inventory endpoint will tell us if we have Enpower or Encharge support
             try:
-                result = await self.request(URL_ENSEMBLE_INVENTORY)
+                result = await self.probe_request(URL_ENSEMBLE_INVENTORY)
             except ENDPOINT_PROBE_EXCEPTIONS as e:
                 _LOGGER.debug("Ensemble Inventory endpoint not found: %s", e)
             else:
