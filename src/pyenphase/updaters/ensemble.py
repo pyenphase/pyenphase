@@ -22,6 +22,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class EnvoyEnembleUpdater(EnvoyUpdater):
+    """Class to handle updates for Ensemble devices."""
+
     def should_probe(
         self, envoy_version: AwesomeVersion, discovered_features: SupportedFeatures
     ) -> bool:

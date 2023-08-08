@@ -14,8 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class EnvoyProductionUpdater(EnvoyUpdater):
-    endpoint = URL_PRODUCTION
-    minimum_version = AwesomeVersion("0.0.0")
+    """Class to handle updates for production data."""
 
     def should_probe(
         self, envoy_version: AwesomeVersion, discovered_features: SupportedFeatures

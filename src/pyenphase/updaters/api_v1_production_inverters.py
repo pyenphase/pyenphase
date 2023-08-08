@@ -13,6 +13,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class EnvoyApiV1ProductionInvertersUpdater(EnvoyUpdater):
+    """Class to handle updates for inverter production data."""
+
     def should_probe(
         self, envoy_version: AwesomeVersion, discovered_features: SupportedFeatures
     ) -> bool:

@@ -12,7 +12,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class EnvoyApiV1ProductionUpdater(EnvoyUpdater):
-    minimum_version = AwesomeVersion("0.0.0")
+    """Class to handle updates for production data."""
 
     def should_probe(
         self, envoy_version: AwesomeVersion, discovered_features: SupportedFeatures

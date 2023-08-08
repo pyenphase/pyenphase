@@ -10,6 +10,8 @@ from ..models.envoy import EnvoyData
 
 
 class EnvoyUpdater:
+    """Base class for Envoy updaters."""
+
     def __init__(
         self,
         probe_request: Callable[[str], httpx.Response],
