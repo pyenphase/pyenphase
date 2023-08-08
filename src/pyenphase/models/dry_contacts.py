@@ -1,95 +1,67 @@
 """Model for the Enpower dry contact relays."""
 # Data Source: URL_DRY_CONTACT_SETTINGS (primary) & URL_DRY_CONTACT_STATUS
 
+from __future__ import annotations
+
+from dataclasses import dataclass
 from typing import Any
 
 
-class EnvoyDryContact:
-    def __init__(self, data: dict[str, Any]) -> None:
-        """Initialize."""
-        self._data = data
+@dataclass(slots=True)
+class EnvoyDryContactStatus:
+    """Model for the Enpower dry contact relay status."""
 
-    @property
-    def id(self) -> str:
-        """Return the relay ID."""
-        # Matches between both API endpoints
-        return self._data["id"]
+    id: str
+    status: str
 
-    @property
-    def status(self) -> str:
-        """Return the relay status (opened/closed)."""
-        # From URL_DRY_CONTACT_STATUS
-        return self._data["status"]
+    @classmethod
+    def from_api(cls, relay: dict[str, Any]) -> EnvoyDryContactStatus:
+        """Initialize from the API."""
+        return cls(
+            id=relay["id"],
+            status=relay["status"],
+        )
 
-    @property
-    def type(self) -> str:
-        """Return the relay type (NONE/PV/LOAD)."""
-        return self._data["type"]
 
-    @property
-    def grid_action(self) -> str:
-        """Return the relay action when on-grid (apply/shed/none)."""
-        return self._data["grid_action"]
+@dataclass(slots=True)
+class EnvoyDryContactSettings:
+    """Model for the Enpower dry contact relay settings."""
 
-    @property
-    def micro_grid_action(self) -> str:
-        """Return the relay action when on batteries/micro-grid (apply/shed/none)."""
-        return self._data["micro_grid_action"]
+    id: str
+    black_start: float
+    essential_end_time: float
+    essential_start_time: float
+    generator_action: str
+    grid_action: str
+    load_name: str
+    manual_override: bool
+    micro_grid_action: str
+    mode: str
+    override: bool
+    priority: float
+    pv_serial_nb: list[Any]
+    soc_high: float
+    soc_low: float
+    type: str
 
-    @property
-    def generator_action(self) -> str:
-        """Return the relay action when on generator (apply/shed/none)."""
-        return self._data["generator_action"]
-
-    @property
-    def override(self) -> bool:
-        """Return the relay override."""
-        return self._data["override"]
-
-    @property
-    def manual_override(self) -> bool:
-        """Return the relay manual override."""
-        return self._data["manual_override"]
-
-    @property
-    def load_name(self) -> str:
-        """Return the friendly name assigned to the relay."""
-        return self._data["load_name"]
-
-    @property
-    def mode(self) -> str:
-        """Return the relay mode (manual/soc)."""
-        return self._data["mode"]
-
-    @property
-    def soc_high(self) -> float:
-        """Return the state of charge high limit."""
-        return self._data["soc_high"]
-
-    @property
-    def soc_low(self) -> float:
-        """Return the state of charge low limit."""
-        return self._data["soc_low"]
-
-    @property
-    def pv_serial_numbers(self) -> list[str]:
-        """Return the list of PV serial numbers assigned to the relay."""
-        return self._data["pv_serial_numbers"]
-
-    @property
-    def priority(self) -> float:
-        """Return the relay priority."""
-        # Not listed in API docs but present in data
-        return self._data["priority"]
-
-    @property
-    def essential_end_time(self) -> float:
-        """Return the essential end time."""
-        # Not listed in API docs but present in data
-        return self._data["essential_end_time"]
-
-    @property
-    def essential_start_time(self) -> float:
-        """Return the essential start time."""
-        # Not listed in API docs but present in data
-        return self._data["essential_start_time"]
+    @classmethod
+    def from_api(cls, relay: dict[str, Any]) -> EnvoyDryContactSettings:
+        """Initialize from the API."""
+        return cls(
+            id=relay["id"],
+            black_start=relay["black_s_start"],
+            essential_end_time=relay["essential_end_time"],
+            essential_start_time=relay["essential_start_time"],
+            generator_action=relay["gen_action"],
+            grid_action=relay["grid_action"],
+            load_name=relay["load_name"],
+            manual_override=relay["manual_override"] == "true",
+            micro_grid_action=relay["micro_grid_action"],
+            mode=relay["mode"],
+            override=relay["override"] == "true",
+            priority=relay["priority"],
+            pv_serial_nb=relay["pv_serial_nb"],
+            soc_high=relay["soc_high"],
+            soc_low=relay["soc_low"],
+            type=relay["type"],
+        )

@@ -919,7 +919,7 @@ async def test_with_7_x_firmware(
             )
         )
     if "ivp_ss_dry_contact_settings" in files:
-        respx.get("/ivp/ensemble/dry_contacts_settings").mock(
+        respx.get("/ivp/ensemble/dry_contact_settings").mock(
             return_value=Response(
                 200, json=_load_json_fixture(version, "ivp_ss_dry_contact_settings")
             )
