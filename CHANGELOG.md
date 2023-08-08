@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.3 (2023-08-08)
+
+### Fix
+
+* Handle envoy sending bad json ([#52](https://github.com/pyenphase/pyenphase/issues/52)) ([`7109e66`](https://github.com/pyenphase/pyenphase/commit/7109e6604f5fc1d1b197a128ceb264c9e00410d4))
+
 ## v1.1.2 (2023-08-08)
 
 ### Fix
