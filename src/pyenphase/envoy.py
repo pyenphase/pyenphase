@@ -139,7 +139,7 @@ class Envoy:
 
         Probe requests are not retried on bad JSON responses.
         """
-        await self._request(endpoint)
+        return await self._request(endpoint)
 
     @retry(
         retry=retry_if_exception_type(
