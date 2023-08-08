@@ -10,6 +10,8 @@ from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
+    URL_DRY_CONTACT_SETTINGS,
+    URL_DRY_CONTACT_STATUS,
     URL_ENCHARGE_BATTERY,
     URL_ENSEMBLE_INVENTORY,
     URL_PRODUCTION,
@@ -23,6 +25,7 @@ from .exceptions import (
     EnvoyProbeFailed,
 )
 from .firmware import EnvoyFirmware, EnvoyFirmwareCheckError
+from .models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .models.encharge import EnvoyEncharge, EnvoyEnchargePower
 from .models.enpower import EnvoyEnpower
 from .models.envoy import EnvoyData
@@ -47,9 +50,8 @@ class SupportedFeatures(enum.IntFlag):
     METERING = 2
     TOTAL_CONSUMPTION = 4
     NET_CONSUMPTION = 8
-    DRY_CONTACTS = 16
-    ENCHARGE = 32
-    ENPOWER = 64
+    ENCHARGE = 16
+    ENPOWER = 32
 
 
 class Envoy:
@@ -307,6 +309,8 @@ class Envoy:
         encharge_inventory: dict[str, EnvoyEncharge] | None = None
         encharge_power: dict[str, EnvoyEnchargePower] | None = None
         enpower: EnvoyEnpower | None = None
+        dry_contact_settings: dict[str, EnvoyDryContactSettings] = {}
+        dry_contact_status: dict[str, EnvoyDryContactStatus] = {}
 
         if (
             supported_features & SupportedFeatures.ENCHARGE
@@ -343,12 +347,28 @@ class Envoy:
                     for serial in power
                 }
             if supported_features & SupportedFeatures.ENPOWER:
+                # Update Enpower data
                 for item in ensemble_inventory_data:
                     if item["type"] != "ENPOWER":
                         continue
                     enpower_data = item["devices"][0]
                 raw["enpower"] = enpower_data
                 enpower = EnvoyEnpower.from_api(enpower_data)
+
+                # Update dry contact data
+                dry_contact_status_data = await self.request(URL_DRY_CONTACT_STATUS)
+                dry_contact_settings_data = await self.request(URL_DRY_CONTACT_SETTINGS)
+                raw["dry_contact_status"] = dry_contact_status_data
+                raw["dry_contact_settings"] = dry_contact_settings_data
+
+                dry_contact_status = {
+                    relay["id"]: EnvoyDryContactStatus.from_api(relay)
+                    for relay in dry_contact_status_data["dry_contacts"]
+                }
+                dry_contact_settings = {
+                    relay["id"]: EnvoyDryContactSettings.from_api(relay)
+                    for relay in dry_contact_settings_data["dry_contacts"]
+                }
 
         data = EnvoyData(
             system_production=system_production,
@@ -357,6 +377,8 @@ class Envoy:
             encharge_inventory=encharge_inventory,
             encharge_power=encharge_power,
             enpower=enpower,
+            dry_contact_status=dry_contact_status,
+            dry_contact_settings=dry_contact_settings,
             # Raw data is exposed so we can __eq__ the data to see if
             # anything has changed and consumers of the library can
             # avoid dispatching data if nothing has changed.
