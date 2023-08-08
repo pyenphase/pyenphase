@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.0 (2023-08-08)
+
+### Breaking
+
+* drop python3.10 support ([#49](https://github.com/pyenphase/pyenphase/issues/49)) ([`9d8c20d`](https://github.com/pyenphase/pyenphase/commit/9d8c20d8f1d9b08b57649f7c8b84715f25312887))
+
 ## v0.18.0 (2023-08-08)
 
 ### Feature
