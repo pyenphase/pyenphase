@@ -6,7 +6,7 @@ URL_PRODUCTION = "/production"
 
 # Battery and Enpower Status
 URL_DRY_CONTACT_STATUS = "/ivp/ensemble/dry_contacts"
-URL_DRY_CONTACT_SETTINGS = "/ivp/ensemble/dry_contact_settings"
+URL_DRY_CONTACT_SETTINGS = "/ivp/ss/dry_contact_settings"
 URL_ENSEMBLE_INVENTORY = "/ivp/ensemble/inventory"
 URL_ENCHARGE_BATTERY = "/ivp/ensemble/power"
 URL_GRID_RELAY = "/ivp/ensemble/relay"
