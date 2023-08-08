@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from collections.abc import Awaitable
 from typing import Any, Callable
 
 import httpx
@@ -15,8 +16,8 @@ class EnvoyUpdater:
     def __init__(
         self,
         envoy_version: AwesomeVersion,
-        probe_request: Callable[[str], httpx.Response],
-        request: Callable[[str], httpx.Response],
+        probe_request: Callable[[str], Awaitable[httpx.Response]],
+        request: Callable[[str], Awaitable[httpx.Response]],
     ) -> None:
         """Initialize the Envoy endpoint."""
         self._envoy_version = envoy_version
@@ -26,11 +27,13 @@ class EnvoyUpdater:
 
     async def _json_request(self, end_point: str) -> Any:
         """Make a request to the Envoy and return the JSON response."""
-        return json_loads(end_point, await self._request(end_point))
+        response = await self._request(end_point)
+        return json_loads(end_point, response.content)
 
     async def _json_probe_request(self, end_point: str) -> Any:
         """Make a probe request to the Envoy and return the JSON response."""
-        return json_loads(end_point, await self._probe_request(end_point))
+        response = await self._probe_request(end_point)
+        return json_loads(end_point, response.content)
 
     @abstractmethod
     async def probe(

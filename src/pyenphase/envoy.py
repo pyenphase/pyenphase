@@ -186,16 +186,18 @@ class Envoy:
     async def probe(self) -> None:
         """Probe for model and supported features."""
         supported_features = SupportedFeatures(0)
-        end_points: list[EnvoyUpdater] = []
+        updaters: list[EnvoyUpdater] = []
         version = self._firmware.version
-        for end_point in get_updaters():
-            klass = end_point(version, self.probe_request, self.request)
+        for updater in get_updaters():
+            klass = updater(version, self.probe_request, self.request)
             if updater_features := await klass.probe(supported_features):
                 supported_features |= updater_features
-            end_points.append(klass)
+                updaters.append(klass)
 
         if not supported_features & SupportedFeatures.PRODUCTION:
             raise EnvoyProbeFailed("Unable to determine production endpoint")
+
+        self._updaters = updaters
         self._supported_features = supported_features
 
     async def update(self) -> EnvoyData:

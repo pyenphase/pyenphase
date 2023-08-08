@@ -34,27 +34,27 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug("Production endpoint not found at %s: %s", self.end_point, e)
             return None
-        else:
-            production: list[dict[str, str | float | int]] | None = production_json.get(
-                "production"
-            )
-            if production:
-                for type_ in production:
-                    if type_["type"] == "eim" and type_["activeCount"]:
-                        self._supported_features |= SupportedFeatures.METERING
-                        self._supported_features |= SupportedFeatures.PRODUCTION
-                        break
 
-            consumption: list[
-                dict[str, str | float | int]
-            ] | None = production_json.get("consumption")
-            if consumption:
-                for meter in consumption:
-                    meter_type = meter["measurementType"]
-                    if meter_type == "total-consumption":
-                        self._supported_features |= SupportedFeatures.TOTAL_CONSUMPTION
-                    elif meter_type == "net-consumption":
-                        self._supported_features |= SupportedFeatures.NET_CONSUMPTION
+        production: list[dict[str, str | float | int]] | None = production_json.get(
+            "production"
+        )
+        if production:
+            for type_ in production:
+                if type_["type"] == "eim" and type_["activeCount"]:
+                    self._supported_features |= SupportedFeatures.METERING
+                    self._supported_features |= SupportedFeatures.PRODUCTION
+                    break
+
+        consumption: list[dict[str, str | float | int]] | None = production_json.get(
+            "consumption"
+        )
+        if consumption:
+            for meter in consumption:
+                meter_type = meter["measurementType"]
+                if meter_type == "total-consumption":
+                    self._supported_features |= SupportedFeatures.TOTAL_CONSUMPTION
+                elif meter_type == "net-consumption":
+                    self._supported_features |= SupportedFeatures.NET_CONSUMPTION
 
         return self._supported_features
 
