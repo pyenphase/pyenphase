@@ -8,6 +8,7 @@ import jwt
 import orjson
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
+from .const import LOCAL_TIMEOUT, URL_AUTH_CHECK_JWT
 from .exceptions import EnvoyAuthenticationError
 from .ssl import SSL_CONTEXT
 
@@ -69,18 +70,26 @@ class EnvoyTokenAuth(EnvoyAuth):
                 "Unable to obtain token for Envoy authentication."
             )
 
-        # Verify the token and obtain cookie with session ID necessary for some API calls
+        await self._check_jwt(client)
+
+    @retry(
+        retry=retry_if_exception_type(httpx.HTTPError),
+        wait=wait_random_exponential(multiplier=2, max=3),
+    )
+    async def _check_jwt(self, client: httpx.AsyncClient) -> None:
+        """Check the JWT token for Envoy authentication."""
         req = await client.get(
-            f"https://{self.host}/auth/check_jwt",
+            f"https://{self.host}{URL_AUTH_CHECK_JWT}",
             headers={"Authorization": f"Bearer {self.token}"},
+            timeout=LOCAL_TIMEOUT,
         )
+        if req.status_code == 200:
+            self._cookies = req.cookies
+            return
 
-        if req.status_code != 200:
-            raise EnvoyAuthenticationError(
-                "Unable to verify token for Envoy authentication."
-            )
-
-        self._cookies = req.cookies
+        raise EnvoyAuthenticationError(
+            "Unable to verify token for Envoy authentication."
+        )
 
     async def _obtain_token(self) -> None:
         """Obtain the token for Envoy authentication."""
