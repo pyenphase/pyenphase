@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.2 (2023-08-08)
+
+### Fix
+
+* Adjust timeouts for when envoy is having trouble with DNS ([#51](https://github.com/pyenphase/pyenphase/issues/51)) ([`c82f9bb`](https://github.com/pyenphase/pyenphase/commit/c82f9bbf69f884516985dde04207d375c4953ad3))
+
 ## v1.1.1 (2023-08-08)
 
 ### Fix
