@@ -11,7 +11,9 @@ from .exceptions import (
     EnvoyFirmwareFatalCheckError,
     EnvoyProbeFailed,
 )
+from .models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .models.encharge import EnvoyEncharge, EnvoyEnchargePower
+from .models.enpower import EnvoyEnpower
 from .models.envoy import EnvoyData
 from .models.inverter import EnvoyInverter
 from .models.system_consumption import EnvoySystemConsumption
@@ -34,4 +36,7 @@ __all__ = (
     "EnvoySystemProduction",
     "EnvoyEncharge",
     "EnvoyEnchargePower",
+    "EnvoyEnpower",
+    "EnvoyDryContactSettings",
+    "EnvoyDryContactStatus",
 )
