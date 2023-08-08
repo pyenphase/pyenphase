@@ -21,9 +21,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
     ) -> SupportedFeatures | None:
         """Probe the Envoy for this endpoint and return SupportedFeatures."""
         if (
-            SupportedFeatures.NET_CONSUMPTION in discovered_features
-            and SupportedFeatures.PRODUCTION in discovered_features
-        ):
+            SupportedFeatures.TOTAL_CONSUMPTION in discovered_features
+            or SupportedFeatures.NET_CONSUMPTION in discovered_features
+        ) and SupportedFeatures.PRODUCTION in discovered_features:
             # Already discovered from another updater
             return None
 
