@@ -14,6 +14,8 @@ _LOGGER = logging.getLogger(__name__)
 class EnvoyProductionUpdater(EnvoyUpdater):
     """Class to handle updates for production data."""
 
+    end_point = URL_PRODUCTION
+
     async def probe(
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
@@ -27,10 +29,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         try:
             production_json: dict[str, Any] = await self._json_probe_request(
-                URL_PRODUCTION
+                self.end_point
             )
         except ENDPOINT_PROBE_EXCEPTIONS as e:
-            _LOGGER.debug("Production endpoint not found at %s: %s", URL_PRODUCTION, e)
+            _LOGGER.debug("Production endpoint not found at %s: %s", self.end_point, e)
             return None
         else:
             production: list[dict[str, str | float | int]] | None = production_json.get(
@@ -58,8 +60,8 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
     async def update(self, envoy_data: EnvoyData) -> None:
         """Update the Envoy for this endpoint."""
-        production_data = await self._json_request(URL_PRODUCTION)
-        envoy_data.raw[URL_PRODUCTION] = production_data
+        production_data = await self._json_request(self.end_point)
+        envoy_data.raw[self.end_point] = production_data
         if self._supported_features & SupportedFeatures.PRODUCTION:
             envoy_data.system_production = EnvoySystemProduction.from_production(
                 production_data
@@ -74,4 +76,4 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
 
 class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):
-    endpoint = URL_PRODUCTION_JSON
+    end_point = URL_PRODUCTION_JSON
