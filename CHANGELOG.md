@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.0 (2023-08-08)
+
+### Feature
+
+* Add support for polling Enpower data ([#47](https://github.com/pyenphase/pyenphase/issues/47)) ([`0ac58e0`](https://github.com/pyenphase/pyenphase/commit/0ac58e0396d67b4e858deba08eb6bef5c6de9f39))
+
 ## v0.17.0 (2023-08-07)
 
 ### Feature
