@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.0 (2023-08-08)
+
+### Feature
+
+* Add support for pulling dry contact data ([#48](https://github.com/pyenphase/pyenphase/issues/48)) ([`7814650`](https://github.com/pyenphase/pyenphase/commit/78146506bb4a93b51987a2b8725cc32f35368643))
+
 ## v1.0.0 (2023-08-08)
 
 ### Breaking
