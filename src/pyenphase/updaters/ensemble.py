@@ -1,8 +1,6 @@
 import logging
 from typing import Any
 
-from awesomeversion import AwesomeVersion
-
 from ..const import (
     ENSEMBLE_MIN_VERSION,
     URL_DRY_CONTACT_SETTINGS,
@@ -24,18 +22,14 @@ _LOGGER = logging.getLogger(__name__)
 class EnvoyEnembleUpdater(EnvoyUpdater):
     """Class to handle updates for Ensemble devices."""
 
-    def should_probe(
-        self, envoy_version: AwesomeVersion, discovered_features: SupportedFeatures
-    ) -> bool:
-        """Return True if this updater should be probed."""
-        if envoy_version < ENSEMBLE_MIN_VERSION:
-            _LOGGER.debug("Firmware too old for Ensemble support")
-            return False
-
-        return True
-
-    async def probe(self) -> SupportedFeatures | None:
+    async def probe(
+        self, discovered_features: SupportedFeatures
+    ) -> SupportedFeatures | None:
         """Probe the Envoy for this updater and return SupportedFeatures."""
+        if self._envoy_version < ENSEMBLE_MIN_VERSION:
+            _LOGGER.debug("Firmware too old for Ensemble support")
+            return None
+
         # Check for various Ensemble support
         # The Ensemble Inventory endpoint will tell us if we have Enpower or Encharge support
         try:

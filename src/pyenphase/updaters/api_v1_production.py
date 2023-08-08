@@ -1,7 +1,5 @@
 import logging
 
-from awesomeversion import AwesomeVersion
-
 from ..const import URL_PRODUCTION_V1, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
 from ..models.envoy import EnvoyData
@@ -14,14 +12,14 @@ _LOGGER = logging.getLogger(__name__)
 class EnvoyApiV1ProductionUpdater(EnvoyUpdater):
     """Class to handle updates for production data."""
 
-    def should_probe(
-        self, envoy_version: AwesomeVersion, discovered_features: SupportedFeatures
-    ) -> bool:
-        """Return True if this updater should be probed."""
-        return SupportedFeatures.PRODUCTION not in discovered_features
-
-    async def probe(self) -> SupportedFeatures | None:
+    async def probe(
+        self, discovered_features: SupportedFeatures
+    ) -> SupportedFeatures | None:
         """Probe the Envoy for this updater and return SupportedFeatures."""
+        if SupportedFeatures.PRODUCTION in discovered_features:
+            # Already discovered from another updater
+            return None
+
         try:
             await self._json_probe_request(URL_PRODUCTION_V1)
         except ENDPOINT_PROBE_EXCEPTIONS as e:

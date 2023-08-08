@@ -1,8 +1,6 @@
 import logging
 from typing import Any
 
-from awesomeversion import AwesomeVersion
-
 from ..const import URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
 from ..models.envoy import EnvoyData
@@ -16,18 +14,17 @@ _LOGGER = logging.getLogger(__name__)
 class EnvoyProductionUpdater(EnvoyUpdater):
     """Class to handle updates for production data."""
 
-    def should_probe(
-        self, envoy_version: AwesomeVersion, discovered_features: SupportedFeatures
-    ) -> bool:
-        """Return True if this endpoint should be probed."""
-        if SupportedFeatures.NET_CONSUMPTION not in discovered_features:
-            return True
-        if SupportedFeatures.PRODUCTION not in discovered_features:
-            return True
-        return False
-
-    async def probe(self) -> SupportedFeatures | None:
+    async def probe(
+        self, discovered_features: SupportedFeatures
+    ) -> SupportedFeatures | None:
         """Probe the Envoy for this endpoint and return SupportedFeatures."""
+        if (
+            SupportedFeatures.NET_CONSUMPTION in discovered_features
+            and SupportedFeatures.PRODUCTION in discovered_features
+        ):
+            # Already discovered from another updater
+            return None
+
         try:
             production_json: dict[str, Any] = await self._json_probe_request(
                 URL_PRODUCTION

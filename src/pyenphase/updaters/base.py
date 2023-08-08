@@ -14,10 +14,12 @@ class EnvoyUpdater:
 
     def __init__(
         self,
+        envoy_version: AwesomeVersion,
         probe_request: Callable[[str], httpx.Response],
         request: Callable[[str], httpx.Response],
     ) -> None:
         """Initialize the Envoy endpoint."""
+        self._envoy_version = envoy_version
         self._probe_request = probe_request
         self._request = request
         self._supported_features = SupportedFeatures(0)
@@ -31,13 +33,9 @@ class EnvoyUpdater:
         return json_loads(end_point, await self._probe_request(end_point))
 
     @abstractmethod
-    def should_probe(
-        self, envoy_version: AwesomeVersion, discovered_features: SupportedFeatures
-    ) -> bool:
-        """Return True if this updater should be probed."""
-
-    @abstractmethod
-    async def probe(self) -> SupportedFeatures | None:
+    async def probe(
+        self, discovered_features: SupportedFeatures
+    ) -> SupportedFeatures | None:
         """Probe the Envoy for this updater and return SupportedFeatures."""
 
     @abstractmethod

@@ -189,12 +189,10 @@ class Envoy:
         end_points: list[EnvoyUpdater] = []
         version = self._firmware.version
         for end_point in get_updaters():
-            klass = end_point(self.probe_request, self.request)
-
-            if klass.should_probe(version, supported_features):
-                if end_point_features := await klass.probe():
-                    supported_features |= end_point_features
-                end_points.append(klass)
+            klass = end_point(version, self.probe_request, self.request)
+            if updater_features := await klass.probe(supported_features):
+                supported_features |= updater_features
+            end_points.append(klass)
 
         if not supported_features & SupportedFeatures.PRODUCTION:
             raise EnvoyProbeFailed("Unable to determine production endpoint")
