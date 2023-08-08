@@ -76,4 +76,6 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
 
 class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):
+    """Class to handle updates for production data from the production.json endpoint."""
+
     end_point = URL_PRODUCTION_JSON
