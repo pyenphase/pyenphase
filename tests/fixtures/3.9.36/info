@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <envoy_info>
-  <time>1691342510</time>
+  <time>1691542702</time>
   <device>
     <sn>121426016034</sn>
     <pn>800-00069-r05</pn>
@@ -9,39 +9,39 @@
     <seqnum>0</seqnum>
     <apiver>1</apiver>
   </device>
-  <package name='rootfs'>
-    <build>782</build>
-    <version>01.02.00</version>
-    <pn>500-00001-r01</pn>
-  </package>
-  <package name='boot'>
-    <build>360a7d</build>
-    <version>00.01.15</version>
-    <pn>590-00015-r01</pn>
-  </package>
-  <package name='app'>
-    <build>a1a93f</build>
-    <version>03.09.36</version>
-    <pn>500-00002-r01</pn>
-  </package>
-  <package name='kernel'>
-    <build>7a4eaa</build>
-    <version>02.03.00</version>
-    <pn>500-00003-r01</pn>
-  </package>
-  <package name='geo'>
-    <build>c14a6d</build>
-    <version>01.00.14</version>
-    <pn>500-00008-r01</pn>
-  </package>
-  <package name='backbone'>
-    <build>1533e7</build>
-    <version>01.00.01</version>
-    <pn>500-00010-r01</pn>
-  </package>
   <package name='devimg'>
-    <build>a5d803</build>
     <version>01.01.15</version>
     <pn>500-00004-r01</pn>
+    <build>a5d803</build>
+  </package>
+  <package name='boot'>
+    <version>00.01.15</version>
+    <pn>590-00015-r01</pn>
+    <build>360a7d</build>
+  </package>
+  <package name='rootfs'>
+    <version>01.02.00</version>
+    <pn>500-00001-r01</pn>
+    <build>782</build>
+  </package>
+  <package name='app'>
+    <version>03.09.36</version>
+    <pn>500-00002-r01</pn>
+    <build>a1a93f</build>
+  </package>
+  <package name='geo'>
+    <version>01.00.14</version>
+    <pn>500-00008-r01</pn>
+    <build>c14a6d</build>
+  </package>
+  <package name='kernel'>
+    <version>02.03.00</version>
+    <pn>500-00003-r01</pn>
+    <build>7a4eaa</build>
+  </package>
+  <package name='backbone'>
+    <version>01.00.01</version>
+    <pn>500-00010-r01</pn>
+    <build>1533e7</build>
   </package>
 </envoy_info>
