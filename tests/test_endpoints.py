@@ -11,6 +11,7 @@ from syrupy import SnapshotAssertion
 
 from pyenphase import Envoy, EnvoyInverter
 from pyenphase.envoy import SupportedFeatures
+from pyenphase.exceptions import EnvoyProbeFailed
 from pyenphase.updaters.base import EnvoyUpdater
 
 
@@ -373,6 +374,35 @@ async def test_with_5_0_49_firmware():
             max_report_watts=257,
         ),
     }
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_with_3_7_0_firmware():
+    """Verify with 3.7.0 firmware."""
+    version = "3.7.0"
+    respx.get("/info").mock(
+        return_value=Response(200, text=_load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(
+        return_value=Response(200, text=_load_fixture(version, "production"))
+    )
+    respx.get("/production.json").mock(return_value=Response(404))
+    respx.get("/api/v1/production").mock(
+        return_value=Response(
+            404,
+        )
+    )
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            404,
+        )
+    )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+
+    with pytest.raises(EnvoyProbeFailed):
+        await _get_mock_envoy()
 
 
 @pytest.mark.asyncio
