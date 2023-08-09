@@ -11,6 +11,7 @@ from syrupy import SnapshotAssertion
 
 from pyenphase import Envoy, EnvoyInverter
 from pyenphase.envoy import SupportedFeatures
+from pyenphase.updaters.base import EnvoyUpdater
 
 
 def _fixtures_dir() -> Path:
@@ -24,6 +25,10 @@ def _load_fixture(version: str, name: str) -> str:
 
 def _load_json_fixture(version: str, name: str) -> dict[str, Any]:
     return orjson.loads(_load_fixture(version, name))
+
+
+def _updater_features(updaters: list[EnvoyUpdater]) -> dict[str, SupportedFeatures]:
+    return {type(updater).__name__: updater._supported_features for updater in updaters}
 
 
 async def _get_mock_envoy():
@@ -63,8 +68,11 @@ async def test_with_4_2_27_firmware():
     assert not (envoy._supported_features & SupportedFeatures.INVERTERS)
     assert envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
     assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
-    assert envoy._production_endpoint == "/api/v1/production"
-    assert envoy._consumption_endpoint == "/production.json"
+    assert _updater_features(envoy._updaters) == {
+        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+        "EnvoyProductionJsonUpdater": SupportedFeatures.TOTAL_CONSUMPTION
+        | SupportedFeatures.NET_CONSUMPTION,
+    }
     assert envoy.part_number == "800-00551-r02"
 
     assert data.system_consumption.watts_now == 5811
@@ -112,8 +120,10 @@ async def test_with_5_0_49_firmware():
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
     assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert envoy._production_endpoint == "/api/v1/production"
-    assert envoy._consumption_endpoint is None
+    assert _updater_features(envoy._updaters) == {
+        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+    }
     assert envoy.part_number == "800-00551-r02"
 
     assert not data.system_consumption
@@ -395,8 +405,10 @@ async def test_with_3_9_36_firmware():
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
     assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert envoy._production_endpoint == "/api/v1/production"
-    assert envoy._consumption_endpoint is None
+    assert _updater_features(envoy._updaters) == {
+        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+    }
     assert envoy.part_number == "800-00069-r05"
 
     assert not data.system_consumption
@@ -510,8 +522,10 @@ async def test_with_3_17_3_firmware():
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
     assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert envoy._production_endpoint == "/api/v1/production"
-    assert envoy._consumption_endpoint is None
+    assert _updater_features(envoy._updaters) == {
+        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+    }
     assert envoy.part_number == "800-00069-r05"
 
     assert not data.system_consumption
@@ -774,16 +788,17 @@ async def test_with_3_17_3_firmware():
         "version",
         "part_number",
         "supported_features",
-        "production_endpoint",
-        "consumption_endpoint",
+        "updaters",
     ),
     [
         (
             "5.0.62",
             "800-00551-r02",
-            SupportedFeatures.INVERTERS,
-            "/api/v1/production",
-            None,
+            SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+            },
         ),
         (
             "7.3.130",
@@ -791,9 +806,15 @@ async def test_with_3_17_3_firmware():
             SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
-            | SupportedFeatures.INVERTERS,
-            "/production",
-            "/production",
+            | SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+            },
         ),
         (
             "7.3.517",
@@ -803,30 +824,44 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.ENPOWER
             | SupportedFeatures.ENCHARGE
-            | SupportedFeatures.INVERTERS,
-            "/production",
-            "/production",
+            | SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
+                | SupportedFeatures.ENCHARGE,
+            },
         ),
         (
             "7.6.114_without_cts",
             "800-00656-r06",
-            SupportedFeatures.INVERTERS,
-            "/api/v1/production",
-            None,
+            SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+            },
         ),
         (
             "7.6.175",
             "800-00555-r03",
-            SupportedFeatures.INVERTERS,
-            "/api/v1/production",
-            None,
+            SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+            },
         ),
         (
             "7.6.175_standard",
             "800-00656-r06",
-            SupportedFeatures.INVERTERS,
-            "/api/v1/production",
-            None,
+            SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+            },
         ),
         (
             "7.6.175_with_cts",
@@ -834,9 +869,15 @@ async def test_with_3_17_3_firmware():
             SupportedFeatures.INVERTERS
             | SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
-            | SupportedFeatures.NET_CONSUMPTION,
-            "/production",
-            "/production",
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+            },
         ),
     ],
     ids=[
@@ -856,8 +897,7 @@ async def test_with_7_x_firmware(
     part_number: str,
     snapshot: SnapshotAssertion,
     supported_features: SupportedFeatures,
-    production_endpoint: str,
-    consumption_endpoint: str,
+    updaters: dict[str, SupportedFeatures],
 ) -> None:
     """Verify with 7.x firmware."""
     respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
@@ -936,6 +976,5 @@ async def test_with_7_x_firmware(
     assert data == snapshot
 
     assert envoy.part_number == part_number
-    assert envoy._production_endpoint == production_endpoint
-    assert envoy._consumption_endpoint == consumption_endpoint
+    assert _updater_features(envoy._updaters) == updaters
     assert envoy._supported_features == supported_features

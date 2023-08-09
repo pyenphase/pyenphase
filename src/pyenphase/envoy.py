@@ -1,6 +1,4 @@
-import enum
 import logging
-from typing import Any
 
 import httpx
 import orjson
@@ -9,50 +7,39 @@ from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
-from .const import (
-    LOCAL_TIMEOUT,
-    URL_DRY_CONTACT_SETTINGS,
-    URL_DRY_CONTACT_STATUS,
-    URL_ENCHARGE_BATTERY,
-    URL_ENSEMBLE_INVENTORY,
-    URL_PRODUCTION,
-    URL_PRODUCTION_INVERTERS,
-    URL_PRODUCTION_JSON,
-    URL_PRODUCTION_V1,
-)
-from .exceptions import (
-    ENDPOINT_PROBE_EXCEPTIONS,
-    EnvoyAuthenticationRequired,
-    EnvoyProbeFailed,
-)
+from .const import AUTH_TOKEN_MIN_VERSION, LOCAL_TIMEOUT, SupportedFeatures
+from .exceptions import EnvoyAuthenticationRequired, EnvoyProbeFailed
 from .firmware import EnvoyFirmware
-from .models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
-from .models.encharge import EnvoyEncharge, EnvoyEnchargePower
-from .models.enpower import EnvoyEnpower
 from .models.envoy import EnvoyData
-from .models.inverter import EnvoyInverter
-from .models.system_consumption import EnvoySystemConsumption
-from .models.system_production import EnvoySystemProduction
 from .ssl import NO_VERIFY_SSL_CONTEXT
+from .updaters.api_v1_production import EnvoyApiV1ProductionUpdater
+from .updaters.api_v1_production_inverters import EnvoyApiV1ProductionInvertersUpdater
+from .updaters.base import EnvoyUpdater
+from .updaters.ensemble import EnvoyEnembleUpdater
+from .updaters.production import EnvoyProductionJsonUpdater, EnvoyProductionUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
 
-LEGACY_ENVOY_VERSION = AwesomeVersion("3.9.0")
-ENSEMBLE_MIN_VERSION = AwesomeVersion("5.0.0")
-AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
 DEFAULT_HEADERS = {
     "Accept": "application/json",
 }
 
+UPDATERS: list[type["EnvoyUpdater"]] = [
+    EnvoyProductionUpdater,
+    EnvoyProductionJsonUpdater,
+    EnvoyApiV1ProductionUpdater,
+    EnvoyApiV1ProductionInvertersUpdater,
+    EnvoyEnembleUpdater,
+]
 
-class SupportedFeatures(enum.IntFlag):
-    INVERTERS = 1
-    METERING = 2
-    TOTAL_CONSUMPTION = 4
-    NET_CONSUMPTION = 8
-    ENCHARGE = 16
-    ENPOWER = 32
+
+def register_updater(updater: type[EnvoyUpdater]) -> None:
+    UPDATERS.append(updater)
+
+
+def get_updaters() -> list[type[EnvoyUpdater]]:
+    return UPDATERS
 
 
 class Envoy:
@@ -73,9 +60,8 @@ class Envoy:
         self.auth: EnvoyAuth | None = None
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
-        self._supported_features: SupportedFeatures = SupportedFeatures(0)
-        self._production_endpoint: str | None = None
-        self._consumption_endpoint: str | None = None
+        self._supported_features: SupportedFeatures | None = None
+        self._updaters: list[EnvoyUpdater] = []
         self.data: EnvoyData | None = None
 
     async def setup(self) -> None:
@@ -152,14 +138,14 @@ class Envoy:
         ),
         wait=wait_random_exponential(multiplier=2, max=3),
     )
-    async def request(self, endpoint: str) -> Any:
+    async def request(self, endpoint: str) -> httpx.Response:
         """Make a request to the Envoy.
 
         Request retries on bad JSON responses which the Envoy sometimes returns.
         """
         return await self._request(endpoint)
 
-    async def _request(self, endpoint: str) -> Any:
+    async def _request(self, endpoint: str) -> httpx.Response:
         """Make a request to the Envoy."""
         if self.auth is None:
             raise EnvoyAuthenticationRequired(
@@ -168,7 +154,7 @@ class Envoy:
 
         url = self.auth.get_endpoint_url(endpoint)
         _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
-        response = await self._client.get(
+        return await self._client.get(
             url,
             headers={**DEFAULT_HEADERS, **self.auth.headers},
             cookies=self.auth.cookies,
@@ -176,13 +162,6 @@ class Envoy:
             auth=self.auth.auth,
             timeout=self._timeout,
         )
-        try:
-            return orjson.loads(response.text)
-        except orjson.JSONDecodeError as e:
-            _LOGGER.debug(
-                "Unable to decode response from Envoy endpoint %s: %s", url, e
-            )
-            raise
 
     @property
     def host(self) -> str:
@@ -206,208 +185,29 @@ class Envoy:
 
     async def probe(self) -> None:
         """Probe for model and supported features."""
-        for possible_endpoint in (URL_PRODUCTION, URL_PRODUCTION_JSON):
-            try:
-                production_json: dict[str, Any] = await self.probe_request(
-                    possible_endpoint
-                )
-            except ENDPOINT_PROBE_EXCEPTIONS as e:
-                _LOGGER.debug(
-                    "Production endpoint not found at %s: %s", possible_endpoint, e
-                )
-                continue
-            else:
-                production: list[
-                    dict[str, str | float | int]
-                ] | None = production_json.get("production")
-                if production:
-                    for type_ in production:
-                        if type_["type"] == "eim" and type_["activeCount"]:
-                            self._supported_features |= SupportedFeatures.METERING
-                            self._production_endpoint = possible_endpoint
-                            break
+        supported_features = SupportedFeatures(0)
+        updaters: list[EnvoyUpdater] = []
+        version = self._firmware.version
+        for updater in get_updaters():
+            klass = updater(version, self.probe_request, self.request)
+            if updater_features := await klass.probe(supported_features):
+                supported_features |= updater_features
+                updaters.append(klass)
 
-                consumption: list[
-                    dict[str, str | float | int]
-                ] | None = production_json.get("consumption")
-                if consumption:
-                    for meter in consumption:
-                        meter_type = meter["measurementType"]
-                        if meter_type == "total-consumption":
-                            self._supported_features |= (
-                                SupportedFeatures.TOTAL_CONSUMPTION
-                            )
-                            if not self._consumption_endpoint:
-                                self._consumption_endpoint = possible_endpoint
-                        elif meter_type == "net-consumption":
-                            self._supported_features |= (
-                                SupportedFeatures.NET_CONSUMPTION
-                            )
-                            if not self._consumption_endpoint:
-                                self._consumption_endpoint = possible_endpoint
-
-                break
-
-        if not self._production_endpoint:
-            try:
-                await self.probe_request(URL_PRODUCTION_V1)
-            except ENDPOINT_PROBE_EXCEPTIONS as e:
-                _LOGGER.debug(
-                    "Production endpoint not found at %s: %s", URL_PRODUCTION_V1, e
-                )
-            else:
-                self._production_endpoint = URL_PRODUCTION_V1
-
-        if not self._production_endpoint:
+        if not supported_features & SupportedFeatures.PRODUCTION:
             raise EnvoyProbeFailed("Unable to determine production endpoint")
 
-        try:
-            await self.probe_request(URL_PRODUCTION_INVERTERS)
-        except ENDPOINT_PROBE_EXCEPTIONS as e:
-            _LOGGER.debug("Inverters endpoint not found: %s", e)
-        else:
-            self._supported_features |= SupportedFeatures.INVERTERS
-
-        # Check for various Ensemble support
-        if self._firmware.version >= ENSEMBLE_MIN_VERSION:
-            # The Ensemble Inventory endpoint will tell us if we have Enpower or Encharge support
-            try:
-                result = await self.probe_request(URL_ENSEMBLE_INVENTORY)
-            except ENDPOINT_PROBE_EXCEPTIONS as e:
-                _LOGGER.debug("Ensemble Inventory endpoint not found: %s", e)
-            else:
-                if not result or "error" in result:
-                    # Newer firmware with no Ensemble devices returns an empty list
-                    _LOGGER.debug("No Ensemble devices found")
-                    return
-
-                for item in result:
-                    if item["type"] == "ENPOWER":
-                        self._supported_features |= SupportedFeatures.ENPOWER
-                    if item["type"] == "ENCHARGE":
-                        self._supported_features |= SupportedFeatures.ENCHARGE
-        else:
-            _LOGGER.debug("Firmware too old for Ensemble support")
+        self._updaters = updaters
+        self._supported_features = supported_features
 
     async def update(self) -> EnvoyData:
         """Update data."""
-        if not self._production_endpoint:
+        if not self._supported_features:
             await self.probe()
 
-        production_endpoint = self._production_endpoint
-        consumption_endpoint = self._consumption_endpoint
-        supported_features = self._supported_features
+        data = EnvoyData()
+        for updater in self._updaters:
+            await updater.update(data)
 
-        production_data = await self.request(production_endpoint)
-        raw = {"production": production_data}
-        if consumption_endpoint == production_endpoint:
-            consumption_data = production_data
-        elif consumption_endpoint:
-            consumption_data = await self.request(consumption_endpoint)
-            raw["consumption"] = consumption_data
-
-        inverters: dict[str, EnvoyInverter] = {}
-
-        if production_endpoint in (URL_PRODUCTION, URL_PRODUCTION_JSON):
-            system_production = EnvoySystemProduction.from_production(production_data)
-        else:
-            # Production endpoint is URL_PRODUCTION_V1
-            system_production = EnvoySystemProduction.from_v1_api(production_data)
-
-        system_consumption: EnvoySystemConsumption | None = None
-        if consumption_endpoint:
-            system_consumption = EnvoySystemConsumption.from_production(
-                consumption_data
-            )
-
-        if supported_features & SupportedFeatures.INVERTERS:
-            inverters_data: list[dict[str, Any]] = await self.request(
-                URL_PRODUCTION_INVERTERS
-            )
-            inverters = {
-                inverter["serialNumber"]: EnvoyInverter.from_v1_api(inverter)
-                for inverter in inverters_data
-            }
-            raw["inverters"] = inverters_data
-
-        # Update Enpower and Encharge data if supported
-        encharge_inventory: dict[str, EnvoyEncharge] | None = None
-        encharge_power: dict[str, EnvoyEnchargePower] | None = None
-        enpower: EnvoyEnpower | None = None
-        dry_contact_settings: dict[str, EnvoyDryContactSettings] = {}
-        dry_contact_status: dict[str, EnvoyDryContactStatus] = {}
-
-        if (
-            supported_features & SupportedFeatures.ENCHARGE
-            or supported_features & SupportedFeatures.ENPOWER
-        ):
-            ensemble_inventory_data: list[dict[str, Any]] = await self.request(
-                URL_ENSEMBLE_INVENTORY
-            )
-            raw["ensemble"] = ensemble_inventory_data
-
-            if supported_features & SupportedFeatures.ENCHARGE:
-                encharge_power_data: dict[str, Any] = await self.request(
-                    URL_ENCHARGE_BATTERY
-                )
-                raw["encharge_power"] = encharge_power_data
-                power: dict[str, Any] = {
-                    power["serial_num"]: power
-                    for power in encharge_power_data["devices:"]
-                }
-                inventory: dict[str, Any] = {}
-                for item in ensemble_inventory_data:
-                    if item["type"] != "ENCHARGE":
-                        continue
-                    inventory = {
-                        device["serial_num"]: device for device in item["devices"]
-                    }
-
-                encharge_inventory = {
-                    serial: EnvoyEncharge.from_api(inventory[serial])
-                    for serial in inventory
-                }
-                encharge_power = {
-                    serial: EnvoyEnchargePower.from_api(power[serial])
-                    for serial in power
-                }
-            if supported_features & SupportedFeatures.ENPOWER:
-                # Update Enpower data
-                for item in ensemble_inventory_data:
-                    if item["type"] != "ENPOWER":
-                        continue
-                    enpower_data = item["devices"][0]
-                raw["enpower"] = enpower_data
-                enpower = EnvoyEnpower.from_api(enpower_data)
-
-                # Update dry contact data
-                dry_contact_status_data = await self.request(URL_DRY_CONTACT_STATUS)
-                dry_contact_settings_data = await self.request(URL_DRY_CONTACT_SETTINGS)
-                raw["dry_contact_status"] = dry_contact_status_data
-                raw["dry_contact_settings"] = dry_contact_settings_data
-
-                dry_contact_status = {
-                    relay["id"]: EnvoyDryContactStatus.from_api(relay)
-                    for relay in dry_contact_status_data["dry_contacts"]
-                }
-                dry_contact_settings = {
-                    relay["id"]: EnvoyDryContactSettings.from_api(relay)
-                    for relay in dry_contact_settings_data["dry_contacts"]
-                }
-
-        data = EnvoyData(
-            system_production=system_production,
-            system_consumption=system_consumption,
-            inverters=inverters,
-            encharge_inventory=encharge_inventory,
-            encharge_power=encharge_power,
-            enpower=enpower,
-            dry_contact_status=dry_contact_status,
-            dry_contact_settings=dry_contact_settings,
-            # Raw data is exposed so we can __eq__ the data to see if
-            # anything has changed and consumers of the library can
-            # avoid dispatching data if nothing has changed.
-            raw=raw,
-        )
         self.data = data
         return data

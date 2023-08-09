@@ -1,7 +1,7 @@
 """Python wrapper for Enphase Envoy API."""
 
 from .auth import EnvoyTokenAuth
-from .envoy import AUTH_TOKEN_MIN_VERSION, Envoy
+from .envoy import AUTH_TOKEN_MIN_VERSION, Envoy, register_updater
 from .exceptions import (
     EnvoyAuthenticationError,
     EnvoyAuthenticationRequired,
@@ -21,6 +21,7 @@ from .models.system_production import EnvoySystemProduction
 
 __all__ = (
     AUTH_TOKEN_MIN_VERSION,
+    "register_updater",
     "Envoy",
     "EnvoyData",
     "EnvoyTokenAuth",
