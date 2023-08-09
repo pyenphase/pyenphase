@@ -88,7 +88,7 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
                 if item["type"] != "ENPOWER":
                     continue
                 enpower_data = item["devices"][0]
-            envoy_data.enpower = EnvoyEnpower.from_api(enpower_data, self._request)
+            envoy_data.enpower = EnvoyEnpower.from_api(enpower_data)
 
             # Update dry contact data
             dry_contact_status_data: dict[str, Any] = await self._json_request(
