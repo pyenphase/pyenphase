@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<envoy_info>
+  <time>1691342592</time>
+  <device>
+    <sn>121430030548</sn>
+    <pn>800-00069-r05</pn>
+    <software>D3.7.0</software>
+    <euaid>4c8675</euaid>
+    <seqnum>0</seqnum>
+    <apiver>1</apiver>
+  </device>
+  <package name='devimg'>
+    <build>033b78</build>
+    <version>01.02.245</version>
+    <pn>500-00004-r01</pn>
+  </package>
+  <package name='geo'>
+    <build>702db9</build>
+    <version>02.01.22</version>
+    <pn>500-00008-r01</pn>
+  </package>
+  <package name='backbone'>
+    <build>ad8746</build>
+    <version>02.01.15</version>
+    <pn>500-00010-r01</pn>
+  </package>
+  <package name='boot'>
+    <build>0b54c5</build>
+    <version>02.00.01</version>
+    <pn>590-00015-r01</pn>
+  </package>
+  <package name='app'>
+    <build>0e8c7a</build>
+    <version>03.17.03</version>
+    <pn>500-00002-r01</pn>
+  </package>
+  <package name='security'>
+    <build>54a6dc</build>
+    <version>02.00.00</version>
+    <pn>500-00016-r01</pn>
+  </package>
+  <package name='kernel'>
+    <build>80e63f</build>
+    <version>02.04.00</version>
+    <pn>500-00003-r01</pn>
+  </package>
+  <package name='rootfs'>
+    <build>802</build>
+    <version>01.02.00</version>
+    <pn>500-00001-r01</pn>
+  </package>
+</envoy_info>
