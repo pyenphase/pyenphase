@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.2.1 (2023-08-09)
+
+### Fix
+
+* Incorrect typing on enpower mains_*_state attributes ([#59](https://github.com/pyenphase/pyenphase/issues/59)) ([`14c7c14`](https://github.com/pyenphase/pyenphase/commit/14c7c14124ca33df6e011b1fa32ed4c57da7e294))
+
 ## v1.2.0 (2023-08-09)
 
 ### Feature
