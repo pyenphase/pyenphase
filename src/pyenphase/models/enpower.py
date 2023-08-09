@@ -22,8 +22,8 @@ class EnvoyEnpower:
     firmware_version: str
     installed_date: int
     last_report_date: int
-    mains_admin_state: int
-    mains_oper_state: int
+    mains_admin_state: str
+    mains_oper_state: str
     operating: bool
     part_number: str
     serial_number: str
