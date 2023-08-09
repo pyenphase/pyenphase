@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Callable
 
 import httpx
 import orjson
@@ -34,8 +35,14 @@ UPDATERS: list[type["EnvoyUpdater"]] = [
 ]
 
 
-def register_updater(updater: type[EnvoyUpdater]) -> None:
+def register_updater(updater: type[EnvoyUpdater]) -> Callable[[], None]:
+    """Register an updater."""
     UPDATERS.append(updater)
+
+    def _remove_updater() -> None:
+        UPDATERS.remove(updater)
+
+    return _remove_updater
 
 
 def get_updaters() -> list[type[EnvoyUpdater]]:

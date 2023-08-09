@@ -1,3 +1,4 @@
+import re
 from os import listdir
 from os.path import isfile, join
 from pathlib import Path
@@ -9,9 +10,12 @@ import respx
 from httpx import Response
 from syrupy import SnapshotAssertion
 
-from pyenphase import Envoy, EnvoyInverter
-from pyenphase.envoy import SupportedFeatures
-from pyenphase.exceptions import EnvoyProbeFailed
+from pyenphase import Envoy, EnvoyInverter, register_updater
+from pyenphase.const import URL_PRODUCTION
+from pyenphase.envoy import SupportedFeatures, get_updaters
+from pyenphase.exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyProbeFailed
+from pyenphase.models.envoy import EnvoyData
+from pyenphase.models.system_production import EnvoySystemProduction
 from pyenphase.updaters.base import EnvoyUpdater
 
 
@@ -401,8 +405,97 @@ async def test_with_3_7_0_firmware():
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
 
+    # Verify the library does not support scraping to comply with ADR004
     with pytest.raises(EnvoyProbeFailed):
         await _get_mock_envoy()
+
+    # Test the register interface by registering a legacy production scraper
+    #
+    # ADR004 compliance:
+    # We won't do this in our production code as we don't support scraping, but
+    # we want to leave the door open for custom components to use the interface.
+    #
+
+    _KEY_TO_REGEX = {
+        "watts_now": r"<td>Current.*</td>\s*<td>\s*(\d+|\d+\.\d+)\s*(W|kW|MW)</td>",
+        "watt_hours_last_7_days": r"<td>Past Week</td>\s*<td>\s*(\d+|\d+\.\d+)\s*(Wh|kWh|MWh)</td>",
+        "watt_hours_today": r"<td>Today</td>\s*<td>\s*(\d+|\d+\.\d+)\s*(Wh|kWh|MWh)</td>",
+        "watt_hours_lifetime": r"<td>Since Installation</td>\s*<td>\s*(\d+|\d+\.\d+)\s*(Wh|kWh|MWh)</td>",
+    }
+
+    class LegacyEnvoySystemProduction(EnvoySystemProduction):
+        @classmethod
+        def from_production_legacy(cls, text: str) -> EnvoySystemProduction:
+            """Legacy parser."""
+            data: dict[str, int] = {
+                "watts_now": 0,
+                "watt_hours_today": 0,
+                "watt_hours_last_7_days": 0,
+                "watt_hours_lifetime": 0,
+            }
+            for key, regex in _KEY_TO_REGEX.items():
+                if match := re.search(regex, text, re.MULTILINE):
+                    unit = match.group(2).lower()
+                    value = float(match.group(1))
+                    if unit.startswith("k"):
+                        value *= 1000
+                    elif unit.startswith("m"):
+                        value *= 1000000
+                    data[key] = int(value)
+            return cls(**data)
+
+    class LegacyProductionScraper(EnvoyUpdater):
+        async def probe(
+            self, discovered_features: SupportedFeatures
+        ) -> SupportedFeatures | None:
+            """Probe the Envoy for this updater and return SupportedFeatures."""
+            if SupportedFeatures.PRODUCTION in discovered_features:
+                # Already discovered from another updater
+                return None
+
+            try:
+                response = await self._probe_request(URL_PRODUCTION)
+                data = response.text
+            except ENDPOINT_PROBE_EXCEPTIONS:
+                return None
+            if "Since Installation" not in data:
+                return None
+            self._supported_features |= SupportedFeatures.PRODUCTION
+            return self._supported_features
+
+        async def update(self, envoy_data: EnvoyData) -> None:
+            """Update the Envoy for this updater."""
+            response = await self._request(URL_PRODUCTION)
+            production_data = response.text
+            envoy_data.raw[URL_PRODUCTION] = production_data
+            envoy_data.system_production = (
+                LegacyEnvoySystemProduction.from_production_legacy(production_data)
+            )
+
+    remove = register_updater(LegacyProductionScraper)
+    assert LegacyProductionScraper in get_updaters()
+    try:
+        envoy = await _get_mock_envoy()
+        data = envoy.data
+        assert data is not None
+
+        assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
+        assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
+        assert not (envoy._supported_features & SupportedFeatures.INVERTERS)
+        assert _updater_features(envoy._updaters) == {
+            "LegacyProductionScraper": SupportedFeatures.PRODUCTION,
+        }
+        assert envoy.part_number == "800-00069-r05"
+
+        assert not data.system_consumption
+        assert data.system_production.watts_now == 6630
+        assert data.system_production.watt_hours_today == 53600
+        assert data.system_production.watt_hours_last_7_days == 405000
+        assert data.system_production.watt_hours_lifetime == 133000000
+        assert not data.inverters
+    finally:
+        remove()
+        assert LegacyProductionScraper not in get_updaters()
 
 
 @pytest.mark.asyncio
