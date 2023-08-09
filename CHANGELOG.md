@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.2.2 (2023-08-09)
+
+### Fix
+
+* Remove unreachable code in inverters updater ([#61](https://github.com/pyenphase/pyenphase/issues/61)) ([`84b6be0`](https://github.com/pyenphase/pyenphase/commit/84b6be081cde7bf624baaae2b5df5c1177144dec))
+
 ## v1.2.1 (2023-08-09)
 
 ### Fix

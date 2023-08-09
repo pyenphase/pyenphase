@@ -17,10 +17,6 @@ class EnvoyApiV1ProductionInvertersUpdater(EnvoyUpdater):
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
         """Probe the Envoy for this updater and return SupportedFeatures."""
-        if SupportedFeatures.INVERTERS in discovered_features:
-            # Already discovered from another updater
-            return None
-
         try:
             await self._json_probe_request(URL_PRODUCTION_INVERTERS)
         except ENDPOINT_PROBE_EXCEPTIONS as e:
