@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.2.0 (2023-08-09)
+
+### Feature
+
+* Refactor to break updaters into modules ([#54](https://github.com/pyenphase/pyenphase/issues/54)) ([`a4686a3`](https://github.com/pyenphase/pyenphase/commit/a4686a30be37f88a3af27257b4a8d017d1579122))
+
 ## v1.1.4 (2023-08-08)
 
 ### Fix
