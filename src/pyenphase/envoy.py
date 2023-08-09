@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Callable
+from typing import Any
 
 import httpx
 import orjson
@@ -145,14 +146,18 @@ class Envoy:
         ),
         wait=wait_random_exponential(multiplier=2, max=3),
     )
-    async def request(self, endpoint: str) -> httpx.Response:
+    async def request(
+        self, endpoint: str, data: dict[str, Any] | None = None
+    ) -> httpx.Response:
         """Make a request to the Envoy.
 
         Request retries on bad JSON responses which the Envoy sometimes returns.
         """
-        return await self._request(endpoint)
+        return await self._request(endpoint, data)
 
-    async def _request(self, endpoint: str) -> httpx.Response:
+    async def _request(
+        self, endpoint: str, data: dict[str, Any] | None = None
+    ) -> httpx.Response:
         """Make a request to the Envoy."""
         if self.auth is None:
             raise EnvoyAuthenticationRequired(
@@ -160,6 +165,19 @@ class Envoy:
             )
 
         url = self.auth.get_endpoint_url(endpoint)
+
+        if data:
+            _LOGGER.debug("Sending POST to %s with data %s", url, data)
+            return await self._client.post(
+                url,
+                headers={**DEFAULT_HEADERS, **self.auth.headers},
+                cookies=self.auth.cookies,
+                follow_redirects=True,
+                auth=self.auth.auth,
+                timeout=self._timeout,
+                data=orjson.dumps(data),
+            )
+
         _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
         return await self._client.get(
             url,

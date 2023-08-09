@@ -1,17 +1,22 @@
 """Model for the Enpower/IQ System Controller."""
 
 # Data Source: URL_ENSEMBLE_INVENTORY
-
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Awaitable
+
+import httpx
+
+from pyenphase.const import URL_GRID_RELAY
 
 
 @dataclass(slots=True)
 class EnvoyEnpower:
     """Model for the Enpower/IQ System Controller."""
 
+    _request: Callable[[str, dict[str, Any] | None], httpx.Response]
     grid_mode: str
     admin_state: int
     admin_state_str: str
@@ -32,9 +37,14 @@ class EnvoyEnpower:
     zigbee_dongle_fw_version: str
 
     @classmethod
-    def from_api(cls, enpower: dict[str, Any]) -> EnvoyEnpower:
+    def from_api(
+        cls,
+        enpower: dict[str, Any],
+        request: Callable[[str, dict[str, Any] | None], Awaitable[httpx.Response]],
+    ) -> EnvoyEnpower:
         """Initialize from the API."""
         return cls(
+            _request=request,
             grid_mode=enpower["Enpwr_grid_mode"],
             admin_state=enpower["admin_state"],
             admin_state_str=enpower["admin_state_str"],
@@ -54,3 +64,9 @@ class EnvoyEnpower:
             temperature_unit="F",
             zigbee_dongle_fw_version=enpower["zigbee_dongle_fw_version"],
         )
+
+    async def go_on_grid(self) -> httpx.Response:
+        return await self._request(URL_GRID_RELAY, {"mains_admin_state": "closed"})
+
+    async def go_off_grid(self) -> httpx.Response:
+        return await self._request(URL_GRID_RELAY, {"mains_admin_state": "open"})
