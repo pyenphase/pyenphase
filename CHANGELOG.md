@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.4 (2023-08-08)
+
+### Fix
+
+* Return DryContactStatus enum for status ([#53](https://github.com/pyenphase/pyenphase/issues/53)) ([`d366ff3`](https://github.com/pyenphase/pyenphase/commit/d366ff3c86a3419bb0ffcbd24a1edb0333b0a32f))
+
 ## v1.1.3 (2023-08-08)
 
 ### Fix
