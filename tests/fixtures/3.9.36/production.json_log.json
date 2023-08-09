@@ -1,0 +1,10 @@
+{
+  "headers": {
+    "pragma": "no-cache",
+    "expires": "1",
+    "cache-control": "no-cache",
+    "content-type": "text/html",
+    "transfer-encoding": "chunked"
+  },
+  "code": 200
+}
