@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.3.0 (2023-08-09)
+
+### Feature
+
+* Refactor register interface to allow unregistering an updater ([#60](https://github.com/pyenphase/pyenphase/issues/60)) ([`82efcec`](https://github.com/pyenphase/pyenphase/commit/82efcec228dbe263c3f1c39e6ded3e9283fbfac2))
+
 ## v1.2.2 (2023-08-09)
 
 ### Fix
