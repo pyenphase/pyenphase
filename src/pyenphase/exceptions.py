@@ -45,3 +45,7 @@ class EnvoyProbeFailed(EnvoyError):
 
 class EnvoyCommunicationError(EnvoyError):
     """Exception raised when the Envoy communication fails."""
+
+
+class EnvoyFeatureNotAvailable(EnvoyError):
+    """Exception raised when the Envoy feature is not available."""
