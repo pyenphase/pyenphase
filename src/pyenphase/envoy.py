@@ -260,7 +260,7 @@ class Envoy:
 
     async def go_on_grid(self) -> dict[str, Any]:
         """Make a request to the Envoy to go on grid."""
-        if not self.supported_features & SupportedFeatures.ENCHARGE:
+        if not self.supported_features & SupportedFeatures.ENPOWER:
             raise EnvoyFeatureNotAvailable(
                 "This feature is not available on this Envoy."
             )
@@ -268,7 +268,7 @@ class Envoy:
 
     async def go_off_grid(self) -> dict[str, Any]:
         """Make a request to the Envoy to go off grid."""
-        if not self.supported_features & SupportedFeatures.ENCHARGE:
+        if not self.supported_features & SupportedFeatures.ENPOWER:
             raise EnvoyFeatureNotAvailable(
                 "This feature is not available on this Envoy."
             )
