@@ -1,7 +1,6 @@
 """Model for the Enpower/IQ System Controller."""
 
 # Data Source: URL_ENSEMBLE_INVENTORY
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -32,7 +31,10 @@ class EnvoyEnpower:
     zigbee_dongle_fw_version: str
 
     @classmethod
-    def from_api(cls, enpower: dict[str, Any]) -> EnvoyEnpower:
+    def from_api(
+        cls,
+        enpower: dict[str, Any],
+    ) -> EnvoyEnpower:
         """Initialize from the API."""
         return cls(
             grid_mode=enpower["Enpwr_grid_mode"],

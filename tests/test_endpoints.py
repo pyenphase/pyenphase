@@ -11,9 +11,13 @@ from httpx import Response
 from syrupy import SnapshotAssertion
 
 from pyenphase import Envoy, EnvoyInverter, register_updater
-from pyenphase.const import URL_PRODUCTION
+from pyenphase.const import URL_GRID_RELAY, URL_PRODUCTION
 from pyenphase.envoy import SupportedFeatures, get_updaters
-from pyenphase.exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyProbeFailed
+from pyenphase.exceptions import (
+    ENDPOINT_PROBE_EXCEPTIONS,
+    EnvoyFeatureNotAvailable,
+    EnvoyProbeFailed,
+)
 from pyenphase.models.envoy import EnvoyData
 from pyenphase.models.system_production import EnvoySystemProduction
 from pyenphase.updaters.base import EnvoyUpdater
@@ -91,6 +95,12 @@ async def test_with_4_2_27_firmware():
     assert data.system_consumption.watt_hours_lifetime == 0
     assert data.system_production.watt_hours_lifetime == 10279087
     assert not data.inverters
+
+    # Test that Ensemble commands raise FeatureNotAvailable
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.go_off_grid()
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.go_on_grid()
 
 
 @pytest.mark.asyncio
@@ -1101,3 +1111,19 @@ async def test_with_7_x_firmware(
     assert envoy.part_number == part_number
     assert _updater_features(envoy._updaters) == updaters
     assert envoy._supported_features == supported_features
+
+    if supported_features & supported_features.ENPOWER:
+        respx.post(URL_GRID_RELAY).mock(return_value=Response(200, json={}))
+        await envoy.go_on_grid()
+        assert respx.calls.last.request.content == orjson.dumps(
+            {"mains_admin_state": "closed"}
+        )
+        await envoy.go_off_grid()
+        assert respx.calls.last.request.content == orjson.dumps(
+            {"mains_admin_state": "open"}
+        )
+    else:
+        with pytest.raises(EnvoyFeatureNotAvailable):
+            await envoy.go_off_grid()
+        with pytest.raises(EnvoyFeatureNotAvailable):
+            await envoy.go_on_grid()

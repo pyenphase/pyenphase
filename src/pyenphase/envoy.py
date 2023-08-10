@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Callable
+from typing import Any
 
 import httpx
 import orjson
@@ -8,9 +9,19 @@ from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
-from .const import AUTH_TOKEN_MIN_VERSION, LOCAL_TIMEOUT, SupportedFeatures
-from .exceptions import EnvoyAuthenticationRequired, EnvoyProbeFailed
+from .const import (
+    AUTH_TOKEN_MIN_VERSION,
+    LOCAL_TIMEOUT,
+    URL_GRID_RELAY,
+    SupportedFeatures,
+)
+from .exceptions import (
+    EnvoyAuthenticationRequired,
+    EnvoyFeatureNotAvailable,
+    EnvoyProbeFailed,
+)
 from .firmware import EnvoyFirmware
+from .json import json_loads
 from .models.envoy import EnvoyData
 from .ssl import NO_VERIFY_SSL_CONTEXT
 from .updaters.api_v1_production import EnvoyApiV1ProductionUpdater
@@ -145,14 +156,18 @@ class Envoy:
         ),
         wait=wait_random_exponential(multiplier=2, max=3),
     )
-    async def request(self, endpoint: str) -> httpx.Response:
+    async def request(
+        self, endpoint: str, data: dict[str, Any] | None = None
+    ) -> httpx.Response:
         """Make a request to the Envoy.
 
         Request retries on bad JSON responses which the Envoy sometimes returns.
         """
-        return await self._request(endpoint)
+        return await self._request(endpoint, data)
 
-    async def _request(self, endpoint: str) -> httpx.Response:
+    async def _request(
+        self, endpoint: str, data: dict[str, Any] | None = None
+    ) -> httpx.Response:
         """Make a request to the Envoy."""
         if self.auth is None:
             raise EnvoyAuthenticationRequired(
@@ -160,6 +175,19 @@ class Envoy:
             )
 
         url = self.auth.get_endpoint_url(endpoint)
+
+        if data:
+            _LOGGER.debug("Sending POST to %s with data %s", url, data)
+            return await self._client.post(
+                url,
+                headers={**DEFAULT_HEADERS, **self.auth.headers},
+                cookies=self.auth.cookies,
+                follow_redirects=True,
+                auth=self.auth.auth,
+                timeout=self._timeout,
+                data=orjson.dumps(data),
+            )
+
         _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
         return await self._client.get(
             url,
@@ -190,6 +218,12 @@ class Envoy:
         """Return the Envoy serial number."""
         return self._firmware.serial
 
+    @property
+    def supported_features(self) -> SupportedFeatures:
+        """Return the supported features."""
+        assert self._supported_features is not None, "Call setup() first"  # nosec
+        return self._supported_features
+
     async def probe(self) -> None:
         """Probe for model and supported features."""
         supported_features = SupportedFeatures(0)
@@ -218,3 +252,24 @@ class Envoy:
 
         self.data = data
         return data
+
+    async def _json_request(self, end_point: str, data: dict[str, Any] | None) -> Any:
+        """Make a request to the Envoy and return the JSON response."""
+        response = await self._request(end_point, data)
+        return json_loads(end_point, response.content)
+
+    async def go_on_grid(self) -> dict[str, Any]:
+        """Make a request to the Envoy to go on grid."""
+        if not self.supported_features & SupportedFeatures.ENPOWER:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
+            )
+        return await self._json_request(URL_GRID_RELAY, {"mains_admin_state": "closed"})
+
+    async def go_off_grid(self) -> dict[str, Any]:
+        """Make a request to the Envoy to go off grid."""
+        if not self.supported_features & SupportedFeatures.ENPOWER:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
+            )
+        return await self._json_request(URL_GRID_RELAY, {"mains_admin_state": "open"})
