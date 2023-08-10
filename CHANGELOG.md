@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.4.0 (2023-08-10)
+
+### Feature
+
+* Add support for toggling grid on/off ([#62](https://github.com/pyenphase/pyenphase/issues/62)) ([`63d44dd`](https://github.com/pyenphase/pyenphase/commit/63d44ddbc59d04ca6afb6b3526a37cda32c7417d))
+
 ## v1.3.0 (2023-08-09)
 
 ### Feature
