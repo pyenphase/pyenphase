@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.1 (2023-08-11)
+
+### Fix
+
+* Switch fetching aggregate Encharge data to simpler endpoint ([#65](https://github.com/pyenphase/pyenphase/issues/65)) ([`e076476`](https://github.com/pyenphase/pyenphase/commit/e07647656920779e7a18a045ddfea1dec583fba7))
+
 ## v1.5.0 (2023-08-11)
 
 ### Feature
