@@ -1104,6 +1104,13 @@ async def test_with_7_x_firmware(
             )
         )
 
+    if "ivp_ensemble_status" in files:
+        respx.get("/ivp/ensemble/status").mock(
+            return_value=Response(
+                200, json=_load_json_fixture(version, "ivp_ensemble_status")
+            )
+        )
+
     envoy = await _get_mock_envoy()
     data = envoy.data
     assert data == snapshot

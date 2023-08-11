@@ -7,11 +7,12 @@ from ..const import (
     URL_DRY_CONTACT_STATUS,
     URL_ENCHARGE_BATTERY,
     URL_ENSEMBLE_INVENTORY,
+    URL_ENSEMBLE_STATUS,
     SupportedFeatures,
 )
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
 from ..models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
-from ..models.encharge import EnvoyEncharge, EnvoyEnchargePower
+from ..models.encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from ..models.enpower import EnvoyEnpower
 from ..models.envoy import EnvoyData
 from .base import EnvoyUpdater
@@ -59,6 +60,13 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
         )
         envoy_data.raw[URL_ENSEMBLE_INVENTORY] = ensemble_inventory_data
 
+        ensemble_status_data: dict[str, Any] = await self._json_request(
+            URL_ENSEMBLE_STATUS
+        )
+        envoy_data.raw[URL_ENSEMBLE_STATUS] = await self._json_request(
+            URL_ENSEMBLE_STATUS
+        )
+
         if supported_features & SupportedFeatures.ENCHARGE:
             encharge_power_data: dict[str, Any] = await self._json_request(
                 URL_ENCHARGE_BATTERY
@@ -81,6 +89,9 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
             envoy_data.encharge_power = {
                 serial: EnvoyEnchargePower.from_api(power[serial]) for serial in power
             }
+            envoy_data.encharge_aggregate = EnvoyEnchargeAggregate.from_api(
+                ensemble_status_data["secctrl"]
+            )
 
         if supported_features & SupportedFeatures.ENPOWER:
             # Update Enpower data

@@ -35,6 +35,7 @@ async def main() -> None:
         "/ivp/ensemble/power",
         "/ivp/ensemble/inventory",
         "/ivp/ensemble/dry_contacts",
+        "/ivp/ensemble/status",
         "/ivp/ss/dry_contact_settings",
     ]
 
