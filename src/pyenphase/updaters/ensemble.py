@@ -7,7 +7,7 @@ from ..const import (
     URL_DRY_CONTACT_STATUS,
     URL_ENCHARGE_BATTERY,
     URL_ENSEMBLE_INVENTORY,
-    URL_ENSEMBLE_STATUS,
+    URL_ENSEMBLE_SECCTRL,
     SupportedFeatures,
 )
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
@@ -60,11 +60,11 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
         )
         envoy_data.raw[URL_ENSEMBLE_INVENTORY] = ensemble_inventory_data
 
-        ensemble_status_data: dict[str, Any] = await self._json_request(
-            URL_ENSEMBLE_STATUS
+        ensemble_secctrl_data: dict[str, Any] = await self._json_request(
+            URL_ENSEMBLE_SECCTRL
         )
-        envoy_data.raw[URL_ENSEMBLE_STATUS] = await self._json_request(
-            URL_ENSEMBLE_STATUS
+        envoy_data.raw[URL_ENSEMBLE_SECCTRL] = await self._json_request(
+            URL_ENSEMBLE_SECCTRL
         )
 
         if supported_features & SupportedFeatures.ENCHARGE:
@@ -90,7 +90,7 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
                 serial: EnvoyEnchargePower.from_api(power[serial]) for serial in power
             }
             envoy_data.encharge_aggregate = EnvoyEnchargeAggregate.from_api(
-                ensemble_status_data["secctrl"]
+                ensemble_secctrl_data
             )
 
         if supported_features & SupportedFeatures.ENPOWER:
