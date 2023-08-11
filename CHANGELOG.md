@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.0 (2023-08-11)
+
+### Feature
+
+* Add EnchargeAggregate model for aggregated battery data ([#64](https://github.com/pyenphase/pyenphase/issues/64)) ([`6985935`](https://github.com/pyenphase/pyenphase/commit/69859358ad6c4146fac30198ec5a342633db9834))
+
 ## v1.4.0 (2023-08-10)
 
 ### Feature
