@@ -8,6 +8,30 @@ from typing import Any
 
 
 @dataclass(slots=True)
+class EnvoyEnchargeAggregate:
+    """Model for Encharge aggregate data."""
+
+    available_energy: int
+    backup_reserve: int
+    state_of_charge: int
+    reserve_state_of_charge: int
+    configured_reserve_state_of_charge: int
+    max_available_capacity: int
+
+    @classmethod
+    def from_api(cls, data: dict[str, Any]) -> EnvoyEnchargeAggregate:
+        """Initialize from the API."""
+        return cls(
+            available_energy=data["ENC_agg_avail_energy"],
+            backup_reserve=data["ENC_agg_backup_energy"],
+            state_of_charge=data["ENC_agg_soc"],
+            reserve_state_of_charge=data["adjusted_backup_soc"],
+            configured_reserve_state_of_charge=data["configured_backup_soc"],
+            max_available_capacity=data["Enc_max_available_capacity"],
+        )
+
+
+@dataclass(slots=True)
 class EnvoyEnchargePower:
     """Model for the Encharge/IQ battery power."""
 

@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
-from .encharge import EnvoyEncharge, EnvoyEnchargePower
+from .encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from .enpower import EnvoyEnpower
 from .inverter import EnvoyInverter
 from .system_consumption import EnvoySystemConsumption
@@ -17,6 +17,7 @@ class EnvoyData:
 
     encharge_inventory: dict[str, EnvoyEncharge] | None = None
     encharge_power: dict[str, EnvoyEnchargePower] | None = None
+    encharge_aggregate: EnvoyEnchargeAggregate | None = None
     enpower: EnvoyEnpower | None = None
     system_consumption: EnvoySystemConsumption | None = None
     system_production: EnvoySystemProduction | None = None
