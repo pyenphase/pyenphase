@@ -1104,10 +1104,10 @@ async def test_with_7_x_firmware(
             )
         )
 
-    if "ivp_ensemble_status" in files:
-        respx.get("/ivp/ensemble/status").mock(
+    if "ivp_ensemble_secctrl" in files:
+        respx.get("/ivp/ensemble/secctrl").mock(
             return_value=Response(
-                200, json=_load_json_fixture(version, "ivp_ensemble_status")
+                200, json=_load_json_fixture(version, "ivp_ensemble_secctrl")
             )
         )
 
