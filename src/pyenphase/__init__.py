@@ -12,7 +12,7 @@ from .exceptions import (
     EnvoyProbeFailed,
 )
 from .models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
-from .models.encharge import EnvoyEncharge, EnvoyEnchargePower
+from .models.encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from .models.enpower import EnvoyEnpower
 from .models.envoy import EnvoyData
 from .models.inverter import EnvoyInverter
@@ -36,6 +36,7 @@ __all__ = (
     "EnvoySystemConsumption",
     "EnvoySystemProduction",
     "EnvoyEncharge",
+    "EnvoyEnchargeAggregate",
     "EnvoyEnchargePower",
     "EnvoyEnpower",
     "EnvoyDryContactSettings",
