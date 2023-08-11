@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.2 (2023-08-11)
+
+### Fix
+
+* Add EnvoyEnchargeAggregate to __all__ ([#66](https://github.com/pyenphase/pyenphase/issues/66)) ([`63b7698`](https://github.com/pyenphase/pyenphase/commit/63b76980d620cf7e125df0d6058c80230f66756a))
+
 ## v1.5.1 (2023-08-11)
 
 ### Fix
