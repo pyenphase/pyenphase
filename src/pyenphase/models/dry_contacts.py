@@ -16,6 +16,7 @@ class DryContactStatus(StrEnum):
 class DryContactAction(StrEnum):
     APPLY = "apply"
     SHED = "shed"
+    SCHEDULE = "schedule"
     NONE = "none"
 
 
