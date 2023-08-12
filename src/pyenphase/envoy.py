@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Callable
+from dataclasses import fields
 from typing import Any
 
 import httpx
@@ -12,6 +13,7 @@ from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
     AUTH_TOKEN_MIN_VERSION,
     LOCAL_TIMEOUT,
+    URL_DRY_CONTACT_SETTINGS,
     URL_GRID_RELAY,
     SupportedFeatures,
 )
@@ -177,7 +179,7 @@ class Envoy:
         url = self.auth.get_endpoint_url(endpoint)
 
         if data:
-            _LOGGER.debug("Sending POST to %s with data %s", url, data)
+            _LOGGER.debug("Sending POST to %s with data %s", url, orjson.dumps(data))
             return await self._client.post(
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
@@ -273,3 +275,38 @@ class Envoy:
                 "This feature is not available on this Envoy."
             )
         return await self._json_request(URL_GRID_RELAY, {"mains_admin_state": "open"})
+
+    async def update_dry_contact(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Update settings for an Enpower dry contact relay."""
+        # All settings for the relay must be sent in the POST or it may crash the Envoy
+
+        if not self.supported_features & SupportedFeatures.ENPOWER:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
+            )
+
+        if "id" not in data.keys():
+            raise ValueError("You must specify the dry contact ID in the data object.")
+
+        id = data["id"]
+
+        # Get the current settings for the relay from EnvoyData and merge with the new settings
+        if not self.data:
+            raise ValueError(
+                "Tried to set dry contact settings before the Envoy was queried."
+            )
+        settings = self.data.dry_contact_settings[id]
+
+        for field in fields(settings):
+            setting = field.name
+            if setting in data:
+                setattr(settings, setting, data.pop(setting))
+
+        # If there is still information in data, it is invalid
+        if data:
+            _LOGGER.warning("Invalid data provided for dry contact relay: %s", data)
+
+        # Massage the settings into the format the Envoy API expects
+        new_settings = {"dry_contacts": settings.to_api()}
+
+        return await self._json_request(URL_DRY_CONTACT_SETTINGS, new_settings)

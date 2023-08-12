@@ -89,3 +89,25 @@ class EnvoyDryContactSettings:
             soc_low=relay["soc_low"],
             type=DryContactType(relay["type"]),
         )
+
+    def to_api(self) -> dict[str, Any]:
+        """Convert to API format."""
+        return {
+            "id": self.id,
+            "black_s_start": self.black_start,
+            "essential_end_time": self.essential_end_time,
+            "essential_start_time": self.essential_start_time,
+            "gen_action": self.generator_action,
+            "grid_action": self.grid_action,
+            "load_name": self.load_name,
+            # boolean values must be passed to the API as a lowercase string
+            "manual_override": str(self.manual_override).lower(),
+            "micro_grid_action": self.micro_grid_action,
+            "mode": self.mode,
+            "override": str(self.override).lower(),
+            "priority": self.priority,
+            "pv_serial_nb": self.pv_serial_nb,
+            "soc_high": self.soc_high,
+            "soc_low": self.soc_low,
+            "type": self.type,
+        }
