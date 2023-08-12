@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.3 (2023-08-12)
+
+### Fix
+
+* Add "schedule" to DryContactAction ([#67](https://github.com/pyenphase/pyenphase/issues/67)) ([`403d8dc`](https://github.com/pyenphase/pyenphase/commit/403d8dc5c0361a30b95e57fdeda13ea25fd8179a))
+
 ## v1.5.2 (2023-08-11)
 
 ### Fix
