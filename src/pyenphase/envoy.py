@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Callable
-from dataclasses import fields
+from dataclasses import replace
 from typing import Any
 
 import httpx
@@ -276,7 +276,7 @@ class Envoy:
             )
         return await self._json_request(URL_GRID_RELAY, {"mains_admin_state": "open"})
 
-    async def update_dry_contact(self, data: dict[str, Any]) -> dict[str, Any]:
+    async def update_dry_contact(self, new_data: dict[str, Any]) -> dict[str, Any]:
         """Update settings for an Enpower dry contact relay."""
         # All settings for the relay must be sent in the POST or it may crash the Envoy
 
@@ -285,28 +285,16 @@ class Envoy:
                 "This feature is not available on this Envoy."
             )
 
-        if "id" not in data.keys():
+        if not (id_ := new_data.get("id")):
             raise ValueError("You must specify the dry contact ID in the data object.")
-
-        id = data["id"]
-
         # Get the current settings for the relay from EnvoyData and merge with the new settings
-        if not self.data:
+        if not (current_data := self.data):
             raise ValueError(
                 "Tried to set dry contact settings before the Envoy was queried."
             )
-        settings = self.data.dry_contact_settings[id]
+        current_model = current_data.dry_contact_settings[id_]
+        new_model = replace(current_model, **new_data)
 
-        for field in fields(settings):
-            setting = field.name
-            if setting in data:
-                setattr(settings, setting, data.pop(setting))
-
-        # If there is still information in data, it is invalid
-        if data:
-            _LOGGER.warning("Invalid data provided for dry contact relay: %s", data)
-
-        # Massage the settings into the format the Envoy API expects
-        new_settings = {"dry_contacts": settings.to_api()}
-
-        return await self._json_request(URL_DRY_CONTACT_SETTINGS, new_settings)
+        return await self._json_request(
+            URL_DRY_CONTACT_SETTINGS, {"dry_contacts": new_model.to_api()}
+        )
