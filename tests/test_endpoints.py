@@ -1,4 +1,6 @@
+import logging
 import re
+from dataclasses import replace
 from os import listdir
 from os.path import isfile, join
 from pathlib import Path
@@ -22,6 +24,8 @@ from pyenphase.models.envoy import EnvoyData
 from pyenphase.models.system_production import EnvoySystemProduction
 from pyenphase.updaters.base import EnvoyUpdater
 
+LOGGER = logging.getLogger(__name__)
+
 
 def _fixtures_dir() -> Path:
     return Path(__file__).parent / "fixtures"
@@ -40,13 +44,14 @@ def _updater_features(updaters: list[EnvoyUpdater]) -> dict[str, SupportedFeatur
     return {type(updater).__name__: updater._supported_features for updater in updaters}
 
 
-async def _get_mock_envoy():
+async def _get_mock_envoy(update: bool = True):  # type: ignore[no-untyped-def]
     """Return a mock Envoy."""
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
     await envoy.authenticate("username", "password")
-    await envoy.update()
-    await envoy.update()  # make sure we can update twice
+    if update:
+        await envoy.update()
+        await envoy.update()  # make sure we can update twice
     return envoy
 
 
@@ -1031,6 +1036,7 @@ async def test_with_7_x_firmware(
     snapshot: SnapshotAssertion,
     supported_features: SupportedFeatures,
     updaters: dict[str, SupportedFeatures],
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Verify with 7.x firmware."""
     respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
@@ -1097,6 +1103,11 @@ async def test_with_7_x_firmware(
                 200, json=_load_json_fixture(version, "ivp_ss_dry_contact_settings")
             )
         )
+        respx.post("/ivp/ss/dry_contact_settings").mock(
+            return_value=Response(
+                200, json=_load_json_fixture(version, "ivp_ss_dry_contact_settings")
+            )
+        )
     if "ivp_ensemble_power" in files:
         respx.get("/ivp/ensemble/power").mock(
             return_value=Response(
@@ -1110,6 +1121,8 @@ async def test_with_7_x_firmware(
                 200, json=_load_json_fixture(version, "ivp_ensemble_secctrl")
             )
         )
+
+    caplog.set_level(logging.DEBUG)
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -1129,8 +1142,31 @@ async def test_with_7_x_firmware(
         assert respx.calls.last.request.content == orjson.dumps(
             {"mains_admin_state": "open"}
         )
+
+        # Test updating dry contacts
+        with pytest.raises(ValueError):
+            await envoy.update_dry_contact({"missing": "id"})
+
+        with pytest.raises(ValueError):
+            bad_envoy = await _get_mock_envoy(False)
+            await bad_envoy.probe()
+            await bad_envoy.update_dry_contact({"id": "NC1"})
+
+        dry_contact = envoy.data.dry_contact_settings["NC1"]
+        new_data = {"id": "NC1", "load_name": "NC1 Test"}
+        new_model = replace(dry_contact, **new_data)
+
+        await envoy.update_dry_contact(new_data)
+        assert respx.calls.last.request.content == orjson.dumps(
+            {"dry_contacts": new_model.to_api()}
+        )
+
+        assert "Sending POST" in caplog.text
+
     else:
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.go_off_grid()
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.go_on_grid()
+        with pytest.raises(EnvoyFeatureNotAvailable):
+            await envoy.update_dry_contact({"id": "NC1"})
