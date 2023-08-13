@@ -1,3 +1,4 @@
+import logging
 import re
 from dataclasses import replace
 from os import listdir
@@ -22,6 +23,8 @@ from pyenphase.exceptions import (
 from pyenphase.models.envoy import EnvoyData
 from pyenphase.models.system_production import EnvoySystemProduction
 from pyenphase.updaters.base import EnvoyUpdater
+
+LOGGER = logging.getLogger(__name__)
 
 
 def _fixtures_dir() -> Path:
@@ -1033,6 +1036,7 @@ async def test_with_7_x_firmware(
     snapshot: SnapshotAssertion,
     supported_features: SupportedFeatures,
     updaters: dict[str, SupportedFeatures],
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Verify with 7.x firmware."""
     respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
@@ -1118,6 +1122,8 @@ async def test_with_7_x_firmware(
             )
         )
 
+    caplog.set_level(logging.DEBUG)
+
     envoy = await _get_mock_envoy()
     data = envoy.data
     assert data == snapshot
@@ -1154,6 +1160,9 @@ async def test_with_7_x_firmware(
         assert respx.calls.last.request.content == orjson.dumps(
             {"dry_contacts": new_model.to_api()}
         )
+
+        assert "Sending POST" in caplog.text
+
     else:
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.go_off_grid()
