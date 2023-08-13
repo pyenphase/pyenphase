@@ -179,7 +179,10 @@ class Envoy:
         url = self.auth.get_endpoint_url(endpoint)
 
         if data:
-            _LOGGER.debug("Sending POST to %s with data %s", url, orjson.dumps(data))
+            if _LOGGER.isEnabledFor(logging.DEBUG):
+                _LOGGER.debug(
+                    "Sending POST to %s with data %s", url, orjson.dumps(data)
+                )
             return await self._client.post(
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
