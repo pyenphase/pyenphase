@@ -1,4 +1,5 @@
 import re
+from dataclasses import replace
 from os import listdir
 from os.path import isfile, join
 from pathlib import Path
@@ -1097,6 +1098,11 @@ async def test_with_7_x_firmware(
                 200, json=_load_json_fixture(version, "ivp_ss_dry_contact_settings")
             )
         )
+        respx.post("/ivp/ss/dry_contact_settings").mock(
+            return_value=Response(
+                200, json=_load_json_fixture(version, "ivp_ss_dry_contact_settings")
+            )
+        )
     if "ivp_ensemble_power" in files:
         respx.get("/ivp/ensemble/power").mock(
             return_value=Response(
@@ -1129,8 +1135,23 @@ async def test_with_7_x_firmware(
         assert respx.calls.last.request.content == orjson.dumps(
             {"mains_admin_state": "open"}
         )
+
+        # Test updating dry contacts
+        with pytest.raises(ValueError):
+            await envoy.update_dry_contact({"missing": "id"})
+
+        dry_contact = envoy.data.dry_contact_settings["NC1"]
+        new_data = {"id": "NC1", "load_name": "NC1 Test"}
+        new_model = replace(dry_contact, **new_data)
+
+        await envoy.update_dry_contact(new_data)
+        assert respx.calls.last.request.content == orjson.dumps(
+            {"dry_contacts": new_model.to_api()}
+        )
     else:
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.go_off_grid()
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.go_on_grid()
+        with pytest.raises(EnvoyFeatureNotAvailable):
+            await envoy.update_dry_contact({"id": "NC1"})
