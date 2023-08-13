@@ -41,13 +41,14 @@ def _updater_features(updaters: list[EnvoyUpdater]) -> dict[str, SupportedFeatur
     return {type(updater).__name__: updater._supported_features for updater in updaters}
 
 
-async def _get_mock_envoy():
+async def _get_mock_envoy(update: bool = True):  # type: ignore[no-untyped-def]
     """Return a mock Envoy."""
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
     await envoy.authenticate("username", "password")
-    await envoy.update()
-    await envoy.update()  # make sure we can update twice
+    if update:
+        await envoy.update()
+        await envoy.update()  # make sure we can update twice
     return envoy
 
 
@@ -1139,6 +1140,11 @@ async def test_with_7_x_firmware(
         # Test updating dry contacts
         with pytest.raises(ValueError):
             await envoy.update_dry_contact({"missing": "id"})
+
+        with pytest.raises(ValueError):
+            bad_envoy = await _get_mock_envoy(False)
+            await bad_envoy.probe()
+            await bad_envoy.update_dry_contact({"id": "NC1"})
 
         dry_contact = envoy.data.dry_contact_settings["NC1"]
         new_data = {"id": "NC1", "load_name": "NC1 Test"}
