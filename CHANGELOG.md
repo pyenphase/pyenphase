@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.6.0 (2023-08-13)
+
+### Feature
+
+* Add support for changing settings on dry contact relays ([#68](https://github.com/pyenphase/pyenphase/issues/68)) ([`345165a`](https://github.com/pyenphase/pyenphase/commit/345165a92ffc7ffc35c5d09626757c53f4add7d2))
+
 ## v1.5.3 (2023-08-12)
 
 ### Fix
