@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.7.0 (2023-08-15)
+
+### Feature
+
+* Add support for opening and closing dry contact relays ([#70](https://github.com/pyenphase/pyenphase/issues/70)) ([`f59aa54`](https://github.com/pyenphase/pyenphase/commit/f59aa546e4991c5aee446e9629b48df2ca556272))
+
 ## v1.6.0 (2023-08-13)
 
 ### Feature
