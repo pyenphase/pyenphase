@@ -1097,6 +1097,11 @@ async def test_with_7_x_firmware(
                 200, json=_load_json_fixture(version, "ivp_ensemble_dry_contacts")
             )
         )
+        respx.post("/ivp/ensemble/dry_contacts").mock(
+            return_value=Response(
+                200, json=_load_json_fixture(version, "ivp_ensemble_dry_contacts")
+            )
+        )
     if "ivp_ss_dry_contact_settings" in files:
         respx.get("/ivp/ss/dry_contact_settings").mock(
             return_value=Response(
@@ -1161,6 +1166,16 @@ async def test_with_7_x_firmware(
             {"dry_contacts": new_model.to_api()}
         )
 
+        await envoy.open_dry_contact("NC1")
+        assert respx.calls.last.request.content == orjson.dumps(
+            {"dry_contacts": {"id": "NC1", "status": "open"}}
+        )
+
+        await envoy.close_dry_contact("NC1")
+        assert respx.calls.last.request.content == orjson.dumps(
+            {"dry_contacts": {"id": "NC1", "status": "closed"}}
+        )
+
         assert "Sending POST" in caplog.text
 
     else:
@@ -1170,3 +1185,9 @@ async def test_with_7_x_firmware(
             await envoy.go_on_grid()
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.update_dry_contact({"id": "NC1"})
+        with pytest.raises(EnvoyFeatureNotAvailable):
+            await envoy.update_dry_contact({"id": "NC1"})
+        with pytest.raises(EnvoyFeatureNotAvailable):
+            await envoy.open_dry_contact("NC1")
+        with pytest.raises(EnvoyFeatureNotAvailable):
+            await envoy.close_dry_contact("NC1")

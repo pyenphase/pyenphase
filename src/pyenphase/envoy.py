@@ -14,6 +14,7 @@ from .const import (
     AUTH_TOKEN_MIN_VERSION,
     LOCAL_TIMEOUT,
     URL_DRY_CONTACT_SETTINGS,
+    URL_DRY_CONTACT_STATUS,
     URL_GRID_RELAY,
     SupportedFeatures,
 )
@@ -300,4 +301,26 @@ class Envoy:
 
         return await self._json_request(
             URL_DRY_CONTACT_SETTINGS, {"dry_contacts": new_model.to_api()}
+        )
+
+    async def open_dry_contact(self, id: str) -> dict[str, Any]:
+        """Open a dry contact relay."""
+        if not self.supported_features & SupportedFeatures.ENPOWER:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
+            )
+
+        return await self._json_request(
+            URL_DRY_CONTACT_STATUS, {"dry_contacts": {"id": id, "status": "open"}}
+        )
+
+    async def close_dry_contact(self, id: str) -> dict[str, Any]:
+        """Open a dry contact relay."""
+        if not self.supported_features & SupportedFeatures.ENPOWER:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
+            )
+
+        return await self._json_request(
+            URL_DRY_CONTACT_STATUS, {"dry_contacts": {"id": id, "status": "closed"}}
         )
