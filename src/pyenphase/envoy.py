@@ -25,7 +25,7 @@ from .exceptions import (
 )
 from .firmware import EnvoyFirmware
 from .json import json_loads
-from .models.dry_contact import DryContactStatus
+from .models.dry_contacts import DryContactStatus
 from .models.envoy import EnvoyData
 from .ssl import NO_VERIFY_SSL_CONTEXT
 from .updaters.api_v1_production import EnvoyApiV1ProductionUpdater
