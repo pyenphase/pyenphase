@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.7.1 (2023-08-15)
+
+### Fix
+
+* Startup was blocked for multiple minutes if the envoy was offline ([#71](https://github.com/pyenphase/pyenphase/issues/71)) ([`983ef52`](https://github.com/pyenphase/pyenphase/commit/983ef52e92ffff5a91b8de8bddda68f460058b56))
+
 ## v1.7.0 (2023-08-15)
 
 ### Feature
