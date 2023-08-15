@@ -25,6 +25,7 @@ from .exceptions import (
 )
 from .firmware import EnvoyFirmware
 from .json import json_loads
+from .models.dry_contact import DryContactStatus
 from .models.envoy import EnvoyData
 from .ssl import NO_VERIFY_SSL_CONTEXT
 from .updaters.api_v1_production import EnvoyApiV1ProductionUpdater
@@ -310,9 +311,16 @@ class Envoy:
                 "This feature is not available on this Envoy."
             )
 
-        return await self._json_request(
-            URL_DRY_CONTACT_STATUS, {"dry_contacts": {"id": id, "status": "open"}}
+        result = await self._json_request(
+            URL_DRY_CONTACT_STATUS,
+            {"dry_contacts": {"id": id, "status": DryContactStatus.OPEN}},
         )
+
+        # The envoy returns the old state for a few seconds after the relay is changed, so we pre-emptively update
+        # the status in our data
+        if self.data:
+            self.data.dry_contact_status[id].status = DryContactStatus.OPEN
+        return result
 
     async def close_dry_contact(self, id: str) -> dict[str, Any]:
         """Open a dry contact relay."""
@@ -321,6 +329,13 @@ class Envoy:
                 "This feature is not available on this Envoy."
             )
 
-        return await self._json_request(
-            URL_DRY_CONTACT_STATUS, {"dry_contacts": {"id": id, "status": "closed"}}
+        result = await self._json_request(
+            URL_DRY_CONTACT_STATUS,
+            {"dry_contacts": {"id": id, "status": DryContactStatus.CLOSED}},
         )
+
+        # The envoy returns the old state for a few seconds after the relay is changed, so we pre-emptively update
+        # the status in our data
+        if self.data:
+            self.data.dry_contact_status[id].status = DryContactStatus.OPEN
+        return result
