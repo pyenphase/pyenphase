@@ -27,8 +27,8 @@ class EnvoyFirmware:
         self._part_number: str | None = None
 
     @retry(
-        retry=retry_if_exception_type(httpx.HTTPError),
-        wait=wait_random_exponential(multiplier=2, max=10),
+        retry=retry_if_exception_type((httpx.NetworkError, httpx.RemoteProtocolError)),
+        wait=wait_random_exponential(multiplier=2, max=5),
     )
     async def _get_info(self) -> None:
         """Obtain the firmware version for Envoy authentication."""
