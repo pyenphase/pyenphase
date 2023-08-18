@@ -1017,6 +1017,26 @@ async def test_with_3_17_3_firmware():
                 | SupportedFeatures.PRODUCTION,
             },
         ),
+        (
+            "8.1.41",
+            "800-00664-r05",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.ENPOWER
+            | SupportedFeatures.PRODUCTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
+                | SupportedFeatures.ENCHARGE,
+                "EnvoyProductionUpdater": SupportedFeatures.PRODUCTION
+                | SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION,
+            },
+        ),
     ],
     ids=[
         "5.0.62",
@@ -1026,6 +1046,7 @@ async def test_with_3_17_3_firmware():
         "7.6.175",
         "7.6.175_standard",
         "7.6.175_with_cts",
+        "8.1.41",
     ],
 )
 @pytest.mark.asyncio
