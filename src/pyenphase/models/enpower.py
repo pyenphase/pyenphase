@@ -23,12 +23,12 @@ class EnvoyEnpower:
     last_report_date: int
     mains_admin_state: str
     mains_oper_state: str
-    operating: bool
+    operating: bool | None
     part_number: str
     serial_number: str
     temperature: int
     temperature_unit: str
-    zigbee_dongle_fw_version: str
+    zigbee_dongle_fw_version: str | None
 
     @classmethod
     def from_api(
@@ -49,10 +49,12 @@ class EnvoyEnpower:
             last_report_date=enpower["last_rpt_date"],
             mains_admin_state=enpower["mains_admin_state"],
             mains_oper_state=enpower["mains_oper_state"],
-            operating=enpower["operating"],
+            operating=enpower.get("operating"),  # Firmware 8+ does not have this field
             part_number=enpower["part_num"],
             serial_number=enpower["serial_num"],
             temperature=enpower["temperature"],
             temperature_unit="F",
-            zigbee_dongle_fw_version=enpower["zigbee_dongle_fw_version"],
+            zigbee_dongle_fw_version=enpower.get(
+                "zigbee_dongle_fw_version"
+            ),  # Firmware 8+ does not have this field
         )

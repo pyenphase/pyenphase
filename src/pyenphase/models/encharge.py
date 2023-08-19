@@ -68,13 +68,13 @@ class EnvoyEncharge:
     last_report_date: int
     led_status: int
     max_cell_temp: int
-    operating: bool
+    operating: bool | None
     part_number: str
     percent_full: int
     serial_number: str
     temperature: int
     temperature_unit: str
-    zigbee_dongle_fw_version: str
+    zigbee_dongle_fw_version: str | None
 
     @classmethod
     def from_api(cls, inventory: dict[str, Any]) -> EnvoyEncharge:
@@ -95,11 +95,13 @@ class EnvoyEncharge:
             last_report_date=inventory["last_rpt_date"],
             led_status=inventory["led_status"],
             max_cell_temp=inventory["maxCellTemp"],
-            operating=inventory["operating"],
+            operating=inventory.get("operating"),  # Firmware 8+ does not have this key
             part_number=inventory["part_num"],
             percent_full=inventory["percentFull"],
             serial_number=inventory["serial_num"],
             temperature=inventory["temperature"],
             temperature_unit="C",
-            zigbee_dongle_fw_version=inventory["zigbee_dongle_fw_version"],
+            zigbee_dongle_fw_version=inventory.get(
+                "zigbee_dongle_fw_version"
+            ),  # Firmware 8+ does not have this key
         )
