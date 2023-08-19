@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.8.0 (2023-08-19)
+
+### Feature
+
+* Add initial support for firmware 8.1.41 ([#73](https://github.com/pyenphase/pyenphase/issues/73)) ([`3562261`](https://github.com/pyenphase/pyenphase/commit/3562261d51a2f3d539d125c3512d9b1ca9b9bd6d))
+
 ## v1.7.1 (2023-08-15)
 
 ### Fix
