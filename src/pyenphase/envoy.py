@@ -315,6 +315,8 @@ class Envoy:
         result = await self._json_request(
             URL_DRY_CONTACT_STATUS, {"dry_contacts": {"id": id, "status": "open"}}
         )
+        # The Envoy takes a few seconds before it will reflect the new state of the relay
+        # so we preemptively update it
         if self.data:
             self.data.dry_contact_status[id].status = DryContactStatus.OPEN
         return result
@@ -329,6 +331,8 @@ class Envoy:
         result = await self._json_request(
             URL_DRY_CONTACT_STATUS, {"dry_contacts": {"id": id, "status": "closed"}}
         )
+        # The Envoy takes a few seconds before it will reflect the new state of the relay
+        # so we preemptively update it
         if self.data:
             self.data.dry_contact_status[id].status = DryContactStatus.CLOSED
         return result
