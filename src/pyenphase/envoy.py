@@ -9,6 +9,8 @@ from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
+from pyenphase.models.dry_contacts import DryContactStatus
+
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
     AUTH_TOKEN_MIN_VERSION,
@@ -310,9 +312,12 @@ class Envoy:
                 "This feature is not available on this Envoy."
             )
 
-        return await self._json_request(
+        result = await self._json_request(
             URL_DRY_CONTACT_STATUS, {"dry_contacts": {"id": id, "status": "open"}}
         )
+        if self.data:
+            self.data.dry_contact_status[id].status = DryContactStatus.OPEN
+        return result
 
     async def close_dry_contact(self, id: str) -> dict[str, Any]:
         """Open a dry contact relay."""
@@ -321,6 +326,9 @@ class Envoy:
                 "This feature is not available on this Envoy."
             )
 
-        return await self._json_request(
+        result = await self._json_request(
             URL_DRY_CONTACT_STATUS, {"dry_contacts": {"id": id, "status": "closed"}}
         )
+        if self.data:
+            self.data.dry_contact_status[id].status = DryContactStatus.CLOSED
+        return result
