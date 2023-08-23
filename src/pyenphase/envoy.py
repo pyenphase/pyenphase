@@ -317,8 +317,8 @@ class Envoy:
         )
         # The Envoy takes a few seconds before it will reflect the new state of the relay
         # so we preemptively update it
-        if self.data:
-            self.data.dry_contact_status[id].status = DryContactStatus.OPEN
+        if data := self.data:
+            data.dry_contact_status[id].status = DryContactStatus.OPEN
         return result
 
     async def close_dry_contact(self, id: str) -> dict[str, Any]:
@@ -333,6 +333,6 @@ class Envoy:
         )
         # The Envoy takes a few seconds before it will reflect the new state of the relay
         # so we preemptively update it
-        if self.data:
-            self.data.dry_contact_status[id].status = DryContactStatus.CLOSED
+        if data := self.data:
+            data.dry_contact_status[id].status = DryContactStatus.CLOSED
         return result
