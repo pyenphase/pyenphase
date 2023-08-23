@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.8.1 (2023-08-23)
+
+### Fix
+
+* Preemptively update dry contact state when toggling ([#75](https://github.com/pyenphase/pyenphase/issues/75)) ([`6a3f12f`](https://github.com/pyenphase/pyenphase/commit/6a3f12f26355721a4d12f3ef490659e4c4ce4a4c))
+
 ## v1.8.0 (2023-08-19)
 
 ### Feature
