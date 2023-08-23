@@ -38,6 +38,12 @@ async def main() -> None:
         "/ivp/ensemble/status",
         "/ivp/ensemble/secctrl",
         "/ivp/ss/dry_contact_settings",
+        "/admin/lib/tariff",
+        "/ivp/ss/gen_config",
+        "/ivp/ss/gen_schedule",
+        "/ivp/sc/pvlimit",
+        "/ivp/ss/pel_settings",
+        "/ivp/ensemble/generator",
     ]
 
     assert envoy.auth  # nosec
