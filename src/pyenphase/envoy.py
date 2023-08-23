@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable
 from dataclasses import replace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
 import orjson
@@ -317,8 +317,9 @@ class Envoy:
         )
         # The Envoy takes a few seconds before it will reflect the new state of the relay
         # so we preemptively update it
-        if data := self.data:  # nosec
-            data.dry_contact_status[id].status = DryContactStatus.OPEN
+        if TYPE_CHECKING:
+            assert self.data is not None  # nosec
+        self.data.dry_contact_status[id].status = DryContactStatus.OPEN
         return result
 
     async def close_dry_contact(self, id: str) -> dict[str, Any]:
@@ -333,6 +334,7 @@ class Envoy:
         )
         # The Envoy takes a few seconds before it will reflect the new state of the relay
         # so we preemptively update it
-        if data := self.data:  # nosec
-            data.dry_contact_status[id].status = DryContactStatus.CLOSED
+        if TYPE_CHECKING:
+            assert self.data is not None  # nosec
+        self.data.dry_contact_status[id].status = DryContactStatus.CLOSED
         return result
