@@ -43,6 +43,7 @@ async def main() -> None:
         "/ivp/ss/gen_schedule",
         "/ivp/sc/pvlimit",
         "/ivp/ss/pel_settings",
+        "/ivp/ensemble/generator",
     ]
 
     assert envoy.auth  # nosec
