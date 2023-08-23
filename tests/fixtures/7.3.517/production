@@ -1,1 +1,86 @@
-{"production":[{"type":"inverters","activeCount":22,"readingTime":1691514168,"wNow":4916,"whLifetime":961998},{"type":"eim","activeCount":1,"measurementType":"production","readingTime":1691514182,"wNow":1172.886,"whLifetime":18813219.356,"varhLeadLifetime":0.446,"varhLagLifetime":9220021.504,"vahLifetime":24945225.515,"rmsCurrent":10.46,"rmsVoltage":238.177,"reactPwr":398.902,"apprntPwr":1246.819,"pwrFactor":0.94,"whToday":10085.356,"whLastSevenDays":179805.356,"vahToday":14092.515,"varhLeadToday":0.446,"varhLagToday":5602.504}],"consumption":[{"type":"eim","activeCount":1,"measurementType":"total-consumption","readingTime":1691514182,"wNow":2767.326,"whLifetime":26919538.783,"varhLeadLifetime":12971888.308,"varhLagLifetime":-9032490.716,"vahLifetime":34931397.073,"rmsCurrent":24.276,"rmsVoltage":238.195,"reactPwr":159.948,"apprntPwr":2891.052,"pwrFactor":0.95,"whToday":12478.783,"whLastSevenDays":74.783,"vahToday":16983.073,"varhLeadToday":8491.308,"varhLagToday":0.0},{"type":"eim","activeCount":1,"measurementType":"net-consumption","readingTime":1691514182,"wNow":1594.44,"whLifetime":8143252.675,"varhLeadLifetime":12971888.754,"varhLagLifetime":187530.788,"vahLifetime":34931397.073,"rmsCurrent":13.816,"rmsVoltage":238.195,"reactPwr":-238.954,"apprntPwr":1645.321,"pwrFactor":0.96,"whToday":0,"whLastSevenDays":0,"vahToday":0,"varhLeadToday":0,"varhLagToday":0}],"storage":[{"type":"acb","activeCount":0,"readingTime":0,"wNow":0,"whNow":0,"state":"idle"}]}
+{
+    "production": [
+        {
+            "type": "inverters",
+            "activeCount": 22,
+            "readingTime": 1692817988,
+            "wNow": 4490,
+            "whLifetime": 183353
+        },
+        {
+            "type": "eim",
+            "activeCount": 1,
+            "measurementType": "production",
+            "readingTime": 1692818015,
+            "wNow": 4300.164,
+            "whLifetime": 19230314.735,
+            "varhLeadLifetime": 0.446,
+            "varhLagLifetime": 9375571.84,
+            "vahLifetime": 25459516.463,
+            "rmsCurrent": 34.896,
+            "rmsVoltage": 243.325,
+            "reactPwr": 404.183,
+            "apprntPwr": 4377.722,
+            "pwrFactor": 0.99,
+            "whToday": 18634.735,
+            "whLastSevenDays": 218715.735,
+            "vahToday": 22750.463,
+            "varhLeadToday": 0.446,
+            "varhLagToday": 6529.84
+        }
+    ],
+    "consumption": [
+        {
+            "type": "eim",
+            "activeCount": 1,
+            "measurementType": "total-consumption",
+            "readingTime": 1692818015,
+            "wNow": 3802.98,
+            "whLifetime": 27629800.274,
+            "varhLeadLifetime": 13182910.902,
+            "varhLagLifetime": -9185383.822,
+            "vahLifetime": 35703441.771,
+            "rmsCurrent": 24.973,
+            "rmsVoltage": 243.174,
+            "reactPwr": 119.982,
+            "apprntPwr": 3036.232,
+            "pwrFactor": 1.0,
+            "whToday": 24293.274,
+            "whLastSevenDays": 853.274,
+            "vahToday": 20422.771,
+            "varhLeadToday": 8438.902,
+            "varhLagToday": 0.0
+        },
+        {
+            "type": "eim",
+            "activeCount": 1,
+            "measurementType": "net-consumption",
+            "readingTime": 1692818015,
+            "wNow": -497.185,
+            "whLifetime": 8436418.786,
+            "varhLeadLifetime": 13182911.347,
+            "varhLagLifetime": 190188.018,
+            "vahLifetime": 35703441.771,
+            "rmsCurrent": -9.923,
+            "rmsVoltage": 243.174,
+            "reactPwr": -284.201,
+            "apprntPwr": -1206.704,
+            "pwrFactor": -1.0,
+            "whToday": 0,
+            "whLastSevenDays": 0,
+            "vahToday": 0,
+            "varhLeadToday": 0,
+            "varhLagToday": 0
+        }
+    ],
+    "storage": [
+        {
+            "type": "acb",
+            "activeCount": 0,
+            "readingTime": 0,
+            "wNow": 0,
+            "whNow": 0,
+            "state": "idle"
+        }
+    ]
+}
