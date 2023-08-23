@@ -20,6 +20,7 @@ from pyenphase.exceptions import (
     EnvoyFeatureNotAvailable,
     EnvoyProbeFailed,
 )
+from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.envoy import EnvoyData
 from pyenphase.models.system_production import EnvoySystemProduction
 from pyenphase.updaters.base import EnvoyUpdater
@@ -1188,11 +1189,13 @@ async def test_with_7_x_firmware(
         )
 
         await envoy.open_dry_contact("NC1")
+        assert envoy.data.dry_contact_status["NC1"].status == DryContactStatus.OPEN
         assert respx.calls.last.request.content == orjson.dumps(
             {"dry_contacts": {"id": "NC1", "status": "open"}}
         )
 
         await envoy.close_dry_contact("NC1")
+        assert envoy.data.dry_contact_status["NC1"].status == DryContactStatus.CLOSED
         assert respx.calls.last.request.content == orjson.dumps(
             {"dry_contacts": {"id": "NC1", "status": "closed"}}
         )
