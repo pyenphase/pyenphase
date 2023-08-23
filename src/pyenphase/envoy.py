@@ -317,7 +317,7 @@ class Envoy:
         )
         # The Envoy takes a few seconds before it will reflect the new state of the relay
         # so we preemptively update it
-        if data := self.data:
+        if data := self.data:  # nosec
             data.dry_contact_status[id].status = DryContactStatus.OPEN
         return result
 
@@ -333,6 +333,6 @@ class Envoy:
         )
         # The Envoy takes a few seconds before it will reflect the new state of the relay
         # so we preemptively update it
-        if data := self.data:
+        if data := self.data:  # nosec
             data.dry_contact_status[id].status = DryContactStatus.CLOSED
         return result
