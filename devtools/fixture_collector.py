@@ -44,6 +44,8 @@ async def main() -> None:
         "/ivp/sc/pvlimit",
         "/ivp/ss/pel_settings",
         "/ivp/ensemble/generator",
+        "/ivp/meters",
+        "/ivp/meters/readings",
     ]
 
     assert envoy.auth  # nosec
