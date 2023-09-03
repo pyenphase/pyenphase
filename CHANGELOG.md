@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.9.0 (2023-09-03)
+
+### Feature
+
+* Add ivp/meters and ivp/meters/readings to fixture collector ([#77](https://github.com/pyenphase/pyenphase/issues/77)) ([`74c02bc`](https://github.com/pyenphase/pyenphase/commit/74c02bc882435f8605c85600c7f598a7e77c7141))
+
 ## v1.8.1 (2023-08-23)
 
 ### Fix
