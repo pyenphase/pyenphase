@@ -110,7 +110,7 @@ class Envoy:
             elif username == "envoy" and not password:
                 # The default password for the envoy user is the last 6 digits of the serial number
                 assert full_serial is not None, "Serial must be set"  # nosec
-                password = full_serial[:-6]
+                password = full_serial[-6:]
 
             if username and password:
                 self.auth = EnvoyLegacyAuth(self.host, username, password)
