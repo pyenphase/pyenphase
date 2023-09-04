@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.9.1 (2023-09-04)
+
+### Fix
+
+* Envoy default password is last 6 not first 6 ([#78](https://github.com/pyenphase/pyenphase/issues/78)) ([`33d07f6`](https://github.com/pyenphase/pyenphase/commit/33d07f6fb231a274bfdf5e693d1d2200fc0b516d))
+
 ## v1.9.0 (2023-09-03)
 
 ### Feature
