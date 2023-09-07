@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<envoy_info>
+  <time>1694046740</time>
+  <device>
+    <sn>121426016034</sn>
+    <pn>800-00069-r05</pn>
+    <software>R3.9.36</software>
+    <euaid>4c8675</euaid>
+    <seqnum>0</seqnum>
+    <apiver>1</apiver>
+  </device>
+  <package name='rootfs'>
+    <pn>500-00001-r01</pn>
+    <version>01.02.00</version>
+    <build>782</build>
+  </package>
+  <package name='backbone'>
+    <pn>500-00010-r01</pn>
+    <version>01.00.01</version>
+    <build>1533e7</build>
+  </package>
+  <package name='kernel'>
+    <pn>500-00003-r01</pn>
+    <version>02.03.00</version>
+    <build>7a4eaa</build>
+  </package>
+  <package name='boot'>
+    <pn>590-00015-r01</pn>
+    <version>00.01.15</version>
+    <build>360a7d</build>
+  </package>
+  <package name='devimg'>
+    <pn>500-00004-r01</pn>
+    <version>01.01.15</version>
+    <build>a5d803</build>
+  </package>
+  <package name='app'>
+    <pn>500-00002-r01</pn>
+    <version>03.09.36</version>
+    <build>a1a93f</build>
+  </package>
+  <package name='geo'>
+    <pn>500-00008-r01</pn>
+    <version>01.00.14</version>
+    <build>c14a6d</build>
+  </package>
+</envoy_info>

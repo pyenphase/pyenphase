@@ -17,6 +17,7 @@ from pyenphase.const import URL_GRID_RELAY, URL_PRODUCTION
 from pyenphase.envoy import SupportedFeatures, get_updaters
 from pyenphase.exceptions import (
     ENDPOINT_PROBE_EXCEPTIONS,
+    EnvoyAuthenticationRequired,
     EnvoyFeatureNotAvailable,
     EnvoyProbeFailed,
 )
@@ -512,6 +513,69 @@ async def test_with_3_7_0_firmware():
     finally:
         remove()
         assert LegacyProductionScraper not in get_updaters()
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_with_3_9_36_firmware_bad_auth():
+    """Verify with 3.9.36 firmware with incorrect auth."""
+    version = "3.9.36_bad_auth"
+    respx.get("/info").mock(
+        return_value=Response(200, text=_load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(return_value=Response(404))
+    respx.get("/production.json").mock(return_value=Response(404))
+    respx.get("/api/v1/production").mock(
+        return_value=Response(
+            401, json=_load_json_fixture(version, "api_v1_production")
+        )
+    )
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production_inverters")
+        )
+    )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+
+    with pytest.raises(EnvoyAuthenticationRequired):
+        await _get_mock_envoy()
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_with_3_9_36_firmware_no_inverters():
+    """Verify with 3.9.36 firmware with auth that does not allow inverters."""
+    version = "3.9.36_bad_auth"
+    respx.get("/info").mock(
+        return_value=Response(200, text=_load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(return_value=Response(404))
+    respx.get("/production.json").mock(return_value=Response(404))
+    respx.get("/api/v1/production").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production")
+        )
+    )
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            401, json=_load_json_fixture(version, "api_v1_production_inverters")
+        )
+    )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+
+    envoy = await _get_mock_envoy()
+    data = envoy.data
+    assert data is not None
+
+    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
+    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
+    assert not (envoy._supported_features & SupportedFeatures.INVERTERS)
+    assert _updater_features(envoy._updaters) == {
+        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+    }
+    assert envoy.part_number == "800-00069-r05"
 
 
 @pytest.mark.asyncio
