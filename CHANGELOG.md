@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.9.3 (2023-09-07)
+
+### Fix
+
+* Handle /production returning a 401 even with the correct auth on some 3.x firmwares ([#80](https://github.com/pyenphase/pyenphase/issues/80)) ([`947605f`](https://github.com/pyenphase/pyenphase/commit/947605fba25b41d12db273e9352c29b08cac1d4d))
+
 ## v1.9.2 (2023-09-07)
 
 ### Fix
