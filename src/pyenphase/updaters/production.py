@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 from ..const import URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
-from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
+from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.system_consumption import EnvoySystemConsumption
 from ..models.system_production import EnvoySystemProduction
@@ -34,7 +34,19 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug("Production endpoint not found at %s: %s", self.end_point, e)
             return None
-
+        except EnvoyAuthenticationRequired as e:
+            # For URL_PRODUCTION some systems return 401 even if the user has access
+            # to the endpoint, but for URL_PRODUCTION_JSON is the only way to check
+            # if the user has access to the endpoint
+            if self.end_point == URL_PRODUCTION:
+                _LOGGER.debug(
+                    "Skipping production endpoint as user does"
+                    " not have access to %s: %s",
+                    self.end_point,
+                    e,
+                )
+                return None
+            raise
         production: list[dict[str, str | float | int]] | None = production_json.get(
             "production"
         )

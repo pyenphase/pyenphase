@@ -697,6 +697,50 @@ async def test_with_3_9_36_firmware():
 
 @pytest.mark.asyncio
 @respx.mock
+async def test_with_3_9_36_firmware_with_production_401():
+    """Verify with 3.9.36 firmware when /production throws a 401."""
+    version = "3.9.36"
+    respx.get("/info").mock(
+        return_value=Response(200, text=_load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(return_value=Response(401))
+    respx.get("/production.json").mock(return_value=Response(404))
+    respx.get("/api/v1/production").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production")
+        )
+    )
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production_inverters")
+        )
+    )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+
+    envoy = await _get_mock_envoy()
+    data = envoy.data
+    assert data is not None
+
+    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
+    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
+    assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert _updater_features(envoy._updaters) == {
+        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+    }
+    assert envoy.part_number == "800-00069-r05"
+
+    assert not data.system_consumption
+    assert data.system_production.watts_now == 1271
+    assert data.system_production.watt_hours_today == 1460
+    assert data.system_production.watt_hours_last_7_days == 130349
+    assert data.system_production.watt_hours_lifetime == 6012540
+    assert data.inverters
+
+
+@pytest.mark.asyncio
+@respx.mock
 async def test_with_3_17_3_firmware():
     """Verify with 3.17.3 firmware."""
     version = "3.17.3"
