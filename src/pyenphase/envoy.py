@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Callable
 from dataclasses import replace
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
 import httpx
@@ -186,7 +187,7 @@ class Envoy:
                 _LOGGER.debug(
                     "Sending POST to %s with data %s", url, orjson.dumps(data)
                 )
-            return await self._client.post(
+            response = await self._client.post(
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
                 cookies=self.auth.cookies,
@@ -195,16 +196,25 @@ class Envoy:
                 timeout=self._timeout,
                 data=orjson.dumps(data),
             )
+        else:
+            _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
+            response = await self._client.get(
+                url,
+                headers={**DEFAULT_HEADERS, **self.auth.headers},
+                cookies=self.auth.cookies,
+                follow_redirects=True,
+                auth=self.auth.auth,
+                timeout=self._timeout,
+            )
 
-        _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
-        return await self._client.get(
-            url,
-            headers={**DEFAULT_HEADERS, **self.auth.headers},
-            cookies=self.auth.cookies,
-            follow_redirects=True,
-            auth=self.auth.auth,
-            timeout=self._timeout,
-        )
+        status_code = response.status_code
+        if status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
+            raise EnvoyAuthenticationRequired(
+                f"Authentication failed for {url} with status {status_code}, "
+                "please check your username/password or token."
+            )
+
+        return response
 
     @property
     def host(self) -> str:

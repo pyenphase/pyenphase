@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 from ..const import URL_PRODUCTION_INVERTERS, SupportedFeatures
-from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
+from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.inverter import EnvoyInverter
 from .base import EnvoyUpdater
@@ -22,6 +22,14 @@ class EnvoyApiV1ProductionInvertersUpdater(EnvoyUpdater):
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug(
                 "Production endpoint not found at %s: %s", URL_PRODUCTION_INVERTERS, e
+            )
+            return None
+        except EnvoyAuthenticationRequired as e:
+            _LOGGER.debug(
+                "Disabling inverters production endpoint as user does"
+                " not have access to %s: %s",
+                URL_PRODUCTION_INVERTERS,
+                e,
             )
             return None
         self._supported_features |= SupportedFeatures.INVERTERS
