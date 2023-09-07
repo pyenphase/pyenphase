@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.9.2 (2023-09-07)
+
+### Fix
+
+* Raise EnvoyAuthenticationRequired when local auth is incorrect ([#79](https://github.com/pyenphase/pyenphase/issues/79)) ([`208e91a`](https://github.com/pyenphase/pyenphase/commit/208e91a6a66e8afa0931bb3a78e557b882277148))
+
 ## v1.9.1 (2023-09-04)
 
 ### Fix
