@@ -15,15 +15,24 @@ class EnvoyProductionUpdater(EnvoyUpdater):
     """Class to handle updates for production data."""
 
     end_point = URL_PRODUCTION
+    allow_inverters_fallback = False
 
     async def probe(
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
         """Probe the Envoy for this endpoint and return SupportedFeatures."""
-        if (
+        discovered_total_consumption = (
             SupportedFeatures.TOTAL_CONSUMPTION in discovered_features
-            or SupportedFeatures.NET_CONSUMPTION in discovered_features
-        ) and SupportedFeatures.PRODUCTION in discovered_features:
+        )
+        discovered_net_consumption = (
+            SupportedFeatures.NET_CONSUMPTION in discovered_features
+        )
+        discovered_production = SupportedFeatures.PRODUCTION in discovered_features
+        if (
+            discovered_total_consumption
+            and discovered_net_consumption
+            and discovered_production
+        ):
             # Already discovered from another updater
             return None
 
@@ -47,15 +56,24 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 )
                 return None
             raise
-        production: list[dict[str, str | float | int]] | None = production_json.get(
-            "production"
-        )
-        if production:
-            for type_ in production:
-                if type_["type"] == "eim" and type_["activeCount"]:
-                    self._supported_features |= SupportedFeatures.METERING
-                    self._supported_features |= SupportedFeatures.PRODUCTION
-                    break
+
+        if not discovered_production:
+            production: list[dict[str, str | float | int]] | None = production_json.get(
+                "production"
+            )
+            if production:
+                for type_ in production:
+                    if type_["type"] == "eim" and type_["activeCount"]:
+                        self._supported_features |= SupportedFeatures.METERING
+                        self._supported_features |= SupportedFeatures.PRODUCTION
+                        break
+                    if (
+                        self.allow_inverters_fallback
+                        and type_["type"] == "inverters"
+                        and type_["activeCount"]
+                    ):
+                        self._supported_features |= SupportedFeatures.PRODUCTION
+                        break
 
         consumption: list[dict[str, str | float | int]] | None = production_json.get(
             "consumption"
@@ -63,9 +81,12 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         if consumption:
             for meter in consumption:
                 meter_type = meter["measurementType"]
-                if meter_type == "total-consumption":
+                if (
+                    not discovered_total_consumption
+                    and meter_type == "total-consumption"
+                ):
                     self._supported_features |= SupportedFeatures.TOTAL_CONSUMPTION
-                elif meter_type == "net-consumption":
+                if not discovered_net_consumption and meter_type == "net-consumption":
                     self._supported_features |= SupportedFeatures.NET_CONSUMPTION
 
         return self._supported_features
@@ -91,3 +112,12 @@ class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):
     """Class to handle updates for production data from the production.json endpoint."""
 
     end_point = URL_PRODUCTION_JSON
+
+
+class EnvoyProductionJsonFallbackUpdater(EnvoyProductionJsonUpdater):
+    """Class to handle updates for production data from the production.json endpoint.
+
+    This class will accept the production endpoint even if activeCount is 0
+    """
+
+    allow_inverters_fallback = True

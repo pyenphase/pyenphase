@@ -1,6 +1,7 @@
 import logging
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import replace
+from functools import partial
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
@@ -34,7 +35,11 @@ from .updaters.api_v1_production import EnvoyApiV1ProductionUpdater
 from .updaters.api_v1_production_inverters import EnvoyApiV1ProductionInvertersUpdater
 from .updaters.base import EnvoyUpdater
 from .updaters.ensemble import EnvoyEnembleUpdater
-from .updaters.production import EnvoyProductionJsonUpdater, EnvoyProductionUpdater
+from .updaters.production import (
+    EnvoyProductionJsonFallbackUpdater,
+    EnvoyProductionJsonUpdater,
+    EnvoyProductionUpdater,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,6 +52,7 @@ UPDATERS: list[type["EnvoyUpdater"]] = [
     EnvoyProductionUpdater,
     EnvoyProductionJsonUpdater,
     EnvoyApiV1ProductionUpdater,
+    EnvoyProductionJsonFallbackUpdater,
     EnvoyApiV1ProductionInvertersUpdater,
     EnvoyEnembleUpdater,
 ]
@@ -86,6 +92,7 @@ class Envoy:
         self._firmware = EnvoyFirmware(self._client, self._host)
         self._supported_features: SupportedFeatures | None = None
         self._updaters: list[EnvoyUpdater] = []
+        self._endpoint_cache: dict[str, httpx.Response] = {}
         self.data: EnvoyData | None = None
 
     async def setup(self) -> None:
@@ -242,13 +249,28 @@ class Envoy:
         assert self._supported_features is not None, "Call setup() first"  # nosec
         return self._supported_features
 
+    async def _make_cached_request(
+        self, request_func: Callable[[str], Awaitable[httpx.Response]], endpoint: str
+    ) -> httpx.Response:
+        """Make a cached request."""
+        if cached_response := self._endpoint_cache.get(endpoint):
+            return cached_response
+        response = await request_func(endpoint)
+        if response.status_code == 200:
+            self._endpoint_cache[endpoint] = response
+        return response
+
     async def probe(self) -> None:
         """Probe for model and supported features."""
         supported_features = SupportedFeatures(0)
         updaters: list[EnvoyUpdater] = []
         version = self._firmware.version
+        self._endpoint_cache.clear()
+        cached_probe = partial(self._make_cached_request, self.probe_request)
+        cached_request = partial(self._make_cached_request, self.request)
+
         for updater in get_updaters():
-            klass = updater(version, self.probe_request, self.request)
+            klass = updater(version, cached_probe, cached_request)
             if updater_features := await klass.probe(supported_features):
                 supported_features |= updater_features
                 updaters.append(klass)
@@ -261,6 +283,10 @@ class Envoy:
 
     async def update(self) -> EnvoyData:
         """Update data."""
+        # Some of the updaters user the same endpoint
+        # so we cache the 200 responses for each update
+        # cycle to not make duplicate requests
+        self._endpoint_cache.clear()
         if not self._supported_features:
             await self.probe()
 
