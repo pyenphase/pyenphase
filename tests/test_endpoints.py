@@ -1129,6 +1129,22 @@ async def test_with_3_17_3_firmware():
             },
         ),
         (
+            "7.6.175_total",
+            "800-00654-r06",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION,
+                "EnvoyProductionUpdater": SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION,
+            },
+        ),
+        (
             "7.6.175_standard",
             "800-00656-r06",
             SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
@@ -1180,6 +1196,7 @@ async def test_with_3_17_3_firmware():
         "7.3.517",
         "7.6.114_without_cts",
         "7.6.175",
+        "7.6.175_total",
         "7.6.175_standard",
         "7.6.175_with_cts",
         "8.1.41",

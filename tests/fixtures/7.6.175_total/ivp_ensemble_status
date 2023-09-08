@@ -1,0 +1,77 @@
+{
+    "inventory": {
+        "serial_nums": {}
+    },
+    "counters": {
+        "api_ecagtInit": 1,
+        "api_ecagtTick": 8171232,
+        "api_ecagtGetDeviceCount": 8188279,
+        "api_ecagtGetDeviceInfo": 8171233,
+        "api_ecagtSetSecCtrlBias": 739615,
+        "api_ecagtGetSecCtrlBias": 50,
+        "api_ecagtGetSecCtrlBiasQ": 50,
+        "api_ecagtGetRelayState": 9805503,
+        "api_ecagtSetDataModelCache": 1,
+        "api_AggNameplate": 25,
+        "api_ecagtGetGridFreq": 1634246,
+        "api_ecagtGetGridVolt": 1634246,
+        "api_ecagtGetGridFreq_err_notfound": 1634246,
+        "rest_StatusGet": 26,
+        "rest_InventoryGet": 51,
+        "rest_SubmodGet": 14658,
+        "rest_SecCtrlGet": 25,
+        "rest_Power": 1,
+        "ext_zb_send_msg": 5,
+        "txmsg_OBJ_MDL_SECONDARY_CTRL_REQ": 5,
+        "zmq_ecaHello": 1,
+        "zmq_streamdata": 1634246,
+        "zmq_ecaSecCtrlMsg": 739615,
+        "zmq_meterlog_ok": 1,
+        "dmdl_FILES_INDEXED": 3,
+        "secctrlNotReady": 739610,
+        "backupSocLimitSet": 739615,
+        "backupSocLimitChanged": 1,
+        "api_ecagtGetGenRelayState": 1634246
+    },
+    "secctrl": {
+        "shutdown": false,
+        "freq_bias_hz": 0.0,
+        "voltage_bias_v": 0.0,
+        "freq_bias_hz_q8": 0,
+        "voltage_bias_v_q5": 0,
+        "freq_bias_hz_phaseb": 0.0,
+        "voltage_bias_v_phaseb": 0.0,
+        "freq_bias_hz_q8_phaseb": 0,
+        "voltage_bias_v_q5_phaseb": 0,
+        "freq_bias_hz_phasec": 0.0,
+        "voltage_bias_v_phasec": 0.0,
+        "freq_bias_hz_q8_phasec": 0,
+        "voltage_bias_v_q5_phasec": 0,
+        "configured_backup_soc": 30,
+        "adjusted_backup_soc": 30,
+        "agg_soc": 0,
+        "Max_energy": 0,
+        "ENC_agg_soc": 0,
+        "ENC_agg_soh": 0,
+        "ENC_agg_backup_energy": 0,
+        "ENC_agg_avail_energy": 0,
+        "Enc_commissioned_capacity": 0,
+        "Enc_max_available_capacity": 0,
+        "ACB_agg_soc": 0,
+        "ACB_agg_energy": 0
+    },
+    "relay": {
+        "mains_admin_state": "closed",
+        "mains_oper_state": "closed",
+        "der1_state": 0,
+        "der2_state": 0,
+        "Enchg_grid_mode": "unknown",
+        "Solar_grid_mode": "unknown"
+    },
+    "profile": {
+        "message": "Obsolete API, please use ivp/arf/profile"
+    },
+    "fakeit": {
+        "fake_inventory_mode": false
+    }
+}
