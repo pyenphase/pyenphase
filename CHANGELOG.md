@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.10.0 (2023-09-08)
+
+### Feature
+
+* Add 7.6.175 fixtures with total consumption ([#81](https://github.com/pyenphase/pyenphase/issues/81)) ([`1bc2b20`](https://github.com/pyenphase/pyenphase/commit/1bc2b20a427c6d03df318fcf5c529391fc6e25ed))
+
 ## v1.9.3 (2023-09-07)
 
 ### Fix
