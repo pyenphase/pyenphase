@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.11.0 (2023-09-08)
+
+### Feature
+
+* Add fallback when api/v1/production endpoint is broken ([#83](https://github.com/pyenphase/pyenphase/issues/83)) ([`d7e195e`](https://github.com/pyenphase/pyenphase/commit/d7e195e498362d1374366d88a24afc8da6b01321))
+
 ## v1.10.0 (2023-09-08)
 
 ### Feature
