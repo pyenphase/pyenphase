@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from ..const import URL_PRODUCTION_V1, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
@@ -21,12 +22,20 @@ class EnvoyApiV1ProductionUpdater(EnvoyUpdater):
             return None
 
         try:
-            await self._json_probe_request(URL_PRODUCTION_V1)
+            response: dict[str, Any] = await self._json_probe_request(URL_PRODUCTION_V1)
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug(
                 "Production endpoint not found at %s: %s", URL_PRODUCTION_V1, e
             )
             return None
+        if all(value == 0 for value in response.values()):
+            _LOGGER.debug(
+                "Detected broken production endpoint bug at %s: %s",
+                URL_PRODUCTION_V1,
+                response,
+            )
+            return None
+
         self._supported_features |= SupportedFeatures.PRODUCTION
         return self._supported_features
 

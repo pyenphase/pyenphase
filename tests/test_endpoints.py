@@ -1137,9 +1137,7 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.NET_CONSUMPTION,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
-                "EnvoyProductionJsonUpdater": SupportedFeatures.TOTAL_CONSUMPTION
-                | SupportedFeatures.NET_CONSUMPTION,
+                "EnvoyProductionJsonFallbackUpdater": SupportedFeatures.PRODUCTION,
                 "EnvoyProductionUpdater": SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION,
             },
