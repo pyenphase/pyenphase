@@ -6,6 +6,14 @@ from dataclasses import dataclass
 from typing import Any
 
 
+def find_dict_by_key(all_production: list[dict[str, Any]], key: str) -> dict[str, Any]:
+    """Find a dict by key."""
+    for production in all_production:
+        if production.get("type") == key:
+            return production
+    raise ValueError(f"{key} is missing")
+
+
 @dataclass(slots=True)
 class EnvoySystemProduction:
     """Model for the Envoy's production data."""
@@ -30,15 +38,23 @@ class EnvoySystemProduction:
         """Initialize from the production API."""
         all_production = data["production"]
 
-        eim = all_production[0]
-        inverters = all_production[1]
+        eim = find_dict_by_key(all_production, "eim")
+        inverters = find_dict_by_key(all_production, "inverters")
 
         # This is backwards compatible with envoy_reader
         now_source = inverters if inverters["activeCount"] else eim
 
         return cls(
-            watt_hours_lifetime=int(round(inverters["whLifetime"])),
-            watt_hours_last_7_days=int(round(inverters["whLastSevenDays"])),
-            watt_hours_today=int(round(inverters["whToday"])),
+            watt_hours_lifetime=int(
+                round(eim.get("whLifetime") or inverters.get("whLifetime") or 0)
+            ),
+            watt_hours_last_7_days=int(
+                round(
+                    eim.get("whLastSevenDays") or inverters.get("whLastSevenDays") or 0
+                )
+            ),
+            watt_hours_today=int(
+                round(eim.get("whToday") or inverters.get("whToday") or 0)
+            ),
             watts_now=int(round(now_source["wNow"])),
         )

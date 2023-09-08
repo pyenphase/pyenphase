@@ -818,7 +818,7 @@
       'watt_hours_last_7_days': 149973,
       'watt_hours_lifetime': 3659507,
       'watt_hours_today': 87,
-      'watts_now': 180,
+      'watts_now': 158,
     }),
   })
 # ---
@@ -1701,7 +1701,7 @@
       'watt_hours_last_7_days': 218716,
       'watt_hours_lifetime': 19230315,
       'watt_hours_today': 18635,
-      'watts_now': 4300,
+      'watts_now': 4490,
     }),
   })
 # ---
@@ -2826,7 +2826,7 @@
     }),
     'system_production': dict({
       'watt_hours_last_7_days': 0,
-      'watt_hours_lifetime': 0,
+      'watt_hours_lifetime': 1152866,
       'watt_hours_today': 0,
       'watts_now': 1322,
     }),
@@ -3035,7 +3035,7 @@
       'watt_hours_last_7_days': 111093,
       'watt_hours_lifetime': 3183793,
       'watt_hours_today': 4425,
-      'watts_now': 488,
+      'watts_now': 751,
     }),
   })
 # ---
@@ -4142,7 +4142,7 @@
       'watt_hours_last_7_days': 1456164,
       'watt_hours_lifetime': 1510206,
       'watt_hours_today': 55045,
-      'watts_now': 13028,
+      'watts_now': 13163,
     }),
   })
 # ---
