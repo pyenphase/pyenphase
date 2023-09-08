@@ -1,6 +1,7 @@
 import logging
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import replace
+from functools import partial
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
@@ -248,20 +249,13 @@ class Envoy:
         assert self._supported_features is not None, "Call setup() first"  # nosec
         return self._supported_features
 
-    async def _cached_request(self, endpoint: str) -> httpx.Response:
-        """Cache success responses for probes."""
+    async def _make_cached_request(
+        self, request_func: Callable[[str], Awaitable[httpx.Response]], endpoint: str
+    ) -> httpx.Response:
+        """Make a cached request."""
         if cached_response := self._endpoint_cache.get(endpoint):
             return cached_response
-        response = await self.request(endpoint)
-        if response.status_code == 200:
-            self._endpoint_cache[endpoint] = response
-        return response
-
-    async def _cached_probe_request(self, endpoint: str) -> httpx.Response:
-        """Cache success responses for probes."""
-        if cached_response := self._endpoint_cache.get(endpoint):
-            return cached_response
-        response = await self.probe_request(endpoint)
+        response = await request_func(endpoint)
         if response.status_code == 200:
             self._endpoint_cache[endpoint] = response
         return response
@@ -272,9 +266,11 @@ class Envoy:
         updaters: list[EnvoyUpdater] = []
         version = self._firmware.version
         self._endpoint_cache.clear()
+        cached_probe = partial(self._make_cached_request, self.probe_request)
+        cached_request = partial(self._make_cached_request, self.request)
 
         for updater in get_updaters():
-            klass = updater(version, self._cached_probe_request, self._cached_request)
+            klass = updater(version, cached_probe, cached_request)
             if updater_features := await klass.probe(supported_features):
                 supported_features |= updater_features
                 updaters.append(klass)
