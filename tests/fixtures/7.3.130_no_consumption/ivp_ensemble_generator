@@ -1,0 +1,17 @@
+<html>
+<head><title>401 Authorization Required</title></head>
+<body>
+<center><h1>401 Authorization Required</h1></center>
+<hr><center>Redirecting to <a id='link' href=''></a></center>
+<script>
+const redirect_url = window.location.protocol + '//' + window.location.host + '/home';
+function redirect() { window.location.href = redirect_url; }
+window.onload = function() {
+    const link = document.getElementById('link');
+    link.href = redirect_url;
+    link.text = redirect_url;
+    setTimeout(redirect, 500);
+}
+</script>
+</body>
+</html>
