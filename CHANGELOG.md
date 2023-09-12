@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.11.2 (2023-09-12)
+
+### Fix
+
+* Disable consumption when there are no active meters ([#87](https://github.com/pyenphase/pyenphase/issues/87)) ([`fa28f1c`](https://github.com/pyenphase/pyenphase/commit/fa28f1c31344f0e2d1bc60640902e94bd55b0331))
+
 ## v1.11.1 (2023-09-12)
 
 ### Fix
