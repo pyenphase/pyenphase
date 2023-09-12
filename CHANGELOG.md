@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.11.1 (2023-09-12)
+
+### Fix
+
+* Black_s_start key not returned by all Ensemble systems ([#84](https://github.com/pyenphase/pyenphase/issues/84)) ([`357f0bd`](https://github.com/pyenphase/pyenphase/commit/357f0bd132a976f31a052063ce514ac86534de8e))
+
 ## v1.11.0 (2023-09-08)
 
 ### Feature
