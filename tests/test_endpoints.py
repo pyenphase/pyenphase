@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 from dataclasses import replace
@@ -1091,6 +1092,22 @@ async def test_with_3_17_3_firmware():
             },
         ),
         (
+            "7.3.130_no_consumption",
+            "800-00647-r10",
+            SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+            },
+        ),
+        (
             "7.3.517",
             "800-00555-r03",
             SupportedFeatures.METERING
@@ -1211,6 +1228,7 @@ async def test_with_3_17_3_firmware():
     ids=[
         "5.0.62",
         "7.3.130",
+        "7.3.130_no_consumption",
         "7.3.517",
         "7.3.517_no_black_start",
         "7.6.114_without_cts",
@@ -1285,39 +1303,43 @@ async def test_with_7_x_firmware(
         )
     )
     if "ivp_ensemble_dry_contacts" in files:
+        try:
+            json_data = _load_json_fixture(version, "ivp_ensemble_dry_contacts")
+        except json.decoder.JSONDecodeError:
+            json_data = None
         respx.get("/ivp/ensemble/dry_contacts").mock(
-            return_value=Response(
-                200, json=_load_json_fixture(version, "ivp_ensemble_dry_contacts")
-            )
+            return_value=Response(200, json=json_data)
         )
         respx.post("/ivp/ensemble/dry_contacts").mock(
-            return_value=Response(
-                200, json=_load_json_fixture(version, "ivp_ensemble_dry_contacts")
-            )
+            return_value=Response(200, json=json_data)
         )
     if "ivp_ss_dry_contact_settings" in files:
+        try:
+            json_data = _load_json_fixture(version, "ivp_ss_dry_contact_settings")
+        except json.decoder.JSONDecodeError:
+            json_data = None
         respx.get("/ivp/ss/dry_contact_settings").mock(
-            return_value=Response(
-                200, json=_load_json_fixture(version, "ivp_ss_dry_contact_settings")
-            )
+            return_value=Response(200, json=json_data)
         )
         respx.post("/ivp/ss/dry_contact_settings").mock(
-            return_value=Response(
-                200, json=_load_json_fixture(version, "ivp_ss_dry_contact_settings")
-            )
+            return_value=Response(200, json=json_data)
         )
     if "ivp_ensemble_power" in files:
+        try:
+            json_data = _load_json_fixture(version, "ivp_ensemble_power")
+        except json.decoder.JSONDecodeError:
+            json_data = None
         respx.get("/ivp/ensemble/power").mock(
-            return_value=Response(
-                200, json=_load_json_fixture(version, "ivp_ensemble_power")
-            )
+            return_value=Response(200, json=json_data)
         )
 
     if "ivp_ensemble_secctrl" in files:
+        try:
+            json_data = _load_json_fixture(version, "ivp_ensemble_secctrl")
+        except json.decoder.JSONDecodeError:
+            json_data = None
         respx.get("/ivp/ensemble/secctrl").mock(
-            return_value=Response(
-                200, json=_load_json_fixture(version, "ivp_ensemble_secctrl")
-            )
+            return_value=Response(200, json=json_data)
         )
 
     caplog.set_level(logging.DEBUG)
