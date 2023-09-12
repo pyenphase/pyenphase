@@ -1111,6 +1111,26 @@ async def test_with_3_17_3_firmware():
             },
         ),
         (
+            "7.3.517_no_black_start",
+            "800-00555-r03",
+            SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.ENPOWER
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
+                | SupportedFeatures.ENCHARGE,
+            },
+        ),
+        (
             "7.6.114_without_cts",
             "800-00656-r06",
             SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
@@ -1192,6 +1212,7 @@ async def test_with_3_17_3_firmware():
         "5.0.62",
         "7.3.130",
         "7.3.517",
+        "7.3.517_no_black_start",
         "7.6.114_without_cts",
         "7.6.175",
         "7.6.175_total",
@@ -1337,6 +1358,14 @@ async def test_with_7_x_firmware(
         assert respx.calls.last.request.content == orjson.dumps(
             {"dry_contacts": new_model.to_api()}
         )
+
+        if envoy.data.dry_contact_settings["NC1"].black_start is not None:
+            assert (
+                new_model.to_api()["black_s_start"]
+                == envoy.data.dry_contact_settings["NC1"].black_start
+            )
+        else:
+            assert "black_s_start" not in new_model.to_api()
 
         await envoy.open_dry_contact("NC1")
         assert envoy.data.dry_contact_status["NC1"].status == DryContactStatus.OPEN
