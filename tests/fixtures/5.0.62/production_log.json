@@ -1,0 +1,1 @@
+{"headers": {"www-authenticate": "Digest qop=\"auth\", realm=\"enphaseenergy.com\", nonce=\"Td4AZZWMIuPzNdOwn+N1MAFCm9k=\"", "connection": "close", "content-type": "text/html", "content-length": "51"}, "code": 401}
