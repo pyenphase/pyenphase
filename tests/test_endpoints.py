@@ -83,24 +83,18 @@ async def test_with_4_2_27_firmware():
 
     assert not (envoy._supported_features & SupportedFeatures.METERING)
     assert not (envoy._supported_features & SupportedFeatures.INVERTERS)
-    assert envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
-    assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
+    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
+    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
     assert _updater_features(envoy._updaters) == {
         "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
-        "EnvoyProductionJsonUpdater": SupportedFeatures.TOTAL_CONSUMPTION
-        | SupportedFeatures.NET_CONSUMPTION,
     }
     assert envoy.part_number == "800-00551-r02"
 
-    assert data.system_consumption.watts_now == 5811
     assert (
         data.system_production.watts_now == 5894
     )  # This used to use the production.json endpoint, but its always a bit behind
-    assert data.system_consumption.watt_hours_today == 0
     assert data.system_production.watt_hours_today == 17920
-    assert data.system_consumption.watt_hours_last_7_days == 0
     assert data.system_production.watt_hours_last_7_days == 276614
-    assert data.system_consumption.watt_hours_lifetime == 0
     assert data.system_production.watt_hours_lifetime == 10279087
     assert not data.inverters
 
@@ -1095,15 +1089,11 @@ async def test_with_3_17_3_firmware():
             "7.3.130_no_consumption",
             "800-00647-r10",
             SupportedFeatures.METERING
-            | SupportedFeatures.TOTAL_CONSUMPTION
-            | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.INVERTERS
             | SupportedFeatures.PRODUCTION,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionUpdater": SupportedFeatures.METERING
-                | SupportedFeatures.TOTAL_CONSUMPTION
-                | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
             },
         ),
@@ -1168,15 +1158,10 @@ async def test_with_3_17_3_firmware():
         (
             "7.6.175_total",
             "800-00654-r06",
-            SupportedFeatures.INVERTERS
-            | SupportedFeatures.PRODUCTION
-            | SupportedFeatures.TOTAL_CONSUMPTION
-            | SupportedFeatures.NET_CONSUMPTION,
+            SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionJsonFallbackUpdater": SupportedFeatures.PRODUCTION,
-                "EnvoyProductionUpdater": SupportedFeatures.TOTAL_CONSUMPTION
-                | SupportedFeatures.NET_CONSUMPTION,
             },
         ),
         (

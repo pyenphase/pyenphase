@@ -81,6 +81,8 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         if consumption:
             for meter in consumption:
                 meter_type = meter["measurementType"]
+                if not meter.get("activeCount"):
+                    continue
                 if (
                     not discovered_total_consumption
                     and meter_type == "total-consumption"
