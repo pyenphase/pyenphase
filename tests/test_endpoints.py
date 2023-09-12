@@ -1259,9 +1259,11 @@ async def test_with_7_x_firmware(
     )
     respx.get("/info.xml").mock(return_value=Response(200, text=""))
     if "production" in files:
-        respx.get("/production").mock(
-            return_value=Response(200, json=_load_json_fixture(version, "production"))
-        )
+        try:
+            json_data = _load_json_fixture(version, "production")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/production").mock(return_value=Response(200, json=json_data))
     else:
         respx.get("/production").mock(return_value=Response(404))
     if "production.json" in files:
