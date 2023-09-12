@@ -635,6 +635,12 @@
       }),
     }),
     'raw': dict({
+      '/api/v1/production': dict({
+        'wattHoursLifetime': 3659478,
+        'wattHoursSevenDays': 149944,
+        'wattHoursToday': 58,
+        'wattsNow': 133,
+      }),
       '/api/v1/production/inverters': list([
         dict({
           'devType': 1,
@@ -815,10 +821,10 @@
       'watts_now': 1488,
     }),
     'system_production': dict({
-      'watt_hours_last_7_days': 149973,
-      'watt_hours_lifetime': 3659507,
-      'watt_hours_today': 87,
-      'watts_now': 158,
+      'watt_hours_last_7_days': 149944,
+      'watt_hours_lifetime': 3659478,
+      'watt_hours_today': 58,
+      'watts_now': 133,
     }),
   })
 # ---
@@ -925,6 +931,12 @@
       }),
     }),
     'raw': dict({
+      '/api/v1/production': dict({
+        'wattHoursLifetime': 4545576,
+        'wattHoursSevenDays': 185978,
+        'wattHoursToday': 14498,
+        'wattsNow': 4454,
+      }),
       '/api/v1/production/inverters': list([
         dict({
           'devType': 1,
@@ -1032,99 +1044,13 @@
           'serialNumber': '202302073606',
         }),
       ]),
-      '/production': dict({
-        'consumption': list([
-          dict({
-            'activeCount': 0,
-            'apprntPwr': 7578.065,
-            'measurementType': 'total-consumption',
-            'pwrFactor': 0.49,
-            'reactPwr': -27.926,
-            'readingTime': 1694549732,
-            'rmsCurrent': 31.345,
-            'rmsVoltage': 241.767,
-            'type': 'eim',
-            'vahLifetime': 0.021,
-            'vahToday': 0.021,
-            'varhLagLifetime': 730001.903,
-            'varhLagToday': 730001.903,
-            'varhLeadLifetime': 16050.589,
-            'varhLeadToday': 16050.589,
-            'wNow': 3731.248,
-            'whLastSevenDays': 4545910.343,
-            'whLifetime': 4545910.343,
-            'whToday': 4545910.343,
-          }),
-          dict({
-            'activeCount': 0,
-            'apprntPwr': 34.907,
-            'measurementType': 'net-consumption',
-            'pwrFactor': 0.0,
-            'reactPwr': 0.909,
-            'readingTime': 1694549732,
-            'rmsCurrent': 0.289,
-            'rmsVoltage': 241.805,
-            'type': 'eim',
-            'vahLifetime': 0.021,
-            'vahToday': 0,
-            'varhLagLifetime': 0.0,
-            'varhLagToday': 0,
-            'varhLeadLifetime': 0.0,
-            'varhLeadToday': 0,
-            'wNow': 0.0,
-            'whLastSevenDays': 0,
-            'whLifetime': 0.0,
-            'whToday': 0,
-          }),
-        ]),
-        'production': list([
-          dict({
-            'activeCount': 15,
-            'readingTime': 1694549655,
-            'type': 'inverters',
-            'wNow': 4085,
-            'whLifetime': 943236,
-          }),
-          dict({
-            'activeCount': 1,
-            'apprntPwr': 3779.803,
-            'measurementType': 'production',
-            'pwrFactor': 0.99,
-            'reactPwr': 28.835,
-            'readingTime': 1694549732,
-            'rmsCurrent': 31.056,
-            'rmsVoltage': 241.728,
-            'type': 'eim',
-            'vahLifetime': 5375936.301,
-            'vahToday': 17700.301,
-            'varhLagLifetime': 730001.903,
-            'varhLagToday': 2831.903,
-            'varhLeadLifetime': 16050.589,
-            'varhLeadToday': 14.589,
-            'wNow': 3731.248,
-            'whLastSevenDays': 186011.529,
-            'whLifetime': 4545927.529,
-            'whToday': 14849.529,
-          }),
-        ]),
-        'storage': list([
-          dict({
-            'activeCount': 0,
-            'readingTime': 0,
-            'state': 'idle',
-            'type': 'acb',
-            'wNow': 0,
-            'whNow': 0,
-          }),
-        ]),
-      }),
     }),
     'system_consumption': None,
     'system_production': dict({
-      'watt_hours_last_7_days': 186012,
-      'watt_hours_lifetime': 4545928,
-      'watt_hours_today': 14850,
-      'watts_now': 4085,
+      'watt_hours_last_7_days': 185978,
+      'watt_hours_lifetime': 4545576,
+      'watt_hours_today': 14498,
+      'watts_now': 4454,
     }),
   })
 # ---
@@ -1480,6 +1406,12 @@
       }),
     }),
     'raw': dict({
+      '/api/v1/production': dict({
+        'wattHoursLifetime': 19229325,
+        'wattHoursSevenDays': 217726,
+        'wattHoursToday': 17645,
+        'wattsNow': 5326,
+      }),
       '/api/v1/production/inverters': list([
         dict({
           'devType': 1,
@@ -2004,10 +1936,10 @@
       'watts_now': 3803,
     }),
     'system_production': dict({
-      'watt_hours_last_7_days': 218716,
-      'watt_hours_lifetime': 19230315,
-      'watt_hours_today': 18635,
-      'watts_now': 4490,
+      'watt_hours_last_7_days': 217726,
+      'watt_hours_lifetime': 19229325,
+      'watt_hours_today': 17645,
+      'watts_now': 5326,
     }),
   })
 # ---
@@ -2363,6 +2295,12 @@
       }),
     }),
     'raw': dict({
+      '/api/v1/production': dict({
+        'wattHoursLifetime': 19229325,
+        'wattHoursSevenDays': 217726,
+        'wattHoursToday': 17645,
+        'wattsNow': 5326,
+      }),
       '/api/v1/production/inverters': list([
         dict({
           'devType': 1,
@@ -2883,10 +2821,10 @@
       'watts_now': 3803,
     }),
     'system_production': dict({
-      'watt_hours_last_7_days': 218716,
-      'watt_hours_lifetime': 19230315,
-      'watt_hours_today': 18635,
-      'watts_now': 4490,
+      'watt_hours_last_7_days': 217726,
+      'watt_hours_lifetime': 19229325,
+      'watt_hours_today': 17645,
+      'watts_now': 5326,
     }),
   })
 # ---
@@ -3981,6 +3919,12 @@
       }),
     }),
     'raw': dict({
+      '/api/v1/production': dict({
+        'wattHoursLifetime': 3183742,
+        'wattHoursSevenDays': 111089,
+        'wattHoursToday': 4374,
+        'wattsNow': 689,
+      }),
       '/api/v1/production/inverters': list([
         dict({
           'devType': 1,
@@ -4126,10 +4070,10 @@
       'watts_now': 474,
     }),
     'system_production': dict({
-      'watt_hours_last_7_days': 111093,
-      'watt_hours_lifetime': 3183793,
-      'watt_hours_today': 4425,
-      'watts_now': 751,
+      'watt_hours_last_7_days': 111089,
+      'watt_hours_lifetime': 3183742,
+      'watt_hours_today': 4374,
+      'watts_now': 689,
     }),
   })
 # ---
@@ -4588,6 +4532,12 @@
       }),
     }),
     'raw': dict({
+      '/api/v1/production': dict({
+        'wattHoursLifetime': 1509203,
+        'wattHoursSevenDays': 1455161,
+        'wattHoursToday': 54042,
+        'wattsNow': 12997,
+      }),
       '/api/v1/production/inverters': list([
         dict({
           'devType': 1,
@@ -5233,10 +5183,10 @@
       'watts_now': 5210,
     }),
     'system_production': dict({
-      'watt_hours_last_7_days': 1456164,
-      'watt_hours_lifetime': 1510206,
-      'watt_hours_today': 55045,
-      'watts_now': 13163,
+      'watt_hours_last_7_days': 1455161,
+      'watt_hours_lifetime': 1509203,
+      'watt_hours_today': 54042,
+      'watts_now': 12997,
     }),
   })
 # ---

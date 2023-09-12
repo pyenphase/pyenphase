@@ -1072,36 +1072,30 @@ async def test_with_3_17_3_firmware():
         (
             "7.3.130",
             "800-00555-r03",
-            SupportedFeatures.METERING
-            | SupportedFeatures.TOTAL_CONSUMPTION
+            SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.INVERTERS
             | SupportedFeatures.PRODUCTION,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
-                | SupportedFeatures.TOTAL_CONSUMPTION
-                | SupportedFeatures.NET_CONSUMPTION
-                | SupportedFeatures.PRODUCTION,
+                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+                "EnvoyProductionUpdater": SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION,
             },
         ),
         (
             "7.3.130_no_consumption",
             "800-00647-r10",
-            SupportedFeatures.METERING
-            | SupportedFeatures.INVERTERS
-            | SupportedFeatures.PRODUCTION,
+            SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
-                | SupportedFeatures.PRODUCTION,
+                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
             },
         ),
         (
             "7.3.517",
             "800-00555-r03",
-            SupportedFeatures.METERING
-            | SupportedFeatures.TOTAL_CONSUMPTION
+            SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.ENPOWER
             | SupportedFeatures.ENCHARGE
@@ -1109,10 +1103,9 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.PRODUCTION,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
-                | SupportedFeatures.TOTAL_CONSUMPTION
-                | SupportedFeatures.NET_CONSUMPTION
-                | SupportedFeatures.PRODUCTION,
+                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+                "EnvoyProductionUpdater": SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
                 | SupportedFeatures.ENCHARGE,
             },
@@ -1120,8 +1113,7 @@ async def test_with_3_17_3_firmware():
         (
             "7.3.517_no_black_start",
             "800-00555-r03",
-            SupportedFeatures.METERING
-            | SupportedFeatures.TOTAL_CONSUMPTION
+            SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.ENPOWER
             | SupportedFeatures.ENCHARGE
@@ -1129,10 +1121,9 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.PRODUCTION,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
-                | SupportedFeatures.TOTAL_CONSUMPTION
-                | SupportedFeatures.NET_CONSUMPTION
-                | SupportedFeatures.PRODUCTION,
+                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+                "EnvoyProductionUpdater": SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
                 | SupportedFeatures.ENCHARGE,
             },
@@ -1177,23 +1168,20 @@ async def test_with_3_17_3_firmware():
             "7.6.175_with_cts",
             "800-00654-r08",
             SupportedFeatures.INVERTERS
-            | SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.PRODUCTION,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
-                | SupportedFeatures.TOTAL_CONSUMPTION
-                | SupportedFeatures.NET_CONSUMPTION
-                | SupportedFeatures.PRODUCTION,
+                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+                "EnvoyProductionUpdater": SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION,
             },
         ),
         (
             "8.1.41",
             "800-00664-r05",
             SupportedFeatures.INVERTERS
-            | SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.ENCHARGE
@@ -1201,11 +1189,10 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.PRODUCTION,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
                 | SupportedFeatures.ENCHARGE,
-                "EnvoyProductionUpdater": SupportedFeatures.PRODUCTION
-                | SupportedFeatures.METERING
-                | SupportedFeatures.TOTAL_CONSUMPTION
+                "EnvoyProductionUpdater": SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION,
             },
         ),
