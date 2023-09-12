@@ -1338,6 +1338,14 @@ async def test_with_7_x_firmware(
             {"dry_contacts": new_model.to_api()}
         )
 
+        if envoy.data.dry_contact_settings["NC1"].black_start is not None:
+            assert (
+                new_model.to_api()["black_s_start"]
+                == envoy.data.dry_contact_settings["NC1"].black_start
+            )
+        else:
+            assert "black_s_start" not in new_model.to_api()
+
         await envoy.open_dry_contact("NC1")
         assert envoy.data.dry_contact_status["NC1"].status == DryContactStatus.OPEN
         assert respx.calls.last.request.content == orjson.dumps(
