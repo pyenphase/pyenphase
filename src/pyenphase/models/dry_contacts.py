@@ -52,7 +52,7 @@ class EnvoyDryContactSettings:
     """Model for the Enpower dry contact relay settings."""
 
     id: str
-    black_start: float
+    black_start: float | None
     essential_end_time: float
     essential_start_time: float
     generator_action: DryContactAction
@@ -73,7 +73,7 @@ class EnvoyDryContactSettings:
         """Initialize from the API."""
         return cls(
             id=relay["id"],
-            black_start=relay["black_s_start"],
+            black_start=relay.get("black_s_start"),
             essential_end_time=relay["essential_end_time"],
             essential_start_time=relay["essential_start_time"],
             generator_action=DryContactAction(relay["gen_action"]),
@@ -92,9 +92,8 @@ class EnvoyDryContactSettings:
 
     def to_api(self) -> dict[str, Any]:
         """Convert to API format."""
-        return {
+        retval = {
             "id": self.id,
-            "black_s_start": self.black_start,
             "essential_end_time": self.essential_end_time,
             "essential_start_time": self.essential_start_time,
             "gen_action": self.generator_action,
@@ -111,3 +110,8 @@ class EnvoyDryContactSettings:
             "soc_low": self.soc_low,
             "type": self.type,
         }
+
+        if self.black_start is not None:
+            retval["black_s_start"] = self.black_start
+
+        return retval
