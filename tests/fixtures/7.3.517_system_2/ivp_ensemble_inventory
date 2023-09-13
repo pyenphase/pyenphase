@@ -1,0 +1,126 @@
+[
+    {
+        "type": "ENCHARGE",
+        "devices": [
+            {
+                "part_num": "830-00703-r64",
+                "installed": 1693554929,
+                "serial_num": "122031000212",
+                "device_status": [
+                    "envoy.global.ok",
+                    "prop.done"
+                ],
+                "last_rpt_date": 1694553651,
+                "admin_state": 6,
+                "admin_state_str": "ENCHG_STATE_READY",
+                "created_date": 1693554929,
+                "img_load_date": 1693554929,
+                "img_pnum_running": "2.0.5663_rel/22.13",
+                "zigbee_dongle_fw_version": "100B",
+                "bmu_fw_version": "2.1.27",
+                "operating": true,
+                "communicating": true,
+                "sleep_enabled": false,
+                "percentFull": 96,
+                "temperature": 25,
+                "maxCellTemp": 25,
+                "comm_level_sub_ghz": 3,
+                "comm_level_2_4_ghz": 3,
+                "led_status": 12,
+                "dc_switch_off": false,
+                "encharge_rev": 1,
+                "encharge_capacity": 3360
+            },
+            {
+                "part_num": "830-00703-r64",
+                "installed": 1693576648,
+                "serial_num": "122031000215",
+                "device_status": [
+                    "envoy.global.ok",
+                    "prop.done"
+                ],
+                "last_rpt_date": 1694553547,
+                "admin_state": 6,
+                "admin_state_str": "ENCHG_STATE_READY",
+                "created_date": 1693576648,
+                "img_load_date": 1693576648,
+                "img_pnum_running": "2.0.5663_rel/22.13",
+                "zigbee_dongle_fw_version": "100B",
+                "bmu_fw_version": "2.1.27",
+                "operating": true,
+                "communicating": true,
+                "sleep_enabled": false,
+                "percentFull": 97,
+                "temperature": 25,
+                "maxCellTemp": 26,
+                "comm_level_sub_ghz": 3,
+                "comm_level_2_4_ghz": 3,
+                "led_status": 12,
+                "dc_switch_off": false,
+                "encharge_rev": 1,
+                "encharge_capacity": 3360
+            },
+            {
+                "part_num": "830-00703-r64",
+                "installed": 1694098472,
+                "serial_num": "122031023943",
+                "device_status": [
+                    "envoy.global.ok",
+                    "prop.done"
+                ],
+                "last_rpt_date": 1694553574,
+                "admin_state": 6,
+                "admin_state_str": "ENCHG_STATE_READY",
+                "created_date": 1694098472,
+                "img_load_date": 1694098472,
+                "img_pnum_running": "2.0.5663_rel/22.13",
+                "zigbee_dongle_fw_version": "100B",
+                "bmu_fw_version": "2.1.27",
+                "operating": true,
+                "communicating": true,
+                "sleep_enabled": false,
+                "percentFull": 96,
+                "temperature": 25,
+                "maxCellTemp": 26,
+                "comm_level_sub_ghz": 4,
+                "comm_level_2_4_ghz": 4,
+                "led_status": 12,
+                "dc_switch_off": false,
+                "encharge_rev": 1,
+                "encharge_capacity": 3360
+            }
+        ]
+    },
+    {
+        "type": "ENPOWER",
+        "devices": [
+            {
+                "part_num": "860-00276-r33",
+                "installed": 1688303357,
+                "serial_num": "122036058363",
+                "device_status": [
+                    "envoy.global.ok",
+                    "prop.done"
+                ],
+                "last_rpt_date": 1694553566,
+                "admin_state": 24,
+                "admin_state_str": "ENPWR_STATE_OPER_CLOSED",
+                "created_date": 1688303357,
+                "img_load_date": 1688303357,
+                "img_pnum_running": "1.5.5229_rel/22.13",
+                "zigbee_dongle_fw_version": "100B",
+                "operating": true,
+                "communicating": true,
+                "temperature": 78,
+                "comm_level_sub_ghz": 2,
+                "comm_level_2_4_ghz": 2,
+                "mains_admin_state": "closed",
+                "mains_oper_state": "closed",
+                "Enpwr_grid_mode": "multimode-ongrid",
+                "Enchg_grid_mode": "multimode-ongrid",
+                "Enpwr_relay_state_bm": 304,
+                "Enpwr_curr_state_id": 16
+            }
+        ]
+    }
+]
