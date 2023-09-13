@@ -818,7 +818,7 @@
       'watt_hours_last_7_days': 149973,
       'watt_hours_lifetime': 3659507,
       'watt_hours_today': 87,
-      'watts_now': 158,
+      'watts_now': 180,
     }),
   })
 # ---
@@ -1124,7 +1124,7 @@
       'watt_hours_last_7_days': 186012,
       'watt_hours_lifetime': 4545928,
       'watt_hours_today': 14850,
-      'watts_now': 4085,
+      'watts_now': 3731,
     }),
   })
 # ---
@@ -2007,7 +2007,7 @@
       'watt_hours_last_7_days': 218716,
       'watt_hours_lifetime': 19230315,
       'watt_hours_today': 18635,
-      'watts_now': 4490,
+      'watts_now': 4300,
     }),
   })
 # ---
@@ -2753,7 +2753,7 @@
       'watt_hours_last_7_days': 18431346,
       'watt_hours_lifetime': 18442495,
       'watt_hours_today': 11495,
-      'watts_now': 2675,
+      'watts_now': 2663,
     }),
   })
 # ---
@@ -3996,7 +3996,7 @@
       'watt_hours_last_7_days': 111093,
       'watt_hours_lifetime': 3183793,
       'watt_hours_today': 4425,
-      'watts_now': 751,
+      'watts_now': 488,
     }),
   })
 # ---
@@ -5103,7 +5103,7 @@
       'watt_hours_last_7_days': 1456164,
       'watt_hours_lifetime': 1510206,
       'watt_hours_today': 55045,
-      'watts_now': 13163,
+      'watts_now': 13028,
     }),
   })
 # ---

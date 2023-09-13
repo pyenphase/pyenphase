@@ -42,7 +42,7 @@ class EnvoySystemProduction:
         inverters = find_dict_by_key(all_production, "inverters")
 
         # This is backwards compatible with envoy_reader
-        now_source = inverters if inverters["activeCount"] else eim
+        now_source = eim if eim["activeCount"] else inverters
 
         return cls(
             watt_hours_lifetime=int(
