@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.11.3 (2023-09-13)
+
+### Fix
+
+* More dry contact settings should be optional ([#90](https://github.com/pyenphase/pyenphase/issues/90)) ([`4fc503a`](https://github.com/pyenphase/pyenphase/commit/4fc503a4f8f60051319aaabf386bced2cd0f3076))
+
 ## v1.11.2 (2023-09-12)
 
 ### Fix
