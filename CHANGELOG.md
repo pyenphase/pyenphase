@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.11.4 (2023-09-13)
+
+### Fix
+
+* Use eim if activeCount is true ([#91](https://github.com/pyenphase/pyenphase/issues/91)) ([`ac041a4`](https://github.com/pyenphase/pyenphase/commit/ac041a4abd2119fa3c784aa74634b27e118b7624))
+
 ## v1.11.3 (2023-09-13)
 
 ### Fix
