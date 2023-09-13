@@ -79,7 +79,9 @@ class EnvoyDryContactSettings:
             generator_action=DryContactAction(relay["gen_action"]),
             grid_action=DryContactAction(relay["grid_action"]),
             load_name=relay["load_name"],
-            manual_override=relay.get("manual_override") == "true",
+            manual_override=relay["manual_override"] == "true"
+            if relay.get("manual_override")
+            else None,
             micro_grid_action=DryContactAction(relay["micro_grid_action"]),
             mode=DryContactMode(relay["mode"]),
             override=relay["override"] == "true",
