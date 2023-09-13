@@ -1,0 +1,93 @@
+[
+  {
+    "serialNumber": "122004028996",
+    "lastReportDate": 1694553546,
+    "devType": 1,
+    "lastReportWatts": 232,
+    "maxReportWatts": 296
+  },
+  {
+    "serialNumber": "122004027913",
+    "lastReportDate": 1694553576,
+    "devType": 1,
+    "lastReportWatts": 230,
+    "maxReportWatts": 296
+  },
+  {
+    "serialNumber": "122004028206",
+    "lastReportDate": 1694553697,
+    "devType": 1,
+    "lastReportWatts": 129,
+    "maxReportWatts": 295
+  },
+  {
+    "serialNumber": "122004039060",
+    "lastReportDate": 1694553698,
+    "devType": 1,
+    "lastReportWatts": 231,
+    "maxReportWatts": 296
+  },
+  {
+    "serialNumber": "122004028288",
+    "lastReportDate": 1694553606,
+    "devType": 1,
+    "lastReportWatts": 263,
+    "maxReportWatts": 296
+  },
+  {
+    "serialNumber": "122004028991",
+    "lastReportDate": 1694553699,
+    "devType": 1,
+    "lastReportWatts": 268,
+    "maxReportWatts": 297
+  },
+  {
+    "serialNumber": "122004028286",
+    "lastReportDate": 1694553702,
+    "devType": 1,
+    "lastReportWatts": 229,
+    "maxReportWatts": 296
+  },
+  {
+    "serialNumber": "122004028091",
+    "lastReportDate": 1694553426,
+    "devType": 1,
+    "lastReportWatts": 13,
+    "maxReportWatts": 296
+  },
+  {
+    "serialNumber": "122004032100",
+    "lastReportDate": 1694553549,
+    "devType": 1,
+    "lastReportWatts": 170,
+    "maxReportWatts": 244
+  },
+  {
+    "serialNumber": "122004028400",
+    "lastReportDate": 1694553427,
+    "devType": 1,
+    "lastReportWatts": 177,
+    "maxReportWatts": 286
+  },
+  {
+    "serialNumber": "122004028989",
+    "lastReportDate": 1694553456,
+    "devType": 1,
+    "lastReportWatts": 266,
+    "maxReportWatts": 296
+  },
+  {
+    "serialNumber": "122004031655",
+    "lastReportDate": 1694553607,
+    "devType": 1,
+    "lastReportWatts": 268,
+    "maxReportWatts": 296
+  },
+  {
+    "serialNumber": "122004032124",
+    "lastReportDate": 1694553457,
+    "devType": 1,
+    "lastReportWatts": 199,
+    "maxReportWatts": 297
+  }
+]

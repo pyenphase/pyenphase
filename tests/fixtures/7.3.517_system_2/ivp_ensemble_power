@@ -1,0 +1,22 @@
+{
+    "devices:": [
+        {
+            "serial_num": "122031000212",
+            "real_power_mw": -676000,
+            "apparent_power_mva": -676000,
+            "soc": 96
+        },
+        {
+            "serial_num": "122031000215",
+            "real_power_mw": -680000,
+            "apparent_power_mva": -680000,
+            "soc": 97
+        },
+        {
+            "serial_num": "122031023943",
+            "real_power_mw": -676000,
+            "apparent_power_mva": -676000,
+            "soc": 96
+        }
+    ]
+}

@@ -1118,7 +1118,7 @@ async def test_with_3_17_3_firmware():
             },
         ),
         (
-            "7.3.517_no_black_start",
+            "7.3.517_system_2",
             "800-00555-r03",
             SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
