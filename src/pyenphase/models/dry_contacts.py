@@ -116,5 +116,7 @@ class EnvoyDryContactSettings:
             retval["essential_end_time"] = self.essential_end_time
         if self.priority is not None:
             retval["priority"] = self.priority
+        if self.manual_override is not None:
+            retval["manual_override"] = self.manual_override
 
         return retval
