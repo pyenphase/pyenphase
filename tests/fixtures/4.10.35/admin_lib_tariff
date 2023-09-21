@@ -1,0 +1,1 @@
+{"tariff":{"currency":{"code":"USD"},"single_rate":{"rate":0.21835},"seasons":[{"id":"season_1","start":"1/1","days":[],"tiers":[{"id":"tier_1","limit":500,"rate":0.21835},{"id":"tier_2","limit":1200,"rate":0.19587},{"id":"tier_3","limit":-1,"rate":0.15798}]}]},"schedule":{"source":"Tariff","date":"2023-05-11 19:46:56 UTC","version":"00.00.01"}}
