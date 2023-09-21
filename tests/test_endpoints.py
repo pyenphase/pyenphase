@@ -1070,6 +1070,22 @@ async def test_with_3_17_3_firmware():
             },
         ),
         (
+            "4.10.35",
+            "800-00555-r03",
+            SupportedFeatures.METERING
+            | SupportedFeatures.INVERTERS
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+            },
+        ),
+        (
             "7.3.130",
             "800-00555-r03",
             SupportedFeatures.METERING
@@ -1212,6 +1228,7 @@ async def test_with_3_17_3_firmware():
     ],
     ids=[
         "5.0.62",
+        "4.10.35",
         "7.3.130",
         "7.3.130_no_consumption",
         "7.3.517",
