@@ -1,0 +1,36 @@
+[
+    {
+        "type": "ENCHARGE",
+        "devices": [
+            {
+                "part_num": "830-01760-r37",
+                "installed": 1695330323,
+                "serial_num": "122249097612",
+                "device_status": [
+                    "envoy.global.ok",
+                    "prop.done"
+                ],
+                "last_rpt_date": 1695769447,
+                "admin_state": 6,
+                "admin_state_str": "ENCHG_STATE_READY",
+                "created_date": 1695330323,
+                "img_load_date": 1695330323,
+                "img_pnum_running": "2.6.5973_rel/22.11",
+                "zigbee_dongle_fw_version": "100F",
+                "bmu_fw_version": "2.1.34",
+                "operating": true,
+                "communicating": true,
+                "sleep_enabled": false,
+                "percentFull": 15,
+                "temperature": 29,
+                "maxCellTemp": 30,
+                "comm_level_sub_ghz": 4,
+                "comm_level_2_4_ghz": 4,
+                "led_status": 17,
+                "dc_switch_off": false,
+                "encharge_rev": 2,
+                "encharge_capacity": 3500
+            }
+        ]
+    }
+]
