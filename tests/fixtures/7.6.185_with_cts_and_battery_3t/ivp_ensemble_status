@@ -1,0 +1,231 @@
+{
+    "inventory": {
+        "serial_nums": {
+            "122249097612": {
+                "device_type": 13,
+                "admin_state": 6,
+                "admin_state_str": "ENCHG_STATE_READY",
+                "reported_grid_mode": "grid-tied",
+                "phase": 1,
+                "encharge_revision": 2,
+                "encharge_capacity": 3500,
+                "encharge_rated_power": 1280,
+                "msg_retry_count": 1,
+                "part_number": "830-01760-r37",
+                "assembly_number": "890-00023-r39",
+                "app_fw_version": "2.6.5973_rel/22.11",
+                "zb_fw_version": "100F",
+                "zb_bootloader_vers": "1.B.5",
+                "ibl_fw_version": "1.3.413",
+                "swift_asic_fw_version": "001.002.1.7.2",
+                "bmu_fw_version": "2.1.34",
+                "submodule_count": 6,
+                "submodules": {
+                    "122248094067": {
+                        "device_type": 16,
+                        "admin_state": 1,
+                        "part_number": "620-00291-r02",
+                        "assembly_number": "800-00291-r02",
+                        "dmir": {
+                            "part_number": "",
+                            "assembly_number": ""
+                        },
+                        "procload": {
+                            "part_number": "490-00154",
+                            "assembly_number": "2.1.34"
+                        }
+                    },
+                    "122249004224": {
+                        "device_type": 14,
+                        "admin_state": 1,
+                        "part_number": "800-01335-r01",
+                        "assembly_number": "880-01335-r10",
+                        "dmir": {
+                            "part_number": "549-00030-r00",
+                            "assembly_number": "3.28.2-D48"
+                        },
+                        "procload": {
+                            "part_number": "521-00003-r00",
+                            "assembly_number": "3.28.2-D48"
+                        }
+                    },
+                    "122249016424": {
+                        "device_type": 14,
+                        "admin_state": 1,
+                        "part_number": "800-01335-r01",
+                        "assembly_number": "880-01335-r10",
+                        "dmir": {
+                            "part_number": "549-00030-r00",
+                            "assembly_number": "3.28.2-D48"
+                        },
+                        "procload": {
+                            "part_number": "521-00003-r00",
+                            "assembly_number": "3.28.2-D48"
+                        }
+                    },
+                    "122249017193": {
+                        "device_type": 14,
+                        "admin_state": 1,
+                        "part_number": "800-01335-r01",
+                        "assembly_number": "880-01335-r10",
+                        "dmir": {
+                            "part_number": "549-00030-r00",
+                            "assembly_number": "3.28.2-D48"
+                        },
+                        "procload": {
+                            "part_number": "521-00003-r00",
+                            "assembly_number": "3.28.2-D48"
+                        }
+                    },
+                    "122249017363": {
+                        "device_type": 14,
+                        "admin_state": 1,
+                        "part_number": "800-01335-r01",
+                        "assembly_number": "880-01335-r10",
+                        "dmir": {
+                            "part_number": "549-00030-r00",
+                            "assembly_number": "3.28.2-D48"
+                        },
+                        "procload": {
+                            "part_number": "521-00003-r00",
+                            "assembly_number": "3.28.2-D48"
+                        }
+                    },
+                    "122249045297": {
+                        "device_type": 15,
+                        "admin_state": 1,
+                        "part_number": "800-01854-r06",
+                        "assembly_number": "800-01854-r06",
+                        "dmir": {
+                            "part_number": "546-00002-01",
+                            "assembly_number": "01"
+                        },
+                        "procload": {
+                            "part_number": "522-00002-01",
+                            "assembly_number": "2.6.5973_rel/22.11"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "counters": {
+        "api_ecagtInit": 1,
+        "api_ecagtTick": 4271944,
+        "api_ecagtDeviceInsert": 4,
+        "api_ecagtDeviceNetworkStatus": 57950,
+        "api_ecagtDeviceCommissionStatus": 25,
+        "api_ecagtDeviceRemoved": 2,
+        "api_ecagtGetDeviceCount": 4325203,
+        "api_ecagtGetDeviceInfo": 4323962,
+        "api_ecagtGetOneDeviceInfo": 14,
+        "api_ecagtDevIdToSerial": 82006,
+        "api_ecagtHandleMsg": 80765,
+        "api_ecagtGetSubmoduleInv": 8929,
+        "api_ecagtGetDataModelRaw": 23255,
+        "api_ecagtSetSecCtrlBias": 387023,
+        "api_ecagtGetSecCtrlBias": 26704,
+        "api_ecagtGetSecCtrlBiasQ": 23498,
+        "api_ecagtGetRelayState": 5127595,
+        "api_ecagtSetDataModelCache": 1,
+        "api_AggNameplate": 14,
+        "api_ecagtGetGridFreq": 854388,
+        "api_ecagtGetGridVolt": 854388,
+        "api_ecagtGetGridFreq_err_notfound": 854388,
+        "rest_StatusGet": 18,
+        "rest_SleepGet": 1,
+        "rest_InventoryGet": 19843,
+        "rest_SubmodGet": 7670,
+        "rest_SecCtrlGet": 23481,
+        "rest_RelayGet": 6,
+        "rest_RelayPost": 1,
+        "rest_CommCheckGet": 599,
+        "rest_Power": 19252,
+        "ext_zb_send_msg": 397049,
+        "ext_cfg_save_device": 4,
+        "ext_cfg_save_device_err": 4,
+        "ext_send_perf_data": 77997,
+        "ext_event_set_stateful": 7087,
+        "ext_event_set_modgone": 28,
+        "rxmsg_OBJ_MDL_META_RSP": 4,
+        "rxmsg_OBJ_MDL_INV_UPD_RSP": 305,
+        "rxmsg_OBJ_MDL_POLL_RSP": 77997,
+        "rxmsg_OBJ_MDL_GRID_STATUS_RSP": 8,
+        "rxmsg_OBJ_MDL_EVENTS_MSG": 2387,
+        "rxmsg_OBJ_MDL_SOC_CONFIG_RSP": 14,
+        "txmsg_OBJ_MDL_META_REQ": 8,
+        "txmsg_OBJ_MDL_ENC_RT_POLL_REQ": 17,
+        "txmsg_OBJ_MDL_BMU_POLL_REQ": 3553,
+        "txmsg_OBJ_MDL_PCU_POLL_REQ": 3553,
+        "txmsg_OBJ_MDL_SECONDARY_CTRL_REQ": 387023,
+        "txmsg_OBJ_MDL_GRID_STATUS_REQ": 8,
+        "txmsg_OBJ_MDL_EVENTS_ACK": 2387,
+        "txmsg_OBJ_MDL_SOC_CONFIG_REQ": 14,
+        "txmsg_OBJ_MDL_TNS_START": 16,
+        "rxmsg_OBJ_MDL_TNS_START_RSP": 16,
+        "txmsg_OBJ_MDL_SET_UDMIR": 19,
+        "rxmsg_OBJ_MDL_SET_UDMIR_RSP": 18,
+        "txmsg_OBJ_MDL_TNS_END": 16,
+        "rxmsg_OBJ_MDL_TNS_END_RSP": 16,
+        "txmsg_lvs_poll": 435,
+        "zmq_ecaHello": 1,
+        "zmq_ecaDevInfo": 33,
+        "zmq_ecaNetworkStatus": 57950,
+        "zmq_ecaAppMsg": 80765,
+        "zmq_streamdata": 854388,
+        "zmq_live_debug": 3206,
+        "zmq_eca_live_debug_req": 160,
+        "zmq_nameplate": 138,
+        "zmq_ecaSecCtrlMsg": 387023,
+        "zmq_meterlog_ok": 1,
+        "dmdl_FILES_INDEXED": 3,
+        "devPollMissing": 12056,
+        "gridProfileTransaction": 32,
+        "fsm_retry_timeout": 8,
+        "profile_txn_ack": 16,
+        "backupSocLimitSet": 388486,
+        "backupSocLimitChanged": 8,
+        "api_ecagtGetGenRelayState": 854390
+    },
+    "secctrl": {
+        "shutdown": false,
+        "freq_bias_hz": 1.3899999856948853,
+        "voltage_bias_v": 16.899999618530275,
+        "freq_bias_hz_q8": 2235,
+        "voltage_bias_v_q5": 540,
+        "freq_bias_hz_phaseb": 0.0,
+        "voltage_bias_v_phaseb": 0.0,
+        "freq_bias_hz_q8_phaseb": 0,
+        "voltage_bias_v_q5_phaseb": 0,
+        "freq_bias_hz_phasec": 0.0,
+        "voltage_bias_v_phasec": 0.0,
+        "freq_bias_hz_q8_phasec": 0,
+        "voltage_bias_v_q5_phasec": 0,
+        "configured_backup_soc": 15,
+        "adjusted_backup_soc": 15,
+        "agg_soc": 15,
+        "Max_energy": 3500,
+        "ENC_agg_soc": 15,
+        "ENC_agg_soh": 100,
+        "ENC_agg_backup_energy": 525,
+        "ENC_agg_avail_energy": 525,
+        "Enc_commissioned_capacity": 3500,
+        "Enc_max_available_capacity": 3500,
+        "ACB_agg_soc": 0,
+        "ACB_agg_energy": 0
+    },
+    "relay": {
+        "mains_admin_state": "closed",
+        "mains_oper_state": "closed",
+        "der1_state": 0,
+        "der2_state": 0,
+        "Enchg_grid_mode": "grid-tied",
+        "Solar_grid_mode": "unknown"
+    },
+    "profile": {
+        "message": "Obsolete API, please use ivp/arf/profile"
+    },
+    "fakeit": {
+        "fake_inventory_mode": false
+    }
+}
