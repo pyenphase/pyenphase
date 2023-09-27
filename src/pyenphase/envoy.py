@@ -182,7 +182,10 @@ class Envoy:
         return await self._request(endpoint, data)
 
     async def _request(
-        self, endpoint: str, data: dict[str, Any] | None = None
+        self,
+        endpoint: str,
+        data: dict[str, Any] | None = None,
+        method: str | None = None,
     ) -> httpx.Response:
         """Make a request to the Envoy."""
         if self.auth is None:
@@ -197,26 +200,16 @@ class Envoy:
                 _LOGGER.debug(
                     "Sending POST to %s with data %s", url, orjson.dumps(data)
                 )
-            if endpoint == URL_TARIFF:
-                response = await self._client.put(
-                    url,
-                    headers={**DEFAULT_HEADERS, **self.auth.headers},
-                    cookies=self.auth.cookies,
-                    follow_redirects=True,
-                    auth=self.auth.auth,
-                    timeout=self._timeout,
-                    data=orjson.dumps(data),
-                )
-            else:
-                response = await self._client.post(
-                    url,
-                    headers={**DEFAULT_HEADERS, **self.auth.headers},
-                    cookies=self.auth.cookies,
-                    follow_redirects=True,
-                    auth=self.auth.auth,
-                    timeout=self._timeout,
-                    data=orjson.dumps(data),
-                )
+            response = await self._client.request(
+                method if method else "POST",
+                url,
+                headers={**DEFAULT_HEADERS, **self.auth.headers},
+                cookies=self.auth.cookies,
+                follow_redirects=True,
+                auth=self.auth.auth,
+                timeout=self._timeout,
+                data=orjson.dumps(data),
+            )
         else:
             _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
             response = await self._client.get(
@@ -311,9 +304,11 @@ class Envoy:
         self.data = data
         return data
 
-    async def _json_request(self, end_point: str, data: dict[str, Any] | None) -> Any:
+    async def _json_request(
+        self, end_point: str, data: dict[str, Any] | None, method: str | None = None
+    ) -> Any:
         """Make a request to the Envoy and return the JSON response."""
-        response = await self._request(end_point, data)
+        response = await self._request(end_point, data, method)
         return json_loads(end_point, response.content)
 
     async def go_on_grid(self) -> dict[str, Any]:
@@ -405,7 +400,7 @@ class Envoy:
             )
         self.data.tariff.storage_settings.charge_from_grid = True
         return await self._json_request(
-            URL_TARIFF, {"tariff": self.data.tariff.to_api()}
+            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, "PUT"
         )
 
     async def disable_charge_from_grid(self) -> dict[str, Any]:
@@ -424,5 +419,5 @@ class Envoy:
             )
         self.data.tariff.storage_settings.charge_from_grid = False
         return await self._json_request(
-            URL_TARIFF, {"tariff": self.data.tariff.to_api()}
+            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, "PUT"
         )

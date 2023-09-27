@@ -51,3 +51,4 @@ class SupportedFeatures(enum.IntFlag):
     ENCHARGE = 16
     ENPOWER = 32
     PRODUCTION = 64
+    TARIFF = 128
