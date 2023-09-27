@@ -77,6 +77,18 @@ async def test_with_4_2_27_firmware():
         )
     )
     respx.get("/api/v1/production/inverters").mock(return_value=Response(404))
+
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = _load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+
     envoy = await _get_mock_envoy()
     data = envoy.data
     assert data is not None
@@ -129,6 +141,17 @@ async def test_with_5_0_49_firmware():
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = _load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -416,6 +439,7 @@ async def test_with_3_7_0_firmware():
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
     # Verify the library does not support scraping to comply with ADR004
     with pytest.raises(EnvoyProbeFailed):
@@ -533,6 +557,17 @@ async def test_with_3_9_36_firmware_bad_auth():
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
 
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = _load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+
     with pytest.raises(EnvoyAuthenticationRequired):
         await _get_mock_envoy()
 
@@ -559,6 +594,17 @@ async def test_with_3_9_36_firmware_no_inverters():
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = _load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -595,6 +641,17 @@ async def test_with_3_9_36_firmware():
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = _load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -713,6 +770,17 @@ async def test_with_3_9_36_firmware_with_production_401():
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
 
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = _load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+
     envoy = await _get_mock_envoy()
     data = envoy.data
     assert data is not None
@@ -756,6 +824,16 @@ async def test_with_3_9_36_firmware_with_production_and_production_json_401():
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = _load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
     with pytest.raises(EnvoyAuthenticationRequired):
         await _get_mock_envoy()
@@ -783,6 +861,17 @@ async def test_with_3_17_3_firmware():
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = _load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -1063,10 +1152,13 @@ async def test_with_3_17_3_firmware():
         (
             "5.0.62",
             "800-00551-r02",
-            SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
         ),
         (
@@ -1106,11 +1198,13 @@ async def test_with_3_17_3_firmware():
             "800-00647-r10",
             SupportedFeatures.METERING
             | SupportedFeatures.INVERTERS
-            | SupportedFeatures.PRODUCTION,
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
         ),
         (
@@ -1122,7 +1216,8 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.ENPOWER
             | SupportedFeatures.ENCHARGE
             | SupportedFeatures.INVERTERS
-            | SupportedFeatures.PRODUCTION,
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionUpdater": SupportedFeatures.METERING
@@ -1131,6 +1226,7 @@ async def test_with_3_17_3_firmware():
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
                 | SupportedFeatures.ENCHARGE,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
         ),
         (
@@ -1142,7 +1238,8 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.ENPOWER
             | SupportedFeatures.ENCHARGE
             | SupportedFeatures.INVERTERS
-            | SupportedFeatures.PRODUCTION,
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionUpdater": SupportedFeatures.METERING
@@ -1151,6 +1248,7 @@ async def test_with_3_17_3_firmware():
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
                 | SupportedFeatures.ENCHARGE,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
         ),
         (
@@ -1174,10 +1272,13 @@ async def test_with_3_17_3_firmware():
         (
             "7.6.175_total",
             "800-00654-r06",
-            SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionJsonFallbackUpdater": SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
         ),
         (
@@ -1196,13 +1297,15 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
-            | SupportedFeatures.PRODUCTION,
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
         ),
         (
@@ -1364,6 +1467,15 @@ async def test_with_7_x_firmware(
         respx.get("/ivp/ensemble/secctrl").mock(
             return_value=Response(200, json=json_data)
         )
+
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = _load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
     caplog.set_level(logging.DEBUG)
 
