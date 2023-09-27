@@ -20,6 +20,7 @@ from .const import (
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
     URL_GRID_RELAY,
+    URL_TARIFF,
     SupportedFeatures,
 )
 from .exceptions import (
@@ -40,6 +41,7 @@ from .updaters.production import (
     EnvoyProductionJsonUpdater,
     EnvoyProductionUpdater,
 )
+from .updaters.tariff import EnvoyTariffUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,6 +57,7 @@ UPDATERS: list[type["EnvoyUpdater"]] = [
     EnvoyProductionJsonFallbackUpdater,
     EnvoyApiV1ProductionInvertersUpdater,
     EnvoyEnembleUpdater,
+    EnvoyTariffUpdater,
 ]
 
 
@@ -194,15 +197,26 @@ class Envoy:
                 _LOGGER.debug(
                     "Sending POST to %s with data %s", url, orjson.dumps(data)
                 )
-            response = await self._client.post(
-                url,
-                headers={**DEFAULT_HEADERS, **self.auth.headers},
-                cookies=self.auth.cookies,
-                follow_redirects=True,
-                auth=self.auth.auth,
-                timeout=self._timeout,
-                data=orjson.dumps(data),
-            )
+            if endpoint == URL_TARIFF:
+                response = await self._client.put(
+                    url,
+                    headers={**DEFAULT_HEADERS, **self.auth.headers},
+                    cookies=self.auth.cookies,
+                    follow_redirects=True,
+                    auth=self.auth.auth,
+                    timeout=self._timeout,
+                    data=orjson.dumps(data),
+                )
+            else:
+                response = await self._client.post(
+                    url,
+                    headers={**DEFAULT_HEADERS, **self.auth.headers},
+                    cookies=self.auth.cookies,
+                    follow_redirects=True,
+                    auth=self.auth.auth,
+                    timeout=self._timeout,
+                    data=orjson.dumps(data),
+                )
         else:
             _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
             response = await self._client.get(
@@ -374,3 +388,41 @@ class Envoy:
             assert self.data is not None  # nosec
         self.data.dry_contact_status[id].status = DryContactStatus.CLOSED
         return result
+
+    async def enable_charge_from_grid(self) -> dict[str, Any]:
+        """Enable charge from grid for Encharge batteries."""
+        if not self.supported_features & SupportedFeatures.ENCHARGE:
+            raise EnvoyFeatureNotAvailable(
+                "This feature requires Enphase Encharge or IQ Batteries."
+            )
+        if not self.data or not self.data.tariff:
+            raise ValueError(
+                "Tried to enable charge from grid before the Envoy was queried."
+            )
+        if not self.data.tariff.storage_settings:
+            raise EnvoyFeatureNotAvailable(
+                "This feature requires Enphase Encharge or IQ Batteries."
+            )
+        self.data.tariff.storage_settings.charge_from_grid = True
+        return await self._json_request(
+            URL_TARIFF, {"tariff": self.data.tariff.to_api()}
+        )
+
+    async def disable_charge_from_grid(self) -> dict[str, Any]:
+        """Disable charge from grid for Encharge batteries."""
+        if not self.supported_features & SupportedFeatures.ENCHARGE:
+            raise EnvoyFeatureNotAvailable(
+                "This feature requires Enphase Encharge or IQ Batteries."
+            )
+        if not self.data or not self.data.tariff:
+            raise ValueError(
+                "Tried to disable charge from grid before the Envoy was queried."
+            )
+        if not self.data.tariff.storage_settings:
+            raise EnvoyFeatureNotAvailable(
+                "This feature requires Enphase Encharge or IQ Batteries."
+            )
+        self.data.tariff.storage_settings.charge_from_grid = False
+        return await self._json_request(
+            URL_TARIFF, {"tariff": self.data.tariff.to_api()}
+        )
