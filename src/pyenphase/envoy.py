@@ -400,7 +400,7 @@ class Envoy:
             )
         self.data.tariff.storage_settings.charge_from_grid = True
         return await self._json_request(
-            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, "PUT"
+            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
         )
 
     async def disable_charge_from_grid(self) -> dict[str, Any]:
@@ -419,5 +419,5 @@ class Envoy:
             )
         self.data.tariff.storage_settings.charge_from_grid = False
         return await self._json_request(
-            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, "PUT"
+            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
         )
