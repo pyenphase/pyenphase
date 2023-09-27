@@ -386,18 +386,7 @@ class Envoy:
 
     async def enable_charge_from_grid(self) -> dict[str, Any]:
         """Enable charge from grid for Encharge batteries."""
-        if not self.supported_features & SupportedFeatures.ENCHARGE:
-            raise EnvoyFeatureNotAvailable(
-                "This feature requires Enphase Encharge or IQ Batteries."
-            )
-        if not self.data or not self.data.tariff:
-            raise ValueError(
-                "Tried to enable charge from grid before the Envoy was queried."
-            )
-        if not self.data.tariff.storage_settings:
-            raise EnvoyFeatureNotAvailable(
-                "This feature requires Enphase Encharge or IQ Batteries."
-            )
+        self._verify_tariff_storage_or_raise()
         self.data.tariff.storage_settings.charge_from_grid = True
         return await self._json_request(
             URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
@@ -405,9 +394,20 @@ class Envoy:
 
     async def disable_charge_from_grid(self) -> dict[str, Any]:
         """Disable charge from grid for Encharge batteries."""
+        self._verify_tariff_storage_or_raise()
+        self.data.tariff.storage_settings.charge_from_grid = False
+        return await self._json_request(
+            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
+        )
+
+    def _verify_tariff_storage_or_raise(self) -> None:
         if not self.supported_features & SupportedFeatures.ENCHARGE:
             raise EnvoyFeatureNotAvailable(
                 "This feature requires Enphase Encharge or IQ Batteries."
+            )
+        if not self.supported_features & SupportedFeatures.TARIFF:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
             )
         if not self.data or not self.data.tariff:
             raise ValueError(
@@ -417,7 +417,3 @@ class Envoy:
             raise EnvoyFeatureNotAvailable(
                 "This feature requires Enphase Encharge or IQ Batteries."
             )
-        self.data.tariff.storage_settings.charge_from_grid = False
-        return await self._json_request(
-            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
-        )
