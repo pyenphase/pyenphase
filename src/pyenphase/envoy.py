@@ -387,6 +387,10 @@ class Envoy:
     async def enable_charge_from_grid(self) -> dict[str, Any]:
         """Enable charge from grid for Encharge batteries."""
         self._verify_tariff_storage_or_raise()
+        if TYPE_CHECKING:
+            assert self.data is not None  # nosec
+            assert self.data.tariff is not None  # nosec
+            assert self.data.tariff.storage_settings is not None  # nosec
         self.data.tariff.storage_settings.charge_from_grid = True
         return await self._json_request(
             URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
@@ -395,6 +399,10 @@ class Envoy:
     async def disable_charge_from_grid(self) -> dict[str, Any]:
         """Disable charge from grid for Encharge batteries."""
         self._verify_tariff_storage_or_raise()
+        if TYPE_CHECKING:
+            assert self.data is not None  # nosec
+            assert self.data.tariff is not None  # nosec
+            assert self.data.tariff.storage_settings is not None  # nosec
         self.data.tariff.storage_settings.charge_from_grid = False
         return await self._json_request(
             URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
@@ -409,10 +417,16 @@ class Envoy:
             raise EnvoyFeatureNotAvailable(
                 "This feature is not available on this Envoy."
             )
-        if not self.data or not self.data.tariff:
+        if not self.data:
+            raise ValueError("Tried access envoy data before Envoy was queried.")
+        if TYPE_CHECKING:
+            assert self.data is not None  # nosec
+        if not self.data.tariff:
             raise ValueError(
-                "Tried to disable charge from grid before the Envoy was queried."
+                "Tried to configure charge from grid before the Envoy was queried."
             )
+        if TYPE_CHECKING:
+            assert self.data.tariff is not None  # nosec
         if not self.data.tariff.storage_settings:
             raise EnvoyFeatureNotAvailable(
                 "This feature requires Enphase Encharge or IQ Batteries."
