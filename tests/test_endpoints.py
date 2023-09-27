@@ -1474,6 +1474,7 @@ async def test_with_7_x_firmware(
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
@@ -1551,3 +1552,24 @@ async def test_with_7_x_firmware(
             await envoy.open_dry_contact("NC1")
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.close_dry_contact("NC1")
+
+    if (supported_features & SupportedFeatures.ENCHARGE) and (
+        supported_features & SupportedFeatures.TARIFF
+    ):
+        # Test setting battery features
+        await envoy.enable_charge_from_grid()
+        assert envoy.data.tariff.storage_settings.charge_from_grid is True
+        assert respx.calls.last.request.content == orjson.dumps(
+            {"tariff": envoy.data.tariff.to_api()}
+        )
+
+        await envoy.disable_charge_from_grid()
+        assert envoy.data.tariff.storage_settings.charge_from_grid is False
+        assert respx.calls.last.request.content == orjson.dumps(
+            {"tariff": envoy.data.tariff.to_api()}
+        )
+    else:
+        with pytest.raises(EnvoyFeatureNotAvailable):
+            await envoy.enable_charge_from_grid()
+        with pytest.raises(EnvoyFeatureNotAvailable):
+            await envoy.disable_charge_from_grid()
