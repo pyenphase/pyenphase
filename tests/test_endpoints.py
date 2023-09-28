@@ -1572,6 +1572,18 @@ async def test_with_7_x_firmware(
         assert respx.calls.last.request.content == orjson.dumps(  # type: ignore[unreachable]
             {"tariff": envoy.data.tariff.to_api()}
         )
+
+        bad_envoy = await _get_mock_envoy()
+        await bad_envoy.probe()
+        with pytest.raises(EnvoyFeatureNotAvailable):
+            bad_envoy.data.tariff.storage_settings = None
+            await bad_envoy.enable_charge_from_grid()
+        with pytest.raises(ValueError):
+            bad_envoy.data.tariff = None
+            await bad_envoy.enable_charge_from_grid()
+        with pytest.raises(ValueError):
+            bad_envoy.data = None
+            await bad_envoy.enable_charge_from_grid()
     else:
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.enable_charge_from_grid()
