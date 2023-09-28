@@ -22,7 +22,7 @@ class EnvoyTariff:
     storage_settings: EnvoyStorageSettings | None
     single_rate: dict[str, Any]
     seasons: list[Any]
-    seasons_sell: list[Any]
+    seasons_sell: list[Any] | None
 
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> EnvoyTariff:
@@ -36,7 +36,7 @@ class EnvoyTariff:
             else None,
             single_rate=data["single_rate"],
             seasons=data["seasons"],
-            seasons_sell=data["seasons_sell"],
+            seasons_sell=data.get("seasons_sell"),
         )
 
     def to_api(self) -> dict[str, Any]:
@@ -45,12 +45,13 @@ class EnvoyTariff:
             "currency": self.currency,
             "single_rate": self.single_rate,
             "seasons": self.seasons,
-            "seasons_sell": self.seasons_sell,
         }
         if self.logger:
             retval["logger"] = self.logger
         if self.date:
             retval["date"] = self.date
+        if self.seasons_sell:
+            retval["seasons_sell"] = self.seasons_sell
         if self.storage_settings:
             retval["storage_settings"] = self.storage_settings.to_api()
 
