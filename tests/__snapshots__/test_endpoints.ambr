@@ -126,6 +126,46 @@
       }),
     }),
     'raw': dict({
+      '/admin/lib/tariff': dict({
+        'schedule': dict({
+          'date': '2023-05-11 19:46:56 UTC',
+          'source': 'Tariff',
+          'version': '00.00.01',
+        }),
+        'tariff': dict({
+          'currency': dict({
+            'code': 'USD',
+          }),
+          'seasons': list([
+            dict({
+              'days': list([
+              ]),
+              'id': 'season_1',
+              'start': '1/1',
+              'tiers': list([
+                dict({
+                  'id': 'tier_1',
+                  'limit': 500,
+                  'rate': 0.21835,
+                }),
+                dict({
+                  'id': 'tier_2',
+                  'limit': 1200,
+                  'rate': 0.19587,
+                }),
+                dict({
+                  'id': 'tier_3',
+                  'limit': -1,
+                  'rate': 0.15798,
+                }),
+              ]),
+            }),
+          ]),
+          'single_rate': dict({
+            'rate': 0.21835,
+          }),
+        }),
+      }),
       '/api/v1/production/inverters': list([
         dict({
           'devType': 1,
@@ -359,6 +399,43 @@
       'watt_hours_lifetime': 26785327,
       'watt_hours_today': 139,
       'watts_now': 166,
+    }),
+    'tariff': dict({
+      'currency': dict({
+        'code': 'USD',
+      }),
+      'date': None,
+      'logger': None,
+      'seasons': list([
+        dict({
+          'days': list([
+          ]),
+          'id': 'season_1',
+          'start': '1/1',
+          'tiers': list([
+            dict({
+              'id': 'tier_1',
+              'limit': 500,
+              'rate': 0.21835,
+            }),
+            dict({
+              'id': 'tier_2',
+              'limit': 1200,
+              'rate': 0.19587,
+            }),
+            dict({
+              'id': 'tier_3',
+              'limit': -1,
+              'rate': 0.15798,
+            }),
+          ]),
+        }),
+      ]),
+      'seasons_sell': None,
+      'single_rate': dict({
+        'rate': 0.21835,
+      }),
+      'storage_settings': None,
     }),
   })
 # ---
@@ -5999,6 +6076,265 @@
       }),
     }),
     'raw': dict({
+      '/admin/lib/tariff': dict({
+        'schedule': dict({
+          'battery_mode': 'self-consumption',
+          'charge_from_grid': True,
+          'date': '2023-09-26 16:03:40 UTC',
+          'operation_mode_sub_type': '',
+          'override': False,
+          'override_backup_soc': 30.0,
+          'override_chg_dischg_rate': 0.0,
+          'override_tou_mode': 'StorageTouMode_DEFAULT_TOU_MODE',
+          'reserved_soc': 15.0,
+          'schedule': dict({
+            'Disable': list([
+              dict({
+                'Sun': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Mon': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Tue': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Wed': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Thu': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Fri': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Sat': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+            ]),
+            'tariff': list([
+              dict({
+                'Fri': list([
+                  dict({
+                    'duration': 444,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                  dict({
+                    'duration': 35,
+                    'setting': 'CG',
+                    'start': 444,
+                  }),
+                  dict({
+                    'duration': 961,
+                    'setting': 'ZN',
+                    'start': 479,
+                  }),
+                ]),
+                'Mon': list([
+                  dict({
+                    'duration': 444,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                  dict({
+                    'duration': 35,
+                    'setting': 'CG',
+                    'start': 444,
+                  }),
+                  dict({
+                    'duration': 961,
+                    'setting': 'ZN',
+                    'start': 479,
+                  }),
+                ]),
+                'Sat': list([
+                  dict({
+                    'duration': 444,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                  dict({
+                    'duration': 35,
+                    'setting': 'CG',
+                    'start': 444,
+                  }),
+                  dict({
+                    'duration': 961,
+                    'setting': 'ZN',
+                    'start': 479,
+                  }),
+                ]),
+                'Sun': list([
+                  dict({
+                    'duration': 444,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                  dict({
+                    'duration': 35,
+                    'setting': 'CG',
+                    'start': 444,
+                  }),
+                  dict({
+                    'duration': 961,
+                    'setting': 'ZN',
+                    'start': 479,
+                  }),
+                ]),
+                'Thu': list([
+                  dict({
+                    'duration': 444,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                  dict({
+                    'duration': 35,
+                    'setting': 'CG',
+                    'start': 444,
+                  }),
+                  dict({
+                    'duration': 961,
+                    'setting': 'ZN',
+                    'start': 479,
+                  }),
+                ]),
+                'Tue': list([
+                  dict({
+                    'duration': 444,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                  dict({
+                    'duration': 35,
+                    'setting': 'CG',
+                    'start': 444,
+                  }),
+                  dict({
+                    'duration': 961,
+                    'setting': 'ZN',
+                    'start': 479,
+                  }),
+                ]),
+                'Wed': list([
+                  dict({
+                    'duration': 444,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                  dict({
+                    'duration': 35,
+                    'setting': 'CG',
+                    'start': 444,
+                  }),
+                  dict({
+                    'duration': 961,
+                    'setting': 'ZN',
+                    'start': 479,
+                  }),
+                ]),
+                'end': '1/1',
+                'start': '1/1',
+              }),
+            ]),
+          }),
+          'source': 'Tariff',
+          'version': '00.00.02',
+          'very_low_soc': 5,
+        }),
+        'tariff': dict({
+          'currency': dict({
+            'code': 'EUR',
+          }),
+          'date': '1695744220',
+          'logger': 'mylogger',
+          'seasons': list([
+            dict({
+              'days': list([
+                dict({
+                  'days': 'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+                  'enable_discharge_to_grid': True,
+                  'id': 'all_days',
+                  'must_charge_duration': 35,
+                  'must_charge_mode': 'CG',
+                  'must_charge_start': 444,
+                  'periods': list([
+                    dict({
+                      'id': 'period_1',
+                      'rate': 0.1898,
+                      'start': 480,
+                    }),
+                    dict({
+                      'id': 'filler',
+                      'rate': 0.1034,
+                      'start': 1320,
+                    }),
+                  ]),
+                }),
+              ]),
+              'id': 'season_1',
+              'start': '1/1',
+              'tiers': list([
+              ]),
+            }),
+          ]),
+          'seasons_sell': list([
+          ]),
+          'single_rate': dict({
+            'rate': 0.0,
+            'sell': 0.0,
+          }),
+          'storage_settings': dict({
+            'charge_from_grid': True,
+            'date': '1695598084',
+            'mode': 'self-consumption',
+            'operation_mode_sub_type': '',
+            'reserved_soc': 15.0,
+            'very_low_soc': 5,
+          }),
+        }),
+      }),
       '/api/v1/production/inverters': list([
         dict({
           'devType': 1,
@@ -6207,6 +6543,57 @@
       'watt_hours_lifetime': 2432970,
       'watt_hours_today': 1,
       'watts_now': 0,
+    }),
+    'tariff': dict({
+      'currency': dict({
+        'code': 'EUR',
+      }),
+      'date': '1695744220',
+      'logger': 'mylogger',
+      'seasons': list([
+        dict({
+          'days': list([
+            dict({
+              'days': 'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+              'enable_discharge_to_grid': True,
+              'id': 'all_days',
+              'must_charge_duration': 35,
+              'must_charge_mode': 'CG',
+              'must_charge_start': 444,
+              'periods': list([
+                dict({
+                  'id': 'period_1',
+                  'rate': 0.1898,
+                  'start': 480,
+                }),
+                dict({
+                  'id': 'filler',
+                  'rate': 0.1034,
+                  'start': 1320,
+                }),
+              ]),
+            }),
+          ]),
+          'id': 'season_1',
+          'start': '1/1',
+          'tiers': list([
+          ]),
+        }),
+      ]),
+      'seasons_sell': list([
+      ]),
+      'single_rate': dict({
+        'rate': 0.0,
+        'sell': 0.0,
+      }),
+      'storage_settings': dict({
+        'charge_from_grid': True,
+        'date': '1695598084',
+        'mode': <EnvoyStorageMode.SELF_CONSUMPTION: 'self-consumption'>,
+        'operation_mode_sub_type': '',
+        'reserved_soc': 15.0,
+        'very_low_soc': 5,
+      }),
     }),
   })
 # ---

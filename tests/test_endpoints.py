@@ -1168,13 +1168,15 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.INVERTERS
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
-            | SupportedFeatures.PRODUCTION,
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
         ),
         (
@@ -1316,7 +1318,8 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.PRODUCTION
-            | SupportedFeatures.ENCHARGE,
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.TARIFF,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE,
@@ -1324,6 +1327,7 @@ async def test_with_3_17_3_firmware():
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
         ),
         (
