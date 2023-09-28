@@ -1565,7 +1565,7 @@ async def test_with_7_x_firmware(
 
         await envoy.disable_charge_from_grid()
         assert envoy.data.tariff.storage_settings.charge_from_grid is False
-        assert respx.calls.last.request.content == orjson.dumps(
+        assert respx.calls.last.request.content == orjson.dumps(  # type: ignore[unreachable]
             {"tariff": envoy.data.tariff.to_api()}
         )
     else:
