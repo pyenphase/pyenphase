@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.12.0 (2023-10-11)
+
+### Feature
+
+* Add initial tariff support and charge from grid functions ([#95](https://github.com/pyenphase/pyenphase/issues/95)) ([`5418d4c`](https://github.com/pyenphase/pyenphase/commit/5418d4c99ee6a5f0998367525ccba65f0edb9bc5))
+
 ## v1.11.4 (2023-09-13)
 
 ### Fix
