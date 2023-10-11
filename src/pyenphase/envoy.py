@@ -20,6 +20,7 @@ from .const import (
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
     URL_GRID_RELAY,
+    URL_TARIFF,
     SupportedFeatures,
 )
 from .exceptions import (
@@ -40,6 +41,7 @@ from .updaters.production import (
     EnvoyProductionJsonUpdater,
     EnvoyProductionUpdater,
 )
+from .updaters.tariff import EnvoyTariffUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,6 +57,7 @@ UPDATERS: list[type["EnvoyUpdater"]] = [
     EnvoyProductionJsonFallbackUpdater,
     EnvoyApiV1ProductionInvertersUpdater,
     EnvoyEnembleUpdater,
+    EnvoyTariffUpdater,
 ]
 
 
@@ -179,7 +182,10 @@ class Envoy:
         return await self._request(endpoint, data)
 
     async def _request(
-        self, endpoint: str, data: dict[str, Any] | None = None
+        self,
+        endpoint: str,
+        data: dict[str, Any] | None = None,
+        method: str | None = None,
     ) -> httpx.Response:
         """Make a request to the Envoy."""
         if self.auth is None:
@@ -194,7 +200,8 @@ class Envoy:
                 _LOGGER.debug(
                     "Sending POST to %s with data %s", url, orjson.dumps(data)
                 )
-            response = await self._client.post(
+            response = await self._client.request(
+                method if method else "POST",
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
                 cookies=self.auth.cookies,
@@ -297,9 +304,11 @@ class Envoy:
         self.data = data
         return data
 
-    async def _json_request(self, end_point: str, data: dict[str, Any] | None) -> Any:
+    async def _json_request(
+        self, end_point: str, data: dict[str, Any] | None, method: str | None = None
+    ) -> Any:
         """Make a request to the Envoy and return the JSON response."""
-        response = await self._request(end_point, data)
+        response = await self._request(end_point, data, method)
         return json_loads(end_point, response.content)
 
     async def go_on_grid(self) -> dict[str, Any]:
@@ -374,3 +383,51 @@ class Envoy:
             assert self.data is not None  # nosec
         self.data.dry_contact_status[id].status = DryContactStatus.CLOSED
         return result
+
+    async def enable_charge_from_grid(self) -> dict[str, Any]:
+        """Enable charge from grid for Encharge batteries."""
+        self._verify_tariff_storage_or_raise()
+        if TYPE_CHECKING:
+            assert self.data is not None  # nosec
+            assert self.data.tariff is not None  # nosec
+            assert self.data.tariff.storage_settings is not None  # nosec
+        self.data.tariff.storage_settings.charge_from_grid = True
+        return await self._json_request(
+            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
+        )
+
+    async def disable_charge_from_grid(self) -> dict[str, Any]:
+        """Disable charge from grid for Encharge batteries."""
+        self._verify_tariff_storage_or_raise()
+        if TYPE_CHECKING:
+            assert self.data is not None  # nosec
+            assert self.data.tariff is not None  # nosec
+            assert self.data.tariff.storage_settings is not None  # nosec
+        self.data.tariff.storage_settings.charge_from_grid = False
+        return await self._json_request(
+            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
+        )
+
+    def _verify_tariff_storage_or_raise(self) -> None:
+        if not self.supported_features & SupportedFeatures.ENCHARGE:
+            raise EnvoyFeatureNotAvailable(
+                "This feature requires Enphase Encharge or IQ Batteries."
+            )
+        if not self.supported_features & SupportedFeatures.TARIFF:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
+            )
+        if not self.data:
+            raise ValueError("Tried access envoy data before Envoy was queried.")
+        if TYPE_CHECKING:
+            assert self.data is not None  # nosec
+        if not self.data.tariff:
+            raise ValueError(
+                "Tried to configure charge from grid before the Envoy was queried."
+            )
+        if TYPE_CHECKING:
+            assert self.data.tariff is not None  # nosec
+        if not self.data.tariff.storage_settings:
+            raise EnvoyFeatureNotAvailable(
+                "This feature requires Enphase Encharge or IQ Batteries."
+            )

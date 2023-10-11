@@ -41,4 +41,5 @@ __all__ = (
     "EnvoyEnpower",
     "EnvoyDryContactSettings",
     "EnvoyDryContactStatus",
+    "EnvoyTariff",
 )
