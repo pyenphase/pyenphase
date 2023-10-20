@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.13.0 (2023-10-20)
+
+### Feature
+
+* Add support for changing storage mode and reserve soc ([#101](https://github.com/pyenphase/pyenphase/issues/101)) ([`16a1471`](https://github.com/pyenphase/pyenphase/commit/16a1471d7b2e961be218825151401a4cd27fe096))
+
 ## v1.12.0 (2023-10-11)
 
 ### Feature
