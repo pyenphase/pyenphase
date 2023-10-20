@@ -416,8 +416,8 @@ class Envoy:
             assert self.data is not None  # nosec
             assert self.data.tariff is not None  # nosec
             assert self.data.tariff.storage_settings is not None  # nosec
-        if mode not in EnvoyStorageMode:
-            raise ValueError(f"Invalid storage mode: {mode}")
+        if type(mode) is not EnvoyStorageMode:
+            raise TypeError("Mode must be of type EnvoyStorageMode")
         self.data.tariff.storage_settings.mode = mode
         return await self._json_request(
             URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
