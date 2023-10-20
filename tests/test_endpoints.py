@@ -1588,7 +1588,7 @@ async def test_with_7_x_firmware(
             {"tariff": envoy.data.tariff.to_api()}
         )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             await envoy.set_storage_mode("invalid")
 
         bad_envoy = await _get_mock_envoy()
