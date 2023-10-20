@@ -567,7 +567,7 @@ async def test_with_3_9_36_firmware_bad_auth():
             json_data = None
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
     else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+        respx.get("/admin/lib/tariff").mock(return_value=Response(401))
 
     with pytest.raises(EnvoyAuthenticationRequired):
         await _get_mock_envoy()
@@ -605,7 +605,7 @@ async def test_with_3_9_36_firmware_no_inverters():
             json_data = None
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
     else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+        respx.get("/admin/lib/tariff").mock(return_value=Response(401))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -652,7 +652,7 @@ async def test_with_3_9_36_firmware():
             json_data = None
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
     else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+        respx.get("/admin/lib/tariff").mock(return_value=Response(401))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
