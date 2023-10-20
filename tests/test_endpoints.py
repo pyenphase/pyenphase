@@ -25,6 +25,7 @@ from pyenphase.exceptions import (
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.envoy import EnvoyData
 from pyenphase.models.system_production import EnvoySystemProduction
+from pyenphase.models.tariff import EnvoyStorageMode
 from pyenphase.updaters.base import EnvoyUpdater
 
 LOGGER = logging.getLogger(__name__)
@@ -1572,6 +1573,23 @@ async def test_with_7_x_firmware(
         assert respx.calls.last.request.content == orjson.dumps(  # type: ignore[unreachable]
             {"tariff": envoy.data.tariff.to_api()}
         )
+
+        await envoy.set_reserve_soc(50)
+        assert envoy.data.tariff.storage_settings.reserved_soc == round(float(50), 1)
+        assert respx.calls.last.request.content == orjson.dumps(
+            {"tariff": envoy.data.tariff.to_api()}
+        )
+
+        await envoy.set_storage_mode(EnvoyStorageMode.SELF_CONSUMPTION)
+        assert (
+            envoy.data.tariff.storage_settings.mode == EnvoyStorageMode.SELF_CONSUMPTION
+        )
+        assert respx.calls.last.request.content == orjson.dumps(
+            {"tariff": envoy.data.tariff.to_api()}
+        )
+
+        with pytest.raises(ValueError):
+            await envoy.set_storage_mode("invalid")
 
         bad_envoy = await _get_mock_envoy()
         await bad_envoy.probe()
