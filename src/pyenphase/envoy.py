@@ -31,6 +31,7 @@ from .exceptions import (
 from .firmware import EnvoyFirmware
 from .json import json_loads
 from .models.envoy import EnvoyData
+from .models.tariff import EnvoyStorageMode
 from .ssl import NO_VERIFY_SSL_CONTEXT
 from .updaters.api_v1_production import EnvoyApiV1ProductionUpdater
 from .updaters.api_v1_production_inverters import EnvoyApiV1ProductionInvertersUpdater
@@ -404,6 +405,32 @@ class Envoy:
             assert self.data.tariff is not None  # nosec
             assert self.data.tariff.storage_settings is not None  # nosec
         self.data.tariff.storage_settings.charge_from_grid = False
+        return await self._json_request(
+            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
+        )
+
+    async def set_storage_mode(self, mode: EnvoyStorageMode) -> dict[str, Any]:
+        """Set the Encharge storage mode."""
+        self._verify_tariff_storage_or_raise()
+        if TYPE_CHECKING:
+            assert self.data is not None  # nosec
+            assert self.data.tariff is not None  # nosec
+            assert self.data.tariff.storage_settings is not None  # nosec
+        if mode not in EnvoyStorageMode:
+            raise ValueError(f"Invalid storage mode: {mode}")
+        self.data.tariff.storage_settings.mode = mode
+        return await self._json_request(
+            URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
+        )
+
+    async def set_reserve_soc(self, value: int) -> dict[str, Any]:
+        """Set the Encharge reserve state of charge."""
+        self._verify_tariff_storage_or_raise()
+        if TYPE_CHECKING:
+            assert self.data is not None  # nosec
+            assert self.data.tariff is not None  # nosec
+            assert self.data.tariff.storage_settings is not None  # nosec
+        self.data.tariff.storage_settings.reserved_soc = round(float(value), 1)
         return await self._json_request(
             URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
         )
