@@ -1,8 +1,7 @@
 import logging
 
-from pyenphase.exceptions import ENDPOINT_PROBE_EXCEPTIONS
-
 from ..const import URL_TARIFF, SupportedFeatures
+from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.tariff import EnvoyTariff
 from .base import EnvoyUpdater
@@ -20,6 +19,15 @@ class EnvoyTariffUpdater(EnvoyUpdater):
             result = await self._json_probe_request(URL_TARIFF)
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug("Tariff endpoint not found: %s", e)
+            return None
+        except EnvoyAuthenticationRequired as e:
+            # For some systems (Firmware: 3.9.36) return 401 for
+            # this endpoint even if the user is authenticated.
+            _LOGGER.debug(
+                "Skipping tariff endpoint as user does" " not have access to %s: %s",
+                URL_TARIFF,
+                e,
+            )
             return None
         else:
             if not result or "error" in result:
