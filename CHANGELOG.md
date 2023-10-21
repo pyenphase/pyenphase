@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.13.1 (2023-10-21)
+
+### Fix
+
+* Ensure tariff endpoint is skipped on firmware 3 ([#102](https://github.com/pyenphase/pyenphase/issues/102)) ([`4fd7796`](https://github.com/pyenphase/pyenphase/commit/4fd77967230089ec9e86c6e6c3e237b6153abb87))
+
 ## v1.13.0 (2023-10-20)
 
 ### Feature
