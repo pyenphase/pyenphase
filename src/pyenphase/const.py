@@ -33,6 +33,9 @@ URL_GEN_CONFIG = "/ivp/ss/gen_config"
 URL_GEN_MODE = "/ivp/ss/gen_mode"
 URL_GEN_SCHEDULE = "/ivp/ss/gen_schedule"
 
+# Meters data
+ENDPOINT_URL_METERS = "/ivp/meters"
+ENDPOINT_URL_METERS_READINGS = "/ivp/meters/readings"
 
 LOCAL_TIMEOUT = httpx.Timeout(
     # The envoy can be slow to respond but fast to connect to we
@@ -52,3 +55,5 @@ class SupportedFeatures(enum.IntFlag):
     ENPOWER = 32
     PRODUCTION = 64
     TARIFF = 128
+    DUALPHASE = 256
+    THREEPHASE = 512
