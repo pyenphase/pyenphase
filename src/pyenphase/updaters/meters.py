@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from ..const import ENDPOINT_URL_METERS, ENDPOINT_URL_METERS_READINGS, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
@@ -19,9 +20,9 @@ class EnvoyMetersUpdater(EnvoyUpdater):
     ) -> SupportedFeatures | None:
         """Probe the Envoy meter setup and return multiphase support in SupportedFeatures."""
         try:
-            meters_json: list[
-                dict[str, str | float | int]
-            ] | None = await self._json_probe_request(self.end_point)
+            meters_json: list[dict[str, Any]] | None = await self._json_probe_request(
+                self.end_point
+            )
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug("Meters endpoint not found at %s: %s", self.end_point, e)
             return None
@@ -34,13 +35,11 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         # can't get to envoy from here to store a phase_count so use DUAL and THREEPHASE features
         phase_count: int = 1
         for meter in meters_json:
-            if meter["state"] == "enabled":
-                # we could set SupportedFeatures.METERING as well
-                phase_count = (
-                    int(meter["phaseCount"])
-                    if int(meter["phaseCount"]) > phase_count
-                    else phase_count
-                )
+            phase_count = (
+                meter["phaseCount"]
+                if meter["state"] == "enabled" and meter["phaseCount"] > phase_count
+                else phase_count
+            )
 
         if phase_count > 2:
             self._supported_features |= SupportedFeatures.THREEPHASE

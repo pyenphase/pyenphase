@@ -53,6 +53,7 @@ DEFAULT_HEADERS = {
 }
 
 UPDATERS: list[type["EnvoyUpdater"]] = [
+    EnvoyMetersUpdater,
     EnvoyProductionUpdater,
     EnvoyProductionJsonUpdater,
     EnvoyApiV1ProductionUpdater,
@@ -60,7 +61,6 @@ UPDATERS: list[type["EnvoyUpdater"]] = [
     EnvoyApiV1ProductionInvertersUpdater,
     EnvoyEnembleUpdater,
     EnvoyTariffUpdater,
-    EnvoyMetersUpdater,
 ]
 
 
