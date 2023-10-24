@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.14.0 (2023-10-24)
+
+### Feature
+
+* **multiphase:** Add phase_count property to envoy ([#105](https://github.com/pyenphase/pyenphase/issues/105)) ([`39ec460`](https://github.com/pyenphase/pyenphase/commit/39ec4606b1bfc152189c48edc89396267564ac13))
+
 ## v1.13.1 (2023-10-21)
 
 ### Fix
