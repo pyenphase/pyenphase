@@ -90,6 +90,8 @@ async def test_with_4_2_27_firmware():
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
+    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
+
     envoy = await _get_mock_envoy()
     data = envoy.data
     assert data is not None
@@ -154,6 +156,8 @@ async def test_with_5_0_49_firmware():
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
+    respx.get("/ivp/meters").mock(return_value=Response(404))
+
     envoy = await _get_mock_envoy()
     data = envoy.data
     assert data is not None
@@ -166,6 +170,7 @@ async def test_with_5_0_49_firmware():
         "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
     }
     assert envoy.part_number == "800-00551-r02"
+    assert envoy.phase_count == 1
 
     assert not data.system_consumption
     assert data.system_production.watts_now == 4859
@@ -441,6 +446,7 @@ async def test_with_3_7_0_firmware():
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
     respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
 
     # Verify the library does not support scraping to comply with ADR004
     with pytest.raises(EnvoyProbeFailed):
@@ -569,6 +575,8 @@ async def test_with_3_9_36_firmware_bad_auth():
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(401))
 
+    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
+
     with pytest.raises(EnvoyAuthenticationRequired):
         await _get_mock_envoy()
 
@@ -606,6 +614,8 @@ async def test_with_3_9_36_firmware_no_inverters():
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(401))
+
+    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -653,6 +663,8 @@ async def test_with_3_9_36_firmware():
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(401))
+
+    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -782,6 +794,8 @@ async def test_with_3_9_36_firmware_with_production_401():
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
+    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
+
     envoy = await _get_mock_envoy()
     data = envoy.data
     assert data is not None
@@ -835,6 +849,7 @@ async def test_with_3_9_36_firmware_with_production_and_production_json_401():
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
 
     with pytest.raises(EnvoyAuthenticationRequired):
         await _get_mock_envoy()
@@ -873,6 +888,8 @@ async def test_with_3_17_3_firmware():
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+
+    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -1148,6 +1165,7 @@ async def test_with_3_17_3_firmware():
         "part_number",
         "supported_features",
         "updaters",
+        "phase_count",
     ),
     [
         (
@@ -1161,6 +1179,7 @@ async def test_with_3_17_3_firmware():
                 "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
+            1,
         ),
         (
             "4.10.35",
@@ -1170,7 +1189,8 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.PRODUCTION
-            | SupportedFeatures.TARIFF,
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.DUALPHASE,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
@@ -1178,7 +1198,9 @@ async def test_with_3_17_3_firmware():
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE,
             },
+            2,
         ),
         (
             "7.3.130",
@@ -1195,6 +1217,7 @@ async def test_with_3_17_3_firmware():
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
             },
+            1,
         ),
         (
             "7.3.130_no_consumption",
@@ -1202,13 +1225,16 @@ async def test_with_3_17_3_firmware():
             SupportedFeatures.METERING
             | SupportedFeatures.INVERTERS
             | SupportedFeatures.PRODUCTION
-            | SupportedFeatures.TARIFF,
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.DUALPHASE,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE,
             },
+            2,
         ),
         (
             "7.3.517",
@@ -1231,6 +1257,7 @@ async def test_with_3_17_3_firmware():
                 | SupportedFeatures.ENCHARGE,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
+            1,
         ),
         (
             "7.3.517_system_2",
@@ -1242,7 +1269,8 @@ async def test_with_3_17_3_firmware():
             | SupportedFeatures.ENCHARGE
             | SupportedFeatures.INVERTERS
             | SupportedFeatures.PRODUCTION
-            | SupportedFeatures.TARIFF,
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.DUALPHASE,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionUpdater": SupportedFeatures.METERING
@@ -1252,7 +1280,9 @@ async def test_with_3_17_3_firmware():
                 "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
                 | SupportedFeatures.ENCHARGE,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE,
             },
+            2,
         ),
         (
             "7.6.114_without_cts",
@@ -1262,6 +1292,7 @@ async def test_with_3_17_3_firmware():
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
             },
+            1,
         ),
         (
             "7.6.175",
@@ -1271,6 +1302,7 @@ async def test_with_3_17_3_firmware():
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
             },
+            1,
         ),
         (
             "7.6.175_total",
@@ -1283,6 +1315,7 @@ async def test_with_3_17_3_firmware():
                 "EnvoyProductionJsonFallbackUpdater": SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
+            1,
         ),
         (
             "7.6.175_standard",
@@ -1292,6 +1325,7 @@ async def test_with_3_17_3_firmware():
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
             },
+            1,
         ),
         (
             "7.6.175_with_cts",
@@ -1310,6 +1344,28 @@ async def test_with_3_17_3_firmware():
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
+            1,
+        ),
+        (
+            "7.6.175_with_cts_3phase",
+            "800-00654-r08",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.THREEPHASE,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.THREEPHASE,
+            },
+            3,
         ),
         (
             "7.6.185_with_cts_and_battery_3t",
@@ -1330,6 +1386,7 @@ async def test_with_3_17_3_firmware():
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
+            1,
         ),
         (
             "8.1.41",
@@ -1350,6 +1407,7 @@ async def test_with_3_17_3_firmware():
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION,
             },
+            1,
         ),
     ],
     ids=[
@@ -1364,6 +1422,7 @@ async def test_with_3_17_3_firmware():
         "7.6.175_total",
         "7.6.175_standard",
         "7.6.175_with_cts",
+        "7.6.175_with_cts_3phase",
         "7.6.185_with_cts_and_battery_3t",
         "8.1.41",
     ],
@@ -1377,6 +1436,7 @@ async def test_with_7_x_firmware(
     supported_features: SupportedFeatures,
     updaters: dict[str, SupportedFeatures],
     caplog: pytest.LogCaptureFixture,
+    phase_count: int,
 ) -> None:
     """Verify with 7.x firmware."""
     respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
@@ -1482,6 +1542,13 @@ async def test_with_7_x_firmware(
         respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+
+    if "ivp_meters" in files:
+        respx.get("/ivp/meters").mock(
+            return_value=Response(200, json=_load_json_fixture(version, "ivp_meters"))
+        )
+    else:
+        respx.get("/ivp/meters").mock(return_value=Response(404))
 
     caplog.set_level(logging.DEBUG)
 
@@ -1607,3 +1674,5 @@ async def test_with_7_x_firmware(
             await envoy.enable_charge_from_grid()
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.disable_charge_from_grid()
+
+    assert envoy.phase_count == phase_count

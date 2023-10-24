@@ -37,6 +37,7 @@ from .updaters.api_v1_production import EnvoyApiV1ProductionUpdater
 from .updaters.api_v1_production_inverters import EnvoyApiV1ProductionInvertersUpdater
 from .updaters.base import EnvoyUpdater
 from .updaters.ensemble import EnvoyEnembleUpdater
+from .updaters.meters import EnvoyMetersUpdater
 from .updaters.production import (
     EnvoyProductionJsonFallbackUpdater,
     EnvoyProductionJsonUpdater,
@@ -52,6 +53,7 @@ DEFAULT_HEADERS = {
 }
 
 UPDATERS: list[type["EnvoyUpdater"]] = [
+    EnvoyMetersUpdater,
     EnvoyProductionUpdater,
     EnvoyProductionJsonUpdater,
     EnvoyApiV1ProductionUpdater,
@@ -256,6 +258,19 @@ class Envoy:
         """Return the supported features."""
         assert self._supported_features is not None, "Call setup() first"  # nosec
         return self._supported_features
+
+    @property
+    def phase_count(self) -> int:
+        """Return the number of configured phases."""
+        assert self._supported_features is not None, "Call setup() first"  # nosec
+        if self._supported_features & SupportedFeatures.DUALPHASE:
+            phase_count = 2
+        elif self._supported_features & SupportedFeatures.THREEPHASE:
+            phase_count = 3
+        else:
+            # return 1 phase, indicating no multiphase data is present
+            phase_count = 1
+        return phase_count
 
     async def _make_cached_request(
         self, request_func: Callable[[str], Awaitable[httpx.Response]], endpoint: str
