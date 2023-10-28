@@ -394,12 +394,14 @@
       'watt_hours_today': 7412,
       'watts_now': 806,
     }),
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 179155,
       'watt_hours_lifetime': 26785327,
       'watt_hours_today': 139,
       'watts_now': 166,
     }),
+    'system_production_phases': None,
     'tariff': dict({
       'currency': dict({
         'code': 'USD',
@@ -1002,12 +1004,14 @@
       ]),
     }),
     'system_consumption': None,
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 366671,
       'watt_hours_lifetime': 133798553,
       'watt_hours_today': 20161,
       'watts_now': 7907,
     }),
+    'system_production_phases': None,
     'tariff': dict({
       'currency': dict({
         'code': 'USD',
@@ -1290,12 +1294,14 @@
       'watt_hours_today': 15181,
       'watts_now': 1488,
     }),
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 149973,
       'watt_hours_lifetime': 3659507,
       'watt_hours_today': 87,
       'watts_now': 180,
     }),
+    'system_production_phases': None,
     'tariff': None,
   })
 # ---
@@ -1776,12 +1782,14 @@
       }),
     }),
     'system_consumption': None,
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 186012,
       'watt_hours_lifetime': 4545928,
       'watt_hours_today': 14850,
       'watts_now': 3731,
     }),
+    'system_production_phases': None,
     'tariff': dict({
       'currency': dict({
         'code': 'USD',
@@ -2861,12 +2869,14 @@
       'watt_hours_today': 24293,
       'watts_now': 3803,
     }),
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 218716,
       'watt_hours_lifetime': 19230315,
       'watt_hours_today': 18635,
       'watts_now': 4300,
     }),
+    'system_production_phases': None,
     'tariff': dict({
       'currency': dict({
         'code': 'USD',
@@ -4036,12 +4046,14 @@
       'watt_hours_today': 12902,
       'watts_now': 2710,
     }),
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 18431346,
       'watt_hours_lifetime': 18442495,
       'watt_hours_today': 11495,
       'watts_now': 2663,
     }),
+    'system_production_phases': None,
     'tariff': dict({
       'currency': dict({
         'code': 'USD',
@@ -4451,12 +4463,14 @@
       ]),
     }),
     'system_consumption': None,
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 101742,
       'watt_hours_lifetime': 1544282,
       'watt_hours_today': 10363,
       'watts_now': 586,
     }),
+    'system_production_phases': None,
     'tariff': None,
   })
 # ---
@@ -4652,12 +4666,14 @@
       ]),
     }),
     'system_consumption': None,
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 107011,
       'watt_hours_lifetime': 8717473,
       'watt_hours_today': 7883,
       'watts_now': 3391,
     }),
+    'system_production_phases': None,
     'tariff': None,
   })
 # ---
@@ -4996,12 +5012,14 @@
       ]),
     }),
     'system_consumption': None,
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 189712,
       'watt_hours_lifetime': 6139406,
       'watt_hours_today': 36462,
       'watts_now': 5740,
     }),
+    'system_production_phases': None,
     'tariff': None,
   })
 # ---
@@ -5484,12 +5502,14 @@
       }),
     }),
     'system_consumption': None,
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 0,
       'watt_hours_lifetime': 1152866,
       'watt_hours_today': 0,
       'watts_now': 1322,
     }),
+    'system_production_phases': None,
     'tariff': dict({
       'currency': dict({
         'code': 'EUR',
@@ -5936,12 +5956,14 @@
       'watt_hours_today': 19904,
       'watts_now': 474,
     }),
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 111093,
       'watt_hours_lifetime': 3183793,
       'watt_hours_today': 4425,
       'watts_now': 488,
     }),
+    'system_production_phases': None,
     'tariff': dict({
       'currency': dict({
         'code': 'EUR',
@@ -6542,11 +6564,51 @@
       'watt_hours_today': 12423,
       'watts_now': 209,
     }),
+    'system_consumption_phases': dict({
+      'L1': dict({
+        'watt_hours_last_7_days': 39392,
+        'watt_hours_lifetime': 2293783,
+        'watt_hours_today': 8585,
+        'watts_now': 89,
+      }),
+      'L2': dict({
+        'watt_hours_last_7_days': 18949,
+        'watt_hours_lifetime': 948058,
+        'watt_hours_today': 2155,
+        'watts_now': 123,
+      }),
+      'L3': dict({
+        'watt_hours_last_7_days': 10443,
+        'watt_hours_lifetime': 832954,
+        'watt_hours_today': 1683,
+        'watts_now': -3,
+      }),
+    }),
     'system_production': dict({
       'watt_hours_last_7_days': 69492,
       'watt_hours_lifetime': 4351113,
       'watt_hours_today': 5113,
       'watts_now': -6,
+    }),
+    'system_production_phases': dict({
+      'L1': dict({
+        'watt_hours_last_7_days': 29891,
+        'watt_hours_lifetime': 1869678,
+        'watt_hours_today': 2200,
+        'watts_now': -3,
+      }),
+      'L2': dict({
+        'watt_hours_last_7_days': 19794,
+        'watt_hours_lifetime': 1241246,
+        'watt_hours_today': 1455,
+        'watts_now': 0,
+      }),
+      'L3': dict({
+        'watt_hours_last_7_days': 19807,
+        'watt_hours_lifetime': 1240189,
+        'watt_hours_today': 1458,
+        'watts_now': -4,
+      }),
     }),
     'tariff': dict({
       'currency': dict({
@@ -7144,12 +7206,14 @@
       'watt_hours_today': 63,
       'watts_now': 519,
     }),
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 73003,
       'watt_hours_lifetime': 2432970,
       'watt_hours_today': 1,
       'watts_now': 0,
     }),
+    'system_production_phases': None,
     'tariff': dict({
       'currency': dict({
         'code': 'EUR',
@@ -8302,12 +8366,14 @@
       'watt_hours_today': 0,
       'watts_now': 5210,
     }),
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 1456164,
       'watt_hours_lifetime': 1510206,
       'watt_hours_today': 55045,
       'watts_now': 13028,
     }),
+    'system_production_phases': None,
     'tariff': None,
   })
 # ---

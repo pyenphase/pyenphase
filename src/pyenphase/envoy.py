@@ -100,6 +100,7 @@ class Envoy:
         self._updaters: list[EnvoyUpdater] = []
         self._endpoint_cache: dict[str, httpx.Response] = {}
         self.data: EnvoyData | None = None
+        self._common_properties: dict[str, Any] = {}
 
     async def setup(self) -> None:
         """Obtain the firmware version for later Envoy authentication."""
@@ -260,17 +261,19 @@ class Envoy:
         return self._supported_features
 
     @property
+    def common_properties(self) -> dict[str, Any]:
+        """Return the supported features."""
+        assert self._common_properties is not None, "Call setup() first"  # nosec
+        return self._common_properties
+
+    @property
     def phase_count(self) -> int:
         """Return the number of configured phases."""
-        assert self._supported_features is not None, "Call setup() first"  # nosec
-        if self._supported_features & SupportedFeatures.DUALPHASE:
-            phase_count = 2
-        elif self._supported_features & SupportedFeatures.THREEPHASE:
-            phase_count = 3
-        else:
-            # return 1 phase, indicating no multiphase data is present
-            phase_count = 1
-        return phase_count
+        return (
+            1
+            if "phaseCount" not in self._common_properties
+            else self._common_properties["phaseCount"]
+        )
 
     async def _make_cached_request(
         self, request_func: Callable[[str], Awaitable[httpx.Response]], endpoint: str
@@ -293,7 +296,9 @@ class Envoy:
         cached_request = partial(self._make_cached_request, self.request)
 
         for updater in get_updaters():
-            klass = updater(version, cached_probe, cached_request)
+            klass = updater(
+                version, cached_probe, cached_request, self._common_properties
+            )
             if updater_features := await klass.probe(supported_features):
                 supported_features |= updater_features
                 updaters.append(klass)

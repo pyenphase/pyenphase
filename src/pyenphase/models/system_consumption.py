@@ -17,9 +17,14 @@ class EnvoySystemConsumption:
     watts_now: int
 
     @classmethod
-    def from_production(cls, data: dict[str, Any]) -> EnvoySystemConsumption:
+    def from_production(
+        cls, data: dict[str, Any], phase: int = -1
+    ) -> EnvoySystemConsumption | None:
         """Initialize from the production API."""
         consumption = data["consumption"][0]
+        if phase >= 0:
+            consumption = consumption["lines"][phase]
+
         return cls(
             watt_hours_lifetime=int(round(consumption["whLifetime"])),
             watt_hours_last_7_days=int(round(consumption["whLastSevenDays"])),

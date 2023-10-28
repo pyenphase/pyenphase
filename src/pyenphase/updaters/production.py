@@ -97,10 +97,23 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         """Update the Envoy for this endpoint."""
         production_data = await self._json_request(self.end_point)
         envoy_data.raw[self.end_point] = production_data
+
+        # get phase count from Envoy common features, default to 1 (no phases)
+        phase_count = self._common_properties.get("phaseCount") or 1
+
         if self._supported_features & SupportedFeatures.PRODUCTION:
             envoy_data.system_production = EnvoySystemProduction.from_production(
                 production_data
             )
+            # get production phase data if more then 1 phase is found
+            phase_production: dict[str, EnvoySystemProduction | None] = {}
+            for phase in range(phase_count if phase_count > 1 else 0):
+                phase_production[f"L{phase+1}"] = EnvoySystemProduction.from_phase(
+                    production_data, phase
+                )
+            if phase_production:
+                envoy_data.system_production_phases = phase_production
+
         if (
             self._supported_features & SupportedFeatures.NET_CONSUMPTION
             or self._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
@@ -108,6 +121,16 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             envoy_data.system_consumption = EnvoySystemConsumption.from_production(
                 production_data
             )
+
+            # get consumption phase data if more then 1 phase is found
+            phase_consumption: dict[str, EnvoySystemConsumption | None] = {}
+
+            for phase in range(phase_count if phase_count > 1 else 0):
+                phase_consumption[
+                    f"L{phase+1}"
+                ] = EnvoySystemConsumption.from_production(production_data, phase)
+            if phase_consumption:
+                envoy_data.system_consumption_phases = phase_consumption  # type: ignore
 
 
 class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):

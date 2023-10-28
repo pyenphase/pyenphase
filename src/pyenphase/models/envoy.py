@@ -22,6 +22,8 @@ class EnvoyData:
     enpower: EnvoyEnpower | None = None
     system_consumption: EnvoySystemConsumption | None = None
     system_production: EnvoySystemProduction | None = None
+    system_consumption_phases: dict[str, EnvoySystemProduction | None] | None = None
+    system_production_phases: dict[str, EnvoySystemProduction | None] | None = None
     dry_contact_status: dict[str, EnvoyDryContactStatus] = field(default_factory=dict)
     dry_contact_settings: dict[str, EnvoyDryContactSettings] = field(
         default_factory=dict
