@@ -21,6 +21,7 @@ from .const import (
     URL_DRY_CONTACT_STATUS,
     URL_GRID_RELAY,
     URL_TARIFF,
+    CommonProperties,
     SupportedFeatures,
 )
 from .exceptions import (
@@ -269,11 +270,7 @@ class Envoy:
     @property
     def phase_count(self) -> int:
         """Return the number of configured phases."""
-        return (
-            1
-            if "phaseCount" not in self._common_properties
-            else self._common_properties["phaseCount"]
-        )
+        return self._common_properties.get(CommonProperties.PHASECOUNT, 1)
 
     async def _make_cached_request(
         self, request_func: Callable[[str], Awaitable[httpx.Response]], endpoint: str

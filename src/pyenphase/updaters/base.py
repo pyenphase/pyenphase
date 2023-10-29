@@ -37,7 +37,7 @@ class EnvoyUpdater:
         response = await self._probe_request(end_point)
         return json_loads(end_point, response.content)
 
-    async def _add_common_property(self, property: str, property_value: Any) -> None:
+    def _add_common_property(self, property: str, property_value: Any) -> None:
         """Add common property to envoy for use by updaters probe"""
         self._common_properties[property] = property_value
 

@@ -57,3 +57,10 @@ class SupportedFeatures(enum.IntFlag):
     TARIFF = 128
     DUALPHASE = 256
     THREEPHASE = 512
+
+
+class CommonProperties(enum.StrEnum):
+    CTMETERS = "ctMeters"
+    PHASECOUNT = "phaseCount"
+    PHASEMODE = "phaseMode"
+    CONSUMPTIONMETER = "consumptionMeter"

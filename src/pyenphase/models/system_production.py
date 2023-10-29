@@ -67,15 +67,11 @@ class EnvoySystemProduction:
         all_production = data["production"]
 
         eim = find_dict_by_key(all_production, "eim")
-        phases = eim.get("lines")
-        if not phases:
-            return None
+        phasedata = eim["lines"][phase]
 
         return cls(
-            watt_hours_lifetime=int(round(phases[phase].get("whLifetime") or 0)),
-            watt_hours_last_7_days=int(
-                round(phases[phase].get("whLastSevenDays") or 0)
-            ),
-            watt_hours_today=int(round(phases[phase].get("whToday") or 0)),
-            watts_now=int(round(phases[phase].get("wNow") or 0)),
+            watt_hours_lifetime=int(round(phasedata.get("whLifetime") or 0)),
+            watt_hours_last_7_days=int(round(phasedata.get("whLastSevenDays") or 0)),
+            watt_hours_today=int(round(phasedata.get("whToday") or 0)),
+            watts_now=int(round(phasedata.get("wNow") or 0)),
         )
