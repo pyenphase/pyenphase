@@ -9,13 +9,15 @@
 project = "pyenphase"
 copyright = "2023, pyenphase"
 author = "pyenphase"
-release = "0.0.2"
+release = "1.14.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
     "myst_parser",
+    "sphinx.ext.autodoc",
+    "sphinx_autodoc_typehints",
 ]
 
 # The suffix of source filenames.
