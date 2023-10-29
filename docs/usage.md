@@ -8,13 +8,13 @@ import pyenphase
 
 ## Initialization
 
-Access to the Envoy device requires specifying a username and password or a JWT Token. What these are and if the token is required depends on the firmware active in the Envoy. What features and data are offered by the Envoy depends on the Envoy type and firmware.
+Access to the Envoy device requires specifying its ip address or dns name when creating an Instance of the [Envoy class](#pyenphase.Envoy).
 
-The active firmware version can be obtained without any authentication and is the first setup in the initialization.
+Next the envoy serial number and active firmware version should be obtained to identify which authenthication method is required. Use the [setup method](#pyenphase.Envoy.setup).
 
-Once the firmware version is known, authentication can take place using the required parameters for the firmware.
+Once the firmware version is known, authentication can take place using the required parameters for the firmware. The [auhenticate method](#pyenphase.Envoy.authenticate) requires a username and password and/or a JWT Token. What the username and password are and if the token is required [depends on the firmware](#authentication) active in the Envoy.
 
-Upon successful authentication the data can be collected.
+Upon successful authentication the data can be collected using the [update method](#pyenphase.Envoy.update).
 
 ```python
 from pyenphase import Envoy, EnvoyData
@@ -40,12 +40,38 @@ while True:
 
 Before firmware 7, authentication was based on username/password. In these cases either `Envoy` or `Installer` usernames with a blank password or a known username/password can be used. The token is not utilized. The authentication module will calculate the passwords for these 2 accounts based on the serial number retrieved by the setup method.
 
-With firmware 7, token based authentication is required. The authentication module can retrieve the token from the Enlighten website using the Enlighten username and password, which need to be specified. If the token is known, it can be specified and it will be used instead of obtaining one from the internet.
+With firmware 7, token based authentication is required. The authentication module can retrieve the token from the Enlighten website using the retrieved Envoy serial number and the Enlighten username and password which need to be specified. If the token is known, it can be specified and it will be used instead of obtaining one from the internet.
 
 ```python
 envoy = Envoy(host_ip_or_name)
 await envoy.setup()
 await envoy.authenticate(username=username, password=password, token=token)
+
+```
+
+### Obtain and renew token
+
+Upon completion of the authentication, the token can be requested and stored for later re-use in authentication. The application should check for [token expiry](#pyenphase.auth.EnvoyTokenAuth.expire_timestamp) and request timely [renewal](#pyenphase.auth.EnvoyTokenAuth.refresh). Until the token is expired it can be used with each authenticate request.
+
+```python
+from pyenphase import Envoy
+from pyenphase.auth import EnvoyTokenAuth
+
+token: str = "get token from storage"
+
+envoy = Envoy(host_ip_or_name)
+await envoy.setup()
+await envoy.authenticate(username=username, password=password, token=token)
+
+assert isinstance(envoy.auth, EnvoyTokenAuth)
+expire_time = envoy.auth.expire_timestamp
+
+if expire_time < (datetime.now() - timedelta(days=7)):
+    await self.envoy.auth.refresh()
+
+token = envoy.auth.token
+# save token is some storage
+
 ```
 
 ### Re-Authentication
@@ -57,38 +83,7 @@ When authorization is omitted or data requests experience an authorization failu
         data: EnvoyData = await envoy.update()
 
     except EnvoyAuthenticationRequired:
-        await envoy.authenticate(username=username, password=password)
-```
-
-### Obtain and renew token
-
-Upon completion of the authentication the token can be requested and stored for later re-use in authentication. The application should check for token expiry and request timely renewal. Until the token is expired it can be used with each authenticate request.
-
-```python
-from pyenphase import Envoy
-from pyenphase.auth import EnvoyTokenAuth
-
-token: str = None
-
-envoy = Envoy(host_ip_or_name)
-await envoy.setup()
-await envoy.authenticate(username=username, password=password, token=token)
-
-assert isinstance(envoy.auth, EnvoyTokenAuth)
-token = envoy.auth.token
-expire_time = envoy.auth.expire_timestamp
-
-while True:
-    try:
-        data: EnvoyData = await envoy.update()
-
-    except EnvoyAuthenticationRequired:
-        if expire_time < now.timestamp():
-            # token expired, refresh it
-            await self.envoy.auth.refresh()
-        else:
-            # some envoy outage
-            await envoy.authenticate(username=username, password=password,token=token)
+        await envoy.authenticate(username=username, password=password,token-token)
 ```
 
 ### Authorized levels
@@ -139,11 +134,11 @@ The probe method shown in above example is normally called one-time by envoy.upd
 
 ## Data
 
-The pyenphase package collects data from a specific set of endpoint on the Envoy. The set is based on the home owner [authorization level](#authorized-levels) as common denominator. Additional endpoints [can be obtained](#bring-your-own-endpoint), but require application logic.
+The pyenphase package collects [data](#pyenphase.EnvoyData) from a specific set of endpoint on the Envoy. The set is based on the home owner [authorization level](#authorized-levels) as common denominator. Additional endpoints [can be obtained](#bring-your-own-endpoint), but require application logic.
 
 ### System_Production data
 
-This is the solar production data reported by the Envoy, class `EnvoySystemProduction`.
+This is the solar production data reported by the Envoy, class [EnvoySystemProduction](#pyenphase.models.system_production.EnvoySystemProduction).
 
 ```python
     data: EnvoyData = await envoy.update()
@@ -158,7 +153,7 @@ The source of the data differs by Envoy type and firmware level. For metered Env
 
 ### System_Consumption data
 
-This is the energy consumption by the house reported by the Envoy, class `EnvoySystemConsumption`. It is only available for metered Envoy with installed and configured consumption CT Meter.
+This is the energy consumption by the house reported by the Envoy, class [EnvoySystemConsumption](#pyenphase.models.system_consumption.EnvoySystemConsumption). It is only available for metered Envoy with installed and configured consumption CT Meter.
 
 ```python
     data: EnvoyData = await envoy.update()
@@ -172,7 +167,7 @@ This is the energy consumption by the house reported by the Envoy, class `EnvoyS
 
 ### Production and Consumption Phase data
 
-Only available for metered Envoy with installed and configured CT meter in `three` phase mode and more then 1 phase active. It is reported for solar production and house consumption if these are enabled. Data is in [system_production_phases: dict[str,EnvoySystemProduction]](#system_production-data) and [system_consumption_phases: dict[str,EnvoySystemConsumption]](#system_consumption-data). Phases are named `L1`, `L2`, and `L3`.
+Only available for metered Envoy with installed and configured CT meter in `three` phase mode and more then 1 phase active. It is reported for solar [production](#pyenphase.models.system_production.EnvoySystemProduction) and house [consumption](#pyenphase.models.system_consumption.EnvoySystemConsumption) if these are enabled. Data is in [system_production_phases: dict[str,EnvoySystemProduction]](#system_production-data) and [system_consumption_phases: dict[str,EnvoySystemConsumption]](#system_consumption-data). Phases are named `L1`, `L2`, and `L3`.
 
 ```python
     data: EnvoyData = await envoy.update()
@@ -187,7 +182,7 @@ Only available for metered Envoy with installed and configured CT meter in `thre
 
 ### Inverter data
 
-Individual inverter data, available for model as of firmware 3.9. are reported in `inverters: dict[str, EnvoyInverter]` attribute.
+Individual [inverter data](#pyenphase.models.inverter.EnvoyInverter), available for model as of firmware 3.9. are reported in `inverters: dict[str, EnvoyInverter]` attribute.
 
 ```python
 for inverter in data.inverters:
@@ -197,13 +192,17 @@ for inverter in data.inverters:
     print (f'{inverter} last report: {data.inverters[inverter].last_report_date}')
 ```
 
-### Encharge data
+### Envoy Encharge data
 
-tbd
+[tbd](#pyenphase.models.encharge.EnvoyEncharge)
 
-### Enpower data
+[tbd](#pyenphase.models.encharge.EnvoyEnchargeAggregate)
 
-tbd
+[tbd](#pyenphase.models.encharge.EnvoyEnchargePower)
+
+### Enpoy Enpower data
+
+[tbd](#pyenphase.models.enpower.EnvoyEnpower)
 
 ### Raw data
 
@@ -212,12 +211,12 @@ All data for all endpoints is stored as received in the `raw: dict[str, Any]` at
 ```JSON
 {
     "/production": {
-        ...
+
     },
     "/api/v1/production/inverters": [{
-        ...
-    )],
-    ...
+
+    }],
+    {},
 }
 ```
 
@@ -245,6 +244,81 @@ The package can be extended by registering an additional `updater` based on a su
 
 An updater requires 2 methods. A `probe` method which is used to initialize the updater and is only called once, and an `update` method which is collecting the data. Each may collect the same or different data based on the needs. The updater will have to provide same data and features as other updaters for the data attribute.
 
-## Envoy methods and properties
+## Envoy Classes, methods and properties
 
-Include some autogenerated list here
+```{eval-rst}
+.. autoclass:: pyenphase.Envoy
+  :members:
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.auth.EnvoyTokenAuth
+  :members:
+
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.EnvoyData
+  :members:
+
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.system_production.EnvoySystemProduction
+  :members:
+
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.system_consumption.EnvoySystemConsumption
+  :members:
+
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.inverter.EnvoyInverter
+  :members:
+
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.encharge.EnvoyEncharge
+  :members:
+
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.encharge.EnvoyEnchargeAggregate
+  :members:
+
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.encharge.EnvoyEnchargePower
+  :members:
+
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.enpower.EnvoyEnpower
+  :members:
+
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.dry_contacts.EnvoyDryContactSettings
+  :members:
+
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.dry_contacts.EnvoyDryContactStatus
+  :members:
+
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.updaters.tariff.EnvoyTariff
+  :members:
+
+```
