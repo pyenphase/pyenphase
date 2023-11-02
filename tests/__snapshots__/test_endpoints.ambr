@@ -3938,12 +3938,14 @@
       'watt_hours_today': 24293,
       'watts_now': 3803,
     }),
+    'system_consumption_phases': None,
     'system_production': dict({
       'watt_hours_last_7_days': 218716,
       'watt_hours_lifetime': 19230315,
       'watt_hours_today': 18635,
       'watts_now': 4300,
     }),
+    'system_production_phases': None,
     'tariff': dict({
       'currency': dict({
         'code': 'USD',
