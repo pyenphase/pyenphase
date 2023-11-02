@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.14.1 (2023-11-02)
+
+### Fix
+
+* Add economy EnvoyStorageMode ([#110](https://github.com/pyenphase/pyenphase/issues/110)) ([`edaf93c`](https://github.com/pyenphase/pyenphase/commit/edaf93c8c1cd71f34bf0be227436f676b1c13772))
+
 ## v1.14.0 (2023-10-24)
 
 ### Feature
