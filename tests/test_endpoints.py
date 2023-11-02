@@ -14,7 +14,7 @@ from httpx import Response
 from syrupy import SnapshotAssertion
 
 from pyenphase import Envoy, EnvoyInverter, EnvoySystemProduction, register_updater
-from pyenphase.const import URL_GRID_RELAY, URL_PRODUCTION
+from pyenphase.const import URL_GRID_RELAY, URL_PRODUCTION, URL_TARIFF
 from pyenphase.envoy import SupportedFeatures, get_updaters
 from pyenphase.exceptions import (
     ENDPOINT_PROBE_EXCEPTIONS,
@@ -1397,6 +1397,37 @@ async def test_with_3_17_3_firmware():
             {},
         ),
         (
+            "7.3.517_legacy_savings_mode",
+            "800-00555-r03",
+            SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.ENPOWER
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
+                | SupportedFeatures.ENCHARGE,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+            },
+            1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
+        ),
+        (
             "7.3.517_system_2",
             "800-00555-r03",
             SupportedFeatures.METERING
@@ -1663,7 +1694,8 @@ async def test_with_3_17_3_firmware():
         "7.3.130",
         "7.3.130_no_consumption",
         "7.3.517",
-        "7.3.517_no_black_start",
+        "7.3.517_legacy_savings_mode",
+        "7.3.517_system_2",
         "7.6.114_without_cts",
         "7.6.175",
         "7.6.175_total",
@@ -1878,6 +1910,13 @@ async def test_with_7_x_firmware(
     if (supported_features & SupportedFeatures.ENCHARGE) and (
         supported_features & SupportedFeatures.TARIFF
     ):
+        # Test `savings-mode` is converted to `economy`
+        if (
+            envoy.data.raw[URL_TARIFF]["tariff"]["storage_settings"]["mode"]
+            == "savings-mode"
+        ):
+            assert envoy.data.tariff.storage_settings.mode == EnvoyStorageMode.SAVINGS
+
         # Test setting battery features
         await envoy.enable_charge_from_grid()
         assert envoy.data.tariff.storage_settings.charge_from_grid is True
