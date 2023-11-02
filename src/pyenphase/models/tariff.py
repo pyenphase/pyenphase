@@ -78,7 +78,7 @@ class EnvoyStorageSettings:
             # However, the Enlighten app is using the `economy` value, so we will convert
             # `savings-mode` to `economy`
             mode=EnvoyStorageMode.SAVINGS
-            if data["mode"] is EnvoyStorageMode.LEGACY_SAVINGS
+            if data["mode"] == EnvoyStorageMode.LEGACY_SAVINGS.value
             else EnvoyStorageMode(data["mode"]),
             operation_mode_sub_type=data["operation_mode_sub_type"],
             reserved_soc=data["reserved_soc"],
