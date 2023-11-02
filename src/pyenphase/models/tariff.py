@@ -9,8 +9,8 @@ from typing import Any
 class EnvoyStorageMode(StrEnum):
     BACKUP = "backup"
     SELF_CONSUMPTION = "self-consumption"
-    SAVINGS = "savings-mode"
-    ECONOMY = "economy"
+    SAVINGS = "economy"
+    LEGACY_SAVINGS = "savings-mode"
 
 
 @dataclass
@@ -74,7 +74,12 @@ class EnvoyStorageSettings:
     def from_api(cls, data: dict[str, Any]) -> EnvoyStorageSettings:
         """Initialize from the API."""
         return cls(
-            mode=EnvoyStorageMode(data["mode"]),
+            # It appears a `mode` value of `economy` and `savings-mode` is interchangeable
+            # However, the Enlighten app is using the `economy` value, so we will convert
+            # `savings-mode` to `economy`
+            mode=EnvoyStorageMode.SAVINGS
+            if data["mode"] is EnvoyStorageMode.LEGACY_SAVINGS
+            else EnvoyStorageMode(data["mode"]),
             operation_mode_sub_type=data["operation_mode_sub_type"],
             reserved_soc=data["reserved_soc"],
             very_low_soc=data["very_low_soc"],
