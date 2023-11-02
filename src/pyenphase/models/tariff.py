@@ -10,6 +10,7 @@ class EnvoyStorageMode(StrEnum):
     BACKUP = "backup"
     SELF_CONSUMPTION = "self-consumption"
     SAVINGS = "savings-mode"
+    ECONOMY = "economy"
 
 
 @dataclass
