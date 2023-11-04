@@ -1308,6 +1308,19 @@ async def test_with_3_17_3_firmware():
             2,
         ),
         (
+            "7.3.466_metered_disabled_cts",
+            "800-00654-r08",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionJsonFallbackUpdater": SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+            },
+            1,
+        ),
+        (
             "7.6.114_without_cts",
             "800-00656-r06",
             SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
@@ -1441,6 +1454,7 @@ async def test_with_3_17_3_firmware():
         "7.3.517",
         "7.3.517_legacy_savings_mode",
         "7.3.517_system_2",
+        "7.3.466_metered_disabled_cts",
         "7.6.114_without_cts",
         "7.6.175",
         "7.6.175_total",

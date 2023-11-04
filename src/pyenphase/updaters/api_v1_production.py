@@ -28,7 +28,9 @@ class EnvoyApiV1ProductionUpdater(EnvoyUpdater):
                 "Production endpoint not found at %s: %s", URL_PRODUCTION_V1, e
             )
             return None
-        if all(value == 0 for value in response.values()):
+        if all(
+            value == 0 for key, value in response.items() if key.startswith("wattHours")
+        ):
             _LOGGER.debug(
                 "Detected broken production endpoint bug at %s: %s",
                 URL_PRODUCTION_V1,

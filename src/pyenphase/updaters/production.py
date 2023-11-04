@@ -16,6 +16,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
     end_point = URL_PRODUCTION
     allow_inverters_fallback = False
+    working_endpoints: list[
+        str
+    ] = []  # list of successful production endpoint to use by inverters fallback
 
     async def probe(
         self, discovered_features: SupportedFeatures
@@ -35,6 +38,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         ):
             # Already discovered from another updater
             return None
+
+        # when inverters fallback use first successful endpoint rather then last one used.
+        if self.allow_inverters_fallback and self.working_endpoints:
+            self.end_point = self.working_endpoints[0]
 
         try:
             production_json: dict[str, Any] = await self._json_probe_request(
@@ -56,6 +63,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 )
                 return None
             raise
+
+        if self.end_point not in self.working_endpoints:
+            self.working_endpoints.append(self.end_point)
 
         if not discovered_production:
             production: list[dict[str, str | float | int]] | None = production_json.get(
