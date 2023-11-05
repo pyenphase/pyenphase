@@ -100,6 +100,7 @@ class Envoy:
         self._updaters: list[EnvoyUpdater] = []
         self._endpoint_cache: dict[str, httpx.Response] = {}
         self.data: EnvoyData | None = None
+        self._common_properties: dict[str, Any] = {}
 
     async def setup(self) -> None:
         """Obtain the firmware version for later Envoy authentication."""
@@ -293,7 +294,9 @@ class Envoy:
         cached_request = partial(self._make_cached_request, self.request)
 
         for updater in get_updaters():
-            klass = updater(version, cached_probe, cached_request)
+            klass = updater(
+                version, cached_probe, cached_request, self._common_properties
+            )
             if updater_features := await klass.probe(supported_features):
                 supported_features |= updater_features
                 updaters.append(klass)

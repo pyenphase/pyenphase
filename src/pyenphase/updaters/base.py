@@ -18,12 +18,14 @@ class EnvoyUpdater:
         envoy_version: AwesomeVersion,
         probe_request: Callable[[str], Awaitable[httpx.Response]],
         request: Callable[[str], Awaitable[httpx.Response]],
+        common_properties: dict[str, Any],
     ) -> None:
         """Initialize the Envoy endpoint."""
         self._envoy_version = envoy_version
         self._probe_request = probe_request
         self._request = request
         self._supported_features = SupportedFeatures(0)
+        self._common_properties = common_properties
 
     async def _json_request(self, end_point: str) -> Any:
         """Make a request to the Envoy and return the JSON response."""
@@ -34,6 +36,10 @@ class EnvoyUpdater:
         """Make a probe request to the Envoy and return the JSON response."""
         response = await self._probe_request(end_point)
         return json_loads(end_point, response.content)
+
+    def _add_common_property(self, property: str, property_value: Any) -> None:
+        """Add common property to envoy for use by updaters probe"""
+        self._common_properties[property] = property_value
 
     @abstractmethod
     async def probe(

@@ -1,7 +1,12 @@
 import logging
 from typing import Any
 
-from ..const import URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
+from ..const import (
+    URL_PRODUCTION,
+    URL_PRODUCTION_JSON,
+    CommonProperties,
+    SupportedFeatures,
+)
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.system_consumption import EnvoySystemConsumption
@@ -18,7 +23,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
     allow_inverters_fallback = False
     working_endpoints: list[
         str
-    ] = []  # list of successful production endpoint to use by inverters fallback
+    ] = (
+        []
+    )  #: list of successful production endpoint to use by EnvoyProductionJsonFallbackUpdater
 
     async def probe(
         self, discovered_features: SupportedFeatures
@@ -31,6 +38,12 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             SupportedFeatures.NET_CONSUMPTION in discovered_features
         )
         discovered_production = SupportedFeatures.PRODUCTION in discovered_features
+
+        # obtain any registered production endpoints that replied back from the common list
+        # when in allow_inverters_fallback mode we can use the first one that worked
+        self.working_endpoints = (
+            self._common_properties.get(CommonProperties.PRODUCTIONFALLBACKLIST) or []
+        )
         if (
             discovered_total_consumption
             and discovered_net_consumption
@@ -39,11 +52,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             # Already discovered from another updater
             return None
 
-        # when inverters fallback use first successful endpoint rather then last one used.
-        # clear the list if we are the fallback one to avoid use by other envoy instances
+        # when allow_inverters_fallback mode ia active use first successful endpoint registered in the list
         if self.allow_inverters_fallback and self.working_endpoints:
             self.end_point = self.working_endpoints[0]
-            self.working_endpoints.clear()
 
         try:
             production_json: dict[str, Any] = await self._json_probe_request(
@@ -66,8 +77,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 return None
             raise
 
-        # if working endpoint not in list yet, add it.
-        # But not when tis is the fallback one to avoid spill over to other Envoy device
+        # if endpoint is not in the list of successful endpoints yet, add it.
         if (
             self.end_point not in self.working_endpoints
             and not self.allow_inverters_fallback
@@ -107,6 +117,11 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     self._supported_features |= SupportedFeatures.TOTAL_CONSUMPTION
                 if not discovered_net_consumption and meter_type == "net-consumption":
                     self._supported_features |= SupportedFeatures.NET_CONSUMPTION
+
+        # register the updated fallback endpoints to the common list
+        self._add_common_property(
+            CommonProperties.PRODUCTIONFALLBACKLIST, self.working_endpoints
+        )
 
         return self._supported_features
 
