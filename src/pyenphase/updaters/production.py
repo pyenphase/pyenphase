@@ -40,8 +40,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             return None
 
         # when inverters fallback use first successful endpoint rather then last one used.
+        # clear the list if we are the fallback one to avoid use by other envoy instances
         if self.allow_inverters_fallback and self.working_endpoints:
             self.end_point = self.working_endpoints[0]
+            self.working_endpoints.clear()
 
         try:
             production_json: dict[str, Any] = await self._json_probe_request(
@@ -64,7 +66,12 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 return None
             raise
 
-        if self.end_point not in self.working_endpoints:
+        # if working endpoint not in list yet, add it.
+        # But not when tis is the fallback one to avoid spill over to other Envoy device
+        if (
+            self.end_point not in self.working_endpoints
+            and not self.allow_inverters_fallback
+        ):
             self.working_endpoints.append(self.end_point)
 
         if not discovered_production:
