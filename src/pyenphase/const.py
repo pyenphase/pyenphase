@@ -60,4 +60,4 @@ class SupportedFeatures(enum.IntFlag):
 
 
 class CommonProperties(enum.StrEnum):
-    PRODUCTIONFALLBACKLIST = "production_fallback_list"
+    PRODUCTION_FALLBACK_LIST = "production_fallback_list"

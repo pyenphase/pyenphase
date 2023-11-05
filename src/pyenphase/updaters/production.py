@@ -21,11 +21,6 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
     end_point = URL_PRODUCTION
     allow_inverters_fallback = False
-    working_endpoints: list[
-        str
-    ] = (
-        []
-    )  #: list of successful production endpoint to use by EnvoyProductionJsonFallbackUpdater
 
     async def probe(
         self, discovered_features: SupportedFeatures
@@ -41,8 +36,8 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         # obtain any registered production endpoints that replied back from the common list
         # when in allow_inverters_fallback mode we can use the first one that worked
-        self.working_endpoints = (
-            self._common_properties.get(CommonProperties.PRODUCTIONFALLBACKLIST) or []
+        working_endpoints = (
+            self._common_properties.get(CommonProperties.PRODUCTION_FALLBACK_LIST) or []
         )
         if (
             discovered_total_consumption
@@ -53,8 +48,8 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             return None
 
         # when allow_inverters_fallback mode ia active use first successful endpoint registered in the list
-        if self.allow_inverters_fallback and self.working_endpoints:
-            self.end_point = self.working_endpoints[0]
+        if self.allow_inverters_fallback and working_endpoints:
+            self.end_point = working_endpoints[0]
 
         try:
             production_json: dict[str, Any] = await self._json_probe_request(
@@ -79,10 +74,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         # if endpoint is not in the list of successful endpoints yet, add it.
         if (
-            self.end_point not in self.working_endpoints
+            self.end_point not in working_endpoints
             and not self.allow_inverters_fallback
         ):
-            self.working_endpoints.append(self.end_point)
+            working_endpoints.append(self.end_point)
 
         if not discovered_production:
             production: list[dict[str, str | float | int]] | None = production_json.get(
@@ -120,7 +115,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         # register the updated fallback endpoints to the common list
         self._add_common_property(
-            CommonProperties.PRODUCTIONFALLBACKLIST, self.working_endpoints
+            CommonProperties.PRODUCTION_FALLBACK_LIST, working_endpoints
         )
 
         return self._supported_features
