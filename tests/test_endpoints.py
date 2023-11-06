@@ -1605,7 +1605,7 @@ async def test_with_7_x_firmware(
             await bad_envoy.update_dry_contact({"id": "NC1"})
 
         dry_contact = envoy.data.dry_contact_settings["NC1"]
-        new_data = {"id": "NC1", "load_name": "NC1 Test"}
+        new_data: dict[str, Any] = {"id": "NC1", "load_name": "NC1 Test"}
         new_model = replace(dry_contact, **new_data)
 
         await envoy.update_dry_contact(new_data)
@@ -1658,6 +1658,15 @@ async def test_with_7_x_firmware(
             == "savings-mode"
         ):
             assert envoy.data.tariff.storage_settings.mode == EnvoyStorageMode.SAVINGS
+
+        storage_settings = envoy.data.tariff.storage_settings
+        new_data = {"charge_from_grid": True}
+        new_model = replace(storage_settings, **new_data)
+
+        if envoy.data.tariff.storage_settings.date is not None:
+            assert new_model.to_api()["date"] == envoy.data.tariff.storage_settings.date
+        else:
+            assert "date" not in new_model.to_api()
 
         # Test setting battery features
         await envoy.enable_charge_from_grid()
