@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.14.2 (2023-11-06)
+
+### Fix
+
+* Make date field optional in storage settings tariff model ([#112](https://github.com/pyenphase/pyenphase/issues/112)) ([`cf98198`](https://github.com/pyenphase/pyenphase/commit/cf98198b80326f5bf57c58c77eedbe17b6142b0b))
+
 ## v1.14.1 (2023-11-02)
 
 ### Fix
