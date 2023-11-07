@@ -9,7 +9,8 @@ from typing import Any
 class EnvoyStorageMode(StrEnum):
     BACKUP = "backup"
     SELF_CONSUMPTION = "self-consumption"
-    SAVINGS = "savings-mode"
+    SAVINGS = "economy"
+    LEGACY_SAVINGS = "savings-mode"
 
 
 @dataclass
@@ -67,27 +68,36 @@ class EnvoyStorageSettings:
     reserved_soc: float
     very_low_soc: int
     charge_from_grid: bool
-    date: str
+    date: str | None
 
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> EnvoyStorageSettings:
         """Initialize from the API."""
         return cls(
-            mode=EnvoyStorageMode(data["mode"]),
+            # It appears a `mode` value of `economy` and `savings-mode` is interchangeable
+            # However, the Enlighten app is using the `economy` value, so we will convert
+            # `savings-mode` to `economy`
+            mode=EnvoyStorageMode.SAVINGS
+            if data["mode"] == EnvoyStorageMode.LEGACY_SAVINGS.value
+            else EnvoyStorageMode(data["mode"]),
             operation_mode_sub_type=data["operation_mode_sub_type"],
             reserved_soc=data["reserved_soc"],
             very_low_soc=data["very_low_soc"],
             charge_from_grid=data["charge_from_grid"],
-            date=data["date"],
+            # Some firmware versions don't return date
+            date=data.get("date"),
         )
 
     def to_api(self) -> dict[str, Any]:
         """Convert to API format."""
-        return {
+        retval = {
             "mode": self.mode.value,
             "operation_mode_sub_type": self.operation_mode_sub_type,
             "reserved_soc": self.reserved_soc,
             "very_low_soc": self.very_low_soc,
             "charge_from_grid": self.charge_from_grid,
-            "date": self.date,
         }
+        if self.date is not None:
+            retval["date"] = self.date
+
+        return retval

@@ -14,7 +14,7 @@ from httpx import Response
 from syrupy import SnapshotAssertion
 
 from pyenphase import Envoy, EnvoyInverter, register_updater
-from pyenphase.const import URL_GRID_RELAY, URL_PRODUCTION
+from pyenphase.const import URL_GRID_RELAY, URL_PRODUCTION, URL_TARIFF
 from pyenphase.envoy import SupportedFeatures, get_updaters
 from pyenphase.exceptions import (
     ENDPOINT_PROBE_EXCEPTIONS,
@@ -1260,6 +1260,29 @@ async def test_with_3_17_3_firmware():
             1,
         ),
         (
+            "7.3.517_legacy_savings_mode",
+            "800-00555-r03",
+            SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.ENPOWER
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
+                | SupportedFeatures.ENCHARGE,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+            },
+            1,
+        ),
+        (
             "7.3.517_system_2",
             "800-00555-r03",
             SupportedFeatures.METERING
@@ -1416,7 +1439,8 @@ async def test_with_3_17_3_firmware():
         "7.3.130",
         "7.3.130_no_consumption",
         "7.3.517",
-        "7.3.517_no_black_start",
+        "7.3.517_legacy_savings_mode",
+        "7.3.517_system_2",
         "7.6.114_without_cts",
         "7.6.175",
         "7.6.175_total",
@@ -1581,7 +1605,7 @@ async def test_with_7_x_firmware(
             await bad_envoy.update_dry_contact({"id": "NC1"})
 
         dry_contact = envoy.data.dry_contact_settings["NC1"]
-        new_data = {"id": "NC1", "load_name": "NC1 Test"}
+        new_data: dict[str, Any] = {"id": "NC1", "load_name": "NC1 Test"}
         new_model = replace(dry_contact, **new_data)
 
         await envoy.update_dry_contact(new_data)
@@ -1628,6 +1652,22 @@ async def test_with_7_x_firmware(
     if (supported_features & SupportedFeatures.ENCHARGE) and (
         supported_features & SupportedFeatures.TARIFF
     ):
+        # Test `savings-mode` is converted to `economy`
+        if (
+            envoy.data.raw[URL_TARIFF]["tariff"]["storage_settings"]["mode"]
+            == "savings-mode"
+        ):
+            assert envoy.data.tariff.storage_settings.mode == EnvoyStorageMode.SAVINGS
+
+        storage_settings = envoy.data.tariff.storage_settings
+        new_data = {"charge_from_grid": True}
+        new_model = replace(storage_settings, **new_data)
+
+        if envoy.data.tariff.storage_settings.date is not None:
+            assert new_model.to_api()["date"] == envoy.data.tariff.storage_settings.date
+        else:
+            assert "date" not in new_model.to_api()
+
         # Test setting battery features
         await envoy.enable_charge_from_grid()
         assert envoy.data.tariff.storage_settings.charge_from_grid is True
