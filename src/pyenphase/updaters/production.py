@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from ..const import URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
+from ..const import PHASE_NAMES, URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.system_consumption import EnvoySystemConsumption
@@ -108,9 +108,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             # get production phase data if more then 1 phase is found
             phase_production: dict[str, EnvoySystemProduction | None] = {}
             for phase in range(phase_count if phase_count > 1 else 0):
-                phase_production[f"L{phase+1}"] = EnvoySystemProduction.from_phase(
-                    production_data, phase
-                )
+                phase_production[
+                    list(PHASE_NAMES)[phase].value
+                ] = EnvoySystemProduction.from_phase(production_data, phase)
             if phase_production:
                 envoy_data.system_production_phases = phase_production
 
@@ -127,7 +127,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
             for phase in range(phase_count if phase_count > 1 else 0):
                 phase_consumption[
-                    f"L{phase+1}"
+                    list(PHASE_NAMES)[phase].value
                 ] = EnvoySystemConsumption.from_production(production_data, phase)
             if phase_consumption:
                 envoy_data.system_consumption_phases = phase_consumption  # type: ignore

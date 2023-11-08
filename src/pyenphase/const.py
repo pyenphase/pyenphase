@@ -64,3 +64,9 @@ class CommonProperties(enum.StrEnum):
     PHASECOUNT = "phaseCount"
     PHASEMODE = "phaseMode"
     CONSUMPTIONMETER = "consumptionMeter"
+
+
+class PHASE_NAMES(enum.StrEnum):
+    PHASE1 = "L1"
+    PHASE2 = "L2"
+    PHASE3 = "L3"
