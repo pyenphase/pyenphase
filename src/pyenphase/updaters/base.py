@@ -7,6 +7,7 @@ from awesomeversion import AwesomeVersion
 
 from ..const import SupportedFeatures
 from ..json import json_loads
+from ..models.common import CommonProperties
 from ..models.envoy import EnvoyData
 
 
@@ -18,12 +19,14 @@ class EnvoyUpdater:
         envoy_version: AwesomeVersion,
         probe_request: Callable[[str], Awaitable[httpx.Response]],
         request: Callable[[str], Awaitable[httpx.Response]],
+        common_properties: CommonProperties,
     ) -> None:
         """Initialize the Envoy endpoint."""
         self._envoy_version = envoy_version
         self._probe_request = probe_request
         self._request = request
         self._supported_features = SupportedFeatures(0)
+        self._common_properties = common_properties
 
     async def _json_request(self, end_point: str) -> Any:
         """Make a request to the Envoy and return the JSON response."""

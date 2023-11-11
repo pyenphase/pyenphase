@@ -28,6 +28,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             SupportedFeatures.NET_CONSUMPTION in discovered_features
         )
         discovered_production = SupportedFeatures.PRODUCTION in discovered_features
+
+        # obtain any registered production endpoints that replied back from the common list
+        # when in allow_inverters_fallback mode we can use the first one that worked
+        working_endpoints: list[str] = self._common_properties.production_fallback_list
         if (
             discovered_total_consumption
             and discovered_net_consumption
@@ -35,6 +39,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         ):
             # Already discovered from another updater
             return None
+
+        # when allow_inverters_fallback mode is active use first successful endpoint registered in the list
+        if self.allow_inverters_fallback and working_endpoints:
+            self.end_point = working_endpoints[0]
 
         try:
             production_json: dict[str, Any] = await self._json_probe_request(
@@ -56,6 +64,13 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 )
                 return None
             raise
+
+        # if endpoint is not in the list of successful endpoints yet, add it.
+        if (
+            self.end_point not in working_endpoints
+            and not self.allow_inverters_fallback
+        ):
+            working_endpoints.append(self.end_point)
 
         if not discovered_production:
             production: list[dict[str, str | float | int]] | None = production_json.get(
@@ -90,6 +105,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     self._supported_features |= SupportedFeatures.TOTAL_CONSUMPTION
                 if not discovered_net_consumption and meter_type == "net-consumption":
                     self._supported_features |= SupportedFeatures.NET_CONSUMPTION
+
+        # register the updated fallback endpoints to the common list
+        self._common_properties.production_fallback_list = working_endpoints
 
         return self._supported_features
 

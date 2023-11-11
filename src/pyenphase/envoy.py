@@ -30,6 +30,7 @@ from .exceptions import (
 )
 from .firmware import EnvoyFirmware
 from .json import json_loads
+from .models.common import CommonProperties
 from .models.envoy import EnvoyData
 from .models.tariff import EnvoyStorageMode
 from .ssl import NO_VERIFY_SSL_CONTEXT
@@ -100,6 +101,7 @@ class Envoy:
         self._updaters: list[EnvoyUpdater] = []
         self._endpoint_cache: dict[str, httpx.Response] = {}
         self.data: EnvoyData | None = None
+        self._common_properties: CommonProperties = CommonProperties()
 
     async def setup(self) -> None:
         """Obtain the firmware version for later Envoy authentication."""
@@ -291,9 +293,12 @@ class Envoy:
         self._endpoint_cache.clear()
         cached_probe = partial(self._make_cached_request, self.probe_request)
         cached_request = partial(self._make_cached_request, self.request)
+        self._common_properties.reset_probe_properties()
 
         for updater in get_updaters():
-            klass = updater(version, cached_probe, cached_request)
+            klass = updater(
+                version, cached_probe, cached_request, self._common_properties
+            )
             if updater_features := await klass.probe(supported_features):
                 supported_features |= updater_features
                 updaters.append(klass)

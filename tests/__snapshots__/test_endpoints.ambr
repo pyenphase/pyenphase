@@ -1825,6 +1825,448 @@
     }),
   })
 # ---
+# name: test_with_7_x_firmware[7.3.466_metered_disabled_cts]
+  dict({
+    'dry_contact_settings': dict({
+    }),
+    'dry_contact_status': dict({
+    }),
+    'encharge_aggregate': None,
+    'encharge_inventory': None,
+    'encharge_power': None,
+    'enpower': None,
+    'inverters': dict({
+      '121823030072': dict({
+        'last_report_date': 1693745036,
+        'last_report_watts': 58,
+        'max_report_watts': 253,
+        'serial_number': '121823030072',
+      }),
+      '121823035149': dict({
+        'last_report_date': 1693745066,
+        'last_report_watts': 56,
+        'max_report_watts': 254,
+        'serial_number': '121823035149',
+      }),
+      '482243031579': dict({
+        'last_report_date': 1693744825,
+        'last_report_watts': 135,
+        'max_report_watts': 365,
+        'serial_number': '482243031579',
+      }),
+      '482243032888': dict({
+        'last_report_date': 1693744828,
+        'last_report_watts': 133,
+        'max_report_watts': 365,
+        'serial_number': '482243032888',
+      }),
+      '482243032889': dict({
+        'last_report_date': 1693744946,
+        'last_report_watts': 112,
+        'max_report_watts': 365,
+        'serial_number': '482243032889',
+      }),
+      '482243033444': dict({
+        'last_report_date': 1693744829,
+        'last_report_watts': 127,
+        'max_report_watts': 365,
+        'serial_number': '482243033444',
+      }),
+      '482250079070': dict({
+        'last_report_date': 1693744828,
+        'last_report_watts': 130,
+        'max_report_watts': 365,
+        'serial_number': '482250079070',
+      }),
+    }),
+    'raw': dict({
+      '/admin/lib/tariff': dict({
+        'schedule': dict({
+          'battery_mode': 'self-consumption',
+          'charge_from_grid': False,
+          'date': '2023-06-29 15:50:12 UTC',
+          'operation_mode_sub_type': '',
+          'override': False,
+          'override_backup_soc': 30.0,
+          'override_chg_dischg_rate': 0.0,
+          'override_tou_mode': 'StorageTouMode_DEFAULT_TOU_MODE',
+          'reserved_soc': 0.0,
+          'schedule': dict({
+            'Disable': list([
+              dict({
+                'Sun': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Mon': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Tue': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Wed': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Thu': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Fri': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Sat': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+            ]),
+            'tariff': list([
+              dict({
+                'Fri': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Mon': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Sat': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Sun': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Thu': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Tue': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Wed': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'end': '1/1',
+                'start': '1/1',
+              }),
+            ]),
+          }),
+          'source': 'Tariff',
+          'version': '00.00.02',
+          'very_low_soc': 5,
+        }),
+        'tariff': dict({
+          'currency': dict({
+            'code': 'EUR',
+          }),
+          'date': '1688053811',
+          'logger': 'mylogger',
+          'seasons': list([
+            dict({
+              'days': list([
+                dict({
+                  'days': 'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+                  'enable_discharge_to_grid': False,
+                  'id': 'all_days',
+                  'must_charge_duration': 0,
+                  'must_charge_mode': 'CG',
+                  'must_charge_start': 0,
+                  'periods': list([
+                    dict({
+                      'id': 'period_1',
+                      'rate': 0.14,
+                      'start': 480,
+                    }),
+                    dict({
+                      'id': 'filler',
+                      'rate': 0.01,
+                      'start': 1320,
+                    }),
+                  ]),
+                }),
+              ]),
+              'id': 'all_year_long',
+              'start': '1/1',
+              'tiers': list([
+              ]),
+            }),
+          ]),
+          'seasons_sell': list([
+          ]),
+          'single_rate': dict({
+            'rate': 0.01,
+            'sell': 0.0,
+          }),
+          'storage_settings': dict({
+            'charge_from_grid': False,
+            'date': '1688053811',
+            'mode': 'self-consumption',
+            'operation_mode_sub_type': '',
+            'reserved_soc': 0.0,
+            'very_low_soc': 5,
+          }),
+        }),
+      }),
+      '/api/v1/production/inverters': list([
+        dict({
+          'devType': 1,
+          'lastReportDate': 1693745036,
+          'lastReportWatts': 58,
+          'maxReportWatts': 253,
+          'serialNumber': '121823030072',
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1693745066,
+          'lastReportWatts': 56,
+          'maxReportWatts': 254,
+          'serialNumber': '121823035149',
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1693744825,
+          'lastReportWatts': 135,
+          'maxReportWatts': 365,
+          'serialNumber': '482243031579',
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1693744828,
+          'lastReportWatts': 133,
+          'maxReportWatts': 365,
+          'serialNumber': '482243032888',
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1693744828,
+          'lastReportWatts': 130,
+          'maxReportWatts': 365,
+          'serialNumber': '482250079070',
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1693744829,
+          'lastReportWatts': 127,
+          'maxReportWatts': 365,
+          'serialNumber': '482243033444',
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1693744946,
+          'lastReportWatts': 112,
+          'maxReportWatts': 365,
+          'serialNumber': '482243032889',
+        }),
+      ]),
+      '/production': dict({
+        'consumption': list([
+          dict({
+            'activeCount': 0,
+            'apprntPwr': -142.942,
+            'measurementType': 'total-consumption',
+            'pwrFactor': 1,
+            'reactPwr': -457.841,
+            'readingTime': 1693745131,
+            'rmsCurrent': -0.607,
+            'rmsVoltage': 235.49,
+            'type': 'eim',
+            'vahLifetime': 7252190.208,
+            'vahToday': 22904.208,
+            'varhLagLifetime': -591342.021,
+            'varhLagToday': 0,
+            'varhLeadLifetime': 3174026.62,
+            'varhLeadToday': 9602.62,
+            'wNow': 473.765,
+            'whLastSevenDays': 4.764,
+            'whLifetime': 5145153.764,
+            'whToday': 19903.764,
+          }),
+          dict({
+            'activeCount': 0,
+            'apprntPwr': -652.719,
+            'measurementType': 'net-consumption',
+            'pwrFactor': -1,
+            'reactPwr': -572.698,
+            'readingTime': 1693745131,
+            'rmsCurrent': -2.772,
+            'rmsVoltage': 235.49,
+            'type': 'eim',
+            'vahLifetime': 7252190.208,
+            'vahToday': 0,
+            'varhLagLifetime': 251.885,
+            'varhLagToday': 0,
+            'varhLeadLifetime': 3174026.64,
+            'varhLeadToday': 0,
+            'wNow': -14.138,
+            'whLastSevenDays': 0,
+            'whLifetime': 1961512.78,
+            'whToday': 0,
+          }),
+        ]),
+        'production': list([
+          dict({
+            'activeCount': 7,
+            'readingTime': 1693745066,
+            'type': 'inverters',
+            'wNow': 751,
+            'whLifetime': 702919,
+          }),
+          dict({
+            'activeCount': 0,
+            'apprntPwr': 509.895,
+            'measurementType': 'production',
+            'pwrFactor': 0.97,
+            'reactPwr': 114.857,
+            'readingTime': 1693745131,
+            'rmsCurrent': 2.165,
+            'rmsVoltage': 235.525,
+            'type': 'eim',
+            'vahLifetime': 3576166.933,
+            'vahToday': 5461.933,
+            'varhLagLifetime': 591593.906,
+            'varhLagToday': 1483.906,
+            'varhLeadLifetime': 0.021,
+            'varhLeadToday': 0.021,
+            'wNow': 487.903,
+            'whLastSevenDays': 111093.452,
+            'whLifetime': 3183793.452,
+            'whToday': 4425.452,
+          }),
+        ]),
+        'storage': list([
+          dict({
+            'activeCount': 0,
+            'readingTime': 0,
+            'state': 'idle',
+            'type': 'acb',
+            'wNow': 0,
+            'whNow': 0,
+          }),
+        ]),
+      }),
+    }),
+    'system_consumption': None,
+    'system_production': dict({
+      'watt_hours_last_7_days': 111093,
+      'watt_hours_lifetime': 702919,
+      'watt_hours_today': 4425,
+      'watts_now': 751,
+    }),
+    'tariff': dict({
+      'currency': dict({
+        'code': 'EUR',
+      }),
+      'date': '1688053811',
+      'logger': 'mylogger',
+      'seasons': list([
+        dict({
+          'days': list([
+            dict({
+              'days': 'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+              'enable_discharge_to_grid': False,
+              'id': 'all_days',
+              'must_charge_duration': 0,
+              'must_charge_mode': 'CG',
+              'must_charge_start': 0,
+              'periods': list([
+                dict({
+                  'id': 'period_1',
+                  'rate': 0.14,
+                  'start': 480,
+                }),
+                dict({
+                  'id': 'filler',
+                  'rate': 0.01,
+                  'start': 1320,
+                }),
+              ]),
+            }),
+          ]),
+          'id': 'all_year_long',
+          'start': '1/1',
+          'tiers': list([
+          ]),
+        }),
+      ]),
+      'seasons_sell': list([
+      ]),
+      'single_rate': dict({
+        'rate': 0.01,
+        'sell': 0.0,
+      }),
+      'storage_settings': dict({
+        'charge_from_grid': False,
+        'date': '1688053811',
+        'mode': <EnvoyStorageMode.SELF_CONSUMPTION: 'self-consumption'>,
+        'operation_mode_sub_type': '',
+        'reserved_soc': 0.0,
+        'very_low_soc': 5,
+      }),
+    }),
+  })
+# ---
 # name: test_with_7_x_firmware[7.3.517]
   dict({
     'dry_contact_settings': dict({
@@ -6463,17 +6905,17 @@
           'serialNumber': '122107032484',
         }),
       ]),
-      '/production.json': dict({
+      '/production': dict({
         'consumption': list([
           dict({
             'activeCount': 0,
-            'apprntPwr': 0.412,
+            'apprntPwr': 0.436,
             'measurementType': 'total-consumption',
             'pwrFactor': -1.0,
             'reactPwr': 0.0,
-            'readingTime': 1694182274,
-            'rmsCurrent': 0.27,
-            'rmsVoltage': 238.786,
+            'readingTime': 1694182307,
+            'rmsCurrent': 0.274,
+            'rmsVoltage': 239.62,
             'type': 'eim',
             'vahLifetime': 0.0,
             'vahToday': 0.0,
@@ -6481,20 +6923,20 @@
             'varhLagToday': 0.0,
             'varhLeadLifetime': 0.0,
             'varhLeadToday': 0.0,
-            'wNow': -0.768,
+            'wNow': -0.749,
             'whLastSevenDays': 0.0,
             'whLifetime': 0.0,
             'whToday': 0.0,
           }),
           dict({
             'activeCount': 0,
-            'apprntPwr': -1.746,
+            'apprntPwr': -1.752,
             'measurementType': 'net-consumption',
             'pwrFactor': -1.0,
             'reactPwr': 0.0,
-            'readingTime': 1694182274,
+            'readingTime': 1694182307,
             'rmsCurrent': -0.247,
-            'rmsVoltage': 238.786,
+            'rmsVoltage': 239.62,
             'type': 'eim',
             'vahLifetime': 0.0,
             'vahToday': 0,
@@ -6502,7 +6944,7 @@
             'varhLagToday': 0,
             'varhLeadLifetime': 0.0,
             'varhLeadToday': 0,
-            'wNow': -1.409,
+            'wNow': -1.459,
             'whLastSevenDays': 0,
             'whLifetime': 0.0,
             'whToday': 0,
@@ -6511,20 +6953,20 @@
         'production': list([
           dict({
             'activeCount': 14,
-            'readingTime': 1694182262,
+            'readingTime': 1694182292,
             'type': 'inverters',
-            'wNow': 1322,
-            'whLifetime': 1152866,
+            'wNow': 1317,
+            'whLifetime': 1152900,
           }),
           dict({
             'activeCount': 0,
-            'apprntPwr': 1.335,
+            'apprntPwr': 1.353,
             'measurementType': 'production',
-            'pwrFactor': 1.0,
+            'pwrFactor': 0.81,
             'reactPwr': 0.0,
-            'readingTime': 1694182274,
-            'rmsCurrent': 0.516,
-            'rmsVoltage': 235.291,
+            'readingTime': 1694182307,
+            'rmsCurrent': 0.521,
+            'rmsVoltage': 236.127,
             'type': 'eim',
             'vahLifetime': 0.0,
             'vahToday': 0.0,
@@ -6532,7 +6974,7 @@
             'varhLagToday': 0.0,
             'varhLeadLifetime': 0.0,
             'varhLeadToday': 0.0,
-            'wNow': 0.641,
+            'wNow': 0.71,
             'whLastSevenDays': 0.0,
             'whLifetime': 0.0,
             'whToday': 0.0,
@@ -6553,9 +6995,9 @@
     'system_consumption': None,
     'system_production': dict({
       'watt_hours_last_7_days': 0,
-      'watt_hours_lifetime': 1152866,
+      'watt_hours_lifetime': 1152900,
       'watt_hours_today': 0,
-      'watts_now': 1322,
+      'watts_now': 1317,
     }),
     'tariff': dict({
       'currency': dict({

@@ -1159,6 +1159,191 @@ async def test_with_3_17_3_firmware():
     }
 
 
+def _start_7_firmware_mock():
+    respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
+        return_value=Response(
+            200,
+            json={
+                "session_id": "1234567890",
+                "user_id": "1234567890",
+                "user_name": "test",
+                "first_name": "Test",
+                "is_consumer": True,
+                "manager_token": "1234567890",
+            },
+        )
+    )
+    respx.post("https://entrez.enphaseenergy.com/tokens").mock(
+        return_value=Response(200, text="token")
+    )
+    respx.get("/auth/check_jwt").mock(return_value=Response(200, json={}))
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_pr111_with_7_3_466_metered_disabled_cts():
+    """Test envoy metered with disabled ct to report from production inverters PR111."""
+    version = "7.3.466_metered_disabled_cts"
+    _start_7_firmware_mock()
+    respx.get("/info").mock(
+        return_value=Response(200, text=_load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(
+        return_value=Response(200, text=_load_fixture(version, "production"))
+    )
+    respx.get("/production.json").mock(
+        return_value=Response(200, text=_load_fixture(version, "production.json"))
+    )
+    respx.get("/api/v1/production").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production")
+        )
+    )
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production_inverters")
+        )
+    )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+    respx.get("/ivp/meters").mock(
+        return_value=Response(200, text=_load_fixture(version, "ivp_meters"))
+    )
+
+    envoy = await _get_mock_envoy()
+    data = envoy.data
+    assert data is not None
+
+    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
+    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
+    assert envoy._supported_features & SupportedFeatures.PRODUCTION
+    assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert envoy._supported_features & SupportedFeatures.PRODUCTION
+    assert _updater_features(envoy._updaters) == {
+        "EnvoyProductionJsonFallbackUpdater": SupportedFeatures.PRODUCTION,
+        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+    }
+    assert envoy.part_number == "800-00654-r08"
+
+    assert not data.system_consumption
+    assert data.system_production.watts_now == 751
+    assert data.system_production.watt_hours_today == 4425
+    assert data.system_production.watt_hours_last_7_days == 111093
+    assert data.system_production.watt_hours_lifetime == 702919
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_pr111_with_7_6_175_with_cts():
+    """Test envoy metered with ct to report from production eim PR111."""
+    version = "7.6.175_with_cts"
+    _start_7_firmware_mock()
+    respx.get("/info").mock(
+        return_value=Response(200, text=_load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(
+        return_value=Response(200, text=_load_fixture(version, "production"))
+    )
+    respx.get("/production.json").mock(
+        return_value=Response(200, text=_load_fixture(version, "production.json"))
+    )
+    respx.get("/api/v1/production").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production")
+        )
+    )
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production_inverters")
+        )
+    )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+    respx.get("/ivp/meters").mock(
+        return_value=Response(200, text=_load_fixture(version, "ivp_meters"))
+    )
+
+    envoy = await _get_mock_envoy()
+    data = envoy.data
+    assert data is not None
+
+    assert envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
+    assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
+    assert envoy._supported_features & SupportedFeatures.PRODUCTION
+    assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert envoy._supported_features & SupportedFeatures.METERING
+    assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert _updater_features(envoy._updaters) == {
+        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyProductionUpdater": SupportedFeatures.METERING
+        | SupportedFeatures.TOTAL_CONSUMPTION
+        | SupportedFeatures.NET_CONSUMPTION
+        | SupportedFeatures.PRODUCTION,
+    }
+
+    assert envoy.part_number == "800-00654-r08"
+
+    assert data.system_consumption
+    assert data.system_production.watts_now == 488
+    assert data.system_production.watt_hours_today == 4425
+    assert data.system_production.watt_hours_last_7_days == 111093
+    assert data.system_production.watt_hours_lifetime == 3183793
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_pr111_with_7_6_175_standard():
+    """Test envoy metered with ct to report from production eim PR111."""
+    version = "7.6.175_standard"
+    _start_7_firmware_mock()
+    respx.get("/info").mock(
+        return_value=Response(200, text=_load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(
+        return_value=Response(200, text=_load_fixture(version, "production"))
+    )
+    respx.get("/production.json").mock(
+        return_value=Response(200, text=_load_fixture(version, "production.json"))
+    )
+    respx.get("/api/v1/production").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production")
+        )
+    )
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production_inverters")
+        )
+    )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+    respx.get("/ivp/meters").mock(return_value=Response(200, text=""))
+
+    envoy = await _get_mock_envoy()
+    data = envoy.data
+    assert data is not None
+
+    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
+    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
+    assert envoy._supported_features & SupportedFeatures.PRODUCTION
+    assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert _updater_features(envoy._updaters) == {
+        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+    }
+
+    assert envoy.part_number == "800-00656-r06"
+
+    assert not data.system_consumption
+    assert data.system_production.watts_now == 5740
+    assert data.system_production.watt_hours_today == 36462
+    assert data.system_production.watt_hours_last_7_days == 189712
+    assert data.system_production.watt_hours_lifetime == 6139406
+
+
 @pytest.mark.parametrize(
     (
         "version",
@@ -1308,6 +1493,19 @@ async def test_with_3_17_3_firmware():
             2,
         ),
         (
+            "7.3.466_metered_disabled_cts",
+            "800-00654-r08",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionJsonFallbackUpdater": SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+            },
+            1,
+        ),
+        (
             "7.6.114_without_cts",
             "800-00656-r06",
             SupportedFeatures.INVERTERS | SupportedFeatures.PRODUCTION,
@@ -1441,6 +1639,7 @@ async def test_with_3_17_3_firmware():
         "7.3.517",
         "7.3.517_legacy_savings_mode",
         "7.3.517_system_2",
+        "7.3.466_metered_disabled_cts",
         "7.6.114_without_cts",
         "7.6.175",
         "7.6.175_total",
@@ -1463,25 +1662,9 @@ async def test_with_7_x_firmware(
     phase_count: int,
 ) -> None:
     """Verify with 7.x firmware."""
-    respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
-        return_value=Response(
-            200,
-            json={
-                "session_id": "1234567890",
-                "user_id": "1234567890",
-                "user_name": "test",
-                "first_name": "Test",
-                "is_consumer": True,
-                "manager_token": "1234567890",
-            },
-        )
-    )
+    _start_7_firmware_mock()
     path = f"tests/fixtures/{version}"
     files = [f for f in listdir(path) if isfile(join(path, f))]
-    respx.post("https://entrez.enphaseenergy.com/tokens").mock(
-        return_value=Response(200, text="token")
-    )
-    respx.get("/auth/check_jwt").mock(return_value=Response(200, json={}))
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
     )
