@@ -1,11 +1,21 @@
-# Welcome to pyenphase documentation!
+# Welcome to pyenphase documentation
 
 ```{toctree}
 :caption: Installation & Usage
-:maxdepth: 2
+:maxdepth: 3
 
 installation
 usage
+data
+advanced
+
+```
+
+```{toctree}
+:maxdepth: 3
+
+model_autodoc
+
 ```
 
 ```{toctree}
