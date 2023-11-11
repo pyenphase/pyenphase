@@ -30,7 +30,7 @@ while True:
     print(f'LifetimeEnergy {data.system_production.watt_hours_lifetime}')
     print(f'Last7DaysEnergy {data.system_production.watt_hours_last_7_days}')
 
-    time.sleep(some_time)
+    await asyncio.sleep(some_time)
 ```
 
 > [!NOTE]
