@@ -40,7 +40,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             # Already discovered from another updater
             return None
 
-        # when allow_inverters_fallback mode ia active use first successful endpoint registered in the list
+        # when allow_inverters_fallback mode is active use first successful endpoint registered in the list
         if self.allow_inverters_fallback and working_endpoints:
             self.end_point = working_endpoints[0]
 
