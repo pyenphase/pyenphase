@@ -1,12 +1,7 @@
 import logging
 from typing import Any
 
-from ..const import (
-    URL_PRODUCTION,
-    URL_PRODUCTION_JSON,
-    CommonProperties,
-    SupportedFeatures,
-)
+from ..const import URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.system_consumption import EnvoySystemConsumption
@@ -36,9 +31,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         # obtain any registered production endpoints that replied back from the common list
         # when in allow_inverters_fallback mode we can use the first one that worked
-        working_endpoints = (
-            self._common_properties.get(CommonProperties.PRODUCTION_FALLBACK_LIST) or []
-        )
+        working_endpoints: list[str] = self._common_properties.production_fallback_list
         if (
             discovered_total_consumption
             and discovered_net_consumption
@@ -114,9 +107,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     self._supported_features |= SupportedFeatures.NET_CONSUMPTION
 
         # register the updated fallback endpoints to the common list
-        self._add_common_property(
-            CommonProperties.PRODUCTION_FALLBACK_LIST, working_endpoints
-        )
+        self._common_properties.production_fallback_list = working_endpoints
 
         return self._supported_features
 

@@ -7,6 +7,7 @@ from awesomeversion import AwesomeVersion
 
 from ..const import SupportedFeatures
 from ..json import json_loads
+from ..models.common import CommonProperties
 from ..models.envoy import EnvoyData
 
 
@@ -18,7 +19,7 @@ class EnvoyUpdater:
         envoy_version: AwesomeVersion,
         probe_request: Callable[[str], Awaitable[httpx.Response]],
         request: Callable[[str], Awaitable[httpx.Response]],
-        common_properties: dict[str, Any],
+        common_properties: CommonProperties,
     ) -> None:
         """Initialize the Envoy endpoint."""
         self._envoy_version = envoy_version
@@ -36,10 +37,6 @@ class EnvoyUpdater:
         """Make a probe request to the Envoy and return the JSON response."""
         response = await self._probe_request(end_point)
         return json_loads(end_point, response.content)
-
-    def _add_common_property(self, property: str, property_value: Any) -> None:
-        """Add common property to envoy for use by updaters probe"""
-        self._common_properties[property] = property_value
 
     @abstractmethod
     async def probe(

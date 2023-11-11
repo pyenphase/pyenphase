@@ -57,7 +57,3 @@ class SupportedFeatures(enum.IntFlag):
     TARIFF = 128
     DUALPHASE = 256
     THREEPHASE = 512
-
-
-class CommonProperties(enum.StrEnum):
-    PRODUCTION_FALLBACK_LIST = "production_fallback_list"
