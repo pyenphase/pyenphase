@@ -42,12 +42,12 @@ class EnvoySystemProduction:
         inverters = find_dict_by_key(all_production, "inverters")
 
         # This is backwards compatible with envoy_reader
+        # envoy metered without configured CT has whLifetime and wNow in inverters
+        # whLastSevenDays and whToday are incorrect for both so either can be used
         now_source = eim if eim["activeCount"] else inverters
 
         return cls(
-            watt_hours_lifetime=int(
-                round(eim.get("whLifetime") or inverters.get("whLifetime") or 0)
-            ),
+            watt_hours_lifetime=int(round(now_source["whLifetime"])),
             watt_hours_last_7_days=int(
                 round(
                     eim.get("whLastSevenDays") or inverters.get("whLastSevenDays") or 0

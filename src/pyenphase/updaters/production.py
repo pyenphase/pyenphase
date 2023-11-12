@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from ..const import PHASE_NAMES, URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
+from ..const import URL_PRODUCTION, URL_PRODUCTION_JSON, PhaseNames, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.system_consumption import EnvoySystemConsumption
@@ -28,6 +28,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             SupportedFeatures.NET_CONSUMPTION in discovered_features
         )
         discovered_production = SupportedFeatures.PRODUCTION in discovered_features
+
+        # obtain any registered production endpoints that replied back from the common list
+        # when in allow_inverters_fallback mode we can use the first one that worked
+        working_endpoints: list[str] = self._common_properties.production_fallback_list
         if (
             discovered_total_consumption
             and discovered_net_consumption
@@ -35,6 +39,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         ):
             # Already discovered from another updater
             return None
+
+        # when allow_inverters_fallback mode is active use first successful endpoint registered in the list
+        if self.allow_inverters_fallback and working_endpoints:
+            self.end_point = working_endpoints[0]
 
         try:
             production_json: dict[str, Any] = await self._json_probe_request(
@@ -56,6 +64,13 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 )
                 return None
             raise
+
+        # if endpoint is not in the list of successful endpoints yet, add it.
+        if (
+            self.end_point not in working_endpoints
+            and not self.allow_inverters_fallback
+        ):
+            working_endpoints.append(self.end_point)
 
         if not discovered_production:
             production: list[dict[str, str | float | int]] | None = production_json.get(
@@ -91,6 +106,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 if not discovered_net_consumption and meter_type == "net-consumption":
                     self._supported_features |= SupportedFeatures.NET_CONSUMPTION
 
+        # register the updated fallback endpoints to the common list
+        self._common_properties.production_fallback_list = working_endpoints
+
         return self._supported_features
 
     async def update(self, envoy_data: EnvoyData) -> None:
@@ -98,8 +116,8 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         production_data = await self._json_request(self.end_point)
         envoy_data.raw[self.end_point] = production_data
 
-        # get phase count from Envoy common features, default to 1 (no phases)
-        phase_count = self._common_properties.get("phaseCount") or 1
+        # get phase count from Envoy common features
+        phase_count = self._common_properties.phase_count
 
         if self._supported_features & SupportedFeatures.PRODUCTION:
             envoy_data.system_production = EnvoySystemProduction.from_production(
@@ -109,7 +127,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             phase_production: dict[str, EnvoySystemProduction | None] = {}
             for phase in range(phase_count if phase_count > 1 else 0):
                 phase_production[
-                    list(PHASE_NAMES)[phase].value
+                    list(PhaseNames)[phase].value
                 ] = EnvoySystemProduction.from_phase(production_data, phase)
             if phase_production:
                 envoy_data.system_production_phases = phase_production
@@ -127,7 +145,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
             for phase in range(phase_count if phase_count > 1 else 0):
                 phase_consumption[
-                    list(PHASE_NAMES)[phase].value
+                    list(PhaseNames)[phase].value
                 ] = EnvoySystemConsumption.from_production(production_data, phase)
             if phase_consumption:
                 envoy_data.system_consumption_phases = phase_consumption  # type: ignore

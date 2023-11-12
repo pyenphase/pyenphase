@@ -59,14 +59,7 @@ class SupportedFeatures(enum.IntFlag):
     THREEPHASE = 512
 
 
-class CommonProperties(enum.StrEnum):
-    CTMETERS = "ctMeters"
-    PHASECOUNT = "phaseCount"
-    PHASEMODE = "phaseMode"
-    CONSUMPTIONMETER = "consumptionMeter"
-
-
-class PHASE_NAMES(enum.StrEnum):
+class PhaseNames(enum.StrEnum):
     PHASE1 = "L1"
     PHASE2 = "L2"
     PHASE3 = "L3"

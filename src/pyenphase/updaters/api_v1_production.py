@@ -28,7 +28,14 @@ class EnvoyApiV1ProductionUpdater(EnvoyUpdater):
                 "Production endpoint not found at %s: %s", URL_PRODUCTION_V1, e
             )
             return None
-        if all(value == 0 for value in response.values()):
+
+        # Envoy metered without configured CT returns zero's in V1 Production Endpoint
+        # sometimes wNow has a value. When Watthours Today, last 7 days and lifetime
+        # are all 3 zero is an indication envoy is not reporting summed values in V1 production
+        # return None to fallback to inverters section in production endpoint.
+        if all(
+            value == 0 for key, value in response.items() if key.startswith("wattHours")
+        ):
             _LOGGER.debug(
                 "Detected broken production endpoint bug at %s: %s",
                 URL_PRODUCTION_V1,

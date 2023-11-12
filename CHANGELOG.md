@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v1.14.3 (2023-11-11)
+
+### Fix
+
+* **#99:** Envoy metered without CT reporting wrong values ([#111](https://github.com/pyenphase/pyenphase/issues/111)) ([`2188969`](https://github.com/pyenphase/pyenphase/commit/21889696fdc06f423f382eb404483e1b5d641094))
+
+### Documentation
+
+* Update usage.md ([#109](https://github.com/pyenphase/pyenphase/issues/109)) ([`2e31671`](https://github.com/pyenphase/pyenphase/commit/2e316718081fccab314844a76aa9c6e4e54d20a9))
+
 ## v1.14.2 (2023-11-06)
 
 ### Fix

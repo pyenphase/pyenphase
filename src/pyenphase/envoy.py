@@ -21,7 +21,6 @@ from .const import (
     URL_DRY_CONTACT_STATUS,
     URL_GRID_RELAY,
     URL_TARIFF,
-    CommonProperties,
     SupportedFeatures,
 )
 from .exceptions import (
@@ -31,7 +30,9 @@ from .exceptions import (
 )
 from .firmware import EnvoyFirmware
 from .json import json_loads
+from .models.common import CommonProperties
 from .models.envoy import EnvoyData
+from .models.meters import EnvoyMeterType, EnvoyPhaseMode
 from .models.tariff import EnvoyStorageMode
 from .ssl import NO_VERIFY_SSL_CONTEXT
 from .updaters.api_v1_production import EnvoyApiV1ProductionUpdater
@@ -101,7 +102,7 @@ class Envoy:
         self._updaters: list[EnvoyUpdater] = []
         self._endpoint_cache: dict[str, httpx.Response] = {}
         self.data: EnvoyData | None = None
-        self._common_properties: dict[str, Any] = {}
+        self._common_properties: CommonProperties = CommonProperties()
 
     async def setup(self) -> None:
         """Obtain the firmware version for later Envoy authentication."""
@@ -262,15 +263,24 @@ class Envoy:
         return self._supported_features
 
     @property
-    def common_properties(self) -> dict[str, Any]:
-        """Return the supported features."""
-        assert self._common_properties is not None, "Call setup() first"  # nosec
-        return self._common_properties
+    def ct_consumption_type(self) -> EnvoyMeterType | None:
+        """Return the type of consumption CT installed, if any."""
+        return self._common_properties.consumption_meter_type
+
+    @property
+    def ct_meter_count(self) -> int:
+        """Return the number of configured ct meters."""
+        return self._common_properties.ct_meter_count
+
+    @property
+    def phase_mode(self) -> EnvoyPhaseMode | None:
+        """Return the Envoy Phase Mode."""
+        return self._common_properties.phase_mode
 
     @property
     def phase_count(self) -> int:
         """Return the number of configured phases."""
-        return self._common_properties.get(CommonProperties.PHASECOUNT, 1)
+        return self._common_properties.phase_count
 
     async def _make_cached_request(
         self, request_func: Callable[[str], Awaitable[httpx.Response]], endpoint: str
@@ -291,6 +301,7 @@ class Envoy:
         self._endpoint_cache.clear()
         cached_probe = partial(self._make_cached_request, self.probe_request)
         cached_request = partial(self._make_cached_request, self.request)
+        self._common_properties.reset_probe_properties()
 
         for updater in get_updaters():
             klass = updater(

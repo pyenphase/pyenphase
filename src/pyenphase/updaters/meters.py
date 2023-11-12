@@ -1,12 +1,7 @@
 import logging
 from typing import Any
 
-from ..const import (
-    ENDPOINT_URL_METERS,
-    ENDPOINT_URL_METERS_READINGS,
-    CommonProperties,
-    SupportedFeatures,
-)
+from ..const import ENDPOINT_URL_METERS, ENDPOINT_URL_METERS_READINGS, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
 from ..models.envoy import EnvoyData
 from ..models.meters import (
@@ -34,18 +29,23 @@ class EnvoyMetersUpdater(EnvoyUpdater):
     ct_Meters_count = 0
 
     def _set_my_common_properties(self) -> None:
-        self._add_common_property(CommonProperties.CTMETERS, self.ct_Meters_count)
-        self._add_common_property(CommonProperties.PHASECOUNT, self.phase_count)
-        self._add_common_property(CommonProperties.PHASEMODE, self.phase_mode)
-        self._add_common_property(
-            CommonProperties.CONSUMPTIONMETER, self.consumption_meter_type
-        )
+        """Set common properties we own and control"""
+        self._common_properties.phase_count = self.phase_count
+        self._common_properties.phase_mode = self.phase_mode
+        self._common_properties.consumption_meter_type = self.consumption_meter_type
+        self._common_properties.ct_meter_count = self.ct_Meters_count
 
     async def probe(
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
         """Probe the Envoy meter setup and return multiphase support in SupportedFeatures."""
-        # set defaults for common properties we will set, so these always have a value
+        # set defaults for common properties we will set
+        self.phase_count = 1
+        self.ct_meter_count = 0
+        self.phase_mode = None
+        self.consumption_meter_type = None
+
+        # set the defaults in global common properties in case we exit early
         self._set_my_common_properties()
 
         try:
@@ -68,13 +68,15 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 EnvoyMeterType.NETCONSUMPTION,
                 EnvoyMeterType.TOTALCONSUMPTION,
             ]:
+                # store eid (even if disabled) for use in update
                 self.consumption_meter_eid = meter[EnvoyMeterKeys.EID]
-                # remember what mode consumption meter is installed in, if any
+                # remember what mode consumption meter is installed in, if enabled
                 if meter[EnvoyMeterKeys.STATE] == EnvoyMeterState.ENABLED:
                     self.consumption_meter_type = meter[EnvoyMeterKeys.TYPE]
             else:
+                # store eid (even if disabled) for use in update
                 self.production_meter_eid = meter[EnvoyMeterKeys.EID]
-                # remember what mode production meter is installed in, if any
+                # remember what mode production meter is installed in, if enabled
                 if meter[EnvoyMeterKeys.STATE] == EnvoyMeterState.ENABLED:
                     self.production_meter_type = meter[EnvoyMeterKeys.TYPE]
 
