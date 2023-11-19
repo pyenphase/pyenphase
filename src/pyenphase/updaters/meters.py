@@ -1,9 +1,9 @@
 import logging
-from typing import Any
 
 from ..const import ENDPOINT_URL_METERS, ENDPOINT_URL_METERS_READINGS, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
 from ..models.envoy import EnvoyData
+from ..models.meters import CtMeterData, CtState
 from .base import EnvoyUpdater
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
     ) -> SupportedFeatures | None:
         """Probe the Envoy meter setup and return multiphase support in SupportedFeatures."""
         try:
-            meters_json: list[dict[str, Any]] | None = await self._json_probe_request(
+            meters_json: list[CtMeterData] | None = await self._json_probe_request(
                 self.end_point
             )
         except ENDPOINT_PROBE_EXCEPTIONS as e:
@@ -37,7 +37,8 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         for meter in meters_json:
             phase_count = (
                 meter["phaseCount"]
-                if meter["state"] == "enabled" and meter["phaseCount"] > phase_count
+                if meter["state"] == CtState.ENABLED
+                and meter["phaseCount"] > phase_count
                 else phase_count
             )
 
