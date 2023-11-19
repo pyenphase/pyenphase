@@ -57,3 +57,9 @@ class SupportedFeatures(enum.IntFlag):
     TARIFF = 128
     DUALPHASE = 256
     THREEPHASE = 512
+
+
+class PhaseNames(enum.StrEnum):
+    PHASE_1 = "L1"
+    PHASE_2 = "L2"
+    PHASE_3 = "L3"
