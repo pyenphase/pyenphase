@@ -17,6 +17,7 @@ release = "1.14.0"
 extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
 ]
 
