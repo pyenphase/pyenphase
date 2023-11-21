@@ -45,5 +45,5 @@ class EnvoyUpdater:
         """Probe the Envoy for this updater and return SupportedFeatures."""
 
     @abstractmethod
-    async def update(self, data: EnvoyData) -> None:
+    async def update(self, envoy_data: EnvoyData) -> None:
         """Update the Envoy for this updater."""
