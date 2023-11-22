@@ -22,6 +22,12 @@ class EnvoyData:
     enpower: EnvoyEnpower | None = None
     system_consumption: EnvoySystemConsumption | None = None
     system_production: EnvoySystemProduction | None = None
+    system_consumption_phases: dict[
+        str, EnvoySystemConsumption | None
+    ] | None = None  #: Individual phase consumption data, only for Envoy metered with CT installed
+    system_production_phases: dict[
+        str, EnvoySystemProduction | None
+    ] | None = None  #: Individual phase production data, only for Envoy metered with CT installed
     dry_contact_status: dict[str, EnvoyDryContactStatus] = field(default_factory=dict)
     dry_contact_settings: dict[str, EnvoyDryContactSettings] = field(
         default_factory=dict

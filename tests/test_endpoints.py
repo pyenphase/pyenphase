@@ -11,7 +11,7 @@ import orjson
 import pytest
 import respx
 from httpx import Response
-from syrupy import SnapshotAssertion
+from syrupy.assertion import SnapshotAssertion
 
 from pyenphase import Envoy, EnvoyInverter, register_updater
 from pyenphase.const import URL_GRID_RELAY, URL_PRODUCTION, URL_TARIFF
@@ -24,6 +24,7 @@ from pyenphase.exceptions import (
 )
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.envoy import EnvoyData
+from pyenphase.models.system_consumption import EnvoySystemConsumption
 from pyenphase.models.system_production import EnvoySystemProduction
 from pyenphase.models.tariff import EnvoyStorageMode
 from pyenphase.updaters.base import EnvoyUpdater
@@ -112,6 +113,12 @@ async def test_with_4_2_27_firmware():
     assert data.system_production.watt_hours_last_7_days == 276614
     assert data.system_production.watt_hours_lifetime == 10279087
     assert not data.inverters
+    assert envoy._common_properties.ct_meter_count == 0
+    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_mode is None
+    assert envoy._common_properties.consumption_meter_type is None
+    assert not data.system_consumption_phases
+    assert not data.system_production_phases
 
     # Test that Ensemble commands raise FeatureNotAvailable
     with pytest.raises(EnvoyFeatureNotAvailable):
@@ -173,6 +180,12 @@ async def test_with_5_0_49_firmware():
     assert envoy.phase_count == 1
 
     assert not data.system_consumption
+    assert envoy._common_properties.ct_meter_count == 0
+    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_mode is None
+    assert envoy._common_properties.consumption_meter_type is None
+    assert not data.system_consumption_phases
+    assert not data.system_production_phases
     assert data.system_production.watts_now == 4859
     assert data.system_production.watt_hours_today == 5046
     assert data.system_production.watt_hours_last_7_days == 445686
@@ -536,6 +549,12 @@ async def test_with_3_7_0_firmware():
         assert data.system_production.watt_hours_last_7_days == 405000
         assert data.system_production.watt_hours_lifetime == 133000000
         assert not data.inverters
+        assert envoy._common_properties.ct_meter_count == 0
+        assert envoy._common_properties.phase_count == 0
+        assert envoy._common_properties.phase_mode is None
+        assert envoy._common_properties.consumption_meter_type is None
+        assert not data.system_consumption_phases
+        assert not data.system_production_phases
     finally:
         remove()
         assert LegacyProductionScraper not in get_updaters()
@@ -628,6 +647,12 @@ async def test_with_3_9_36_firmware_no_inverters():
         "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
     }
     assert envoy.part_number == "800-00069-r05"
+    assert envoy._common_properties.ct_meter_count == 0
+    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_mode is None
+    assert envoy._common_properties.consumption_meter_type is None
+    assert not data.system_consumption_phases
+    assert not data.system_production_phases
 
 
 @pytest.mark.asyncio
@@ -680,6 +705,12 @@ async def test_with_3_9_36_firmware():
     assert envoy.part_number == "800-00069-r05"
 
     assert not data.system_consumption
+    assert envoy._common_properties.ct_meter_count == 0
+    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_mode is None
+    assert envoy._common_properties.consumption_meter_type is None
+    assert not data.system_consumption_phases
+    assert not data.system_production_phases
     assert data.system_production.watts_now == 1271
     assert data.system_production.watt_hours_today == 1460
     assert data.system_production.watt_hours_last_7_days == 130349
@@ -815,6 +846,12 @@ async def test_with_3_9_36_firmware_with_production_401():
     assert data.system_production.watt_hours_last_7_days == 130349
     assert data.system_production.watt_hours_lifetime == 6012540
     assert data.inverters
+    assert envoy._common_properties.ct_meter_count == 0
+    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_mode is None
+    assert envoy._common_properties.consumption_meter_type is None
+    assert not data.system_consumption_phases
+    assert not data.system_production_phases
 
 
 @pytest.mark.asyncio
@@ -943,6 +980,12 @@ async def test_with_3_17_3_firmware():
     assert envoy.part_number == "800-00069-r05"
 
     assert not data.system_consumption
+    assert envoy._common_properties.ct_meter_count == 0
+    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_mode is None
+    assert envoy._common_properties.consumption_meter_type is None
+    assert not data.system_consumption_phases
+    assert not data.system_production_phases
     assert data.system_production.watts_now == 5463
     assert data.system_production.watt_hours_today == 5481
     assert data.system_production.watt_hours_last_7_days == 389581
@@ -1389,6 +1432,9 @@ async def test_pr111_with_7_6_175_standard():
         "supported_features",
         "updaters",
         "phase_count",
+        "common_properties",
+        "production_phases",
+        "consumption_phases",
     ),
     [
         (
@@ -1403,6 +1449,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "4.10.35",
@@ -1424,6 +1478,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE,
             },
             2,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.3.130",
@@ -1441,6 +1503,14 @@ async def test_pr111_with_7_6_175_standard():
                 | SupportedFeatures.PRODUCTION,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.3.130_no_consumption",
@@ -1458,6 +1528,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE,
             },
             2,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.3.517",
@@ -1481,6 +1559,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.3.517_legacy_savings_mode",
@@ -1504,6 +1590,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.3.517_system_2",
@@ -1529,6 +1623,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE,
             },
             2,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.3.466_metered_disabled_cts",
@@ -1542,6 +1644,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.6.114_without_cts",
@@ -1552,6 +1662,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.6.175",
@@ -1562,6 +1680,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.6.175_total",
@@ -1575,6 +1701,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.6.175_standard",
@@ -1585,6 +1719,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.6.175_with_cts",
@@ -1604,6 +1746,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.6.175_with_cts_3phase",
@@ -1625,6 +1775,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyMetersUpdater": SupportedFeatures.THREEPHASE,
             },
             3,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "7.6.185_with_cts_and_battery_3t",
@@ -1646,6 +1804,14 @@ async def test_pr111_with_7_6_175_standard():
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
         (
             "8.1.41",
@@ -1667,6 +1833,14 @@ async def test_pr111_with_7_6_175_standard():
                 | SupportedFeatures.NET_CONSUMPTION,
             },
             1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 0,
+                "phaseMode": None,
+                "consumptionMeter": None,
+            },
+            {},
+            {},
         ),
     ],
     ids=[
@@ -1698,6 +1872,9 @@ async def test_with_7_x_firmware(
     updaters: dict[str, SupportedFeatures],
     caplog: pytest.LogCaptureFixture,
     phase_count: int,
+    common_properties: dict[str, Any],
+    production_phases: dict[str, EnvoySystemProduction] | None,
+    consumption_phases: dict[str, EnvoySystemConsumption] | None,
 ) -> None:
     """Verify with 7.x firmware."""
     _start_7_firmware_mock()
@@ -1937,3 +2114,20 @@ async def test_with_7_x_firmware(
             await envoy.disable_charge_from_grid()
 
     assert envoy.phase_count == phase_count
+    assert envoy._common_properties.ct_meter_count == common_properties["ctMeters"]
+    assert envoy._common_properties.phase_count == common_properties["phaseCount"]
+    assert envoy._common_properties.phase_mode == common_properties["phaseMode"]
+    assert (
+        envoy._common_properties.consumption_meter_type
+        == common_properties["consumptionMeter"]
+    )
+
+    if production_phases is None:
+        assert data.system_production_phases is None
+    if consumption_phases is None:
+        assert data.system_consumption_phases is None
+
+    if data.system_production_phases is None:
+        assert not production_phases
+    if envoy.data.system_consumption_phases is None:
+        assert not consumption_phases
