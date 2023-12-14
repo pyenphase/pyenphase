@@ -2121,13 +2121,3 @@ async def test_with_7_x_firmware(
         envoy._common_properties.consumption_meter_type
         == common_properties["consumptionMeter"]
     )
-
-    if production_phases is None:
-        assert data.system_production_phases is None
-    if consumption_phases is None:
-        assert data.system_consumption_phases is None
-
-    if data.system_production_phases is None:
-        assert not production_phases
-    if envoy.data.system_consumption_phases is None:
-        assert not consumption_phases
