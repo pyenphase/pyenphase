@@ -114,10 +114,10 @@ async def test_with_4_2_27_firmware():
     assert data.system_production.watt_hours_last_7_days == 276614
     assert data.system_production.watt_hours_lifetime == 10279087
     assert not data.inverters
-    assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 1
-    assert envoy._common_properties.phase_mode is None
-    assert envoy._common_properties.consumption_meter_type is None
+    assert envoy.ct_meter_count == 0
+    assert envoy.phase_count == 1
+    assert envoy.phase_mode is None
+    assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
 
@@ -181,10 +181,10 @@ async def test_with_5_0_49_firmware():
     assert envoy.phase_count == 1
 
     assert not data.system_consumption
-    assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 1
-    assert envoy._common_properties.phase_mode is None
-    assert envoy._common_properties.consumption_meter_type is None
+    assert envoy.ct_meter_count == 0
+    assert envoy.phase_count == 1
+    assert envoy.phase_mode is None
+    assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
     assert data.system_production.watts_now == 4859
@@ -550,10 +550,10 @@ async def test_with_3_7_0_firmware():
         assert data.system_production.watt_hours_last_7_days == 405000
         assert data.system_production.watt_hours_lifetime == 133000000
         assert not data.inverters
-        assert envoy._common_properties.ct_meter_count == 0
-        assert envoy._common_properties.phase_count == 1
-        assert envoy._common_properties.phase_mode is None
-        assert envoy._common_properties.consumption_meter_type is None
+        assert envoy.ct_meter_count == 0
+        assert envoy.phase_count == 1
+        assert envoy.phase_mode is None
+        assert envoy.consumption_meter_type is None
         assert not data.system_consumption_phases
         assert not data.system_production_phases
     finally:
@@ -648,10 +648,10 @@ async def test_with_3_9_36_firmware_no_inverters():
         "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
     }
     assert envoy.part_number == "800-00069-r05"
-    assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 1
-    assert envoy._common_properties.phase_mode is None
-    assert envoy._common_properties.consumption_meter_type is None
+    assert envoy.ct_meter_count == 0
+    assert envoy.phase_count == 1
+    assert envoy.phase_mode is None
+    assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
 
@@ -706,10 +706,10 @@ async def test_with_3_9_36_firmware():
     assert envoy.part_number == "800-00069-r05"
 
     assert not data.system_consumption
-    assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 1
-    assert envoy._common_properties.phase_mode is None
-    assert envoy._common_properties.consumption_meter_type is None
+    assert envoy.ct_meter_count == 0
+    assert envoy.phase_count == 1
+    assert envoy.phase_mode is None
+    assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
     assert data.system_production.watts_now == 1271
@@ -847,10 +847,10 @@ async def test_with_3_9_36_firmware_with_production_401():
     assert data.system_production.watt_hours_last_7_days == 130349
     assert data.system_production.watt_hours_lifetime == 6012540
     assert data.inverters
-    assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 1
-    assert envoy._common_properties.phase_mode is None
-    assert envoy._common_properties.consumption_meter_type is None
+    assert envoy.ct_meter_count == 0
+    assert envoy.phase_count == 1
+    assert envoy.phase_mode is None
+    assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
 
@@ -981,10 +981,10 @@ async def test_with_3_17_3_firmware():
     assert envoy.part_number == "800-00069-r05"
 
     assert not data.system_consumption
-    assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 1
-    assert envoy._common_properties.phase_mode is None
-    assert envoy._common_properties.consumption_meter_type is None
+    assert envoy.ct_meter_count == 0
+    assert envoy.phase_count == 1
+    assert envoy.phase_mode is None
+    assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
     assert data.system_production.watts_now == 5463
@@ -2114,11 +2114,9 @@ async def test_with_7_x_firmware(
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.disable_charge_from_grid()
 
+    assert envoy.active_phase_count == 0
     assert envoy.phase_count == phase_count
-    assert envoy._common_properties.ct_meter_count == common_properties["ctMeters"]
-    assert envoy._common_properties.phase_count == common_properties["phaseCount"]
-    assert envoy._common_properties.phase_mode == common_properties["phaseMode"]
-    assert (
-        envoy._common_properties.consumption_meter_type
-        == common_properties["consumptionMeter"]
-    )
+    assert envoy.ct_meter_count == common_properties["ctMeters"]
+    assert envoy.phase_count == common_properties["phaseCount"]
+    assert envoy.phase_mode == common_properties["phaseMode"]
+    assert envoy.consumption_meter_type == common_properties["consumptionMeter"]
