@@ -24,7 +24,7 @@ from pyenphase.exceptions import (
 )
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.envoy import EnvoyData
-from pyenphase.models.system_consumption import EnvoySystemConsumption
+from pyenphase.models.meters import CtType, EnvoyPhaseMode
 from pyenphase.models.system_production import EnvoySystemProduction
 from pyenphase.models.tariff import EnvoyStorageMode
 from pyenphase.updaters.base import EnvoyUpdater
@@ -94,7 +94,7 @@ async def test_with_4_2_27_firmware():
     respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
 
     envoy = await _get_mock_envoy()
-    data = envoy.data
+    data: EnvoyData | None = envoy.data
     assert data is not None
 
     assert not (envoy._supported_features & SupportedFeatures.METERING)
@@ -106,6 +106,7 @@ async def test_with_4_2_27_firmware():
     }
     assert envoy.part_number == "800-00551-r02"
 
+    assert data.system_production is not None
     assert (
         data.system_production.watts_now == 5894
     )  # This used to use the production.json endpoint, but its always a bit behind
@@ -114,7 +115,7 @@ async def test_with_4_2_27_firmware():
     assert data.system_production.watt_hours_lifetime == 10279087
     assert not data.inverters
     assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_count == 1
     assert envoy._common_properties.phase_mode is None
     assert envoy._common_properties.consumption_meter_type is None
     assert not data.system_consumption_phases
@@ -181,7 +182,7 @@ async def test_with_5_0_49_firmware():
 
     assert not data.system_consumption
     assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_count == 1
     assert envoy._common_properties.phase_mode is None
     assert envoy._common_properties.consumption_meter_type is None
     assert not data.system_consumption_phases
@@ -550,7 +551,7 @@ async def test_with_3_7_0_firmware():
         assert data.system_production.watt_hours_lifetime == 133000000
         assert not data.inverters
         assert envoy._common_properties.ct_meter_count == 0
-        assert envoy._common_properties.phase_count == 0
+        assert envoy._common_properties.phase_count == 1
         assert envoy._common_properties.phase_mode is None
         assert envoy._common_properties.consumption_meter_type is None
         assert not data.system_consumption_phases
@@ -648,7 +649,7 @@ async def test_with_3_9_36_firmware_no_inverters():
     }
     assert envoy.part_number == "800-00069-r05"
     assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_count == 1
     assert envoy._common_properties.phase_mode is None
     assert envoy._common_properties.consumption_meter_type is None
     assert not data.system_consumption_phases
@@ -706,7 +707,7 @@ async def test_with_3_9_36_firmware():
 
     assert not data.system_consumption
     assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_count == 1
     assert envoy._common_properties.phase_mode is None
     assert envoy._common_properties.consumption_meter_type is None
     assert not data.system_consumption_phases
@@ -847,7 +848,7 @@ async def test_with_3_9_36_firmware_with_production_401():
     assert data.system_production.watt_hours_lifetime == 6012540
     assert data.inverters
     assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_count == 1
     assert envoy._common_properties.phase_mode is None
     assert envoy._common_properties.consumption_meter_type is None
     assert not data.system_consumption_phases
@@ -981,7 +982,7 @@ async def test_with_3_17_3_firmware():
 
     assert not data.system_consumption
     assert envoy._common_properties.ct_meter_count == 0
-    assert envoy._common_properties.phase_count == 0
+    assert envoy._common_properties.phase_count == 1
     assert envoy._common_properties.phase_mode is None
     assert envoy._common_properties.consumption_meter_type is None
     assert not data.system_consumption_phases
@@ -1451,7 +1452,7 @@ async def test_pr111_with_7_6_175_standard():
             1,
             {
                 "ctMeters": 0,
-                "phaseCount": 0,
+                "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
@@ -1479,10 +1480,10 @@ async def test_pr111_with_7_6_175_standard():
             },
             2,
             {
-                "ctMeters": 0,
-                "phaseCount": 0,
-                "phaseMode": None,
-                "consumptionMeter": None,
+                "ctMeters": 2,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "consumptionMeter": CtType.NET_CONSUMPTION,
             },
             {},
             {},
@@ -1505,7 +1506,7 @@ async def test_pr111_with_7_6_175_standard():
             1,
             {
                 "ctMeters": 0,
-                "phaseCount": 0,
+                "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
@@ -1529,9 +1530,9 @@ async def test_pr111_with_7_6_175_standard():
             },
             2,
             {
-                "ctMeters": 0,
-                "phaseCount": 0,
-                "phaseMode": None,
+                "ctMeters": 1,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
                 "consumptionMeter": None,
             },
             {},
@@ -1561,7 +1562,7 @@ async def test_pr111_with_7_6_175_standard():
             1,
             {
                 "ctMeters": 0,
-                "phaseCount": 0,
+                "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
@@ -1592,7 +1593,7 @@ async def test_pr111_with_7_6_175_standard():
             1,
             {
                 "ctMeters": 0,
-                "phaseCount": 0,
+                "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
@@ -1624,10 +1625,10 @@ async def test_pr111_with_7_6_175_standard():
             },
             2,
             {
-                "ctMeters": 0,
-                "phaseCount": 0,
-                "phaseMode": None,
-                "consumptionMeter": None,
+                "ctMeters": 2,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "consumptionMeter": CtType.NET_CONSUMPTION,
             },
             {},
             {},
@@ -1646,7 +1647,7 @@ async def test_pr111_with_7_6_175_standard():
             1,
             {
                 "ctMeters": 0,
-                "phaseCount": 0,
+                "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
@@ -1664,7 +1665,7 @@ async def test_pr111_with_7_6_175_standard():
             1,
             {
                 "ctMeters": 0,
-                "phaseCount": 0,
+                "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
@@ -1682,7 +1683,7 @@ async def test_pr111_with_7_6_175_standard():
             1,
             {
                 "ctMeters": 0,
-                "phaseCount": 0,
+                "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
@@ -1703,7 +1704,7 @@ async def test_pr111_with_7_6_175_standard():
             1,
             {
                 "ctMeters": 0,
-                "phaseCount": 0,
+                "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
@@ -1721,7 +1722,7 @@ async def test_pr111_with_7_6_175_standard():
             1,
             {
                 "ctMeters": 0,
-                "phaseCount": 0,
+                "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
@@ -1747,10 +1748,10 @@ async def test_pr111_with_7_6_175_standard():
             },
             1,
             {
-                "ctMeters": 0,
-                "phaseCount": 0,
-                "phaseMode": None,
-                "consumptionMeter": None,
+                "ctMeters": 2,
+                "phaseCount": 1,
+                "phaseMode": EnvoyPhaseMode.THREE,
+                "consumptionMeter": CtType.NET_CONSUMPTION,
             },
             {},
             {},
@@ -1776,10 +1777,10 @@ async def test_pr111_with_7_6_175_standard():
             },
             3,
             {
-                "ctMeters": 0,
-                "phaseCount": 0,
-                "phaseMode": None,
-                "consumptionMeter": None,
+                "ctMeters": 2,
+                "phaseCount": 3,
+                "phaseMode": EnvoyPhaseMode.THREE,
+                "consumptionMeter": CtType.NET_CONSUMPTION,
             },
             {},
             {},
@@ -1805,10 +1806,10 @@ async def test_pr111_with_7_6_175_standard():
             },
             1,
             {
-                "ctMeters": 0,
-                "phaseCount": 0,
-                "phaseMode": None,
-                "consumptionMeter": None,
+                "ctMeters": 2,
+                "phaseCount": 1,
+                "phaseMode": EnvoyPhaseMode.THREE,
+                "consumptionMeter": CtType.NET_CONSUMPTION,
             },
             {},
             {},
@@ -1835,7 +1836,7 @@ async def test_pr111_with_7_6_175_standard():
             1,
             {
                 "ctMeters": 0,
-                "phaseCount": 0,
+                "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
@@ -1873,8 +1874,8 @@ async def test_with_7_x_firmware(
     caplog: pytest.LogCaptureFixture,
     phase_count: int,
     common_properties: dict[str, Any],
-    production_phases: dict[str, EnvoySystemProduction] | None,
-    consumption_phases: dict[str, EnvoySystemConsumption] | None,
+    production_phases: dict[str, dict[str, Any]] | None,
+    consumption_phases: dict[str, dict[str, Any]] | None,
 ) -> None:
     """Verify with 7.x firmware."""
     _start_7_firmware_mock()

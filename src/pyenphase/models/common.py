@@ -32,6 +32,8 @@ class CommonProperties:
     consumption_meter_type: CtType | None = (
         None  #: What type of consumption meter is installed, if installed
     )
+    # controlled by production updater
+    active_phase_count: int = 0  #: number of phases actually reporting phase data
 
     # controlled by
     # none_probe_property: str = "hello world" #: test
