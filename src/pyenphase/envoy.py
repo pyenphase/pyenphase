@@ -32,6 +32,7 @@ from .firmware import EnvoyFirmware
 from .json import json_loads
 from .models.common import CommonProperties
 from .models.envoy import EnvoyData
+from .models.meters import CtType, EnvoyPhaseMode
 from .models.tariff import EnvoyStorageMode
 from .ssl import NO_VERIFY_SSL_CONTEXT
 from .updaters.api_v1_production import EnvoyApiV1ProductionUpdater
@@ -263,16 +264,33 @@ class Envoy:
 
     @property
     def phase_count(self) -> int:
-        """Return the number of configured phases."""
-        assert self._supported_features is not None, "Call setup() first"  # nosec
-        if self._supported_features & SupportedFeatures.DUALPHASE:
-            phase_count = 2
-        elif self._supported_features & SupportedFeatures.THREEPHASE:
-            phase_count = 3
-        else:
-            # return 1 phase, indicating no multiphase data is present
-            phase_count = 1
-        return phase_count
+        """Return the number of configured phases for CT meters."""
+        assert self._common_properties is not None, "Call setup() first"  # nosec
+        return self._common_properties.phase_count
+
+    @property
+    def active_phase_count(self) -> int:
+        """Return the number of phases for CT meters that reported data."""
+        assert self._common_properties is not None, "Call setup() first"  # nosec
+        return self._common_properties.active_phase_count
+
+    @property
+    def ct_meter_count(self) -> int:
+        """Return the number of configured current transformers (CT)"""
+        assert self._common_properties is not None, "Call setup() first"  # nosec
+        return self._common_properties.ct_meter_count
+
+    @property
+    def consumption_meter_type(self) -> CtType | None:
+        """Return the type of consumption ct meter installed (total or net consumption)."""
+        assert self._common_properties is not None, "Call setup() first"  # nosec
+        return self._common_properties.consumption_meter_type
+
+    @property
+    def phase_mode(self) -> EnvoyPhaseMode | None:
+        """Return the phase mode configured for the CT meters (single, split or three)."""
+        assert self._common_properties is not None, "Call setup() first"  # nosec
+        return self._common_properties.phase_mode
 
     async def _make_cached_request(
         self, request_func: Callable[[str], Awaitable[httpx.Response]], endpoint: str
