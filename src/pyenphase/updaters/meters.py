@@ -73,7 +73,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
             # For D3.18.10 (f0855e) systems return 401 even if the user has access
             # to the endpoint so we must skip it.
             _LOGGER.debug(
-                "Skipping meters endpoint as user does" " not have access to %s: %s",
+                "Skipping meters endpoint as user does not have access to %s: %s",
                 self.end_point,
                 e,
             )
