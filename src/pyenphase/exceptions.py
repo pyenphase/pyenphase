@@ -2,8 +2,6 @@ import json
 
 import httpx
 
-ENDPOINT_PROBE_EXCEPTIONS = (json.JSONDecodeError, httpx.HTTPError)
-
 
 class EnvoyError(Exception):
     """Base class for Envoy exceptions."""
@@ -39,6 +37,15 @@ class EnvoyAuthenticationRequired(EnvoyError):
         self.status = status
 
 
+class EnvoyHTTPStatusError(EnvoyError):
+    """Exception raised when unable to query the Envoy status."""
+
+    def __init__(self, status_code: int, url: str) -> None:
+        self.status_code = status_code
+        self.url = url
+        super().__init__(f"HTTP status error {url} {status_code}")
+
+
 class EnvoyProbeFailed(EnvoyError):
     """Exception raised when the Envoy probe fails."""
 
@@ -49,3 +56,10 @@ class EnvoyCommunicationError(EnvoyError):
 
 class EnvoyFeatureNotAvailable(EnvoyError):
     """Exception raised when the Envoy feature is not available."""
+
+
+ENDPOINT_PROBE_EXCEPTIONS = (
+    json.JSONDecodeError,
+    httpx.HTTPError,
+    EnvoyHTTPStatusError,
+)
