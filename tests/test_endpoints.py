@@ -690,7 +690,9 @@ async def test_with_3_9_36_firmware():
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(401))
 
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
+    respx.get("/ivp/meters").mock(
+        return_value=Response(404, json={"error": "404 - Not Found"})
+    )
 
     envoy = await _get_mock_envoy()
     data = envoy.data
