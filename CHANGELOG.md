@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.15.2 (2023-12-20)
+
+### Fix
+
+* 3.9.x firmware with meters probe ([#128](https://github.com/pyenphase/pyenphase/issues/128)) ([`06606c5`](https://github.com/pyenphase/pyenphase/commit/06606c5516c84b3ee500843b8b843bf180658055))
+
 ## v1.15.1 (2023-12-20)
 
 ### Fix
