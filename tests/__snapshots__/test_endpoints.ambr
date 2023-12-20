@@ -8077,14 +8077,52 @@
       'watt_hours_today': 12423,
       'watts_now': 209,
     }),
-    'system_consumption_phases': None,
+    'system_consumption_phases': dict({
+      <PhaseNames.PHASE_1: 'L1'>: dict({
+        'watt_hours_last_7_days': 39392,
+        'watt_hours_lifetime': 2293783,
+        'watt_hours_today': 8585,
+        'watts_now': 89,
+      }),
+      <PhaseNames.PHASE_2: 'L2'>: dict({
+        'watt_hours_last_7_days': 18949,
+        'watt_hours_lifetime': 948058,
+        'watt_hours_today': 2155,
+        'watts_now': 123,
+      }),
+      <PhaseNames.PHASE_3: 'L3'>: dict({
+        'watt_hours_last_7_days': 10443,
+        'watt_hours_lifetime': 832954,
+        'watt_hours_today': 1683,
+        'watts_now': -3,
+      }),
+    }),
     'system_production': dict({
       'watt_hours_last_7_days': 69492,
       'watt_hours_lifetime': 4351113,
       'watt_hours_today': 5113,
       'watts_now': -6,
     }),
-    'system_production_phases': None,
+    'system_production_phases': dict({
+      <PhaseNames.PHASE_1: 'L1'>: dict({
+        'watt_hours_last_7_days': 29891,
+        'watt_hours_lifetime': 1869678,
+        'watt_hours_today': 2200,
+        'watts_now': -3,
+      }),
+      <PhaseNames.PHASE_2: 'L2'>: dict({
+        'watt_hours_last_7_days': 19794,
+        'watt_hours_lifetime': 1241246,
+        'watt_hours_today': 1455,
+        'watts_now': 0,
+      }),
+      <PhaseNames.PHASE_3: 'L3'>: dict({
+        'watt_hours_last_7_days': 19807,
+        'watt_hours_lifetime': 1240189,
+        'watt_hours_today': 1458,
+        'watts_now': -4,
+      }),
+    }),
     'tariff': dict({
       'currency': dict({
         'code': 'EUR',

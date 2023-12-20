@@ -14,7 +14,7 @@ from httpx import Response
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase import Envoy, EnvoyInverter, register_updater
-from pyenphase.const import URL_GRID_RELAY, URL_PRODUCTION, URL_TARIFF
+from pyenphase.const import URL_GRID_RELAY, URL_PRODUCTION, URL_TARIFF, PhaseNames
 from pyenphase.envoy import SupportedFeatures, get_updaters
 from pyenphase.exceptions import (
     ENDPOINT_PROBE_EXCEPTIONS,
@@ -1782,8 +1782,46 @@ async def test_pr111_with_7_6_175_standard():
                 "phaseMode": EnvoyPhaseMode.THREE,
                 "consumptionMeter": CtType.NET_CONSUMPTION,
             },
-            {},
-            {},
+            {
+                PhaseNames.PHASE_1: {
+                    "watt_hours_lifetime": 1869678,
+                    "watt_hours_last_7_days": 29891,
+                    "watt_hours_today": 2200,
+                    "watts_now": -3,
+                },
+                PhaseNames.PHASE_2: {
+                    "watt_hours_lifetime": 1241246,
+                    "watt_hours_last_7_days": 19794,
+                    "watt_hours_today": 1455,
+                    "watts_now": 0,
+                },
+                PhaseNames.PHASE_3: {
+                    "watt_hours_lifetime": 1240189,
+                    "watt_hours_last_7_days": 19807,
+                    "watt_hours_today": 1458,
+                    "watts_now": -4,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "watt_hours_lifetime": 2293783,
+                    "watt_hours_last_7_days": 39392,
+                    "watt_hours_today": 8585,
+                    "watts_now": 89,
+                },
+                PhaseNames.PHASE_2: {
+                    "watt_hours_lifetime": 948058,
+                    "watt_hours_last_7_days": 18949,
+                    "watt_hours_today": 2155,
+                    "watts_now": 123,
+                },
+                PhaseNames.PHASE_3: {
+                    "watt_hours_lifetime": 832954,
+                    "watt_hours_last_7_days": 10443,
+                    "watt_hours_today": 1683,
+                    "watts_now": -3,
+                },
+            },
         ),
         (
             "7.6.185_with_cts_and_battery_3t",
@@ -1874,8 +1912,8 @@ async def test_with_7_x_firmware(
     caplog: pytest.LogCaptureFixture,
     phase_count: int,
     common_properties: dict[str, Any],
-    production_phases: dict[str, dict[str, Any]] | None,
-    consumption_phases: dict[str, dict[str, Any]] | None,
+    production_phases: dict[str, dict[str, Any]],
+    consumption_phases: dict[str, dict[str, Any]],
 ) -> None:
     """Verify with 7.x firmware."""
     _start_7_firmware_mock()
@@ -2114,9 +2152,37 @@ async def test_with_7_x_firmware(
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.disable_charge_from_grid()
 
-    assert envoy.active_phase_count == 0
+    assert (
+        envoy.active_phase_count == 0
+        if data.system_production_phases is None
+        else len(data.system_production_phases)
+    )
     assert envoy.phase_count == phase_count
     assert envoy.ct_meter_count == common_properties["ctMeters"]
     assert envoy.phase_count == common_properties["phaseCount"]
     assert envoy.phase_mode == common_properties["phaseMode"]
     assert envoy.consumption_meter_type == common_properties["consumptionMeter"]
+
+    # Test each production phase
+    for phase in production_phases:
+        proddata = envoy.data.system_production_phases[phase]
+        modeldata = production_phases[phase]
+
+        # test each element of the phase data
+        assert proddata.watt_hours_lifetime == modeldata["watt_hours_lifetime"]
+        assert proddata.watt_hours_last_7_days == modeldata["watt_hours_last_7_days"]
+        assert proddata.watt_hours_today == modeldata["watt_hours_today"]
+        assert proddata.watts_now == modeldata["watts_now"]
+
+        # Test each consumption phase
+        for phase in consumption_phases:
+            consdata = envoy.data.system_consumption_phases[phase]
+            modeldata = consumption_phases[phase]
+
+            # test each element of the phase data
+            assert consdata.watt_hours_lifetime == modeldata["watt_hours_lifetime"]
+            assert (
+                consdata.watt_hours_last_7_days == modeldata["watt_hours_last_7_days"]
+            )
+            assert consdata.watt_hours_today == modeldata["watt_hours_today"]
+            assert consdata.watts_now == modeldata["watts_now"]
