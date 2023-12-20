@@ -1,0 +1,18 @@
+    <!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">
+    <html>
+    <!-- START HEAD CONTENT -->
+    <head>
+      <!-- include style sheet -->
+      <link rel="StyleSheet" type="text/css" href="/include/style.css" />
+      <!-- include JS libraries -->
+    </head>
+    <!-- END HEAD CONTENT -->
+    <body>
+    <center>
+    <img src="/images/emu-small.gif" style="margin:10px" alt="Emu"/>
+    <h2>Page Not Found</h2>
+    <p>The page you tried to view does not exist
+     Try the <a href="/">home</a> page</p>
+    </center>
+    </body>
+    </html>
