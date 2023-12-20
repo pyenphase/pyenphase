@@ -6,6 +6,7 @@ import httpx
 from awesomeversion import AwesomeVersion
 
 from ..const import SupportedFeatures
+from ..exceptions import EnvoyProbeFailed
 from ..json import json_loads
 from ..models.common import CommonProperties
 from ..models.envoy import EnvoyData
@@ -36,6 +37,10 @@ class EnvoyUpdater:
     async def _json_probe_request(self, end_point: str) -> Any:
         """Make a probe request to the Envoy and return the JSON response."""
         response = await self._probe_request(end_point)
+        if not 200 >= response.status_code >= 300:
+            raise EnvoyProbeFailed(
+                f"HTTP status error {response.url} {response.status_code}"
+            )
         return json_loads(end_point, response.content)
 
     @abstractmethod

@@ -79,7 +79,9 @@ class EnvoyMetersUpdater(EnvoyUpdater):
             )
             return None
         else:
-            if not meters_json:
+            # The endpoint can return valid json on error
+            # in the form of {"error": "message"}
+            if not meters_json or "error" in meters_json:
                 # Non metered Envoy return empty list
                 _LOGGER.debug("No CT Meters found")
                 return None

@@ -2,8 +2,6 @@ import json
 
 import httpx
 
-ENDPOINT_PROBE_EXCEPTIONS = (json.JSONDecodeError, httpx.HTTPError)
-
 
 class EnvoyError(Exception):
     """Base class for Envoy exceptions."""
@@ -49,3 +47,6 @@ class EnvoyCommunicationError(EnvoyError):
 
 class EnvoyFeatureNotAvailable(EnvoyError):
     """Exception raised when the Envoy feature is not available."""
+
+
+ENDPOINT_PROBE_EXCEPTIONS = (json.JSONDecodeError, httpx.HTTPError, EnvoyProbeFailed)
