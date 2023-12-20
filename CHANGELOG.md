@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.15.1 (2023-12-20)
+
+### Fix
+
+* Skip meters endpoint if it returns a 401 ([#125](https://github.com/pyenphase/pyenphase/issues/125)) ([`166c25c`](https://github.com/pyenphase/pyenphase/commit/166c25c410b6fa319bddea78db44606da7364aeb))
+
 ## v1.15.0 (2023-12-19)
 
 ### Feature
