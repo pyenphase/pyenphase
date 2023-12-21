@@ -690,7 +690,9 @@ async def test_with_3_9_36_firmware():
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(401))
 
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
+    respx.get("/ivp/meters").mock(
+        return_value=Response(404, json={"error": "404 - Not Found"})
+    )
 
     envoy = await _get_mock_envoy()
     data = envoy.data
@@ -898,6 +900,44 @@ async def test_with_3_9_36_firmware_with_production_and_production_json_401():
 async def test_with_3_9_36_firmware_with_meters_401():
     """Verify with 3.9.36 firmware when /ivp/meters throws a 401."""
     version = "3.9.36"
+    respx.get("/info").mock(
+        return_value=Response(200, text=_load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(return_value=Response(404))
+    respx.get("/production.json").mock(return_value=Response(401))
+    respx.get("/api/v1/production").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production")
+        )
+    )
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production_inverters")
+        )
+    )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = _load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+    respx.get("/ivp/meters").mock(return_value=Response(401))
+
+    with pytest.raises(EnvoyAuthenticationRequired):
+        await _get_mock_envoy()
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_with_3_8_10_firmware_with_meters_401():
+    """Verify with 3.8.10 firmware when /ivp/meters throws a 401."""
+    version = "3.8.10"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
     )

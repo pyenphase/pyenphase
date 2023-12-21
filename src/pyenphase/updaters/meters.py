@@ -2,7 +2,7 @@
 import logging
 
 from ..const import ENDPOINT_URL_METERS, ENDPOINT_URL_METERS_READINGS, SupportedFeatures
-from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
+from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.meters import CtMeterData, CtState, CtType, EnvoyPhaseMode
 from .base import EnvoyUpdater
@@ -69,8 +69,19 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug("Meters endpoint not found at %s: %s", self.end_point, e)
             return None
+        except EnvoyAuthenticationRequired as e:
+            # For D3.18.10 (f0855e) systems return 401 even if the user has access
+            # to the endpoint so we must skip it.
+            _LOGGER.debug(
+                "Skipping meters endpoint as user does not have access to %s: %s",
+                self.end_point,
+                e,
+            )
+            return None
         else:
-            if not meters_json:
+            # The endpoint can return valid json on error
+            # in the form of {"error": "message"}
+            if not meters_json or "error" in meters_json:
                 # Non metered Envoy return empty list
                 _LOGGER.debug("No CT Meters found")
                 return None
