@@ -6,14 +6,15 @@
 
 installation
 usage
-data
 advanced
 
 ```
 
 ```{toctree}
+:caption: Data & Reference
 :maxdepth: 3
 
+data
 model_autodoc
 
 ```
@@ -24,6 +25,8 @@ model_autodoc
 
 changelog
 contributing
+documenting
+
 ```
 
 ```{include} ../README.md

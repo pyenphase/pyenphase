@@ -1,8 +1,8 @@
 # Authentication
 
-Before firmware 7, authentication was based on username/password. In these cases either `Envoy` or `Installer` usernames with a blank password or a known username/password can be used. The token is not utilized. The authentication module will calculate the passwords for these 2 accounts based on the serial number retrieved by the setup method.
+Before firmware 7, authentication was based on username/password. In these cases either `Envoy` or `Installer` usernames with a blank password or a known username/password can be used. The token is not utilized. The authentication module will calculate the passwords for these 2 accounts, if left blank, based on the serial number retrieved by the setup method.
 
-With firmware 7, token based authentication is required. The authentication module can retrieve the token from the Enlighten website using the retrieved Envoy serial number and the Enlighten username and password which need to be specified. If the token is known, it can be specified and it will be used instead of obtaining one from the internet.
+As of firmware 7, token based authentication is required. The authentication module can retrieve the token from the Enlighten website using the retrieved Envoy serial number and the Enlighten username and password which need to be specified. If the token is known, it can be specified and it will be used instead of obtaining one from the internet.
 
 ```python
 envoy = Envoy(host_ip_or_name)
@@ -19,7 +19,7 @@ Upon completion of the authentication, the token can be requested and stored for
 from pyenphase import Envoy
 from pyenphase.auth import EnvoyTokenAuth
 
-token: str = "get token from storage"
+token: str = "get token from some storage"
 
 envoy = Envoy(host_ip_or_name)
 await envoy.setup()
@@ -32,25 +32,25 @@ if expire_time < (datetime.now() - timedelta(days=7)):
     await self.envoy.auth.refresh()
 
 token = envoy.auth.token
-# save token is some storage
+# save token in some storage
 
 ```
 
 ## Re-Authentication
 
-When authorization is omitted or data requests experience an authorization failure (401 or 403) an `EnvoyAuthenticationRequired` error is returned. When this occurs, authorization should be repeated.
+When authentication is omitted or data requests experience an authorization failure (401 or 403) an `EnvoyAuthenticationRequired` error is returned. When this occurs, authentication should be repeated.
 
 ```python
     try:
         data: EnvoyData = await envoy.update()
 
     except EnvoyAuthenticationRequired:
-        await envoy.authenticate(username=username, password=password,token-token)
+        await envoy.authenticate(username=username, password=password,token=token)
 ```
 
-## Authorized levels
+## Authorization levels
 
-Enphase accounts are either home-owner or installer/DIY accounts. The Home owner account provides access to the data information endpoints. The installer account has in addition access to configuration and setup endpoints as well. The authentication class provides the methods `is_consumer` and `manager_token` to determine the nature of the account.
+Enphase accounts are either home-owner or installer/DIY accounts. The Home owner account provides access to the data information endpoints. The installer account has in addition access to configuration and setup endpoints as well [^2]. The authentication class provides the methods `is_consumer` and `manager_token` to determine the nature of the account.
 
 ```python
 assert isinstance(envoy.auth, EnvoyTokenAuth)
@@ -60,6 +60,8 @@ if envoy.auth.manager_token:
 if envoy.auth.is_consumer:
     ...
 ```
+
+[^2]: Data provided by pyenphase is only sourced from endpoints that allow access by at least Home owner accounts. The Envoy [Request method](#pyenphase.Envoy.request) allows access to [additional endpoints](./advanced.md#bring-your-own-endpoint), provided the user account has the required authorization level.
 
 ### Authentication over firmware update
 
@@ -80,14 +82,14 @@ while True:
 
     except EnvoyAuthenticationRequired:
         expire_time = envoy.auth.expire_timestamp
-        if expire_time <> now.timestamp():
+        if expire_time < now.timestamp():
             await self.envoy.auth.refresh()
         else:
             # potential outage, get firmware
             await envoy.setup()
             # authenticate without token to get new one
             await envoy.authenticate(username=username, password=password)
-            # if firmware changed on us for re-init of data updaters
+            # if firmware changed on us force re-init of data updaters
             if firmware != envoy.firmware:
                 envoy.probe()
 ```
