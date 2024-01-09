@@ -6,7 +6,7 @@ Next the envoy serial number and active firmware version should be obtained to i
 
 Once the firmware version is known, authentication can take place using the required parameters for the firmware. The [authenticate method](#pyenphase.Envoy.authenticate) requires a username and password and/or a JWT Token. What the username and password are and if the token is required [depends on the firmware](./usage_authentication.md#authentication) active in the Envoy.
 
-Upon successful authentication the data collection can be initiated by using the [probe method](#pyenphase.Envoy.probe). This will collected and set all required information for the data collection.
+Upon successful authentication the data collection can be initiated by using the [probe method](#pyenphase.Envoy.probe). This will gather and set all required information for the data collection.[^1]
 
 Upon probe completion the data can be collected (repeatedly) using the [update method](#pyenphase.Envoy.update).
 
@@ -33,5 +33,4 @@ while True:
     await asyncio.sleep(some_time)
 ```
 
-> [!NOTE]
-> The probe method will be called by the update method if not called before. It should be called only once to initiate data collection parameters.
+[^1]: The probe method will be called by the update method if not called before. It needs to be called only once to initiate data collection parameters.
