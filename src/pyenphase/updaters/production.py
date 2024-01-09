@@ -2,7 +2,7 @@
 import logging
 from typing import Any
 
-from ..const import URL_PRODUCTION, URL_PRODUCTION_JSON, PhaseNames, SupportedFeatures
+from ..const import PHASENAMES, URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.system_consumption import EnvoySystemConsumption
@@ -133,7 +133,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 )
                 # exclude None phases that are expected but not actually in production report
                 if production:
-                    phase_production[list(PhaseNames)[phase]] = production
+                    phase_production[PHASENAMES[phase]] = production
 
             if len(phase_production) > 0:
                 envoy_data.system_production_phases = phase_production
@@ -156,7 +156,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 )
                 # exclude None phases that are expected but not actually in production report
                 if consumption:
-                    phase_consumption[list(PhaseNames)[phase]] = consumption
+                    phase_consumption[PHASENAMES[phase]] = consumption
 
             if len(phase_consumption) > 0:
                 envoy_data.system_consumption_phases = phase_consumption

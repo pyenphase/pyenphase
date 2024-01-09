@@ -85,11 +85,10 @@ class EnvoySystemProduction:
         if not phases or phase >= len(phases):
             return None
 
+        phase_data = phases[phase]
         return cls(
-            watt_hours_lifetime=int(round(phases[phase].get("whLifetime") or 0)),
-            watt_hours_last_7_days=int(
-                round(phases[phase].get("whLastSevenDays") or 0)
-            ),
-            watt_hours_today=int(round(phases[phase].get("whToday") or 0)),
-            watts_now=int(round(phases[phase].get("wNow") or 0)),
+            watt_hours_lifetime=int(round(phase_data.get("whLifetime") or 0)),
+            watt_hours_last_7_days=int(round(phase_data.get("whLastSevenDays") or 0)),
+            watt_hours_today=int(round(phase_data.get("whToday") or 0)),
+            watts_now=int(round(phase_data.get("wNow") or 0)),
         )
