@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.16.0 (2024-01-09)
+
+### Feature
+
+* Provide phase data for envoy metered with ct ([#126](https://github.com/pyenphase/pyenphase/issues/126)) ([`454dbc5`](https://github.com/pyenphase/pyenphase/commit/454dbc58ebb2edf23e9c64173fb8b5d155b327fc))
+
 ## v1.15.2 (2023-12-20)
 
 ### Fix
