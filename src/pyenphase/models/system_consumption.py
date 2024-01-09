@@ -49,9 +49,10 @@ class EnvoySystemConsumption:
         if not phases or phase >= len(phases):
             return None
 
+        phase_data = phases[phase]
         return cls(
-            watt_hours_lifetime=int(round(phases[phase]["whLifetime"])),
-            watt_hours_last_7_days=int(round(phases[phase]["whLastSevenDays"])),
-            watt_hours_today=int(round(phases[phase]["whToday"])),
-            watts_now=int(round(phases[phase]["wNow"])),
+            watt_hours_lifetime=int(round(phase_data["whLifetime"])),
+            watt_hours_last_7_days=int(round(phase_data["whLastSevenDays"])),
+            watt_hours_today=int(round(phase_data["whToday"])),
+            watts_now=int(round(phase_data["wNow"])),
         )
