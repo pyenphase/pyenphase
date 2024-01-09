@@ -63,3 +63,6 @@ class PhaseNames(enum.StrEnum):
     PHASE_1 = "L1"
     PHASE_2 = "L2"
     PHASE_3 = "L3"
+
+
+PHASENAMES = list(PhaseNames)

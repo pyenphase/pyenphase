@@ -1,7 +1,8 @@
+"""Envoy production data updater"""
 import logging
 from typing import Any
 
-from ..const import URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
+from ..const import PHASENAMES, URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.system_consumption import EnvoySystemConsumption
@@ -40,7 +41,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             # Already discovered from another updater
             return None
 
-        # when allow_inverters_fallback mode is active use first successful endpoint registered in the list
+        # when active allow_inverters_fallback use first successful endpoint registered in the list
         if self.allow_inverters_fallback and working_endpoints:
             self.end_point = working_endpoints[0]
 
@@ -115,16 +116,60 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         """Update the Envoy for this endpoint."""
         production_data = await self._json_request(self.end_point)
         envoy_data.raw[self.end_point] = production_data
+
+        # get phase count from Envoy common features
+        phase_count = self._common_properties.phase_count
+        active_phase_count = 0
+
         if self._supported_features & SupportedFeatures.PRODUCTION:
             envoy_data.system_production = EnvoySystemProduction.from_production(
                 production_data
             )
+            # get production phase data if more then 1 phase is found
+            phase_production: dict[str, EnvoySystemProduction | None] = {}
+            for phase in range(phase_count if phase_count > 1 else 0):
+                production: EnvoySystemProduction | None = (
+                    EnvoySystemProduction.from_production_phase(production_data, phase)
+                )
+                # exclude None phases that are expected but not actually in production report
+                if production:
+                    phase_production[PHASENAMES[phase]] = production
+
+            if len(phase_production) > 0:
+                envoy_data.system_production_phases = phase_production
+
+            active_phase_count = len(phase_production)
+
         if (
             self._supported_features & SupportedFeatures.NET_CONSUMPTION
             or self._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
         ):
             envoy_data.system_consumption = EnvoySystemConsumption.from_production(
                 production_data
+            )
+
+            # get consumption phase data if more then 1 phase is found
+            phase_consumption: dict[str, EnvoySystemConsumption | None] = {}
+            for phase in range(phase_count if phase_count > 1 else 0):
+                consumption: EnvoySystemConsumption | None = (
+                    EnvoySystemConsumption.from_production_phase(production_data, phase)
+                )
+                # exclude None phases that are expected but not actually in production report
+                if consumption:
+                    phase_consumption[PHASENAMES[phase]] = consumption
+
+            if len(phase_consumption) > 0:
+                envoy_data.system_consumption_phases = phase_consumption
+
+            active_phase_count = len(phase_consumption)
+
+        # save actual reporting phases in common properties
+        self._common_properties.active_phase_count = active_phase_count
+        if active_phase_count != phase_count:
+            _LOGGER.debug(
+                "Not all phases report phase data, %s of %s",
+                active_phase_count,
+                phase_count,
             )
 
 
