@@ -1,5 +1,4 @@
 """Envoy production data updater"""
-"""Envoy production data updater"""
 import logging
 from typing import Any
 
