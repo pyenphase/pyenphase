@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v1.17.0 (2024-01-11)
+
+### Feature
+
+* Write request reply to debuglog when in debug ([#131](https://github.com/pyenphase/pyenphase/issues/131)) ([`e255684`](https://github.com/pyenphase/pyenphase/commit/e25568444ca4a629bc38904c0f27777550219117))
+
+### Documentation
+
+* Reorganize and extend documentation. ([#129](https://github.com/pyenphase/pyenphase/issues/129)) ([`4d8e463`](https://github.com/pyenphase/pyenphase/commit/4d8e463fc5d5e500876f721ae2831cc90a275d9a))
+
 ## v1.16.0 (2024-01-09)
 
 ### Feature
