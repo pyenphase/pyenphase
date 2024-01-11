@@ -242,8 +242,6 @@ class Envoy:
         if debugon:
             content_type = response.headers.get("content-type")
             content = response.content
-            if content_type == "application/json":
-                content = orjson.loads(content)
             _LOGGER.debug(
                 "Request reply from %s status %s: %s %s",
                 url,
