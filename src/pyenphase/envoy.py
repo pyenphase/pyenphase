@@ -118,7 +118,8 @@ class Envoy:
         if self._firmware.version < AUTH_TOKEN_MIN_VERSION:
             # Envoy firmware using old envoy/installer authentication
             _LOGGER.debug(
-                "Authenticating to Envoy using envoy/installer authentication"
+                "FW: %s, Authenticating to Envoy using envoy/installer authentication",
+                self._firmware.version,
             )
             full_serial = self._firmware.serial
             if not username or username == "installer":
@@ -134,7 +135,10 @@ class Envoy:
 
         else:
             # Envoy firmware using new token authentication
-            _LOGGER.debug("Authenticating to Envoy using token authentication")
+            _LOGGER.debug(
+                "FW: %s, Authenticating to Envoy using token authentication",
+                self._firmware.version,
+            )
             if token or (username and password):
                 # Always pass all the data to the token auth class, even if some of it is None
                 # so that we can refresh the token if needed
@@ -200,9 +204,10 @@ class Envoy:
             )
 
         url = self.auth.get_endpoint_url(endpoint)
+        debugon = _LOGGER.isEnabledFor(logging.DEBUG)
 
         if data:
-            if _LOGGER.isEnabledFor(logging.DEBUG):
+            if debugon:
                 _LOGGER.debug(
                     "Sending POST to %s with data %s", url, orjson.dumps(data)
                 )
@@ -232,6 +237,19 @@ class Envoy:
             raise EnvoyAuthenticationRequired(
                 f"Authentication failed for {url} with status {status_code}, "
                 "please check your username/password or token."
+            )
+        # show all responses centrally when in debug
+        if debugon:
+            content_type = response.headers.get("content-type")
+            content = response.content
+            if content_type == "application/json":
+                content = orjson.loads(content)
+            _LOGGER.debug(
+                "Request reply from %s status %s: %s %s",
+                url,
+                status_code,
+                content_type,
+                content,
             )
 
         return response
