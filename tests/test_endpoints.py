@@ -64,6 +64,7 @@ async def _get_mock_envoy(update: bool = True):  # type: ignore[no-untyped-def]
 @respx.mock
 async def test_with_4_2_27_firmware():
     """Verify with 4.2.27 firmware."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.27"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
@@ -132,6 +133,7 @@ async def test_with_4_2_27_firmware():
 @respx.mock
 async def test_with_5_0_49_firmware():
     """Verify with 5.0.49 firmware."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "5.0.49"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
@@ -439,6 +441,7 @@ async def test_with_5_0_49_firmware():
 @respx.mock
 async def test_with_3_7_0_firmware():
     """Verify with 3.7.0 firmware."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.7.0"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
@@ -565,6 +568,7 @@ async def test_with_3_7_0_firmware():
 @respx.mock
 async def test_with_3_9_36_firmware_bad_auth():
     """Verify with 3.9.36 firmware with incorrect auth."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
@@ -605,6 +609,7 @@ async def test_with_3_9_36_firmware_bad_auth():
 @respx.mock
 async def test_with_3_9_36_firmware_no_inverters():
     """Verify with 3.9.36 firmware with auth that does not allow inverters."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
@@ -660,6 +665,7 @@ async def test_with_3_9_36_firmware_no_inverters():
 @respx.mock
 async def test_with_3_9_36_firmware():
     """Verify with 3.9.36 firmware."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
@@ -798,6 +804,7 @@ async def test_with_3_9_36_firmware():
 @respx.mock
 async def test_with_3_9_36_firmware_with_production_401():
     """Verify with 3.9.36 firmware when /production throws a 401."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
@@ -861,6 +868,7 @@ async def test_with_3_9_36_firmware_with_production_401():
 @respx.mock
 async def test_with_3_9_36_firmware_with_production_and_production_json_401():
     """Verify with 3.9.36 firmware when /production and /production.json throws a 401."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
@@ -899,6 +907,7 @@ async def test_with_3_9_36_firmware_with_production_and_production_json_401():
 @respx.mock
 async def test_with_3_9_36_firmware_with_meters_401():
     """Verify with 3.9.36 firmware when /ivp/meters throws a 401."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
@@ -937,6 +946,7 @@ async def test_with_3_9_36_firmware_with_meters_401():
 @respx.mock
 async def test_with_3_8_10_firmware_with_meters_401():
     """Verify with 3.8.10 firmware when /ivp/meters throws a 401."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.8.10"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
@@ -975,6 +985,7 @@ async def test_with_3_8_10_firmware_with_meters_401():
 @respx.mock
 async def test_with_3_17_3_firmware():
     """Verify with 3.17.3 firmware."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.17.3"
     respx.get("/info").mock(
         return_value=Response(200, text=_load_fixture(version, "info"))
@@ -1305,6 +1316,7 @@ def _start_7_firmware_mock():
 @respx.mock
 async def test_pr111_with_7_3_466_metered_disabled_cts():
     """Test envoy metered with disabled ct to report from production inverters PR111."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.3.466_metered_disabled_cts"
     _start_7_firmware_mock()
     respx.get("/info").mock(
@@ -1359,6 +1371,7 @@ async def test_pr111_with_7_3_466_metered_disabled_cts():
 @respx.mock
 async def test_pr111_with_7_6_175_with_cts():
     """Test envoy metered with ct to report from production eim PR111."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_with_cts"
     _start_7_firmware_mock()
     respx.get("/info").mock(
@@ -1418,6 +1431,7 @@ async def test_pr111_with_7_6_175_with_cts():
 @respx.mock
 async def test_pr111_with_7_6_175_standard():
     """Test envoy metered with ct to report from production eim PR111."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     _start_7_firmware_mock()
     respx.get("/info").mock(
@@ -1956,6 +1970,7 @@ async def test_with_7_x_firmware(
     consumption_phases: dict[str, dict[str, Any]],
 ) -> None:
     """Verify with 7.x firmware."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     _start_7_firmware_mock()
     path = f"tests/fixtures/{version}"
     files = [f for f in listdir(path) if isfile(join(path, f))]
