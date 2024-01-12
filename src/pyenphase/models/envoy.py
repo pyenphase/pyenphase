@@ -7,6 +7,7 @@ from .dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from .enpower import EnvoyEnpower
 from .inverter import EnvoyInverter
+from .meters import EnvoyMeterData
 from .system_consumption import EnvoySystemConsumption
 from .system_production import EnvoySystemProduction
 from .tariff import EnvoyTariff
@@ -28,6 +29,14 @@ class EnvoyData:
     system_production_phases: dict[
         str, EnvoySystemProduction | None
     ] | None = None  #: Individual phase production data, only for Envoy metered with CT installed
+    ctmeter_production: EnvoyMeterData | None = None  #: Production CT Meter data
+    ctmeter_consumption: EnvoyMeterData | None = None  #: Consumption CT Meter data
+    ctmeter_production_phases: dict[
+        str, EnvoyMeterData
+    ] | None = None  #: Production CT Meter Individual phase data
+    ctmeter_consumption_phases: dict[
+        str, EnvoyMeterData
+    ] | None = None  #: Consumption CT Meter Individual phase data
     dry_contact_status: dict[str, EnvoyDryContactStatus] = field(default_factory=dict)
     dry_contact_settings: dict[str, EnvoyDryContactSettings] = field(
         default_factory=dict

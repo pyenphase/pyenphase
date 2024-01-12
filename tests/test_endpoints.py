@@ -24,7 +24,8 @@ from pyenphase.exceptions import (
 )
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.envoy import EnvoyData
-from pyenphase.models.meters import CtType, EnvoyPhaseMode
+from pyenphase.models.meters import CtMeterData, CtType, EnvoyMeterData, EnvoyPhaseMode
+from pyenphase.models.system_consumption import EnvoySystemConsumption
 from pyenphase.models.system_production import EnvoySystemProduction
 from pyenphase.models.tariff import EnvoyStorageMode
 from pyenphase.updaters.base import EnvoyUpdater
@@ -42,6 +43,10 @@ def _load_fixture(version: str, name: str) -> str:
 
 
 def _load_json_fixture(version: str, name: str) -> dict[str, Any]:
+    return orjson.loads(_load_fixture(version, name))
+
+
+def _load_json_list_fixture(version: str, name: str) -> list[dict[str, Any]]:
     return orjson.loads(_load_fixture(version, name))
 
 
@@ -1478,6 +1483,114 @@ async def test_pr111_with_7_6_175_standard():
     assert data.system_production.watt_hours_today == 36462
     assert data.system_production.watt_hours_last_7_days == 189712
     assert data.system_production.watt_hours_lifetime == 6139406
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
+    """Test meters model using envoy metered CT with multiple phases"""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
+
+    # start with regular data first
+    version = "7.6.175_with_cts_3phase"
+    _start_7_firmware_mock()
+    respx.get("/info").mock(
+        return_value=Response(200, text=_load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(
+        return_value=Response(200, text=_load_fixture(version, "production"))
+    )
+    respx.get("/production.json").mock(
+        return_value=Response(200, text=_load_fixture(version, "production.json"))
+    )
+    respx.get("/api/v1/production").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production")
+        )
+    )
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            200, json=_load_json_fixture(version, "api_v1_production_inverters")
+        )
+    )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+    respx.get("/ivp/meters").mock(
+        return_value=Response(200, text=_load_fixture(version, "ivp_meters"))
+    )
+    respx.get("/ivp/meters/readings").mock(
+        return_value=Response(200, text=_load_fixture(version, "ivp_meters_readings"))
+    )
+
+    # details of this test is done elsewhere already, just check data is returned
+    envoy = await _get_mock_envoy()
+    data = envoy.data
+    assert data is not None
+
+    # load mock data for meters and their readings
+    meters_status = _load_json_list_fixture(version, "ivp_meters")
+    meters_readings = _load_json_list_fixture(version, "ivp_meters_readings")
+
+    meter_status: CtMeterData = {
+        "eid": meters_status[0]["eid"],
+        "state": meters_status[0]["state"],
+        "measurementType": meters_status[0]["measurementType"],
+        "phaseMode": meters_status[0]["phaseMode"],
+        "phaseCount": meters_status[0]["phaseCount"],
+        "meteringStatus": meters_status[0]["meteringStatus"],
+        "statusFlags": meters_status[0]["statusFlags"],
+    }
+
+    # test meters.from_api method
+    ct_data: EnvoyMeterData = EnvoyMeterData.from_api(
+        meters_readings[0],
+        meter_status,
+    )
+    assert ct_data.eid == 704643328
+    assert ct_data.measurement_type == "production"
+
+    # test meters.from_phase method
+    ct_phase_data: EnvoyMeterData | None = EnvoyMeterData.from_phase(
+        meters_readings[0], meter_status, 0
+    )
+    assert ct_phase_data is not None
+    assert ct_phase_data.eid == 1778385169
+    assert ct_phase_data.measurement_type == "production"
+    assert ct_phase_data.energy_delivered == 3183794
+
+    # test exception handling by specifying non-existing phase
+    ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[0], meter_status, 3)
+    assert ct_no_phase_data is None
+
+    # test exception handling for missing phase data, remove phase data from mock data
+    del meters_readings[0]["channels"]
+    ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[0], meter_status, 0)
+    assert ct_no_phase_data is None
+
+    # test exception handling for phase data in production
+    production_data = data.raw["/production"]
+    production_no_phase_data = EnvoySystemProduction.from_production_phase(
+        production_data, 3
+    )
+    assert production_no_phase_data is None
+
+    # test exception handling for phase data if key is missing
+    del production_data["production"][1]["type"]
+    try:
+        production_no_phase_data = EnvoySystemProduction.from_production_phase(
+            production_data, 0
+        )
+    except ValueError:
+        production_no_phase_data = None
+    assert production_no_phase_data is None
+
+    # test exception handling for phase data in consumption
+    consumption_data = data.raw["/production"]
+    consumption_no_phase_data = EnvoySystemConsumption.from_production_phase(
+        consumption_data, 3
+    )
+    assert consumption_no_phase_data is None
 
 
 @pytest.mark.parametrize(

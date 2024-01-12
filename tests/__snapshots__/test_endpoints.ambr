@@ -1,6 +1,10 @@
 # serializer version: 1
 # name: test_with_7_x_firmware[4.10.35]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -443,6 +447,10 @@
 # ---
 # name: test_with_7_x_firmware[5.0.62]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -1032,6 +1040,10 @@
 # ---
 # name: test_with_7_x_firmware[7.3.130]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -1307,6 +1319,10 @@
 # ---
 # name: test_with_7_x_firmware[7.3.130_no_consumption]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -1835,6 +1851,10 @@
 # ---
 # name: test_with_7_x_firmware[7.3.466_metered_disabled_cts]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -2279,6 +2299,10 @@
 # ---
 # name: test_with_7_x_firmware[7.3.517]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5.0,
@@ -3348,6 +3372,10 @@
 # ---
 # name: test_with_7_x_firmware[7.3.517_legacy_savings_mode]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5.0,
@@ -4417,6 +4445,10 @@
 # ---
 # name: test_with_7_x_firmware[7.3.517_system_2]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': None,
@@ -5786,6 +5818,10 @@
 # ---
 # name: test_with_7_x_firmware[7.6.114_without_cts]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -5989,6 +6025,10 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -6192,6 +6232,10 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175_standard]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -6538,6 +6582,10 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175_total]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -7083,6 +7131,10 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175_with_cts]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -7532,6 +7584,10 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175_with_cts_3phase]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -8178,6 +8234,10 @@
 # ---
 # name: test_with_7_x_firmware[7.6.185_with_cts_and_battery_3t]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -8782,6 +8842,10 @@
 # ---
 # name: test_with_7_x_firmware[8.1.41]
   dict({
+    'ctmeter_consumption': None,
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': None,
+    'ctmeter_production_phases': None,
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5.0,
