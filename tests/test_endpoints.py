@@ -1541,7 +1541,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
 
     # Test prior similar updater active
     remove_2nd_metersupdater = register_updater(EnvoyMetersUpdater)
-    envoy.probe()
+    await envoy.probe()
     remove_2nd_metersupdater
 
     # load mock data for meters and their readings
