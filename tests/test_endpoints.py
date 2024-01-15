@@ -24,11 +24,18 @@ from pyenphase.exceptions import (
 )
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.envoy import EnvoyData
-from pyenphase.models.meters import CtMeterData, CtType, EnvoyMeterData, EnvoyPhaseMode
+from pyenphase.models.meters import (
+    CtMeterData,
+    CtMeterStatus,
+    CtType,
+    EnvoyMeterData,
+    EnvoyPhaseMode,
+)
 from pyenphase.models.system_consumption import EnvoySystemConsumption
 from pyenphase.models.system_production import EnvoySystemProduction
 from pyenphase.models.tariff import EnvoyStorageMode
 from pyenphase.updaters.base import EnvoyUpdater
+from pyenphase.updaters.meters import EnvoyMetersUpdater
 
 LOGGER = logging.getLogger(__name__)
 
@@ -1404,7 +1411,9 @@ async def test_pr111_with_7_6_175_with_cts():
     respx.get("/ivp/meters").mock(
         return_value=Response(200, text=_load_fixture(version, "ivp_meters"))
     )
-
+    respx.get("/ivp/meters/readings").mock(
+        return_value=Response(200, text=_load_fixture(version, "ivp_meters_readings"))
+    )
     envoy = await _get_mock_envoy()
     data = envoy.data
     assert data is not None
@@ -1415,12 +1424,14 @@ async def test_pr111_with_7_6_175_with_cts():
     assert envoy._supported_features & SupportedFeatures.INVERTERS
     assert envoy._supported_features & SupportedFeatures.METERING
     assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert envoy._supported_features & SupportedFeatures.CTMETERS
     assert _updater_features(envoy._updaters) == {
         "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
         "EnvoyProductionUpdater": SupportedFeatures.METERING
         | SupportedFeatures.TOTAL_CONSUMPTION
         | SupportedFeatures.NET_CONSUMPTION
         | SupportedFeatures.PRODUCTION,
+        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
     }
 
     assert envoy.part_number == "800-00654-r08"
@@ -1528,6 +1539,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
     data = envoy.data
     assert data is not None
 
+    # Test prior similar updater active
+    remove_2nd_metersupdater = register_updater(EnvoyMetersUpdater)
+    envoy.probe()
+    remove_2nd_metersupdater
+
     # load mock data for meters and their readings
     meters_status = _load_json_list_fixture(version, "ivp_meters")
     meters_readings = _load_json_list_fixture(version, "ivp_meters_readings")
@@ -1568,7 +1584,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
     ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[0], meter_status, 0)
     assert ct_no_phase_data is None
 
-    # test exception handling for phase data in production
+    # test exception handling for phase data in production using wrong phase
     production_data = data.raw["/production"]
     production_no_phase_data = EnvoySystemProduction.from_production_phase(
         production_data, 3
@@ -1585,12 +1601,29 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
         production_no_phase_data = None
     assert production_no_phase_data is None
 
-    # test exception handling for phase data in consumption
+    # test exception handling for phase data in consumption using wrong phase
     consumption_data = data.raw["/production"]
     consumption_no_phase_data = EnvoySystemConsumption.from_production_phase(
         consumption_data, 3
     )
     assert consumption_no_phase_data is None
+
+    # test handling missing phases when expected in ct readings
+    meters_status = _load_json_list_fixture(version, "ivp_meters")
+    meters_readings = _load_json_list_fixture(version, "ivp_meters_readings")
+
+    # remove phase data from CT readings
+    del meters_readings[0]["channels"]
+    del meters_readings[1]["channels"]
+
+    respx.get("/ivp/meters").mock(return_value=Response(200, json=meters_status))
+    respx.get("/ivp/meters/readings").mock(
+        return_value=Response(200, json=meters_readings)
+    )
+
+    await envoy.update()
+    assert envoy.data.ctmeter_production_phases is None
+    assert envoy.data.ctmeter_consumption_phases is None
 
 
 @pytest.mark.parametrize(
@@ -1603,6 +1636,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
         "common_properties",
         "production_phases",
         "consumption_phases",
+        "ct_production",
+        "ct_consumption",
+        "ct_production_phases",
+        "ct_consumption_phases",
     ),
     [
         (
@@ -1625,6 +1662,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             },
             {},
             {},
+            {},
+            {},
+            {},
+            {},
         ),
         (
             "4.10.35",
@@ -1635,7 +1676,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.PRODUCTION
             | SupportedFeatures.TARIFF
-            | SupportedFeatures.DUALPHASE,
+            | SupportedFeatures.DUALPHASE
+            | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
@@ -1643,7 +1685,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE,
+                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE
+                | SupportedFeatures.CTMETERS,
             },
             2,
             {
@@ -1654,6 +1697,46 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             },
             {},
             {},
+            {
+                "eid": 704643328,
+                "active_power": 166,
+                "measurement_type": CtType.PRODUCTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                "eid": 704643584,
+                "active_power": 567,
+                "measurement_type": CtType.NET_CONSUMPTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385169,
+                    "active_power": 83,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385170,
+                    "active_power": 84,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385425,
+                    "active_power": 394,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385426,
+                    "active_power": 173,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
         ),
         (
             "7.3.130",
@@ -1679,6 +1762,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             },
             {},
             {},
+            {},
+            {},
+            {},
+            {},
         ),
         (
             "7.3.130_no_consumption",
@@ -1687,13 +1774,15 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             | SupportedFeatures.INVERTERS
             | SupportedFeatures.PRODUCTION
             | SupportedFeatures.TARIFF
-            | SupportedFeatures.DUALPHASE,
+            | SupportedFeatures.DUALPHASE
+            | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE,
+                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE
+                | SupportedFeatures.CTMETERS,
             },
             2,
             {
@@ -1703,6 +1792,28 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "consumptionMeter": None,
             },
             {},
+            {},
+            {
+                "eid": 704643328,
+                "active_power": 3625,
+                "measurement_type": CtType.PRODUCTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {},
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385169,
+                    "active_power": 1811,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385170,
+                    "active_power": 1814,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
             {},
         ),
         (
@@ -1733,6 +1844,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
+            {},
+            {},
+            {},
+            {},
             {},
             {},
         ),
@@ -1766,6 +1881,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             },
             {},
             {},
+            {},
+            {},
+            {},
+            {},
         ),
         (
             "7.3.517_system_2",
@@ -1778,7 +1897,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             | SupportedFeatures.INVERTERS
             | SupportedFeatures.PRODUCTION
             | SupportedFeatures.TARIFF
-            | SupportedFeatures.DUALPHASE,
+            | SupportedFeatures.DUALPHASE
+            | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionUpdater": SupportedFeatures.METERING
@@ -1788,7 +1908,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
                 | SupportedFeatures.ENCHARGE,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE,
+                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE
+                | SupportedFeatures.CTMETERS,
             },
             2,
             {
@@ -1799,6 +1920,46 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             },
             {},
             {},
+            {
+                "eid": 704643328,
+                "active_power": 2660,
+                "measurement_type": CtType.PRODUCTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                "eid": 704643584,
+                "active_power": 23,
+                "measurement_type": CtType.NET_CONSUMPTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385169,
+                    "active_power": 1331,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385170,
+                    "active_power": 1329,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385425,
+                    "active_power": -17,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385426,
+                    "active_power": 41,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
         ),
         (
             "7.3.466_metered_disabled_cts",
@@ -1820,6 +1981,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             },
             {},
             {},
+            {},
+            {},
+            {},
+            {},
         ),
         (
             "7.6.114_without_cts",
@@ -1838,6 +2003,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             },
             {},
             {},
+            {},
+            {},
+            {},
+            {},
         ),
         (
             "7.6.175",
@@ -1854,6 +2023,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
+            {},
+            {},
+            {},
+            {},
             {},
             {},
         ),
@@ -1877,6 +2050,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             },
             {},
             {},
+            {},
+            {},
+            {},
+            {},
         ),
         (
             "7.6.175_standard",
@@ -1895,6 +2072,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             },
             {},
             {},
+            {},
+            {},
+            {},
+            {},
         ),
         (
             "7.6.175_with_cts",
@@ -1904,7 +2085,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.PRODUCTION
-            | SupportedFeatures.TARIFF,
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionUpdater": SupportedFeatures.METERING
@@ -1912,6 +2094,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
             },
             1,
             {
@@ -1920,6 +2103,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseMode": EnvoyPhaseMode.THREE,
                 "consumptionMeter": CtType.NET_CONSUMPTION,
             },
+            {},
+            {},
+            {},
+            {},
             {},
             {},
         ),
@@ -1932,7 +2119,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.PRODUCTION
             | SupportedFeatures.TARIFF
-            | SupportedFeatures.THREEPHASE,
+            | SupportedFeatures.THREEPHASE
+            | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionUpdater": SupportedFeatures.METERING
@@ -1940,7 +2128,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-                "EnvoyMetersUpdater": SupportedFeatures.THREEPHASE,
+                "EnvoyMetersUpdater": SupportedFeatures.THREEPHASE
+                | SupportedFeatures.CTMETERS,
             },
             3,
             {
@@ -1989,6 +2178,58 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                     "watts_now": -3,
                 },
             },
+            {
+                "eid": 704643328,
+                "active_power": 489,
+                "measurement_type": CtType.PRODUCTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                "eid": 704643584,
+                "active_power": -36,
+                "measurement_type": CtType.NET_CONSUMPTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385169,
+                    "active_power": 489,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385170,
+                    "active_power": 0,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_3: {
+                    "eid": 1778385171,
+                    "active_power": -1,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385425,
+                    "active_power": -36,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385426,
+                    "active_power": -0,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_3: {
+                    "eid": 1778385427,
+                    "active_power": -0,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
         ),
         (
             "7.6.185_with_cts_and_battery_3t",
@@ -1999,7 +2240,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
             | SupportedFeatures.NET_CONSUMPTION
             | SupportedFeatures.PRODUCTION
             | SupportedFeatures.ENCHARGE
-            | SupportedFeatures.TARIFF,
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE,
@@ -2008,6 +2250,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
             },
             1,
             {
@@ -2016,6 +2259,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseMode": EnvoyPhaseMode.THREE,
                 "consumptionMeter": CtType.NET_CONSUMPTION,
             },
+            {},
+            {},
+            {},
+            {},
             {},
             {},
         ),
@@ -2045,6 +2292,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseMode": None,
                 "consumptionMeter": None,
             },
+            {},
+            {},
+            {},
+            {},
             {},
             {},
         ),
@@ -2081,6 +2332,10 @@ async def test_with_7_x_firmware(
     common_properties: dict[str, Any],
     production_phases: dict[str, dict[str, Any]],
     consumption_phases: dict[str, dict[str, Any]],
+    ct_production: dict[str, Any],
+    ct_consumption: dict[str, Any],
+    ct_production_phases: dict[str, dict[str, Any]],
+    ct_consumption_phases: dict[str, dict[str, Any]],
 ) -> None:
     """Verify with 7.x firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
@@ -2179,6 +2434,15 @@ async def test_with_7_x_firmware(
     else:
         respx.get("/ivp/meters").mock(return_value=Response(404))
 
+    if "ivp_meters_readings" in files:
+        respx.get("/ivp/meters/readings").mock(
+            return_value=Response(
+                200, json=_load_json_fixture(version, "ivp_meters_readings")
+            )
+        )
+    else:
+        respx.get("/ivp/meters/readings").mock(return_value=Response(404))
+
     caplog.set_level(logging.DEBUG)
 
     envoy = await _get_mock_envoy()
@@ -2187,6 +2451,8 @@ async def test_with_7_x_firmware(
 
     assert envoy.part_number == part_number
     assert _updater_features(envoy._updaters) == updaters
+    # We're testing, disable warning on private member
+    # pylint: disable=protected-access
     assert envoy._supported_features == supported_features
 
     if supported_features & supported_features.ENPOWER:
@@ -2320,17 +2586,18 @@ async def test_with_7_x_firmware(
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.disable_charge_from_grid()
 
-    assert (
-        envoy.active_phase_count == 0
-        if data.system_production_phases is None
-        else len(data.system_production_phases)
-    )
     assert envoy.phase_count == phase_count
     assert envoy.ct_meter_count == common_properties["ctMeters"]
     assert envoy.phase_count == common_properties["phaseCount"]
     assert envoy.phase_mode == common_properties["phaseMode"]
     assert envoy.consumption_meter_type == common_properties["consumptionMeter"]
 
+    # are all production phases reported
+    assert (
+        envoy.active_phase_count == 0
+        if data.system_production_phases is None
+        else len(data.system_production_phases)
+    )
     # Test each production phase
     for phase in production_phases:
         proddata = envoy.data.system_production_phases[phase]
@@ -2342,15 +2609,57 @@ async def test_with_7_x_firmware(
         assert proddata.watt_hours_today == modeldata["watt_hours_today"]
         assert proddata.watts_now == modeldata["watts_now"]
 
-        # Test each consumption phase
-        for phase in consumption_phases:
-            consdata = envoy.data.system_consumption_phases[phase]
-            modeldata = consumption_phases[phase]
+    # are all consumption phases reported
+    assert (
+        envoy.active_phase_count == 0
+        if data.system_consumption_phases is None
+        else len(data.system_consumption_phases)
+    )
+    # Test each consumption phase
+    for phase in consumption_phases:
+        consdata = envoy.data.system_consumption_phases[phase]
+        modeldata = consumption_phases[phase]
 
-            # test each element of the phase data
-            assert consdata.watt_hours_lifetime == modeldata["watt_hours_lifetime"]
-            assert (
-                consdata.watt_hours_last_7_days == modeldata["watt_hours_last_7_days"]
-            )
-            assert consdata.watt_hours_today == modeldata["watt_hours_today"]
-            assert consdata.watts_now == modeldata["watts_now"]
+        # test each element of the phase data
+        assert consdata.watt_hours_lifetime == modeldata["watt_hours_lifetime"]
+        assert consdata.watt_hours_last_7_days == modeldata["watt_hours_last_7_days"]
+        assert consdata.watt_hours_today == modeldata["watt_hours_today"]
+        assert consdata.watts_now == modeldata["watts_now"]
+
+    # test ct production meter values
+    for key in ct_production:
+        assert ct_production[key] == getattr(envoy.data.ctmeter_production, key)
+
+    # are all CT production phases reported
+    assert (
+        envoy.active_phase_count == 0
+        if data.ctmeter_production_phases is None
+        else len(data.ctmeter_production_phases)
+    )
+
+    # Test each ct production phase
+    for phase in ct_production_phases:
+        proddata = envoy.data.ctmeter_production_phases[phase]
+        modeldata = ct_production_phases[phase]
+        # test each element of the phase data
+        for key in modeldata:
+            assert modeldata[key] == getattr(proddata, key)
+
+    # test ct consumption meter values
+    for key in ct_consumption:
+        assert ct_consumption[key] == getattr(envoy.data.ctmeter_consumption, key)
+
+    # are all production CT phases reported
+    assert (
+        envoy.active_phase_count == 0
+        if data.ctmeter_consumption_phases is None
+        else len(data.ctmeter_consumption_phases)
+    )
+
+    # Test each ct consumption phase
+    for phase in ct_consumption_phases:
+        consdata = envoy.data.ctmeter_consumption_phases[phase]
+        modeldata = ct_consumption_phases[phase]
+        # test each element of the phase data
+        for key in modeldata:
+            assert modeldata[key] == getattr(consdata, key)
