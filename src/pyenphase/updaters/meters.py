@@ -1,10 +1,16 @@
 """Envoy CT Meter updater"""
 import logging
+from typing import Any
 
-from ..const import ENDPOINT_URL_METERS, ENDPOINT_URL_METERS_READINGS, SupportedFeatures
+from ..const import (
+    ENDPOINT_URL_METERS,
+    ENDPOINT_URL_METERS_READINGS,
+    PHASENAMES,
+    SupportedFeatures,
+)
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
-from ..models.meters import CtMeterData, CtState, CtType, EnvoyPhaseMode
+from ..models.meters import CtMeterData, CtState, CtType, EnvoyMeterData, EnvoyPhaseMode
 from .base import EnvoyUpdater
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,6 +32,8 @@ class EnvoyMetersUpdater(EnvoyUpdater):
     ct_meters_count: int = (
         0  #: Number of installed current transformers (Envoy metered Only)
     )
+    production_meter_eid: str | None = None  #: Production CT identifier
+    consumption_meter_eid: str | None = None  #: Consumption CT identifier
 
     def _set_common_properties(self) -> None:
         """Set Envoy common properties we own and control"""
@@ -37,7 +45,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
     async def probe(
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
-        """Probe the Envoy meter setup and return multiphase support in SupportedFeatures.
+        """Probe the Envoy meter setup and return CT and multiphase details in SupportedFeatures.
 
         Get CT configuration info from ivp/meters in the Envoy and determine any multi-phase setup.
         Set Threephase or Dualphase supported feature if Envoy is in one of these setups.
@@ -45,8 +53,12 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         and ct_consumption_meter type to default or found values. These 4 are owned by this updater.
 
         :param discovered_features: Features discovered by other updaters for this updater to skip
-        :return: Updated discovered features list with features discovered by this updater added
+        :return: features discovered by this updater
         """
+        if SupportedFeatures.CTMETERS in discovered_features:
+            # Already discovered from another updater
+            return None
+
         # set defaults for common properties we own and will set
         self.phase_count = 1  # Default to 1 phase which is overall numbers only
         self.ct_meters_count = (
@@ -61,6 +73,11 @@ class EnvoyMetersUpdater(EnvoyUpdater):
 
         # set the defaults in global common properties in case we exit early
         self._set_common_properties()
+
+        # set local defaults not shared in common properties
+        self.production_meter_type = None
+        self.production_meter_eid = None
+        self.consumption_meter_eid = None
 
         try:
             meters_json: list[CtMeterData] | None = await self._json_probe_request(
@@ -92,8 +109,12 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 # remember what mode meter is installed
                 if meter["measurementType"] == CtType.PRODUCTION:
                     self.production_meter_type = meter["measurementType"]
+                    # save meter identifier for link between /ivp/meters and /ivp/meters/readings
+                    self.production_meter_eid = meter["eid"]
                 else:
                     self.consumption_meter_type = meter["measurementType"]
+                    # save meter identifier for link between /ivp/meters and /ivp/meters/readings
+                    self.consumption_meter_eid = meter["eid"]
                 self.ct_meters_count += 1
                 self.phase_mode = meter["phaseMode"]
                 self.phase_count = (
@@ -111,12 +132,79 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         elif self.phase_count > 1:
             self._supported_features |= SupportedFeatures.DUALPHASE
 
+        # Signal CTMETERS feature back so update will get used if we found ctmeters
+        if self.ct_meters_count > 0:
+            self._supported_features |= SupportedFeatures.CTMETERS
+
         return self._supported_features
 
     async def update(self, envoy_data: EnvoyData) -> None:
-        """Update the Envoy for the meters endpoints."""
-        # endpoints ENDPOINT_URL_METERS and ENDPOINT_URL_METERS_READINGS deliver raw CT data
-        # these are not required for multiphase data from production, just the probe is
-        # ENDPOINT_URL_METERS_READINGS delivers net consumption and net production
-        # from grid (energy_delivered) and to grid (energy_received) if ct type is net-consumpton
-        # stub is here as update() is required, ready for use in future expansion in other PR
+        """Update the Envoy data from the meters endpoints.
+
+        Get CT configuration from ivp/meters and CT readings from ivp/meters/readings.
+        Store data as EnvoyMeterData in ctmeter_production, ctmeter_consumption if
+        either meter is found enabled during probe. If more then 1 phase is active, store
+        phase data in ctmeter_production_phases and ctmeter_consumption_phases. Match data
+        in ivp/meters and ivp/meters/reading using the eid field in both datasets.
+
+        :param envoy_data: EnvoyData structure to store data to
+        """
+        # get the meter status and readings from the envoy
+        meters_status: list[CtMeterData] = await self._json_request(self.end_point)
+        meters_readings: list[dict[str, Any]] = await self._json_request(
+            self.data_end_point
+        )
+
+        envoy_data.raw[self.end_point] = meters_status
+        envoy_data.raw[self.data_end_point] = meters_readings
+
+        for index, meter in enumerate(meters_readings):
+            # match meter identifier to one found during probe to identify production or consumption
+            if meter["eid"] == self.production_meter_eid and self.production_meter_type:
+                # if production meter was enabled (type known) store ctmeter production data
+                envoy_data.ctmeter_production = EnvoyMeterData.from_api(
+                    meter, meters_status[index]
+                )
+                # if more then 1 phase configured store ctmeter phase data
+                phase_production: dict[str, EnvoyMeterData] = {
+                    PHASENAMES[phase_idx]: production
+                    for phase_idx in range(
+                        self.phase_count if self.phase_count > 1 else 0
+                    )
+                    # exclude None phases that were expected but not actually in report
+                    if (
+                        production := EnvoyMeterData.from_phase(
+                            meter, meters_status[index], phase_idx
+                        )
+                    )
+                }
+
+                if phase_production:
+                    envoy_data.ctmeter_production_phases = phase_production
+
+            # match meter identifier to one found during probe to identify production or consumption
+            if (
+                meter["eid"] == self.consumption_meter_eid
+                and self.consumption_meter_type
+            ):
+                # if consumption meter was enabled (type known) store ctmeter consumption data
+                envoy_data.ctmeter_consumption = EnvoyMeterData.from_api(
+                    meter, meters_status[index]
+                )
+
+                # if more then 1 phase configured store ctmeter phase data
+                phase_consumption: dict[str, EnvoyMeterData] = {
+                    PHASENAMES[phase_idx]: consumption
+                    for phase_idx in range(
+                        self.phase_count if self.phase_count > 1 else 0
+                    )
+                    # exclude None phases that were expected but not actually in report
+                    if (
+                        consumption := EnvoyMeterData.from_phase(
+                            meter, meters_status[index], phase_idx
+                        )
+                    )
+                }
+
+                if phase_consumption:
+                    envoy_data.ctmeter_consumption_phases = phase_consumption

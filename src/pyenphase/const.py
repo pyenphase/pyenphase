@@ -47,16 +47,19 @@ LOCAL_TIMEOUT = httpx.Timeout(
 
 
 class SupportedFeatures(enum.IntFlag):
-    INVERTERS = 1
-    METERING = 2
-    TOTAL_CONSUMPTION = 4
-    NET_CONSUMPTION = 8
-    ENCHARGE = 16
-    ENPOWER = 32
-    PRODUCTION = 64
-    TARIFF = 128
-    DUALPHASE = 256
-    THREEPHASE = 512
+    """Features available from Envoy"""
+
+    INVERTERS = 1  #: Envoy reports inverters
+    METERING = 2  #: Envoy reports active production meter
+    TOTAL_CONSUMPTION = 4  #: Envoy reports total consumption
+    NET_CONSUMPTION = 8  #: Envoy reports net consumption
+    ENCHARGE = 16  #: Envoy reports encharge data
+    ENPOWER = 32  #: Envoy reports Enpower data
+    PRODUCTION = 64  #: Envoy reports production data
+    TARIFF = 128  #: Envoy reports tariff information
+    DUALPHASE = 256  #: Envoy metered is configured in split phase mode
+    THREEPHASE = 512  #: Envoy metered is configured in three phase mode
+    CTMETERS = 1024  #: Envoy has enabled CT meter(s)
 
 
 class PhaseNames(enum.StrEnum):
