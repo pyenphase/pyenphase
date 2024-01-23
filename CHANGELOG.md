@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v1.18.0 (2024-01-23)
+
+### Feature
+
+* Add updater for Current Transformer data ([#135](https://github.com/pyenphase/pyenphase/issues/135)) ([`1ca6118`](https://github.com/pyenphase/pyenphase/commit/1ca6118e6aaecb829b4cd711d72d6296fad26bae))
+
+### Documentation
+
+* Document CT meter data ([#134](https://github.com/pyenphase/pyenphase/issues/134)) ([`cfd396b`](https://github.com/pyenphase/pyenphase/commit/cfd396bde18a908d7703d421a10126abc06f0542))
+
 ## v1.17.0 (2024-01-11)
 
 ### Feature
