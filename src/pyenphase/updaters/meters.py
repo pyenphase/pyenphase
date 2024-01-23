@@ -158,9 +158,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         envoy_data.raw[self.end_point] = meters_status
         envoy_data.raw[self.data_end_point] = meters_readings
 
-        # pylint: disable=consider-using-enumerate
-        for index in range(len(meters_readings)):
-            meter = meters_readings[index]
+        for index, meter in enumerate(meters_readings):
             # match meter identifier to one found during probe to identify production or consumption
             if meter["eid"] == self.production_meter_eid and self.production_meter_type:
                 # if production meter was enabled (type known) store ctmeter production data
@@ -168,16 +166,20 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                     meter, meters_status[index]
                 )
                 # if more then 1 phase configured store ctmeter phase data
-                phase_production: dict[str, EnvoyMeterData] = {}
-                for phase in range(self.phase_count if self.phase_count > 1 else 0):
-                    production: EnvoyMeterData | None = EnvoyMeterData.from_phase(
-                        meter, meters_status[index], phase
+                phase_production: dict[str, EnvoyMeterData] = {
+                    PHASENAMES[phase_idx]: production
+                    for phase_idx in range(
+                        self.phase_count if self.phase_count > 1 else 0
                     )
                     # exclude None phases that were expected but not actually in report
-                    if production:
-                        phase_production[PHASENAMES[phase]] = production
+                    if (
+                        production := EnvoyMeterData.from_phase(
+                            meter, meters_status[index], phase_idx
+                        )
+                    )
+                }
 
-                if len(phase_production) > 0:
+                if phase_production:
                     envoy_data.ctmeter_production_phases = phase_production
 
             # match meter identifier to one found during probe to identify production or consumption
@@ -190,15 +192,19 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                     meter, meters_status[index]
                 )
 
-                # if more then 1 phase configured store ctmeter pahse data
-                phase_consumption: dict[str, EnvoyMeterData] = {}
-                for phase in range(self.phase_count if self.phase_count > 1 else 0):
-                    consumption: EnvoyMeterData | None = EnvoyMeterData.from_phase(
-                        meter, meters_status[index], phase
+                # if more then 1 phase configured store ctmeter phase data
+                phase_consumption: dict[str, EnvoyMeterData] = {
+                    PHASENAMES[phase_idx]: consumption
+                    for phase_idx in range(
+                        self.phase_count if self.phase_count > 1 else 0
                     )
                     # exclude None phases that were expected but not actually in report
-                    if consumption:
-                        phase_consumption[PHASENAMES[phase]] = consumption
+                    if (
+                        consumption := EnvoyMeterData.from_phase(
+                            meter, meters_status[index], phase_idx
+                        )
+                    )
+                }
 
-                if len(phase_consumption) > 0:
+                if phase_consumption:
                     envoy_data.ctmeter_consumption_phases = phase_consumption
