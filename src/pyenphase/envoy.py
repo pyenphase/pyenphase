@@ -298,15 +298,55 @@ class Envoy:
 
     @property
     def consumption_meter_type(self) -> CtType | None:
-        """Return the type of consumption ct meter installed (total or net consumption)."""
+        """Return the type of consumption ct meter installed (total or net consumption or None)."""
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.consumption_meter_type
+
+    @property
+    def production_meter_type(self) -> CtType | None:
+        """Return the type of production ct meter installed (Production or None)."""
+        assert self._common_properties is not None, "Call setup() first"  # nosec
+        # if 2 ct are installed or only 1 and no consumption then there's a production ct
+        if self.ct_meter_count > 1 or (
+            self.ct_meter_count == 1
+            and self._common_properties.consumption_meter_type is None
+        ):
+            return CtType.PRODUCTION
+        return None
 
     @property
     def phase_mode(self) -> EnvoyPhaseMode | None:
         """Return the phase mode configured for the CT meters (single, split or three)."""
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.phase_mode
+
+    @property
+    def envoy_model(self) -> str:
+        """Return Envoy model description."""
+        model = "Envoy"
+
+        # if CT and more then 1 phase add phase count to model
+        ct_count = self.ct_meter_count
+        phase_count = self.phase_count
+        if phase_count > 1 or ct_count > 0:
+            model = f"{model}, phases: {phase_count}"
+
+            # if phase mode is known add to model
+            phase_mode = self.phase_mode
+            if phase_mode:
+                model = f"{model}, phase mode: {phase_mode}"
+
+        # if consumption CT type is known add to model
+        ct_consumption_meter = self.consumption_meter_type
+        if ct_consumption_meter:
+            model = f"{model}, {ct_consumption_meter} CT"
+
+        # if production CT is found add to model.
+        ct_production_meter = self.production_meter_type
+        if ct_production_meter:
+            model = f"{model}, {ct_production_meter} CT"
+
+        return model
 
     async def _make_cached_request(
         self, request_func: Callable[[str], Awaitable[httpx.Response]], endpoint: str
