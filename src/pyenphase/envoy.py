@@ -332,18 +332,15 @@ class Envoy:
             model = f"{model}, phases: {phase_count}"
 
             # if phase mode is known add to model
-            phase_mode = self.phase_mode
-            if phase_mode:
+            if phase_mode := self.phase_mode:
                 model = f"{model}, phase mode: {phase_mode}"
 
         # if consumption CT type is known add to model
-        ct_consumption_meter = self.consumption_meter_type
-        if ct_consumption_meter:
+        if ct_consumption_meter := self.consumption_meter_type:
             model = f"{model}, {ct_consumption_meter} CT"
 
         # if production CT is found add to model.
-        ct_production_meter = self.production_meter_type
-        if ct_production_meter:
+        if ct_production_meter := self.production_meter_type:
             model = f"{model}, {ct_production_meter} CT"
 
         return model
