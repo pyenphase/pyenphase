@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.19.0 (2024-01-27)
+
+### Feature
+
+* Add envoy_model property ([#136](https://github.com/pyenphase/pyenphase/issues/136)) ([`42652cd`](https://github.com/pyenphase/pyenphase/commit/42652cda168d1cf1d4b637071f0603d0b0707066))
+
 ## v1.18.0 (2024-01-23)
 
 ### Feature
