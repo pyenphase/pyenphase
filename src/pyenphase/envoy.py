@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
-from functools import partial
+from functools import cached_property, partial
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
@@ -302,7 +302,7 @@ class Envoy:
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.consumption_meter_type
 
-    @property
+    @cached_property
     def production_meter_type(self) -> CtType | None:
         """Return the type of production ct meter installed (Production or None)."""
         assert self._common_properties is not None, "Call setup() first"  # nosec
@@ -320,7 +320,7 @@ class Envoy:
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.phase_mode
 
-    @property
+    @cached_property
     def envoy_model(self) -> str:
         """Return Envoy model description."""
         model = "Envoy"
