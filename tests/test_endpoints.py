@@ -133,6 +133,7 @@ async def test_with_4_2_27_firmware():
     assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
+    assert envoy.envoy_model == "Envoy"
 
     # Test that Ensemble commands raise FeatureNotAvailable
     with pytest.raises(EnvoyFeatureNotAvailable):
@@ -447,6 +448,7 @@ async def test_with_5_0_49_firmware():
             max_report_watts=257,
         ),
     }
+    assert envoy.envoy_model == "Envoy"
 
 
 @pytest.mark.asyncio
@@ -571,6 +573,7 @@ async def test_with_3_7_0_firmware():
         assert envoy.consumption_meter_type is None
         assert not data.system_consumption_phases
         assert not data.system_production_phases
+        assert envoy.envoy_model == "Envoy"
     finally:
         remove()
         assert LegacyProductionScraper not in get_updaters()
@@ -810,6 +813,7 @@ async def test_with_3_9_36_firmware():
             max_report_watts=273,
         ),
     }
+    assert envoy.envoy_model == "Envoy"
 
 
 @pytest.mark.asyncio
@@ -1441,6 +1445,10 @@ async def test_pr111_with_7_6_175_with_cts():
     assert data.system_production.watt_hours_today == 4425
     assert data.system_production.watt_hours_last_7_days == 111093
     assert data.system_production.watt_hours_lifetime == 3183793
+    assert (
+        envoy.envoy_model
+        == "Envoy, phases: 1, phase mode: three, net-consumption CT, production CT"
+    )
 
 
 @pytest.mark.asyncio
@@ -1494,6 +1502,7 @@ async def test_pr111_with_7_6_175_standard():
     assert data.system_production.watt_hours_today == 36462
     assert data.system_production.watt_hours_last_7_days == 189712
     assert data.system_production.watt_hours_lifetime == 6139406
+    assert envoy.envoy_model == "Envoy"
 
 
 @pytest.mark.asyncio
@@ -1574,6 +1583,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
     assert ct_phase_data.eid == 1778385169
     assert ct_phase_data.measurement_type == "production"
     assert ct_phase_data.energy_delivered == 3183794
+
+    assert (
+        envoy.envoy_model
+        == "Envoy, phases: 3, phase mode: three, net-consumption CT, production CT"
+    )
 
     # test exception handling by specifying non-existing phase
     ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[0], meter_status, 3)
@@ -2448,6 +2462,9 @@ async def test_with_7_x_firmware(
     envoy = await _get_mock_envoy()
     data = envoy.data
     assert data == snapshot
+
+    assert envoy.firmware == version.split("_")[0]
+    assert envoy.serial_number
 
     assert envoy.part_number == part_number
     assert _updater_features(envoy._updaters) == updaters
