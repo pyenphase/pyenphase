@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.19.1 (2024-02-27)
+
+### Fix
+
+* Force release ([#139](https://github.com/pyenphase/pyenphase/issues/139)) ([`b16f132`](https://github.com/pyenphase/pyenphase/commit/b16f13264ffdb90de53d3d9730eb0cd700724ffd))
+
 ## v1.19.0 (2024-01-27)
 
 ### Feature
