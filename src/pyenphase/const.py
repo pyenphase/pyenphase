@@ -68,4 +68,4 @@ class PhaseNames(enum.StrEnum):
     PHASE_3 = "L3"
 
 
-PHASENAMES = list(PhaseNames)
+PHASENAMES: list[str] = list(PhaseNames)
