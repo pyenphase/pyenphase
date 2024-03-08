@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.19.2 (2024-03-08)
+
+### Fix
+
+* Consumption CT not found when 3 CT reported ([#140](https://github.com/pyenphase/pyenphase/issues/140)) ([`7c2f52c`](https://github.com/pyenphase/pyenphase/commit/7c2f52cc28fdc872a8c5875fc7f7d8b7e233bc01))
+
 ## v1.19.1 (2024-02-27)
 
 ### Fix
