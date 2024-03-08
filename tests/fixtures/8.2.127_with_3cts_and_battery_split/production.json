@@ -1,0 +1,86 @@
+{
+    "production": [
+      {
+        "type": "inverters",
+        "activeCount": 35,
+        "readingTime": 1709829490,
+        "wNow": 1592,
+        "whLifetime": 821819
+      },
+      {
+        "type": "eim",
+        "activeCount": 1,
+        "measurementType": "production",
+        "readingTime": 1709829518,
+        "wNow": 1714.424,
+        "whLifetime": 3165834.272,
+        "varhLeadLifetime": 68551.981,
+        "varhLagLifetime": 1607325.212,
+        "vahLifetime": 5529628.28,
+        "rmsCurrent": 17.326,
+        "rmsVoltage": 242.367,
+        "reactPwr": 20.865,
+        "apprntPwr": 2100.04,
+        "pwrFactor": 0.82,
+        "whToday": 1475.272,
+        "whLastSevenDays": 3164458.272,
+        "vahToday": 8010.28,
+        "varhLeadToday": 0.981,
+        "varhLagToday": 5202.212
+      }
+    ],
+    "consumption": [
+      {
+        "type": "eim",
+        "activeCount": 1,
+        "measurementType": "total-consumption",
+        "readingTime": 1709829518,
+        "wNow": 1843.831,
+        "whLifetime": 7909866.491,
+        "varhLeadLifetime": 9102047.686,
+        "varhLagLifetime": -1607140.175,
+        "vahLifetime": 12810156.532,
+        "rmsCurrent": 19.934,
+        "rmsVoltage": 242.553,
+        "reactPwr": -2209.719,
+        "apprntPwr": 2416.339,
+        "pwrFactor": 0.75,
+        "whToday": 7596.0,
+        "whLastSevenDays": 0.0,
+        "vahToday": 4946716.532,
+        "varhLeadToday": 9039334.686,
+        "varhLagToday": 9360.0
+      },
+      {
+        "type": "eim",
+        "activeCount": 1,
+        "measurementType": "net-consumption",
+        "readingTime": 1709829518,
+        "wNow": 129.407,
+        "whLifetime": 4744549.864,
+        "varhLeadLifetime": 9170599.668,
+        "varhLagLifetime": 185.037,
+        "vahLifetime": 12810156.532,
+        "rmsCurrent": 2.609,
+        "rmsVoltage": 242.553,
+        "reactPwr": -2230.583,
+        "apprntPwr": 315.151,
+        "pwrFactor": 0.28,
+        "whToday": 0,
+        "whLastSevenDays": 0,
+        "vahToday": 0,
+        "varhLeadToday": 0,
+        "varhLagToday": 0
+      }
+    ],
+    "storage": [
+      {
+        "type": "acb",
+        "activeCount": 0,
+        "readingTime": 0,
+        "wNow": 0,
+        "whNow": 0,
+        "state": "idle"
+      }
+    ]
+  }
