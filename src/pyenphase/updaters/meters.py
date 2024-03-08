@@ -111,7 +111,10 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                     self.production_meter_type = meter["measurementType"]
                     # save meter identifier for link between /ivp/meters and /ivp/meters/readings
                     self.production_meter_eid = meter["eid"]
-                else:
+                if meter["measurementType"] in [
+                    CtType.NET_CONSUMPTION,
+                    CtType.TOTAL_CONSUMPTION,
+                ]:
                     self.consumption_meter_type = meter["measurementType"]
                     # save meter identifier for link between /ivp/meters and /ivp/meters/readings
                     self.consumption_meter_eid = meter["eid"]

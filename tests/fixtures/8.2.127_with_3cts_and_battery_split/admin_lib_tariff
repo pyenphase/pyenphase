@@ -1,0 +1,373 @@
+{
+    "tariff": {
+        "currency": {
+            "code": "USD"
+        },
+        "logger": "mylogger",
+        "date": "1709367413",
+        "storage_settings": {
+            "mode": "self-consumption",
+            "operation_mode_sub_type": "prioritize-energy",
+            "reserved_soc": 20,
+            "very_low_soc": 10,
+            "charge_from_grid": false,
+            "date": "1709339757"
+        },
+        "single_rate": {
+            "rate": 0.321370005607605,
+            "sell": 0.00009899999713525176
+        },
+        "seasons": [
+            {
+                "id": "summer",
+                "start": "6/1",
+                "days": [
+                    {
+                        "id": "weekdays",
+                        "days": "Mon,Tue,Wed,Thu,Fri",
+                        "must_charge_start": 0,
+                        "must_charge_duration": 0,
+                        "must_charge_mode": "CP",
+                        "peak_rule": "DL",
+                        "enable_discharge_to_grid": false,
+                        "periods": [
+                            {
+                                "id": "filler",
+                                "start": 0,
+                                "rate": 0.321370005607605
+                            },
+                            {
+                                "id": "period_2",
+                                "start": 900,
+                                "rate": 0.5212500095367432
+                            },
+                            {
+                                "id": "period_1",
+                                "start": 960,
+                                "rate": 0.6300299763679504
+                            },
+                            {
+                                "id": "period_3",
+                                "start": 1260,
+                                "rate": 0.5212500095367432
+                            },
+                            {
+                                "id": "filler",
+                                "start": 1439,
+                                "rate": 0.321370005607605
+                            }
+                        ]
+                    },
+                    {
+                        "id": "weekend",
+                        "days": "Sat,Sun",
+                        "must_charge_start": 0,
+                        "must_charge_duration": 0,
+                        "must_charge_mode": "CP",
+                        "peak_rule": "DL",
+                        "enable_discharge_to_grid": false,
+                        "periods": [
+                            {
+                                "id": "filler",
+                                "start": 0,
+                                "rate": 0.321370005607605
+                            },
+                            {
+                                "id": "period_2",
+                                "start": 900,
+                                "rate": 0.5212500095367432
+                            },
+                            {
+                                "id": "period_1",
+                                "start": 960,
+                                "rate": 0.6300299763679504
+                            },
+                            {
+                                "id": "period_3",
+                                "start": 1260,
+                                "rate": 0.5212500095367432
+                            },
+                            {
+                                "id": "filler",
+                                "start": 1439,
+                                "rate": 0.321370005607605
+                            }
+                        ]
+                    }
+                ],
+                "tiers": []
+            },
+            {
+                "id": "winter",
+                "start": "10/1",
+                "days": [
+                    {
+                        "id": "weekdays",
+                        "days": "Mon,Tue,Wed,Thu,Fri",
+                        "must_charge_start": 0,
+                        "must_charge_duration": 0,
+                        "must_charge_mode": "CP",
+                        "peak_rule": "DL",
+                        "enable_discharge_to_grid": false,
+                        "periods": [
+                            {
+                                "id": "filler",
+                                "start": 0,
+                                "rate": 0.3213590085506439
+                            },
+                            {
+                                "id": "period_2",
+                                "start": 900,
+                                "rate": 0.4895789921283722
+                            },
+                            {
+                                "id": "period_1",
+                                "start": 960,
+                                "rate": 0.5047900080680847
+                            },
+                            {
+                                "id": "period_3",
+                                "start": 1260,
+                                "rate": 0.4895789921283722
+                            },
+                            {
+                                "id": "filler",
+                                "start": 1439,
+                                "rate": 0.3213590085506439
+                            }
+                        ]
+                    },
+                    {
+                        "id": "weekend",
+                        "days": "Sat,Sun",
+                        "must_charge_start": 0,
+                        "must_charge_duration": 0,
+                        "must_charge_mode": "CP",
+                        "peak_rule": "DL",
+                        "enable_discharge_to_grid": false,
+                        "periods": [
+                            {
+                                "id": "filler",
+                                "start": 0,
+                                "rate": 0.3213590085506439
+                            },
+                            {
+                                "id": "period_2",
+                                "start": 900,
+                                "rate": 0.4895789921283722
+                            },
+                            {
+                                "id": "period_1",
+                                "start": 960,
+                                "rate": 0.5047900080680847
+                            },
+                            {
+                                "id": "period_3",
+                                "start": 1260,
+                                "rate": 0.4895789921283722
+                            },
+                            {
+                                "id": "filler",
+                                "start": 1439,
+                                "rate": 0.3213590085506439
+                            }
+                        ]
+                    }
+                ],
+                "tiers": []
+            }
+        ],
+        "seasons_sell": []
+    },
+    "schedule": {
+        "filename": "Tariff",
+        "source": "Tariff",
+        "date": "2024-03-06 22:58:46 UTC",
+        "version": "00.00.02",
+        "reserved_soc": 20,
+        "very_low_soc": 10,
+        "charge_from_grid": false,
+        "batt_mode": "self-consumption",
+        "battery_mode": "self-consumption",
+        "operation_mode_sub_type": "prioritize-energy",
+        "override": false,
+        "override_backup_soc": 30,
+        "override_chg_dischg_rate": 0,
+        "override_tou_mode": "StorageTouMode_DEFAULT_TOU_MODE",
+        "schedule": {
+            "Disable": [
+                {
+                    "Sun": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Mon": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Tue": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Wed": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Thu": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Fri": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Sat": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                }
+            ],
+            "tariff": [
+                {
+                    "start": "6/1",
+                    "end": "10/1",
+                    "Sun": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Mon": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Tue": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Wed": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Thu": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Fri": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Sat": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ]
+                },
+                {
+                    "start": "10/1",
+                    "end": "6/1",
+                    "Sun": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Mon": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Tue": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Wed": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Thu": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Fri": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ],
+                    "Sat": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ZN"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
