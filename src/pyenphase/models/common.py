@@ -32,6 +32,12 @@ class CommonProperties:
     consumption_meter_type: CtType | None = (
         None  #: What type of consumption meter is installed, if installed
     )
+    production_meter_type: CtType | None = (
+        None  #: What type of production meter is installed, if installed
+    )
+    storage_meter_type: CtType | None = (
+        None  #: What type of storage meter is installed, if installed
+    )
     # controlled by production updater
     active_phase_count: int = 0  #: number of phases actually reporting phase data
 

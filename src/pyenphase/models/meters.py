@@ -16,6 +16,7 @@ class CtType(StrEnum):
     PRODUCTION = "production"
     NET_CONSUMPTION = "net-consumption"
     TOTAL_CONSUMPTION = "total-consumption"
+    STORAGE = "storage"
 
 
 class CtState(StrEnum):

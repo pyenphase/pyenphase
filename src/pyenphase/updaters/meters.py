@@ -25,6 +25,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
     )
     production_meter_type: CtType | None = None  #: Production CT type
     consumption_meter_type: CtType | None = None  #: Consumpion CT type (net or total)
+    storage_meter_type: CtType | None = None  #: Storage CT type
     phase_mode: EnvoyPhaseMode | None = (
         None  #: Phase mode configured (Single, Dual or Three)
     )
@@ -34,12 +35,15 @@ class EnvoyMetersUpdater(EnvoyUpdater):
     )
     production_meter_eid: str | None = None  #: Production CT identifier
     consumption_meter_eid: str | None = None  #: Consumption CT identifier
+    storage_meter_eid: str | None = None  #: Storage CT identifier
 
     def _set_common_properties(self) -> None:
         """Set Envoy common properties we own and control"""
         self._common_properties.phase_count = self.phase_count
         self._common_properties.phase_mode = self.phase_mode
         self._common_properties.consumption_meter_type = self.consumption_meter_type
+        self._common_properties.production_meter_type = self.production_meter_type
+        self._common_properties.storage_meter_type = self.storage_meter_type
         self._common_properties.ct_meter_count = self.ct_meters_count
 
     async def probe(
@@ -67,17 +71,17 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         self.phase_mode = (
             None  # Phase mode only if ct meters are installed and configured
         )
-        self.consumption_meter_type = (
-            None  # Type of consumption ct only known if installed.
-        )
+        self.production_meter_type = None  # Type of production CT If installed
+        self.consumption_meter_type = None  # Type of consumption ct if installed.
+        self.storage_meter_type = None  # Type of storage CT If installed
 
         # set the defaults in global common properties in case we exit early
         self._set_common_properties()
 
         # set local defaults not shared in common properties
-        self.production_meter_type = None
         self.production_meter_eid = None
         self.consumption_meter_eid = None
+        self.storage_meter_eid = None
 
         try:
             meters_json: list[CtMeterData] | None = await self._json_probe_request(
