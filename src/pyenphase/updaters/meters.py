@@ -168,6 +168,8 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         envoy_data.raw[self.end_point] = meters_status
         envoy_data.raw[self.data_end_point] = meters_readings
 
+        phase_range = self.phase_count if self.phase_count > 1 else 0
+
         for index, meter in enumerate(meters_readings):
             # match meter identifier to one found during probe to identify production or consumption
             if meter["eid"] == self.production_meter_eid and self.production_meter_type:
@@ -178,10 +180,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 # if more then 1 phase configured store ctmeter phase data
                 phase_production: dict[str, EnvoyMeterData] = {
                     PHASENAMES[phase_idx]: production
-                    for phase_idx in range(
-                        self.phase_count if self.phase_count > 1 else 0
-                    )
-                    # exclude None phases that were expected but not actually in report
+                    for phase_idx in range(phase_range)
                     if (
                         production := EnvoyMeterData.from_phase(
                             meter, meters_status[index], phase_idx
@@ -205,10 +204,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 # if more then 1 phase configured store ctmeter phase data
                 phase_consumption: dict[str, EnvoyMeterData] = {
                     PHASENAMES[phase_idx]: consumption
-                    for phase_idx in range(
-                        self.phase_count if self.phase_count > 1 else 0
-                    )
-                    # exclude None phases that were expected but not actually in report
+                    for phase_idx in range(phase_range)
                     if (
                         consumption := EnvoyMeterData.from_phase(
                             meter, meters_status[index], phase_idx
@@ -228,10 +224,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 # if more then 1 phase configured store ctmeter phase data
                 phase_storage: dict[str, EnvoyMeterData] = {
                     PHASENAMES[phase_idx]: storage
-                    for phase_idx in range(
-                        self.phase_count if self.phase_count > 1 else 0
-                    )
-                    # exclude None phases that were expected but not actually in report
+                    for phase_idx in range(phase_range)
                     if (
                         storage := EnvoyMeterData.from_phase(
                             meter, meters_status[index], phase_idx
