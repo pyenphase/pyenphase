@@ -178,17 +178,9 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                     meter, meters_status[index]
                 )
                 # if more then 1 phase configured store ctmeter phase data
-                phase_production: dict[str, EnvoyMeterData] = {
-                    PHASENAMES[phase_idx]: production
-                    for phase_idx in range(phase_range)
-                    if (
-                        production := EnvoyMeterData.from_phase(
-                            meter, meters_status[index], phase_idx
-                        )
-                    )
-                }
-
-                if phase_production:
+                if phase_production := _make_meter_data_for_phases(
+                    phase_range, meter, meters_status[index]
+                ):
                     envoy_data.ctmeter_production_phases = phase_production
 
             # match meter identifier to one found during probe to identify production or consumption
@@ -200,19 +192,10 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 envoy_data.ctmeter_consumption = EnvoyMeterData.from_api(
                     meter, meters_status[index]
                 )
-
                 # if more then 1 phase configured store ctmeter phase data
-                phase_consumption: dict[str, EnvoyMeterData] = {
-                    PHASENAMES[phase_idx]: consumption
-                    for phase_idx in range(phase_range)
-                    if (
-                        consumption := EnvoyMeterData.from_phase(
-                            meter, meters_status[index], phase_idx
-                        )
-                    )
-                }
-
-                if phase_consumption:
+                if phase_consumption := _make_meter_data_for_phases(
+                    phase_range, meter, meters_status[index]
+                ):
                     envoy_data.ctmeter_consumption_phases = phase_consumption
 
             # match meter identifier to storage meter found during probe
@@ -221,16 +204,19 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 envoy_data.ctmeter_storage = EnvoyMeterData.from_api(
                     meter, meters_status[index]
                 )
-                # if more then 1 phase configured store ctmeter phase data
-                phase_storage: dict[str, EnvoyMeterData] = {
-                    PHASENAMES[phase_idx]: storage
-                    for phase_idx in range(phase_range)
-                    if (
-                        storage := EnvoyMeterData.from_phase(
-                            meter, meters_status[index], phase_idx
-                        )
-                    )
-                }
-
-                if phase_storage:
+                if phase_storage := _make_meter_data_for_phases(
+                    phase_range, meter, meters_status[index]
+                ):
                     envoy_data.ctmeter_storage_phases = phase_storage
+
+
+def _make_meter_data_for_phases(
+    phase_range: int, meter: dict[str, Any], meters_status: CtMeterData
+) -> dict[str, EnvoyMeterData]:
+    """Build a dictionary of phase data for multi-phase setups."""
+    meter_data_by_phase: dict[str, EnvoyMeterData] = {
+        PHASENAMES[phase_idx]: data
+        for phase_idx in range(phase_range)
+        if (data := EnvoyMeterData.from_phase(meter, meters_status, phase_idx))
+    }
+    return meter_data_by_phase
