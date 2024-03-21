@@ -11500,8 +11500,56 @@
         'voltage': 121.143,
       }),
     }),
-    'ctmeter_storage': None,
-    'ctmeter_storage_phases': None,
+    'ctmeter_storage': dict({
+      'active_power': -2580,
+      'current': 14.575,
+      'eid': 704643840,
+      'energy_delivered': 2274359,
+      'energy_received': 2971414,
+      'frequency': 60.0,
+      'measurement_type': 'storage',
+      'metering_status': 'normal',
+      'power_factor': -1.0,
+      'state': 'enabled',
+      'status_flags': list([
+      ]),
+      'timestamp': 1709829517,
+      'voltage': 242.582,
+    }),
+    'ctmeter_storage_phases': dict({
+      <PhaseNames.PHASE_1: 'L1'>: dict({
+        'active_power': -2115,
+        'current': 9.316,
+        'eid': 1778385681,
+        'energy_delivered': 1136860,
+        'energy_received': 1485292,
+        'frequency': 60.0,
+        'measurement_type': 'storage',
+        'metering_status': 'normal',
+        'power_factor': -0.193,
+        'state': 'enabled',
+        'status_flags': list([
+        ]),
+        'timestamp': 1709829517,
+        'voltage': 121.334,
+      }),
+      <PhaseNames.PHASE_2: 'L2'>: dict({
+        'active_power': -465,
+        'current': 5.259,
+        'eid': 1778385682,
+        'energy_delivered': 1137499,
+        'energy_received': 1486122,
+        'frequency': 60.0,
+        'measurement_type': 'storage',
+        'metering_status': 'normal',
+        'power_factor': -0.713,
+        'state': 'enabled',
+        'status_flags': list([
+        ]),
+        'timestamp': 1709829517,
+        'voltage': 121.248,
+      }),
+    }),
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5,
@@ -11729,27 +11777,27 @@
       }),
     }),
     'encharge_power': dict({
-      '12345678902001': dict({
+      '12345678901002': dict({
         'apparent_power_mva': -121000,
         'real_power_mw': -121000,
         'soc': 21,
       }),
-      '12345678902002': dict({
+      '12345678901003': dict({
         'apparent_power_mva': -128000,
         'real_power_mw': -128000,
         'soc': 21,
       }),
-      '12345678902003': dict({
+      '12345678901004': dict({
         'apparent_power_mva': -128000,
         'real_power_mw': -128000,
         'soc': 21,
       }),
-      '12345678902004': dict({
+      '12345678901005': dict({
         'apparent_power_mva': -128000,
         'real_power_mw': -128000,
         'soc': 21,
       }),
-      '12345678902005': dict({
+      '12345678901006': dict({
         'apparent_power_mva': -136000,
         'real_power_mw': -136000,
         'soc': 21,
@@ -12433,31 +12481,31 @@
           dict({
             'apparent_power_mva': -136000,
             'real_power_mw': -136000,
-            'serial_num': '12345678902005',
+            'serial_num': '12345678901006',
             'soc': 21,
           }),
           dict({
             'apparent_power_mva': -128000,
             'real_power_mw': -128000,
-            'serial_num': '12345678902004',
+            'serial_num': '12345678901005',
             'soc': 21,
           }),
           dict({
             'apparent_power_mva': -128000,
             'real_power_mw': -128000,
-            'serial_num': '12345678902003',
+            'serial_num': '12345678901004',
             'soc': 21,
           }),
           dict({
             'apparent_power_mva': -128000,
             'real_power_mw': -128000,
-            'serial_num': '12345678902002',
+            'serial_num': '12345678901003',
             'soc': 21,
           }),
           dict({
             'apparent_power_mva': -121000,
             'real_power_mw': -121000,
-            'serial_num': '12345678902001',
+            'serial_num': '12345678901002',
             'soc': 21,
           }),
         ]),

@@ -286,7 +286,7 @@ class Envoy:
 
     @property
     def active_phase_count(self) -> int:
-        """Return the number of phases for CT meters that reported data."""
+        """Return the number of phases reported in production/consumption report."""
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.active_phase_count
 
@@ -302,17 +302,17 @@ class Envoy:
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.consumption_meter_type
 
-    @cached_property
+    @property
     def production_meter_type(self) -> CtType | None:
         """Return the type of production ct meter installed (Production or None)."""
         assert self._common_properties is not None, "Call setup() first"  # nosec
-        # if 2 ct are installed or only 1 and no consumption then there's a production ct
-        if self.ct_meter_count > 1 or (
-            self.ct_meter_count == 1
-            and self._common_properties.consumption_meter_type is None
-        ):
-            return CtType.PRODUCTION
-        return None
+        return self._common_properties.production_meter_type
+
+    @property
+    def storage_meter_type(self) -> CtType | None:
+        """Return the type of storage ct meter installed (Storage or None)."""
+        assert self._common_properties is not None, "Call setup() first"  # nosec
+        return self._common_properties.storage_meter_type
 
     @property
     def phase_mode(self) -> EnvoyPhaseMode | None:
@@ -342,6 +342,10 @@ class Envoy:
         # if production CT is found add to model.
         if ct_production_meter := self.production_meter_type:
             model = f"{model}, {ct_production_meter} CT"
+
+        # if storage CT is found add to model.
+        if ct_storage_meter := self.storage_meter_type:
+            model = f"{model}, {ct_storage_meter} CT"
 
         return model
 

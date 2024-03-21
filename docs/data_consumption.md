@@ -12,4 +12,4 @@ This is the energy consumption by the house reported by the Envoy, class [EnvoyS
         print(f'Last7DaysEnergy {data.system_consumption.watt_hours_last_7_days}')
 ```
 
-For metered Envoy with installed and configured CT meter in `split` or `three` phase mode and more then 1 phase active, data for individual phases is also reported, see [Phase Data](./phase_data.md#phase-data)
+For metered Envoy with installed and configured CT meter in `three` phase mode and more then 1 phase active, data for individual phases is also reported, see [Phase Data](./phase_data.md#phase-data)

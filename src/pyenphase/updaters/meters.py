@@ -122,6 +122,9 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                     self.consumption_meter_type = meter["measurementType"]
                     # save meter identifier for link between /ivp/meters and /ivp/meters/readings
                     self.consumption_meter_eid = meter["eid"]
+                if meter["measurementType"] == CtType.STORAGE:
+                    self.storage_meter_type = meter["measurementType"]
+                    self.storage_meter_eid = meter["eid"]
                 self.ct_meters_count += 1
                 self.phase_mode = meter["phaseMode"]
                 self.phase_count = (
@@ -165,53 +168,43 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         envoy_data.raw[self.end_point] = meters_status
         envoy_data.raw[self.data_end_point] = meters_readings
 
+        phase_range = self.phase_count if self.phase_count > 1 else 0
+
         for index, meter in enumerate(meters_readings):
+            eid = meter["eid"]
+            ct_data = meters_status[index]
+
             # match meter identifier to one found during probe to identify production or consumption
-            if meter["eid"] == self.production_meter_eid and self.production_meter_type:
+            if eid == self.production_meter_eid and self.production_meter_type:
                 # if production meter was enabled (type known) store ctmeter production data
-                envoy_data.ctmeter_production = EnvoyMeterData.from_api(
-                    meter, meters_status[index]
-                )
+                envoy_data.ctmeter_production = EnvoyMeterData.from_api(meter, ct_data)
                 # if more then 1 phase configured store ctmeter phase data
-                phase_production: dict[str, EnvoyMeterData] = {
-                    PHASENAMES[phase_idx]: production
-                    for phase_idx in range(
-                        self.phase_count if self.phase_count > 1 else 0
-                    )
-                    # exclude None phases that were expected but not actually in report
-                    if (
-                        production := EnvoyMeterData.from_phase(
-                            meter, meters_status[index], phase_idx
-                        )
-                    )
-                }
-
-                if phase_production:
-                    envoy_data.ctmeter_production_phases = phase_production
+                if phase_data := _meter_data_for_phases(phase_range, meter, ct_data):
+                    envoy_data.ctmeter_production_phases = phase_data
 
             # match meter identifier to one found during probe to identify production or consumption
-            if (
-                meter["eid"] == self.consumption_meter_eid
-                and self.consumption_meter_type
-            ):
+            elif eid == self.consumption_meter_eid and self.consumption_meter_type:
                 # if consumption meter was enabled (type known) store ctmeter consumption data
-                envoy_data.ctmeter_consumption = EnvoyMeterData.from_api(
-                    meter, meters_status[index]
-                )
-
+                envoy_data.ctmeter_consumption = EnvoyMeterData.from_api(meter, ct_data)
                 # if more then 1 phase configured store ctmeter phase data
-                phase_consumption: dict[str, EnvoyMeterData] = {
-                    PHASENAMES[phase_idx]: consumption
-                    for phase_idx in range(
-                        self.phase_count if self.phase_count > 1 else 0
-                    )
-                    # exclude None phases that were expected but not actually in report
-                    if (
-                        consumption := EnvoyMeterData.from_phase(
-                            meter, meters_status[index], phase_idx
-                        )
-                    )
-                }
+                if phase_data := _meter_data_for_phases(phase_range, meter, ct_data):
+                    envoy_data.ctmeter_consumption_phases = phase_data
 
-                if phase_consumption:
-                    envoy_data.ctmeter_consumption_phases = phase_consumption
+            # match meter identifier to storage meter found during probe
+            elif eid == self.storage_meter_eid and self.storage_meter_type:
+                # if storage meter was enabled (type known) store ctmeter storage data
+                envoy_data.ctmeter_storage = EnvoyMeterData.from_api(meter, ct_data)
+                if phase_data := _meter_data_for_phases(phase_range, meter, ct_data):
+                    envoy_data.ctmeter_storage_phases = phase_data
+
+
+def _meter_data_for_phases(
+    phase_range: int, meter: dict[str, Any], ct_data: CtMeterData
+) -> dict[str, EnvoyMeterData]:
+    """Build a dictionary of phase data for multi-phase setups."""
+    meter_data_by_phase: dict[str, EnvoyMeterData] = {
+        PHASENAMES[phase_idx]: data
+        for phase_idx in range(phase_range)
+        if (data := EnvoyMeterData.from_phase(meter, ct_data, phase_idx))
+    }
+    return meter_data_by_phase
