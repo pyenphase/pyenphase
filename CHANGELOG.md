@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.20.0 (2024-03-21)
+
+### Feature
+
+* Report storage CT data ([#144](https://github.com/pyenphase/pyenphase/issues/144)) ([`52c53fe`](https://github.com/pyenphase/pyenphase/commit/52c53fe20123514177290e964e03a23454e42e9c))
+
 ## v1.19.2 (2024-03-08)
 
 ### Fix
