@@ -101,6 +101,8 @@
         'voltage': 123.836,
       }),
     }),
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -711,6 +713,8 @@
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -1304,6 +1308,8 @@
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -1631,6 +1637,8 @@
         'voltage': 120.946,
       }),
     }),
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -2327,6 +2335,8 @@
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -2775,6 +2785,8 @@
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5.0,
@@ -3848,6 +3860,8 @@
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5.0,
@@ -5017,6 +5031,8 @@
         'voltage': 122.28,
       }),
     }),
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': None,
@@ -6554,6 +6570,8 @@
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -6761,6 +6779,8 @@
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -6968,6 +6988,8 @@
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -7318,6 +7340,8 @@
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -7897,6 +7921,8 @@
       'voltage': 235.236,
     }),
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -8642,6 +8668,8 @@
         'voltage': 11.469,
       }),
     }),
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -9486,6 +9514,8 @@
       'voltage': 238.524,
     }),
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -10258,6 +10288,8 @@
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
     'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5.0,
@@ -11468,6 +11500,8 @@
         'voltage': 121.143,
       }),
     }),
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5,
