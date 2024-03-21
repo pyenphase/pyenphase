@@ -1652,8 +1652,10 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
         "consumption_phases",
         "ct_production",
         "ct_consumption",
+        "ct_storage",
         "ct_production_phases",
         "ct_consumption_phases",
+        "ct_storage_phases",
     ),
     [
         (
@@ -1673,7 +1675,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
+                "productionMeter": None,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -1708,6 +1714,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 2,
                 "phaseMode": EnvoyPhaseMode.SPLIT,
                 "consumptionMeter": CtType.NET_CONSUMPTION,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": None,
             },
             {},
             {},
@@ -1723,6 +1731,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "measurement_type": CtType.NET_CONSUMPTION,
                 "metering_status": CtMeterStatus.NORMAL,
             },
+            {},
             {
                 PhaseNames.PHASE_1: {
                     "eid": 1778385169,
@@ -1751,6 +1760,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                     "metering_status": CtMeterStatus.NORMAL,
                 },
             },
+            {},
         ),
         (
             "7.3.130",
@@ -1773,7 +1783,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
+                "productionMeter": None,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -1804,6 +1818,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 2,
                 "phaseMode": EnvoyPhaseMode.SPLIT,
                 "consumptionMeter": None,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": None,
             },
             {},
             {},
@@ -1813,6 +1829,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "measurement_type": CtType.PRODUCTION,
                 "metering_status": CtMeterStatus.NORMAL,
             },
+            {},
             {},
             {
                 PhaseNames.PHASE_1: {
@@ -1828,6 +1845,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                     "metering_status": CtMeterStatus.NORMAL,
                 },
             },
+            {},
             {},
         ),
         (
@@ -1857,7 +1875,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
+                "productionMeter": None,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -1892,7 +1914,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
+                "productionMeter": None,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -1931,6 +1957,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 2,
                 "phaseMode": EnvoyPhaseMode.SPLIT,
                 "consumptionMeter": CtType.NET_CONSUMPTION,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": None,
             },
             {},
             {},
@@ -1946,6 +1974,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "measurement_type": CtType.NET_CONSUMPTION,
                 "metering_status": CtMeterStatus.NORMAL,
             },
+            {},
             {
                 PhaseNames.PHASE_1: {
                     "eid": 1778385169,
@@ -1974,6 +2003,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                     "metering_status": CtMeterStatus.NORMAL,
                 },
             },
+            {},
         ),
         (
             "7.3.466_metered_disabled_cts",
@@ -1992,7 +2022,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
+                "productionMeter": None,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -2014,7 +2048,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
+                "productionMeter": None,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -2036,7 +2074,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
+                "productionMeter": None,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -2061,7 +2103,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
+                "productionMeter": None,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -2083,7 +2129,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
+                "productionMeter": None,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -2116,7 +2166,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": EnvoyPhaseMode.THREE,
                 "consumptionMeter": CtType.NET_CONSUMPTION,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -2151,6 +2205,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 3,
                 "phaseMode": EnvoyPhaseMode.THREE,
                 "consumptionMeter": CtType.NET_CONSUMPTION,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": None,
             },
             {
                 PhaseNames.PHASE_1: {
@@ -2204,6 +2260,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "measurement_type": CtType.NET_CONSUMPTION,
                 "metering_status": CtMeterStatus.NORMAL,
             },
+            {},
             {
                 PhaseNames.PHASE_1: {
                     "eid": 1778385169,
@@ -2244,6 +2301,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                     "metering_status": CtMeterStatus.NORMAL,
                 },
             },
+            {},
         ),
         (
             "7.6.185_with_cts_and_battery_3t",
@@ -2272,7 +2330,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": EnvoyPhaseMode.THREE,
                 "consumptionMeter": CtType.NET_CONSUMPTION,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -2305,7 +2367,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 1,
                 "phaseMode": None,
                 "consumptionMeter": None,
+                "productionMeter": None,
+                "storageMeter": None,
             },
+            {},
+            {},
             {},
             {},
             {},
@@ -2344,6 +2410,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "phaseCount": 2,
                 "phaseMode": EnvoyPhaseMode.SPLIT,
                 "consumptionMeter": CtType.NET_CONSUMPTION,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": CtType.STORAGE,
             },
             {},
             {},
@@ -2357,6 +2425,12 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                 "eid": 704643584,
                 "active_power": 129,
                 "measurement_type": CtType.NET_CONSUMPTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                "eid": 704643840,
+                "active_power": -2580,
+                "measurement_type": CtType.STORAGE,
                 "metering_status": CtMeterStatus.NORMAL,
             },
             {
@@ -2384,6 +2458,20 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
                     "eid": 1778385426,
                     "active_power": 331,
                     "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385681,
+                    "active_power": -2115,
+                    "measurement_type": CtType.STORAGE,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385682,
+                    "active_power": -465,
+                    "measurement_type": CtType.STORAGE,
                     "metering_status": CtMeterStatus.NORMAL,
                 },
             },
@@ -2424,8 +2512,10 @@ async def test_with_7_x_firmware(
     consumption_phases: dict[str, dict[str, Any]],
     ct_production: dict[str, Any],
     ct_consumption: dict[str, Any],
+    ct_storage: dict[str, Any],
     ct_production_phases: dict[str, dict[str, Any]],
     ct_consumption_phases: dict[str, dict[str, Any]],
+    ct_storage_phases: dict[str, dict[str, Any]],
 ) -> None:
     """Verify with 7.x firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
@@ -2684,6 +2774,19 @@ async def test_with_7_x_firmware(
     assert envoy.phase_count == common_properties["phaseCount"]
     assert envoy.phase_mode == common_properties["phaseMode"]
     assert envoy.consumption_meter_type == common_properties["consumptionMeter"]
+    assert envoy.production_meter_type == common_properties["productionMeter"]
+    assert envoy.storage_meter_type == common_properties["storageMeter"]
+
+    # are CT types represented correctly in model
+    assert (str(envoy.storage_meter_type) in envoy.envoy_model) != (
+        envoy.storage_meter_type is None
+    )
+    assert (str(envoy.production_meter_type) in envoy.envoy_model) != (
+        envoy.production_meter_type is None
+    )
+    assert (str(envoy.storage_meter_type) in envoy.envoy_model) != (
+        envoy.storage_meter_type is None
+    )
 
     # are all production phases reported
     assert (
@@ -2725,7 +2828,7 @@ async def test_with_7_x_firmware(
 
     # are all CT production phases reported
     assert (
-        envoy.active_phase_count == 0
+        len(ct_production_phases) == 0
         if data.ctmeter_production_phases is None
         else len(data.ctmeter_production_phases)
     )
@@ -2742,9 +2845,9 @@ async def test_with_7_x_firmware(
     for key in ct_consumption:
         assert ct_consumption[key] == getattr(envoy.data.ctmeter_consumption, key)
 
-    # are all production CT phases reported
+    # are all consumption CT phases reported
     assert (
-        envoy.active_phase_count == 0
+        len(ct_consumption_phases) == 0
         if data.ctmeter_consumption_phases is None
         else len(data.ctmeter_consumption_phases)
     )
@@ -2756,3 +2859,22 @@ async def test_with_7_x_firmware(
         # test each element of the phase data
         for key in modeldata:
             assert modeldata[key] == getattr(consdata, key)
+
+    # test ct storage meter values
+    for key in ct_storage:
+        assert ct_storage[key] == getattr(envoy.data.ctmeter_storage, key)
+
+    # test expected vs actual phases reported
+    assert (
+        len(ct_storage_phases) == 0
+        if data.ctmeter_storage_phases is None
+        else len(data.ctmeter_storage_phases)
+    )
+
+    # Test each ct storage phase
+    for phase in ct_storage_phases:
+        storedata = envoy.data.ctmeter_storage_phases[phase]
+        modeldata = ct_storage_phases[phase]
+        # test each element of the phase data
+        for key in modeldata:
+            assert modeldata[key] == getattr(storedata, key)

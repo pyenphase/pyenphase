@@ -122,6 +122,9 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                     self.consumption_meter_type = meter["measurementType"]
                     # save meter identifier for link between /ivp/meters and /ivp/meters/readings
                     self.consumption_meter_eid = meter["eid"]
+                if meter["measurementType"] == CtType.STORAGE:
+                    self.storage_meter_type = meter["measurementType"]
+                    self.storage_meter_eid = meter["eid"]
                 self.ct_meters_count += 1
                 self.phase_mode = meter["phaseMode"]
                 self.phase_count = (
@@ -215,3 +218,26 @@ class EnvoyMetersUpdater(EnvoyUpdater):
 
                 if phase_consumption:
                     envoy_data.ctmeter_consumption_phases = phase_consumption
+
+            # match meter identifier to storage meter found during probe
+            if meter["eid"] == self.storage_meter_eid and self.storage_meter_type:
+                # if storage meter was enabled (type known) store ctmeter storage data
+                envoy_data.ctmeter_storage = EnvoyMeterData.from_api(
+                    meter, meters_status[index]
+                )
+                # if more then 1 phase configured store ctmeter phase data
+                phase_storage: dict[str, EnvoyMeterData] = {
+                    PHASENAMES[phase_idx]: storage
+                    for phase_idx in range(
+                        self.phase_count if self.phase_count > 1 else 0
+                    )
+                    # exclude None phases that were expected but not actually in report
+                    if (
+                        storage := EnvoyMeterData.from_phase(
+                            meter, meters_status[index], phase_idx
+                        )
+                    )
+                }
+
+                if phase_storage:
+                    envoy_data.ctmeter_storage_phases = phase_storage
