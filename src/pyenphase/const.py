@@ -45,6 +45,9 @@ LOCAL_TIMEOUT = httpx.Timeout(
     read=60.0,
 )
 
+# Requests should no longer retry after max delay (sec) since first try
+MAX_REQUEST_DELAY = 50
+
 
 class SupportedFeatures(enum.IntFlag):
     """Features available from Envoy"""

@@ -7,9 +7,16 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 import orjson
+from anyio import EndOfStream
 from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
-from tenacity import retry, retry_if_exception_type, wait_random_exponential
+from tenacity import (
+    RetryError,
+    retry,
+    retry_if_exception_type,
+    stop_after_delay,
+    wait_random_exponential,
+)
 
 from pyenphase.models.dry_contacts import DryContactStatus
 
@@ -17,6 +24,7 @@ from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
     AUTH_TOKEN_MIN_VERSION,
     LOCAL_TIMEOUT,
+    MAX_REQUEST_DELAY,
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
     URL_GRID_RELAY,
@@ -25,6 +33,7 @@ from .const import (
 )
 from .exceptions import (
     EnvoyAuthenticationRequired,
+    EnvoyCommunicationError,
     EnvoyFeatureNotAvailable,
     EnvoyProbeFailed,
 )
@@ -88,21 +97,52 @@ class Envoy:
         host: str,
         client: httpx.AsyncClient | None = None,
         timeout: float | httpx.Timeout | None = None,
+        max_request_delay: int | None = None,
     ) -> None:
         """Initialize the Envoy class."""
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._timeout = timeout or LOCAL_TIMEOUT
+        self._max_request_delay = max_request_delay or MAX_REQUEST_DELAY
         self._client = client or httpx.AsyncClient(
             verify=NO_VERIFY_SSL_CONTEXT
         )  # nosec
         self.auth: EnvoyAuth | None = None
         self._host = host
-        self._firmware = EnvoyFirmware(self._client, self._host)
+        self._firmware = EnvoyFirmware(
+            self._client, self._host, self._timeout, self._max_request_delay
+        )
         self._supported_features: SupportedFeatures | None = None
         self._updaters: list[EnvoyUpdater] = []
         self._endpoint_cache: dict[str, httpx.Response] = {}
         self.data: EnvoyData | None = None
         self._common_properties: CommonProperties = CommonProperties()
+
+        if not TYPE_CHECKING:
+            Envoy.request = retry(
+                retry=retry_if_exception_type(
+                    (
+                        httpx.NetworkError,
+                        httpx.TimeoutException,
+                        httpx.RemoteProtocolError,
+                        orjson.JSONDecodeError,
+                    )
+                ),
+                wait=wait_random_exponential(multiplier=2, max=5),
+                stop=stop_after_delay(self._max_request_delay),
+                reraise=True,
+            )(Envoy.request)
+
+            Envoy.probe_request = retry(
+                retry=retry_if_exception_type(
+                    (
+                        httpx.NetworkError,
+                        httpx.RemoteProtocolError,
+                    )
+                ),
+                wait=wait_random_exponential(multiplier=2, max=5),
+                stop=stop_after_delay(self._max_request_delay),
+                reraise=True,
+            )(Envoy.probe_request)
 
     async def setup(self) -> None:
         """Obtain the firmware version for later Envoy authentication."""
@@ -158,12 +198,6 @@ class Envoy:
 
         await self.auth.setup(self._client)
 
-    @retry(
-        retry=retry_if_exception_type(
-            (httpx.NetworkError, httpx.TimeoutException, httpx.RemoteProtocolError)
-        ),
-        wait=wait_random_exponential(multiplier=2, max=3),
-    )
     async def probe_request(self, endpoint: str) -> httpx.Response:
         """Make a probe request.
 
@@ -171,17 +205,6 @@ class Envoy:
         """
         return await self._request(endpoint)
 
-    @retry(
-        retry=retry_if_exception_type(
-            (
-                httpx.NetworkError,
-                httpx.TimeoutException,
-                httpx.RemoteProtocolError,
-                orjson.JSONDecodeError,
-            )
-        ),
-        wait=wait_random_exponential(multiplier=2, max=3),
-    )
     async def request(
         self, endpoint: str, data: dict[str, Any] | None = None
     ) -> httpx.Response:
@@ -222,7 +245,8 @@ class Envoy:
                 data=orjson.dumps(data),
             )
         else:
-            _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
+            if debugon:
+                _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
             response = await self._client.get(
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
@@ -355,7 +379,13 @@ class Envoy:
         """Make a cached request."""
         if cached_response := self._endpoint_cache.get(endpoint):
             return cached_response
-        response = await request_func(endpoint)
+        try:
+            response = await request_func(endpoint)
+        except RetryError as exc:
+            raise EnvoyCommunicationError(500, "Unable to connect to Envoy") from exc
+        except EndOfStream as exc:
+            raise EnvoyCommunicationError(500, "Unable to connect to Envoy") from exc
+
         if response.status_code == 200:
             self._endpoint_cache[endpoint] = response
         return response
@@ -395,7 +425,16 @@ class Envoy:
 
         data = EnvoyData()
         for updater in self._updaters:
-            await updater.update(data)
+            try:
+                await updater.update(data)
+            except RetryError as exc:
+                raise EnvoyCommunicationError(
+                    500, "Unable to connect to Envoy"
+                ) from exc
+            except EndOfStream as exc:
+                raise EnvoyCommunicationError(
+                    500, "Unable to connect to Envoy"
+                ) from exc
 
         self.data = data
         return data
