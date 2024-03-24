@@ -7,13 +7,12 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 import orjson
-from anyio import EndOfStream
 from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import (
-    RetryError,
     retry,
     retry_if_exception_type,
+    stop_after_attempt,
     stop_after_delay,
     wait_random_exponential,
 )
@@ -24,6 +23,7 @@ from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
     AUTH_TOKEN_MIN_VERSION,
     LOCAL_TIMEOUT,
+    MAX_REQUEST_ATTEMPTS,
     MAX_REQUEST_DELAY,
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
@@ -33,7 +33,6 @@ from .const import (
 )
 from .exceptions import (
     EnvoyAuthenticationRequired,
-    EnvoyCommunicationError,
     EnvoyFeatureNotAvailable,
     EnvoyProbeFailed,
 )
@@ -117,33 +116,6 @@ class Envoy:
         self.data: EnvoyData | None = None
         self._common_properties: CommonProperties = CommonProperties()
 
-        if not TYPE_CHECKING:
-            Envoy.request = retry(
-                retry=retry_if_exception_type(
-                    (
-                        httpx.NetworkError,
-                        httpx.TimeoutException,
-                        httpx.RemoteProtocolError,
-                        orjson.JSONDecodeError,
-                    )
-                ),
-                wait=wait_random_exponential(multiplier=2, max=5),
-                stop=stop_after_delay(self._max_request_delay),
-                reraise=True,
-            )(Envoy.request)
-
-            Envoy.probe_request = retry(
-                retry=retry_if_exception_type(
-                    (
-                        httpx.NetworkError,
-                        httpx.RemoteProtocolError,
-                    )
-                ),
-                wait=wait_random_exponential(multiplier=2, max=5),
-                stop=stop_after_delay(self._max_request_delay),
-                reraise=True,
-            )(Envoy.probe_request)
-
     async def setup(self) -> None:
         """Obtain the firmware version for later Envoy authentication."""
         await self._firmware.setup()
@@ -198,6 +170,19 @@ class Envoy:
 
         await self.auth.setup(self._client)
 
+    @retry(  # need to use constant MAX_REQUEST_DELAY rather then self._max_request_delay
+        retry=retry_if_exception_type(
+            (
+                httpx.NetworkError,
+                httpx.TimeoutException,
+                httpx.RemoteProtocolError,
+            )
+        ),
+        wait=wait_random_exponential(multiplier=2, max=5),
+        stop=stop_after_delay(MAX_REQUEST_DELAY)
+        | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
+        reraise=True,
+    )
     async def probe_request(self, endpoint: str) -> httpx.Response:
         """Make a probe request.
 
@@ -205,6 +190,20 @@ class Envoy:
         """
         return await self._request(endpoint)
 
+    @retry(  # need to use constant MAX_REQUEST_DELAY rather then self._max_request_delay
+        retry=retry_if_exception_type(
+            (
+                httpx.NetworkError,
+                httpx.TimeoutException,
+                httpx.RemoteProtocolError,
+                orjson.JSONDecodeError,
+            )
+        ),
+        wait=wait_random_exponential(multiplier=2, max=5),
+        stop=stop_after_delay(MAX_REQUEST_DELAY)
+        | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
+        reraise=True,
+    )
     async def request(
         self, endpoint: str, data: dict[str, Any] | None = None
     ) -> httpx.Response:
@@ -379,13 +378,7 @@ class Envoy:
         """Make a cached request."""
         if cached_response := self._endpoint_cache.get(endpoint):
             return cached_response
-        try:
-            response = await request_func(endpoint)
-        except RetryError as exc:
-            raise EnvoyCommunicationError(500, "Unable to connect to Envoy") from exc
-        except EndOfStream as exc:
-            raise EnvoyCommunicationError(500, "Unable to connect to Envoy") from exc
-
+        response = await request_func(endpoint)
         if response.status_code == 200:
             self._endpoint_cache[endpoint] = response
         return response
@@ -425,16 +418,7 @@ class Envoy:
 
         data = EnvoyData()
         for updater in self._updaters:
-            try:
-                await updater.update(data)
-            except RetryError as exc:
-                raise EnvoyCommunicationError(
-                    500, "Unable to connect to Envoy"
-                ) from exc
-            except EndOfStream as exc:
-                raise EnvoyCommunicationError(
-                    500, "Unable to connect to Envoy"
-                ) from exc
+            await updater.update(data)
 
         self.data = data
         return data

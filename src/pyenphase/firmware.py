@@ -1,20 +1,18 @@
 """Envoy Firmware detection"""
 import logging
-from typing import TYPE_CHECKING
 
 import httpx
-from anyio import EndOfStream
 from awesomeversion import AwesomeVersion
 from lxml import etree  # nosec
 from tenacity import (
-    RetryError,
     retry,
     retry_if_exception_type,
+    stop_after_attempt,
     stop_after_delay,
     wait_random_exponential,
 )
 
-from .const import LOCAL_TIMEOUT, MAX_REQUEST_DELAY
+from .const import LOCAL_TIMEOUT, MAX_REQUEST_ATTEMPTS, MAX_REQUEST_DELAY
 from .exceptions import EnvoyFirmwareCheckError, EnvoyFirmwareFatalCheckError
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,16 +47,13 @@ class EnvoyFirmware:
         self._timeout = timeout or LOCAL_TIMEOUT
         self._max_request_delay = max_request_delay or MAX_REQUEST_DELAY
 
-        if not TYPE_CHECKING:
-            EnvoyFirmware._get_info = retry(
-                retry=retry_if_exception_type(
-                    (httpx.NetworkError, httpx.RemoteProtocolError)
-                ),
-                wait=wait_random_exponential(multiplier=2, max=5),
-                stop=stop_after_delay(self._max_request_delay),
-                reraise=True,
-            )(EnvoyFirmware._get_info)
-
+    @retry(  # need to use constant MAX_REQUEST_DELAY rather then self._max_request_delay
+        retry=retry_if_exception_type((httpx.NetworkError, httpx.RemoteProtocolError)),
+        wait=wait_random_exponential(multiplier=2, max=5),
+        stop=stop_after_delay(MAX_REQUEST_DELAY)
+        | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
+        reraise=True,
+    )
     async def _get_info(self) -> httpx.Response:
         """Obtain the firmware version for Envoy authentication."""
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
@@ -88,14 +83,6 @@ class EnvoyFirmware:
             raise EnvoyFirmwareFatalCheckError(500, "Unable to connect to Envoy")
         except httpx.HTTPError:
             raise EnvoyFirmwareCheckError(500, "Unable to query firmware version")
-        except RetryError:
-            raise EnvoyFirmwareFatalCheckError(
-                500, "Unable to connect to Envoy after retries"
-            )
-        except EndOfStream:
-            raise EnvoyFirmwareFatalCheckError(
-                500, "Unable to connect to Envoy after retries"
-            )
 
         if (status_code := result.status_code) == 200:
             if debugon:

@@ -45,8 +45,9 @@ LOCAL_TIMEOUT = httpx.Timeout(
     read=60.0,
 )
 
-# Requests should no longer retry after max delay (sec) since first try
+# Requests should no longer retry after max delay (sec) or times since first try
 MAX_REQUEST_DELAY = 50
+MAX_REQUEST_ATTEMPTS = 4
 
 
 class SupportedFeatures(enum.IntFlag):
