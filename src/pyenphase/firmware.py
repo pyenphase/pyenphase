@@ -28,7 +28,6 @@ class EnvoyFirmware:
         "_serial_number",
         "_part_number",
         "_timeout",
-        "_max_request_delay",
     )
 
     def __init__(
@@ -36,7 +35,6 @@ class EnvoyFirmware:
         _client: httpx.AsyncClient,
         host: str,
         timeout: float | httpx.Timeout | None = None,
-        max_request_delay: int | None = None,
     ) -> None:
         """Initialize the Envoy firmware version."""
         self._client = _client
@@ -45,9 +43,8 @@ class EnvoyFirmware:
         self._serial_number: str | None = None
         self._part_number: str | None = None
         self._timeout = timeout or LOCAL_TIMEOUT
-        self._max_request_delay = max_request_delay or MAX_REQUEST_DELAY
 
-    @retry(  # need to use constant MAX_REQUEST_DELAY rather then self._max_request_delay
+    @retry(
         retry=retry_if_exception_type((httpx.NetworkError, httpx.RemoteProtocolError)),
         wait=wait_random_exponential(multiplier=2, max=5),
         stop=stop_after_delay(MAX_REQUEST_DELAY)

@@ -96,20 +96,16 @@ class Envoy:
         host: str,
         client: httpx.AsyncClient | None = None,
         timeout: float | httpx.Timeout | None = None,
-        max_request_delay: int | None = None,
     ) -> None:
         """Initialize the Envoy class."""
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._timeout = timeout or LOCAL_TIMEOUT
-        self._max_request_delay = max_request_delay or MAX_REQUEST_DELAY
         self._client = client or httpx.AsyncClient(
             verify=NO_VERIFY_SSL_CONTEXT
         )  # nosec
         self.auth: EnvoyAuth | None = None
         self._host = host
-        self._firmware = EnvoyFirmware(
-            self._client, self._host, self._timeout, self._max_request_delay
-        )
+        self._firmware = EnvoyFirmware(self._client, self._host, self._timeout)
         self._supported_features: SupportedFeatures | None = None
         self._updaters: list[EnvoyUpdater] = []
         self._endpoint_cache: dict[str, httpx.Response] = {}
@@ -170,7 +166,7 @@ class Envoy:
 
         await self.auth.setup(self._client)
 
-    @retry(  # need to use constant MAX_REQUEST_DELAY rather then self._max_request_delay
+    @retry(
         retry=retry_if_exception_type(
             (
                 httpx.NetworkError,
@@ -190,7 +186,7 @@ class Envoy:
         """
         return await self._request(endpoint)
 
-    @retry(  # need to use constant MAX_REQUEST_DELAY rather then self._max_request_delay
+    @retry(
         retry=retry_if_exception_type(
             (
                 httpx.NetworkError,
