@@ -240,8 +240,7 @@ class Envoy:
                 data=orjson.dumps(data),
             )
         else:
-            if debugon:
-                _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
+            _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
             response = await self._client.get(
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},

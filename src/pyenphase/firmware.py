@@ -53,10 +53,8 @@ class EnvoyFirmware:
     )
     async def _get_info(self) -> httpx.Response:
         """Obtain the firmware version for Envoy authentication."""
-        debugon = _LOGGER.isEnabledFor(logging.DEBUG)
         url = f"https://{self._host}/info"
-        if debugon:
-            _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
+        _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
         try:
             return await self._client.get(url, timeout=self._timeout)
         except (httpx.ConnectError, httpx.TimeoutException):
@@ -64,8 +62,7 @@ class EnvoyFirmware:
             # as a fallback, worse sometimes http will redirect to https://localhost
             # which is not helpful
             url = f"http://{self._host}/info"
-            if debugon:
-                _LOGGER.debug("Retrying to %s with timeout %s", url, self._timeout)
+            _LOGGER.debug("Retrying to %s with timeout %s", url, self._timeout)
             return await self._client.get(url, timeout=self._timeout)
 
     async def setup(self) -> None:
