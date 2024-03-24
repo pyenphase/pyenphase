@@ -27,14 +27,12 @@ class EnvoyFirmware:
         "_firmware_version",
         "_serial_number",
         "_part_number",
-        "_timeout",
     )
 
     def __init__(
         self,
         _client: httpx.AsyncClient,
         host: str,
-        timeout: float | httpx.Timeout | None = None,
     ) -> None:
         """Initialize the Envoy firmware version."""
         self._client = _client
@@ -42,7 +40,6 @@ class EnvoyFirmware:
         self._firmware_version: str | None = None
         self._serial_number: str | None = None
         self._part_number: str | None = None
-        self._timeout = timeout or LOCAL_TIMEOUT
 
     @retry(
         retry=retry_if_exception_type((httpx.NetworkError, httpx.RemoteProtocolError)),
@@ -54,16 +51,16 @@ class EnvoyFirmware:
     async def _get_info(self) -> httpx.Response:
         """Obtain the firmware version for Envoy authentication."""
         url = f"https://{self._host}/info"
-        _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
+        _LOGGER.debug("Requesting %s with timeout %s", url, LOCAL_TIMEOUT)
         try:
-            return await self._client.get(url, timeout=self._timeout)
+            return await self._client.get(url, timeout=LOCAL_TIMEOUT)
         except (httpx.ConnectError, httpx.TimeoutException):
             # Firmware < 7.0.0 does not support HTTPS so we need to try HTTP
             # as a fallback, worse sometimes http will redirect to https://localhost
             # which is not helpful
             url = f"http://{self._host}/info"
-            _LOGGER.debug("Retrying to %s with timeout %s", url, self._timeout)
-            return await self._client.get(url, timeout=self._timeout)
+            _LOGGER.debug("Retrying to %s with timeout %s", url, LOCAL_TIMEOUT)
+            return await self._client.get(url, timeout=LOCAL_TIMEOUT)
 
     async def setup(self) -> None:
         """Obtain the firmware version for Envoy authentication."""

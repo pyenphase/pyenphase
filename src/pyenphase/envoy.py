@@ -105,7 +105,7 @@ class Envoy:
         )  # nosec
         self.auth: EnvoyAuth | None = None
         self._host = host
-        self._firmware = EnvoyFirmware(self._client, self._host, self._timeout)
+        self._firmware = EnvoyFirmware(self._client, self._host)
         self._supported_features: SupportedFeatures | None = None
         self._updaters: list[EnvoyUpdater] = []
         self._endpoint_cache: dict[str, httpx.Response] = {}
