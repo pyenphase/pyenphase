@@ -42,7 +42,7 @@ LOCAL_TIMEOUT = httpx.Timeout(
     # need to set a long timeout for the read and a short timeout
     # for the connect
     timeout=10.0,
-    read=60.0,
+    read=45.0,
 )
 
 # Requests should no longer retry after max delay (sec) or times since first try
