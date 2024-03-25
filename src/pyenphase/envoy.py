@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 import orjson
+from anyio import EndOfStream
 from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import (
@@ -33,6 +34,7 @@ from .const import (
 )
 from .exceptions import (
     EnvoyAuthenticationRequired,
+    EnvoyCommunicationError,
     EnvoyFeatureNotAvailable,
     EnvoyProbeFailed,
 )
@@ -413,7 +415,10 @@ class Envoy:
 
         data = EnvoyData()
         for updater in self._updaters:
-            await updater.update(data)
+            try:
+                await updater.update(data)
+            except EndOfStream as err:
+                raise EnvoyCommunicationError("EndOfStream at update") from err
 
         self.data = data
         return data
