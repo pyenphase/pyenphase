@@ -8,12 +8,14 @@ import httpx
 import orjson
 import pytest
 import respx
+from anyio import EndOfStream
 from httpx import Response
 from tenacity import stop_after_attempt, stop_after_delay, wait_none
 
 from pyenphase import Envoy
 from pyenphase.exceptions import (
     EnvoyAuthenticationRequired,
+    EnvoyCommunicationError,
     EnvoyFirmwareCheckError,
     EnvoyFirmwareFatalCheckError,
 )
@@ -461,6 +463,20 @@ async def test_noconnection_at_update_with_7_6_175_standard():
     ]
 
     with pytest.raises(EnvoyAuthenticationRequired):
+        await envoy.update()
+
+    stats = envoy.request.retry.statistics
+    assert "attempt_number" in stats
+    assert stats["attempt_number"] == 2
+
+    # test EndOfStream catch should end retries
+    respx.get("/api/v1/production").mock().side_effect = [
+        httpx.NetworkError("Test timeoutexception"),
+        EndOfStream("Test timeoutexception"),
+        httpx.NetworkError,
+    ]
+
+    with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
     stats = envoy.request.retry.statistics
