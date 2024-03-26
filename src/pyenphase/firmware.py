@@ -1,10 +1,21 @@
+"""Envoy Firmware detection"""
+import logging
+
 import httpx
 from awesomeversion import AwesomeVersion
 from lxml import etree  # nosec
-from tenacity import retry, retry_if_exception_type, wait_random_exponential
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    stop_after_delay,
+    wait_random_exponential,
+)
 
-from .const import LOCAL_TIMEOUT
+from .const import LOCAL_TIMEOUT, MAX_REQUEST_ATTEMPTS, MAX_REQUEST_DELAY
 from .exceptions import EnvoyFirmwareCheckError, EnvoyFirmwareFatalCheckError
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class EnvoyFirmware:
@@ -18,7 +29,11 @@ class EnvoyFirmware:
         "_part_number",
     )
 
-    def __init__(self, _client: httpx.AsyncClient, host: str) -> None:
+    def __init__(
+        self,
+        _client: httpx.AsyncClient,
+        host: str,
+    ) -> None:
         """Initialize the Envoy firmware version."""
         self._client = _client
         self._host = host
@@ -29,24 +44,28 @@ class EnvoyFirmware:
     @retry(
         retry=retry_if_exception_type((httpx.NetworkError, httpx.RemoteProtocolError)),
         wait=wait_random_exponential(multiplier=2, max=5),
+        stop=stop_after_delay(MAX_REQUEST_DELAY)
+        | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
+        reraise=True,
     )
-    async def _get_info(self) -> None:
+    async def _get_info(self) -> httpx.Response:
         """Obtain the firmware version for Envoy authentication."""
+        url = f"https://{self._host}/info"
+        _LOGGER.debug("Requesting %s with timeout %s", url, LOCAL_TIMEOUT)
         try:
-            return await self._client.get(
-                f"https://{self._host}/info", timeout=LOCAL_TIMEOUT
-            )
+            return await self._client.get(url, timeout=LOCAL_TIMEOUT)
         except (httpx.ConnectError, httpx.TimeoutException):
             # Firmware < 7.0.0 does not support HTTPS so we need to try HTTP
             # as a fallback, worse sometimes http will redirect to https://localhost
             # which is not helpful
-            return await self._client.get(
-                f"http://{self._host}/info", timeout=LOCAL_TIMEOUT
-            )
+            url = f"http://{self._host}/info"
+            _LOGGER.debug("Retrying to %s with timeout %s", url, LOCAL_TIMEOUT)
+            return await self._client.get(url, timeout=LOCAL_TIMEOUT)
 
     async def setup(self) -> None:
         """Obtain the firmware version for Envoy authentication."""
         # <envoy>/info will return XML with the firmware version
+        debugon = _LOGGER.isEnabledFor(logging.DEBUG)
         try:
             result = await self._get_info()
         except httpx.TimeoutException:
@@ -56,7 +75,16 @@ class EnvoyFirmware:
         except httpx.HTTPError:
             raise EnvoyFirmwareCheckError(500, "Unable to query firmware version")
 
-        if result.status_code == 200:
+        if (status_code := result.status_code) == 200:
+            if debugon:
+                content_type = result.headers.get("content-type")
+                content = result.content
+                _LOGGER.debug(
+                    "Request reply status %s: %s %s",
+                    status_code,
+                    content_type,
+                    content,
+                )
             xml = etree.fromstring(result.content)  # nosec
             if (device_tag := xml.find("device")) is not None:
                 if (software_tag := device_tag.find("software")) is not None:

@@ -7,9 +7,16 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 import orjson
+from anyio import EndOfStream
 from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
-from tenacity import retry, retry_if_exception_type, wait_random_exponential
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    stop_after_delay,
+    wait_random_exponential,
+)
 
 from pyenphase.models.dry_contacts import DryContactStatus
 
@@ -17,6 +24,8 @@ from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
     AUTH_TOKEN_MIN_VERSION,
     LOCAL_TIMEOUT,
+    MAX_REQUEST_ATTEMPTS,
+    MAX_REQUEST_DELAY,
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
     URL_GRID_RELAY,
@@ -25,6 +34,7 @@ from .const import (
 )
 from .exceptions import (
     EnvoyAuthenticationRequired,
+    EnvoyCommunicationError,
     EnvoyFeatureNotAvailable,
     EnvoyProbeFailed,
 )
@@ -160,9 +170,16 @@ class Envoy:
 
     @retry(
         retry=retry_if_exception_type(
-            (httpx.NetworkError, httpx.TimeoutException, httpx.RemoteProtocolError)
+            (
+                httpx.NetworkError,
+                httpx.TimeoutException,
+                httpx.RemoteProtocolError,
+            )
         ),
-        wait=wait_random_exponential(multiplier=2, max=3),
+        wait=wait_random_exponential(multiplier=2, max=5),
+        stop=stop_after_delay(MAX_REQUEST_DELAY)
+        | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
+        reraise=True,
     )
     async def probe_request(self, endpoint: str) -> httpx.Response:
         """Make a probe request.
@@ -180,7 +197,10 @@ class Envoy:
                 orjson.JSONDecodeError,
             )
         ),
-        wait=wait_random_exponential(multiplier=2, max=3),
+        wait=wait_random_exponential(multiplier=2, max=5),
+        stop=stop_after_delay(MAX_REQUEST_DELAY)
+        | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
+        reraise=True,
     )
     async def request(
         self, endpoint: str, data: dict[str, Any] | None = None
@@ -395,7 +415,10 @@ class Envoy:
 
         data = EnvoyData()
         for updater in self._updaters:
-            await updater.update(data)
+            try:
+                await updater.update(data)
+            except EndOfStream as err:
+                raise EnvoyCommunicationError("EndOfStream at update") from err
 
         self.data = data
         return data
