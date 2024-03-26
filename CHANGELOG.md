@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.20.1 (2024-03-26)
+
+### Fix
+
+* Endless loop on envoy unreachable ([#145](https://github.com/pyenphase/pyenphase/issues/145)) ([`f074c61`](https://github.com/pyenphase/pyenphase/commit/f074c61b56b0fdb1080ff3c54f82c59a8015b6d9))
+
 ## v1.20.0 (2024-03-21)
 
 ### Feature
