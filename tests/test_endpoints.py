@@ -1178,6 +1178,29 @@ async def test_with_7_x_firmware(
         except AttributeError:
             assert "No tariff data found" in caplog.text
 
+        # COV test with no enpower features
+        json_data = load_json_fixture(version, "ivp_ensemble_inventory")
+        json_data[0]["type"] = "NOEXCHARGE"
+        respx.get("/ivp/ensemble/inventory").mock(
+            return_value=Response(200, json=json_data)
+        )
+        await envoy.probe()
+        await envoy.update()
+
+        # COV ensemble ENDPOINT_PROBE_EXCEPTIONS
+        respx.get("/ivp/ensemble/inventory").mock(
+            return_value=Response(
+                500, json=load_json_fixture(version, "ivp_ensemble_inventory")
+            )
+        )
+        await envoy.probe()
+
+        # restore from prior changes
+        respx.get("/ivp/ensemble/inventory").mock(
+            return_value=Response(
+                200, json=load_json_fixture(version, "ivp_ensemble_inventory")
+            )
+        )
         json_data = load_json_fixture(version, "admin_lib_tariff")
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
 
