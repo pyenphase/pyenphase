@@ -14,7 +14,7 @@ from httpx import Response
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase.const import URL_GRID_RELAY, URL_TARIFF, PhaseNames
-from pyenphase.envoy import SupportedFeatures
+from pyenphase.envoy import EnvoyProbeFailed, SupportedFeatures
 from pyenphase.exceptions import EnvoyFeatureNotAvailable
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.meters import CtMeterStatus, CtType, EnvoyPhaseMode
@@ -1330,3 +1330,19 @@ async def test_with_7_x_firmware(
         # test each element of the phase data
         for key in modeldata:
             assert modeldata[key] == getattr(storedata, key)
+
+    # COV test with no production segment
+    if "production" in files:
+        try:
+            json_data = load_json_fixture(version, "production")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        if json_data:
+            del json_data["production"]
+        respx.get("/production").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/production").mock(return_value=Response(404))
+    try:
+        await envoy.probe()
+    except EnvoyProbeFailed:
+        pass
