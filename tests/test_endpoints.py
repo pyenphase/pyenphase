@@ -1028,8 +1028,11 @@ async def test_with_7_x_firmware(
     assert envoy._supported_features == supported_features
 
     if supported_features & supported_features.ENPOWER:
+        # switch off debug for one post to improve COV
+        logging.getLogger("pyenphase").setLevel(logging.WARN)
         respx.post(URL_GRID_RELAY).mock(return_value=Response(200, json={}))
         await envoy.go_on_grid()
+        logging.getLogger("pyenphase").setLevel(logging.DEBUG)
         assert respx.calls.last.request.content == orjson.dumps(
             {"mains_admin_state": "closed"}
         )
