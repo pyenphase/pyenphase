@@ -5,7 +5,6 @@ import logging
 from dataclasses import replace
 from os import listdir
 from os.path import isfile, join
-from pathlib import Path
 from typing import Any
 
 import orjson
@@ -14,68 +13,22 @@ import respx
 from httpx import Response
 from syrupy.assertion import SnapshotAssertion
 
-from pyenphase import Envoy
 from pyenphase.const import URL_GRID_RELAY, URL_TARIFF, PhaseNames
 from pyenphase.envoy import SupportedFeatures
 from pyenphase.exceptions import EnvoyFeatureNotAvailable
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.meters import CtMeterStatus, CtType, EnvoyPhaseMode
 from pyenphase.models.tariff import EnvoyStorageMode
-from pyenphase.updaters.base import EnvoyUpdater
+
+from .common import (
+    get_mock_envoy,
+    load_fixture,
+    load_json_fixture,
+    start_7_firmware_mock,
+    updater_features,
+)
 
 LOGGER = logging.getLogger(__name__)
-
-
-def _fixtures_dir() -> Path:
-    return Path(__file__).parent / "fixtures"
-
-
-def _load_fixture(version: str, name: str) -> str:
-    with open(_fixtures_dir() / version / name) as read_in:
-        return read_in.read()
-
-
-def _load_json_fixture(version: str, name: str) -> dict[str, Any]:
-    return orjson.loads(_load_fixture(version, name))
-
-
-def _load_json_list_fixture(version: str, name: str) -> list[dict[str, Any]]:
-    return orjson.loads(_load_fixture(version, name))
-
-
-def _updater_features(updaters: list[EnvoyUpdater]) -> dict[str, SupportedFeatures]:
-    return {type(updater).__name__: updater._supported_features for updater in updaters}
-
-
-async def _get_mock_envoy(update: bool = True):  # type: ignore[no-untyped-def]
-    """Return a mock Envoy."""
-    envoy = Envoy("127.0.0.1")
-    await envoy.setup()
-    await envoy.authenticate("username", "password")
-    if update:
-        await envoy.update()
-        await envoy.update()  # make sure we can update twice
-    return envoy
-
-
-def _start_7_firmware_mock():
-    respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
-        return_value=Response(
-            200,
-            json={
-                "session_id": "1234567890",
-                "user_id": "1234567890",
-                "user_name": "test",
-                "first_name": "Test",
-                "is_consumer": True,
-                "manager_token": "1234567890",
-            },
-        )
-    )
-    respx.post("https://entrez.enphaseenergy.com/tokens").mock(
-        return_value=Response(200, text="token")
-    )
-    respx.get("/auth/check_jwt").mock(return_value=Response(200, json={}))
 
 
 @pytest.mark.parametrize(
@@ -957,16 +910,16 @@ async def test_with_7_x_firmware(
 ) -> None:
     """Verify with 7.x firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    _start_7_firmware_mock()
+    start_7_firmware_mock()
     path = f"tests/fixtures/{version}"
     files = [f for f in listdir(path) if isfile(join(path, f))]
     respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
+        return_value=Response(200, text=load_fixture(version, "info"))
     )
     respx.get("/info.xml").mock(return_value=Response(200, text=""))
     if "production" in files:
         try:
-            json_data = _load_json_fixture(version, "production")
+            json_data = load_json_fixture(version, "production")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/production").mock(return_value=Response(200, json=json_data))
@@ -975,29 +928,27 @@ async def test_with_7_x_firmware(
     if "production.json" in files:
         respx.get("/production.json").mock(
             return_value=Response(
-                200, json=_load_json_fixture(version, "production.json")
+                200, json=load_json_fixture(version, "production.json")
             )
         )
     else:
         respx.get("/production.json").mock(return_value=Response(404))
     respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
+        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
     )
     respx.get("/api/v1/production/inverters").mock(
         return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
+            200, json=load_json_fixture(version, "api_v1_production_inverters")
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(
         return_value=Response(
-            200, json=_load_json_fixture(version, "ivp_ensemble_inventory")
+            200, json=load_json_fixture(version, "ivp_ensemble_inventory")
         )
     )
     if "ivp_ensemble_dry_contacts" in files:
         try:
-            json_data = _load_json_fixture(version, "ivp_ensemble_dry_contacts")
+            json_data = load_json_fixture(version, "ivp_ensemble_dry_contacts")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/ivp/ensemble/dry_contacts").mock(
@@ -1008,7 +959,7 @@ async def test_with_7_x_firmware(
         )
     if "ivp_ss_dry_contact_settings" in files:
         try:
-            json_data = _load_json_fixture(version, "ivp_ss_dry_contact_settings")
+            json_data = load_json_fixture(version, "ivp_ss_dry_contact_settings")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/ivp/ss/dry_contact_settings").mock(
@@ -1019,7 +970,7 @@ async def test_with_7_x_firmware(
         )
     if "ivp_ensemble_power" in files:
         try:
-            json_data = _load_json_fixture(version, "ivp_ensemble_power")
+            json_data = load_json_fixture(version, "ivp_ensemble_power")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/ivp/ensemble/power").mock(
@@ -1028,7 +979,7 @@ async def test_with_7_x_firmware(
 
     if "ivp_ensemble_secctrl" in files:
         try:
-            json_data = _load_json_fixture(version, "ivp_ensemble_secctrl")
+            json_data = load_json_fixture(version, "ivp_ensemble_secctrl")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/ivp/ensemble/secctrl").mock(
@@ -1037,7 +988,7 @@ async def test_with_7_x_firmware(
 
     if "admin_lib_tariff" in files:
         try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
+            json_data = load_json_fixture(version, "admin_lib_tariff")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
@@ -1047,7 +998,7 @@ async def test_with_7_x_firmware(
 
     if "ivp_meters" in files:
         respx.get("/ivp/meters").mock(
-            return_value=Response(200, json=_load_json_fixture(version, "ivp_meters"))
+            return_value=Response(200, json=load_json_fixture(version, "ivp_meters"))
         )
     else:
         respx.get("/ivp/meters").mock(return_value=Response(404))
@@ -1055,7 +1006,7 @@ async def test_with_7_x_firmware(
     if "ivp_meters_readings" in files:
         respx.get("/ivp/meters/readings").mock(
             return_value=Response(
-                200, json=_load_json_fixture(version, "ivp_meters_readings")
+                200, json=load_json_fixture(version, "ivp_meters_readings")
             )
         )
     else:
@@ -1063,7 +1014,7 @@ async def test_with_7_x_firmware(
 
     caplog.set_level(logging.DEBUG)
 
-    envoy = await _get_mock_envoy()
+    envoy = await get_mock_envoy()
     data = envoy.data
     assert data == snapshot
 
@@ -1071,7 +1022,7 @@ async def test_with_7_x_firmware(
     assert envoy.serial_number
 
     assert envoy.part_number == part_number
-    assert _updater_features(envoy._updaters) == updaters
+    assert updater_features(envoy._updaters) == updaters
     # We're testing, disable warning on private member
     # pylint: disable=protected-access
     assert envoy._supported_features == supported_features
@@ -1092,7 +1043,7 @@ async def test_with_7_x_firmware(
             await envoy.update_dry_contact({"missing": "id"})
 
         with pytest.raises(ValueError):
-            bad_envoy = await _get_mock_envoy(False)
+            bad_envoy = await get_mock_envoy(False)
             await bad_envoy.probe()
             await bad_envoy.update_dry_contact({"id": "NC1"})
 
@@ -1190,7 +1141,7 @@ async def test_with_7_x_firmware(
         with pytest.raises(TypeError):
             await envoy.set_storage_mode("invalid")
 
-        bad_envoy = await _get_mock_envoy()
+        bad_envoy = await get_mock_envoy()
         await bad_envoy.probe()
         with pytest.raises(EnvoyFeatureNotAvailable):
             bad_envoy.data.tariff.storage_settings = None
