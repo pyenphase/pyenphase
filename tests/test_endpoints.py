@@ -1144,6 +1144,43 @@ async def test_with_7_x_firmware(
         with pytest.raises(TypeError):
             await envoy.set_storage_mode("invalid")
 
+        # COV test with missing logger
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        del json_data["tariff"]["logger"]
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        await envoy.update()
+        envoy.data.tariff.to_api()
+
+        # COV test with missing date for tariff and storage settings
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        del json_data["tariff"]["date"]
+        del json_data["tariff"]["storage_settings"]["date"]
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        await envoy.update()
+        envoy.data.tariff.to_api()
+
+        # COV test with missing storage settings
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        del json_data["tariff"]["storage_settings"]
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        await envoy.update()
+        envoy.data.tariff.to_api()
+
+        # COV test with error in result
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        json_data.update({"error": "error"})
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        try:
+            await envoy.probe()
+        except AttributeError:
+            assert "No tariff data found" in caplog.text
+
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+
         bad_envoy = await get_mock_envoy()
         await bad_envoy.probe()
         with pytest.raises(EnvoyFeatureNotAvailable):
