@@ -18,7 +18,7 @@ class EnvoyAuth:
 
     def __init__(self, host: str) -> None:
         """Initialize the EnvoyAuth class."""
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def setup(self, client: httpx.AsyncClient) -> None:
@@ -58,6 +58,9 @@ class EnvoyTokenAuth(EnvoyAuth):
         self.cloud_password = cloud_password
         self.envoy_serial = envoy_serial
         self._token = token
+        self._is_consumer: bool = False
+        self._manager_token: str = ""
+        self._cookies: dict[str, str] = {}
 
     async def setup(self, client: httpx.AsyncClient) -> None:
         """Obtain the token for Envoy authentication."""
@@ -181,20 +184,24 @@ class EnvoyTokenAuth(EnvoyAuth):
 
     @property
     def token(self) -> str:
+        """Return token retrieved from enligthen"""
         assert self._token is not None  # nosec
         return self._token
 
     @property
     def manager_token(self) -> str:
+        """Return manager token returned in enligthen login json"""
         assert self._manager_token is not None  # nosec
         return self._manager_token
 
     @property
     def cookies(self) -> dict[str, str]:
+        """return cookies returned from local jwt check"""
         return self._cookies
 
     @property
     def is_consumer(self) -> bool:
+        """Return is_consumer state returned in enligthen login json"""
         return self._is_consumer
 
     @property
