@@ -1,10 +1,10 @@
+"""Test endpoint for envoy v7 and newer firmware"""
+
 import json
 import logging
-import re
 from dataclasses import replace
 from os import listdir
 from os.path import isfile, join
-from pathlib import Path
 from typing import Any
 
 import orjson
@@ -13,1631 +13,22 @@ import respx
 from httpx import Response
 from syrupy.assertion import SnapshotAssertion
 
-from pyenphase import Envoy, EnvoyInverter, register_updater
-from pyenphase.const import URL_GRID_RELAY, URL_PRODUCTION, URL_TARIFF, PhaseNames
-from pyenphase.envoy import SupportedFeatures, get_updaters
-from pyenphase.exceptions import (
-    ENDPOINT_PROBE_EXCEPTIONS,
-    EnvoyAuthenticationRequired,
-    EnvoyFeatureNotAvailable,
-    EnvoyProbeFailed,
-)
+from pyenphase.const import URL_GRID_RELAY, URL_TARIFF, PhaseNames
+from pyenphase.envoy import EnvoyProbeFailed, SupportedFeatures
+from pyenphase.exceptions import EnvoyFeatureNotAvailable
 from pyenphase.models.dry_contacts import DryContactStatus
-from pyenphase.models.envoy import EnvoyData
-from pyenphase.models.meters import (
-    CtMeterData,
-    CtMeterStatus,
-    CtType,
-    EnvoyMeterData,
-    EnvoyPhaseMode,
-)
-from pyenphase.models.system_consumption import EnvoySystemConsumption
-from pyenphase.models.system_production import EnvoySystemProduction
+from pyenphase.models.meters import CtMeterStatus, CtType, EnvoyPhaseMode
 from pyenphase.models.tariff import EnvoyStorageMode
-from pyenphase.updaters.base import EnvoyUpdater
-from pyenphase.updaters.meters import EnvoyMetersUpdater
+
+from .common import (
+    get_mock_envoy,
+    load_fixture,
+    load_json_fixture,
+    start_7_firmware_mock,
+    updater_features,
+)
 
 LOGGER = logging.getLogger(__name__)
-
-
-def _fixtures_dir() -> Path:
-    return Path(__file__).parent / "fixtures"
-
-
-def _load_fixture(version: str, name: str) -> str:
-    with open(_fixtures_dir() / version / name) as read_in:
-        return read_in.read()
-
-
-def _load_json_fixture(version: str, name: str) -> dict[str, Any]:
-    return orjson.loads(_load_fixture(version, name))
-
-
-def _load_json_list_fixture(version: str, name: str) -> list[dict[str, Any]]:
-    return orjson.loads(_load_fixture(version, name))
-
-
-def _updater_features(updaters: list[EnvoyUpdater]) -> dict[str, SupportedFeatures]:
-    return {type(updater).__name__: updater._supported_features for updater in updaters}
-
-
-async def _get_mock_envoy(update: bool = True):  # type: ignore[no-untyped-def]
-    """Return a mock Envoy."""
-    envoy = Envoy("127.0.0.1")
-    await envoy.setup()
-    await envoy.authenticate("username", "password")
-    if update:
-        await envoy.update()
-        await envoy.update()  # make sure we can update twice
-    return envoy
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_4_2_27_firmware():
-    """Verify with 4.2.27 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "4.2.27"
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(404))
-    respx.get("/production.json").mock(
-        return_value=Response(200, json=_load_json_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(return_value=Response(404))
-
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    if "admin_lib_tariff" in files:
-        try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
-
-    envoy = await _get_mock_envoy()
-    data: EnvoyData | None = envoy.data
-    assert data is not None
-
-    assert not (envoy._supported_features & SupportedFeatures.METERING)
-    assert not (envoy._supported_features & SupportedFeatures.INVERTERS)
-    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
-    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
-    assert _updater_features(envoy._updaters) == {
-        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
-    }
-    assert envoy.part_number == "800-00551-r02"
-
-    assert data.system_production is not None
-    assert (
-        data.system_production.watts_now == 5894
-    )  # This used to use the production.json endpoint, but its always a bit behind
-    assert data.system_production.watt_hours_today == 17920
-    assert data.system_production.watt_hours_last_7_days == 276614
-    assert data.system_production.watt_hours_lifetime == 10279087
-    assert not data.inverters
-    assert envoy.ct_meter_count == 0
-    assert envoy.phase_count == 1
-    assert envoy.phase_mode is None
-    assert envoy.consumption_meter_type is None
-    assert not data.system_consumption_phases
-    assert not data.system_production_phases
-    assert envoy.envoy_model == "Envoy"
-
-    # Test that Ensemble commands raise FeatureNotAvailable
-    with pytest.raises(EnvoyFeatureNotAvailable):
-        await envoy.go_off_grid()
-    with pytest.raises(EnvoyFeatureNotAvailable):
-        await envoy.go_on_grid()
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_5_0_49_firmware():
-    """Verify with 5.0.49 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "5.0.49"
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(404))
-    respx.get("/production.json").mock(
-        return_value=Response(200, json=_load_json_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    if "admin_lib_tariff" in files:
-        try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-
-    respx.get("/ivp/meters").mock(return_value=Response(404))
-
-    envoy = await _get_mock_envoy()
-    data = envoy.data
-    assert data is not None
-
-    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
-    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
-    assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert _updater_features(envoy._updaters) == {
-        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
-    }
-    assert envoy.part_number == "800-00551-r02"
-    assert envoy.phase_count == 1
-
-    assert not data.system_consumption
-    assert envoy.ct_meter_count == 0
-    assert envoy.phase_count == 1
-    assert envoy.phase_mode is None
-    assert envoy.consumption_meter_type is None
-    assert not data.system_consumption_phases
-    assert not data.system_production_phases
-    assert data.system_production.watts_now == 4859
-    assert data.system_production.watt_hours_today == 5046
-    assert data.system_production.watt_hours_last_7_days == 445686
-    assert data.system_production.watt_hours_lifetime == 88742152
-    assert data.inverters == {
-        "121547055830": EnvoyInverter(
-            serial_number="121547055830",
-            last_report_date=1618083280,
-            last_report_watts=131,
-            max_report_watts=257,
-        ),
-        "121547059008": EnvoyInverter(
-            serial_number="121547059008",
-            last_report_date=1618083240,
-            last_report_watts=133,
-            max_report_watts=257,
-        ),
-        "121547059079": EnvoyInverter(
-            serial_number="121547059079",
-            last_report_date=1618083244,
-            last_report_watts=130,
-            max_report_watts=257,
-        ),
-        "121547059102": EnvoyInverter(
-            serial_number="121547059102",
-            last_report_date=1618083273,
-            last_report_watts=134,
-            max_report_watts=257,
-        ),
-        "121547059107": EnvoyInverter(
-            serial_number="121547059107",
-            last_report_date=1618083265,
-            last_report_watts=132,
-            max_report_watts=257,
-        ),
-        "121547059108": EnvoyInverter(
-            serial_number="121547059108",
-            last_report_date=1618083266,
-            last_report_watts=131,
-            max_report_watts=257,
-        ),
-        "121547059112": EnvoyInverter(
-            serial_number="121547059112",
-            last_report_date=1618083286,
-            last_report_watts=132,
-            max_report_watts=257,
-        ),
-        "121547059128": EnvoyInverter(
-            serial_number="121547059128",
-            last_report_date=1618083262,
-            last_report_watts=135,
-            max_report_watts=257,
-        ),
-        "121547059193": EnvoyInverter(
-            serial_number="121547059193",
-            last_report_date=1618083250,
-            last_report_watts=131,
-            max_report_watts=257,
-        ),
-        "121547059202": EnvoyInverter(
-            serial_number="121547059202",
-            last_report_date=1618083251,
-            last_report_watts=133,
-            max_report_watts=257,
-        ),
-        "121547059217": EnvoyInverter(
-            serial_number="121547059217",
-            last_report_date=1618083281,
-            last_report_watts=137,
-            max_report_watts=257,
-        ),
-        "121547059253": EnvoyInverter(
-            serial_number="121547059253",
-            last_report_date=1618083289,
-            last_report_watts=131,
-            max_report_watts=257,
-        ),
-        "121547059333": EnvoyInverter(
-            serial_number="121547059333",
-            last_report_date=1618083277,
-            last_report_watts=134,
-            max_report_watts=257,
-        ),
-        "121547059354": EnvoyInverter(
-            serial_number="121547059354",
-            last_report_date=1618083287,
-            last_report_watts=132,
-            max_report_watts=257,
-        ),
-        "121547059355": EnvoyInverter(
-            serial_number="121547059355",
-            last_report_date=1618083263,
-            last_report_watts=131,
-            max_report_watts=258,
-        ),
-        "121547059357": EnvoyInverter(
-            serial_number="121547059357",
-            last_report_date=1618083254,
-            last_report_watts=133,
-            max_report_watts=257,
-        ),
-        "121547059359": EnvoyInverter(
-            serial_number="121547059359",
-            last_report_date=1618083247,
-            last_report_watts=134,
-            max_report_watts=257,
-        ),
-        "121547059360": EnvoyInverter(
-            serial_number="121547059360",
-            last_report_date=1618083245,
-            last_report_watts=131,
-            max_report_watts=257,
-        ),
-        "121547059363": EnvoyInverter(
-            serial_number="121547059363",
-            last_report_date=1618083255,
-            last_report_watts=131,
-            max_report_watts=257,
-        ),
-        "121547059381": EnvoyInverter(
-            serial_number="121547059381",
-            last_report_date=1618083259,
-            last_report_watts=132,
-            max_report_watts=257,
-        ),
-        "121547059889": EnvoyInverter(
-            serial_number="121547059889",
-            last_report_date=1618083264,
-            last_report_watts=133,
-            max_report_watts=257,
-        ),
-        "121547060383": EnvoyInverter(
-            serial_number="121547060383",
-            last_report_date=1618083257,
-            last_report_watts=135,
-            max_report_watts=258,
-        ),
-        "121547060384": EnvoyInverter(
-            serial_number="121547060384",
-            last_report_date=1618083250,
-            last_report_watts=134,
-            max_report_watts=257,
-        ),
-        "121547060392": EnvoyInverter(
-            serial_number="121547060392",
-            last_report_date=1618083288,
-            last_report_watts=133,
-            max_report_watts=257,
-        ),
-        "121547060396": EnvoyInverter(
-            serial_number="121547060396",
-            last_report_date=1618083269,
-            last_report_watts=133,
-            max_report_watts=257,
-        ),
-        "121547060412": EnvoyInverter(
-            serial_number="121547060412",
-            last_report_date=1618083258,
-            last_report_watts=131,
-            max_report_watts=257,
-        ),
-        "121547060415": EnvoyInverter(
-            serial_number="121547060415",
-            last_report_date=1618083267,
-            last_report_watts=133,
-            max_report_watts=257,
-        ),
-        "121547060590": EnvoyInverter(
-            serial_number="121547060590",
-            last_report_date=1618083277,
-            last_report_watts=133,
-            max_report_watts=257,
-        ),
-        "121547060592": EnvoyInverter(
-            serial_number="121547060592",
-            last_report_date=1618083279,
-            last_report_watts=133,
-            max_report_watts=257,
-        ),
-        "121547060593": EnvoyInverter(
-            serial_number="121547060593",
-            last_report_date=1618083271,
-            last_report_watts=133,
-            max_report_watts=257,
-        ),
-        "121547060643": EnvoyInverter(
-            serial_number="121547060643",
-            last_report_date=1618083284,
-            last_report_watts=131,
-            max_report_watts=257,
-        ),
-        "121547060647": EnvoyInverter(
-            serial_number="121547060647",
-            last_report_date=1618083285,
-            last_report_watts=134,
-            max_report_watts=258,
-        ),
-        "121547060650": EnvoyInverter(
-            serial_number="121547060650",
-            last_report_date=1618083253,
-            last_report_watts=131,
-            max_report_watts=257,
-        ),
-        "121547060670": EnvoyInverter(
-            serial_number="121547060670",
-            last_report_date=1618083270,
-            last_report_watts=134,
-            max_report_watts=257,
-        ),
-        "121547060671": EnvoyInverter(
-            serial_number="121547060671",
-            last_report_date=1618083283,
-            last_report_watts=135,
-            max_report_watts=257,
-        ),
-        "121547060727": EnvoyInverter(
-            serial_number="121547060727",
-            last_report_date=1618083275,
-            last_report_watts=134,
-            max_report_watts=257,
-        ),
-        "121547060758": EnvoyInverter(
-            serial_number="121547060758",
-            last_report_date=1618083274,
-            last_report_watts=130,
-            max_report_watts=255,
-        ),
-        "121547060761": EnvoyInverter(
-            serial_number="121547060761",
-            last_report_date=1618083260,
-            last_report_watts=133,
-            max_report_watts=257,
-        ),
-        "121547060766": EnvoyInverter(
-            serial_number="121547060766",
-            last_report_date=1618083242,
-            last_report_watts=132,
-            max_report_watts=257,
-        ),
-        "121547060773": EnvoyInverter(
-            serial_number="121547060773",
-            last_report_date=1618083247,
-            last_report_watts=132,
-            max_report_watts=257,
-        ),
-    }
-    assert envoy.envoy_model == "Envoy"
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_3_7_0_firmware():
-    """Verify with 3.7.0 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "3.7.0"
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=_load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(return_value=Response(404))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            404,
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            404,
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(return_value=Response(404))
-
-    # Verify the library does not support scraping to comply with ADR004
-    with pytest.raises(EnvoyProbeFailed):
-        await _get_mock_envoy()
-
-    # Test the register interface by registering a legacy production scraper
-    #
-    # ADR004 compliance:
-    # We won't do this in our production code as we don't support scraping, but
-    # we want to leave the door open for custom components to use the interface.
-    #
-
-    _KEY_TO_REGEX = {
-        "watts_now": r"<td>Current.*</td>\s*<td>\s*(\d+|\d+\.\d+)\s*(W|kW|MW)</td>",
-        "watt_hours_last_7_days": r"<td>Past Week</td>\s*<td>\s*(\d+|\d+\.\d+)\s*(Wh|kWh|MWh)</td>",
-        "watt_hours_today": r"<td>Today</td>\s*<td>\s*(\d+|\d+\.\d+)\s*(Wh|kWh|MWh)</td>",
-        "watt_hours_lifetime": r"<td>Since Installation</td>\s*<td>\s*(\d+|\d+\.\d+)\s*(Wh|kWh|MWh)</td>",
-    }
-
-    class LegacyEnvoySystemProduction(EnvoySystemProduction):
-        @classmethod
-        def from_production_legacy(cls, text: str) -> EnvoySystemProduction:
-            """Legacy parser."""
-            data: dict[str, int] = {
-                "watts_now": 0,
-                "watt_hours_today": 0,
-                "watt_hours_last_7_days": 0,
-                "watt_hours_lifetime": 0,
-            }
-            for key, regex in _KEY_TO_REGEX.items():
-                if match := re.search(regex, text, re.MULTILINE):
-                    unit = match.group(2).lower()
-                    value = float(match.group(1))
-                    if unit.startswith("k"):
-                        value *= 1000
-                    elif unit.startswith("m"):
-                        value *= 1000000
-                    data[key] = int(value)
-            return cls(**data)
-
-    class LegacyProductionScraper(EnvoyUpdater):
-        async def probe(
-            self, discovered_features: SupportedFeatures
-        ) -> SupportedFeatures | None:
-            """Probe the Envoy for this updater and return SupportedFeatures."""
-            if SupportedFeatures.PRODUCTION in discovered_features:
-                # Already discovered from another updater
-                return None
-
-            try:
-                response = await self._probe_request(URL_PRODUCTION)
-                data = response.text
-            except ENDPOINT_PROBE_EXCEPTIONS:
-                return None
-            if "Since Installation" not in data:
-                return None
-            self._supported_features |= SupportedFeatures.PRODUCTION
-            return self._supported_features
-
-        async def update(self, envoy_data: EnvoyData) -> None:
-            """Update the Envoy for this updater."""
-            response = await self._request(URL_PRODUCTION)
-            production_data = response.text
-            envoy_data.raw[URL_PRODUCTION] = production_data
-            envoy_data.system_production = (
-                LegacyEnvoySystemProduction.from_production_legacy(production_data)
-            )
-
-    remove = register_updater(LegacyProductionScraper)
-    assert LegacyProductionScraper in get_updaters()
-    try:
-        envoy = await _get_mock_envoy()
-        data = envoy.data
-        assert data is not None
-
-        assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
-        assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
-        assert not (envoy._supported_features & SupportedFeatures.INVERTERS)
-        assert _updater_features(envoy._updaters) == {
-            "LegacyProductionScraper": SupportedFeatures.PRODUCTION,
-        }
-        assert envoy.part_number == "800-00069-r05"
-
-        assert not data.system_consumption
-        assert data.system_production.watts_now == 6630
-        assert data.system_production.watt_hours_today == 53600
-        assert data.system_production.watt_hours_last_7_days == 405000
-        assert data.system_production.watt_hours_lifetime == 133000000
-        assert not data.inverters
-        assert envoy.ct_meter_count == 0
-        assert envoy.phase_count == 1
-        assert envoy.phase_mode is None
-        assert envoy.consumption_meter_type is None
-        assert not data.system_consumption_phases
-        assert not data.system_production_phases
-        assert envoy.envoy_model == "Envoy"
-    finally:
-        remove()
-        assert LegacyProductionScraper not in get_updaters()
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware_bad_auth():
-    """Verify with 3.9.36 firmware with incorrect auth."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "3.9.36_bad_auth"
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(404))
-    respx.get("/production.json").mock(return_value=Response(404))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            401, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    if "admin_lib_tariff" in files:
-        try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(401))
-
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
-
-    with pytest.raises(EnvoyAuthenticationRequired):
-        await _get_mock_envoy()
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware_no_inverters():
-    """Verify with 3.9.36 firmware with auth that does not allow inverters."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "3.9.36_bad_auth"
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(404))
-    respx.get("/production.json").mock(return_value=Response(404))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            401, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    if "admin_lib_tariff" in files:
-        try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(401))
-
-    respx.get("/ivp/meters").mock(return_value=Response(404))
-
-    envoy = await _get_mock_envoy()
-    data = envoy.data
-    assert data is not None
-
-    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
-    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
-    assert not (envoy._supported_features & SupportedFeatures.INVERTERS)
-    assert _updater_features(envoy._updaters) == {
-        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
-    }
-    assert envoy.part_number == "800-00069-r05"
-    assert envoy.ct_meter_count == 0
-    assert envoy.phase_count == 1
-    assert envoy.phase_mode is None
-    assert envoy.consumption_meter_type is None
-    assert not data.system_consumption_phases
-    assert not data.system_production_phases
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware():
-    """Verify with 3.9.36 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "3.9.36"
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(404))
-    respx.get("/production.json").mock(return_value=Response(404))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    if "admin_lib_tariff" in files:
-        try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(401))
-
-    respx.get("/ivp/meters").mock(
-        return_value=Response(404, json={"error": "404 - Not Found"})
-    )
-
-    envoy = await _get_mock_envoy()
-    data = envoy.data
-    assert data is not None
-
-    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
-    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
-    assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert _updater_features(envoy._updaters) == {
-        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
-    }
-    assert envoy.part_number == "800-00069-r05"
-
-    assert not data.system_consumption
-    assert envoy.ct_meter_count == 0
-    assert envoy.phase_count == 1
-    assert envoy.phase_mode is None
-    assert envoy.consumption_meter_type is None
-    assert not data.system_consumption_phases
-    assert not data.system_production_phases
-    assert data.system_production.watts_now == 1271
-    assert data.system_production.watt_hours_today == 1460
-    assert data.system_production.watt_hours_last_7_days == 130349
-    assert data.system_production.watt_hours_lifetime == 6012540
-    assert data.inverters == {
-        "121547058983": EnvoyInverter(
-            serial_number="121547058983",
-            last_report_date=1618083969,
-            last_report_watts=137,
-            max_report_watts=238,
-        ),
-        "121547058993": EnvoyInverter(
-            serial_number="121547058993",
-            last_report_date=1618083961,
-            last_report_watts=138,
-            max_report_watts=231,
-        ),
-        "121547060394": EnvoyInverter(
-            serial_number="121547060394",
-            last_report_date=1618083966,
-            last_report_watts=138,
-            max_report_watts=238,
-        ),
-        "121547060402": EnvoyInverter(
-            serial_number="121547060402",
-            last_report_date=1618083962,
-            last_report_watts=138,
-            max_report_watts=240,
-        ),
-        "121547060495": EnvoyInverter(
-            serial_number="121547060495",
-            last_report_date=1618083959,
-            last_report_watts=135,
-            max_report_watts=228,
-        ),
-        "121547060638": EnvoyInverter(
-            serial_number="121547060638",
-            last_report_date=1618083966,
-            last_report_watts=139,
-            max_report_watts=241,
-        ),
-        "121547060646": EnvoyInverter(
-            serial_number="121547060646",
-            last_report_date=1618083957,
-            last_report_watts=139,
-            max_report_watts=240,
-        ),
-        "121547060652": EnvoyInverter(
-            serial_number="121547060652",
-            last_report_date=1618083959,
-            last_report_watts=140,
-            max_report_watts=245,
-        ),
-        "121603025842": EnvoyInverter(
-            serial_number="121603025842",
-            last_report_date=1618083963,
-            last_report_watts=139,
-            max_report_watts=260,
-        ),
-        "121603034267": EnvoyInverter(
-            serial_number="121603034267",
-            last_report_date=1618083956,
-            last_report_watts=138,
-            max_report_watts=244,
-        ),
-        "121603038867": EnvoyInverter(
-            serial_number="121603038867",
-            last_report_date=1618083964,
-            last_report_watts=138,
-            max_report_watts=242,
-        ),
-        "121603039216": EnvoyInverter(
-            serial_number="121603039216",
-            last_report_date=1618083968,
-            last_report_watts=139,
-            max_report_watts=273,
-        ),
-    }
-    assert envoy.envoy_model == "Envoy"
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware_with_production_401():
-    """Verify with 3.9.36 firmware when /production throws a 401."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "3.9.36"
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(401))
-    respx.get("/production.json").mock(return_value=Response(404))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    if "admin_lib_tariff" in files:
-        try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-
-    respx.get("/ivp/meters").mock(return_value=Response(404))
-
-    envoy = await _get_mock_envoy()
-    data = envoy.data
-    assert data is not None
-
-    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
-    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
-    assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert _updater_features(envoy._updaters) == {
-        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
-    }
-    assert envoy.part_number == "800-00069-r05"
-
-    assert not data.system_consumption
-    assert data.system_production.watts_now == 1271
-    assert data.system_production.watt_hours_today == 1460
-    assert data.system_production.watt_hours_last_7_days == 130349
-    assert data.system_production.watt_hours_lifetime == 6012540
-    assert data.inverters
-    assert envoy.ct_meter_count == 0
-    assert envoy.phase_count == 1
-    assert envoy.phase_mode is None
-    assert envoy.consumption_meter_type is None
-    assert not data.system_consumption_phases
-    assert not data.system_production_phases
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware_with_production_and_production_json_401():
-    """Verify with 3.9.36 firmware when /production and /production.json throws a 401."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "3.9.36"
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(401))
-    respx.get("/production.json").mock(return_value=Response(401))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    if "admin_lib_tariff" in files:
-        try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
-
-    with pytest.raises(EnvoyAuthenticationRequired):
-        await _get_mock_envoy()
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware_with_meters_401():
-    """Verify with 3.9.36 firmware when /ivp/meters throws a 401."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "3.9.36"
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(404))
-    respx.get("/production.json").mock(return_value=Response(401))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    if "admin_lib_tariff" in files:
-        try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(return_value=Response(401))
-
-    with pytest.raises(EnvoyAuthenticationRequired):
-        await _get_mock_envoy()
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_3_8_10_firmware_with_meters_401():
-    """Verify with 3.8.10 firmware when /ivp/meters throws a 401."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "3.8.10"
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(404))
-    respx.get("/production.json").mock(return_value=Response(401))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    if "admin_lib_tariff" in files:
-        try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(return_value=Response(401))
-
-    with pytest.raises(EnvoyAuthenticationRequired):
-        await _get_mock_envoy()
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_with_3_17_3_firmware():
-    """Verify with 3.17.3 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "3.17.3"
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(404))
-    respx.get("/production.json").mock(return_value=Response(404))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    if "admin_lib_tariff" in files:
-        try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
-
-    envoy = await _get_mock_envoy()
-    data = envoy.data
-    assert data is not None
-
-    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
-    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
-    assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert _updater_features(envoy._updaters) == {
-        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
-    }
-    assert envoy.part_number == "800-00069-r05"
-
-    assert not data.system_consumption
-    assert envoy.ct_meter_count == 0
-    assert envoy.phase_count == 1
-    assert envoy.phase_mode is None
-    assert envoy.consumption_meter_type is None
-    assert not data.system_consumption_phases
-    assert not data.system_production_phases
-    assert data.system_production.watts_now == 5463
-    assert data.system_production.watt_hours_today == 5481
-    assert data.system_production.watt_hours_last_7_days == 389581
-    assert data.system_production.watt_hours_lifetime == 93706280
-    assert data.inverters == {
-        "121512006273": EnvoyInverter(
-            serial_number="121512006273",
-            last_report_date=1618082959,
-            last_report_watts=206,
-            max_report_watts=254,
-        ),
-        "121512009183": EnvoyInverter(
-            serial_number="121512009183",
-            last_report_date=1618082961,
-            last_report_watts=204,
-            max_report_watts=253,
-        ),
-        "121512033008": EnvoyInverter(
-            serial_number="121512033008",
-            last_report_date=1618082947,
-            last_report_watts=101,
-            max_report_watts=243,
-        ),
-        "121512036220": EnvoyInverter(
-            serial_number="121512036220",
-            last_report_date=1618082927,
-            last_report_watts=198,
-            max_report_watts=245,
-        ),
-        "121512036221": EnvoyInverter(
-            serial_number="121512036221",
-            last_report_date=1618082963,
-            last_report_watts=8,
-            max_report_watts=116,
-        ),
-        "121512036250": EnvoyInverter(
-            serial_number="121512036250",
-            last_report_date=1618082940,
-            last_report_watts=20,
-            max_report_watts=190,
-        ),
-        "121512036336": EnvoyInverter(
-            serial_number="121512036336",
-            last_report_date=1618082932,
-            last_report_watts=199,
-            max_report_watts=247,
-        ),
-        "121512037453": EnvoyInverter(
-            serial_number="121512037453",
-            last_report_date=1618082949,
-            last_report_watts=205,
-            max_report_watts=255,
-        ),
-        "121512038416": EnvoyInverter(
-            serial_number="121512038416",
-            last_report_date=1618082953,
-            last_report_watts=151,
-            max_report_watts=251,
-        ),
-        "121512038421": EnvoyInverter(
-            serial_number="121512038421",
-            last_report_date=1618082949,
-            last_report_watts=14,
-            max_report_watts=233,
-        ),
-        "121512038619": EnvoyInverter(
-            serial_number="121512038619",
-            last_report_date=1618082962,
-            last_report_watts=203,
-            max_report_watts=252,
-        ),
-        "121512038691": EnvoyInverter(
-            serial_number="121512038691",
-            last_report_date=1618082942,
-            last_report_watts=26,
-            max_report_watts=247,
-        ),
-        "121512038762": EnvoyInverter(
-            serial_number="121512038762",
-            last_report_date=1618082930,
-            last_report_watts=203,
-            max_report_watts=253,
-        ),
-        "121512038845": EnvoyInverter(
-            serial_number="121512038845",
-            last_report_date=1618082945,
-            last_report_watts=203,
-            max_report_watts=253,
-        ),
-        "121512038901": EnvoyInverter(
-            serial_number="121512038901",
-            last_report_date=1618082944,
-            last_report_watts=102,
-            max_report_watts=245,
-        ),
-        "121512038919": EnvoyInverter(
-            serial_number="121512038919",
-            last_report_date=1618082959,
-            last_report_watts=102,
-            max_report_watts=238,
-        ),
-        "121512038982": EnvoyInverter(
-            serial_number="121512038982",
-            last_report_date=1618082950,
-            last_report_watts=203,
-            max_report_watts=253,
-        ),
-        "121512039005": EnvoyInverter(
-            serial_number="121512039005",
-            last_report_date=1618082933,
-            last_report_watts=55,
-            max_report_watts=254,
-        ),
-        "121512039018": EnvoyInverter(
-            serial_number="121512039018",
-            last_report_date=1618082964,
-            last_report_watts=27,
-            max_report_watts=252,
-        ),
-        "121512039075": EnvoyInverter(
-            serial_number="121512039075",
-            last_report_date=1618082930,
-            last_report_watts=102,
-            max_report_watts=237,
-        ),
-        "121512039090": EnvoyInverter(
-            serial_number="121512039090",
-            last_report_date=1618082946,
-            last_report_watts=32,
-            max_report_watts=194,
-        ),
-        "121512039091": EnvoyInverter(
-            serial_number="121512039091",
-            last_report_date=1618082939,
-            last_report_watts=27,
-            max_report_watts=252,
-        ),
-        "121512039093": EnvoyInverter(
-            serial_number="121512039093",
-            last_report_date=1618082966,
-            last_report_watts=209,
-            max_report_watts=256,
-        ),
-        "121512039124": EnvoyInverter(
-            serial_number="121512039124",
-            last_report_date=1618082938,
-            last_report_watts=205,
-            max_report_watts=254,
-        ),
-        "121512039143": EnvoyInverter(
-            serial_number="121512039143",
-            last_report_date=1618082956,
-            last_report_watts=104,
-            max_report_watts=245,
-        ),
-        "121512039181": EnvoyInverter(
-            serial_number="121512039181",
-            last_report_date=1618082943,
-            last_report_watts=101,
-            max_report_watts=238,
-        ),
-        "121512041456": EnvoyInverter(
-            serial_number="121512041456",
-            last_report_date=1618082937,
-            last_report_watts=13,
-            max_report_watts=79,
-        ),
-        "121512041640": EnvoyInverter(
-            serial_number="121512041640",
-            last_report_date=1618082927,
-            last_report_watts=200,
-            max_report_watts=249,
-        ),
-        "121512041747": EnvoyInverter(
-            serial_number="121512041747",
-            last_report_date=1618082925,
-            last_report_watts=64,
-            max_report_watts=248,
-        ),
-        "121512042132": EnvoyInverter(
-            serial_number="121512042132",
-            last_report_date=1618082924,
-            last_report_watts=200,
-            max_report_watts=250,
-        ),
-        "121512042344": EnvoyInverter(
-            serial_number="121512042344",
-            last_report_date=1618082952,
-            last_report_watts=205,
-            max_report_watts=253,
-        ),
-        "121512043086": EnvoyInverter(
-            serial_number="121512043086",
-            last_report_date=1618082942,
-            last_report_watts=202,
-            max_report_watts=250,
-        ),
-        "121512043093": EnvoyInverter(
-            serial_number="121512043093",
-            last_report_date=1618082928,
-            last_report_watts=208,
-            max_report_watts=255,
-        ),
-        "121512043135": EnvoyInverter(
-            serial_number="121512043135",
-            last_report_date=1618082923,
-            last_report_watts=205,
-            max_report_watts=254,
-        ),
-        "121512043153": EnvoyInverter(
-            serial_number="121512043153",
-            last_report_date=1618082935,
-            last_report_watts=18,
-            max_report_watts=146,
-        ),
-        "121512043173": EnvoyInverter(
-            serial_number="121512043173",
-            last_report_date=1618082966,
-            last_report_watts=200,
-            max_report_watts=247,
-        ),
-        "121512043200": EnvoyInverter(
-            serial_number="121512043200",
-            last_report_date=1618082955,
-            last_report_watts=203,
-            max_report_watts=253,
-        ),
-        "121512043222": EnvoyInverter(
-            serial_number="121512043222",
-            last_report_date=1618082957,
-            last_report_watts=207,
-            max_report_watts=254,
-        ),
-        "121512043574": EnvoyInverter(
-            serial_number="121512043574",
-            last_report_date=1618082936,
-            last_report_watts=203,
-            max_report_watts=253,
-        ),
-        "121512043587": EnvoyInverter(
-            serial_number="121512043587",
-            last_report_date=1618082934,
-            last_report_watts=202,
-            max_report_watts=253,
-        ),
-        "121512044424": EnvoyInverter(
-            serial_number="121512044424",
-            last_report_date=1618082954,
-            last_report_watts=106,
-            max_report_watts=239,
-        ),
-    }
-
-
-def _start_7_firmware_mock():
-    respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
-        return_value=Response(
-            200,
-            json={
-                "session_id": "1234567890",
-                "user_id": "1234567890",
-                "user_name": "test",
-                "first_name": "Test",
-                "is_consumer": True,
-                "manager_token": "1234567890",
-            },
-        )
-    )
-    respx.post("https://entrez.enphaseenergy.com/tokens").mock(
-        return_value=Response(200, text="token")
-    )
-    respx.get("/auth/check_jwt").mock(return_value=Response(200, json={}))
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_pr111_with_7_3_466_metered_disabled_cts():
-    """Test envoy metered with disabled ct to report from production inverters PR111."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.3.466_metered_disabled_cts"
-    _start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=_load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, text=_load_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(
-        return_value=Response(200, text=_load_fixture(version, "ivp_meters"))
-    )
-
-    envoy = await _get_mock_envoy()
-    data = envoy.data
-    assert data is not None
-
-    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
-    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
-    assert envoy._supported_features & SupportedFeatures.PRODUCTION
-    assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert envoy._supported_features & SupportedFeatures.PRODUCTION
-    assert _updater_features(envoy._updaters) == {
-        "EnvoyProductionJsonFallbackUpdater": SupportedFeatures.PRODUCTION,
-        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-    }
-    assert envoy.part_number == "800-00654-r08"
-
-    assert not data.system_consumption
-    assert data.system_production.watts_now == 751
-    assert data.system_production.watt_hours_today == 4425
-    assert data.system_production.watt_hours_last_7_days == 111093
-    assert data.system_production.watt_hours_lifetime == 702919
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_pr111_with_7_6_175_with_cts():
-    """Test envoy metered with ct to report from production eim PR111."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.6.175_with_cts"
-    _start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=_load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, text=_load_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(
-        return_value=Response(200, text=_load_fixture(version, "ivp_meters"))
-    )
-    respx.get("/ivp/meters/readings").mock(
-        return_value=Response(200, text=_load_fixture(version, "ivp_meters_readings"))
-    )
-    envoy = await _get_mock_envoy()
-    data = envoy.data
-    assert data is not None
-
-    assert envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
-    assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
-    assert envoy._supported_features & SupportedFeatures.PRODUCTION
-    assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert envoy._supported_features & SupportedFeatures.METERING
-    assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert envoy._supported_features & SupportedFeatures.CTMETERS
-    assert _updater_features(envoy._updaters) == {
-        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-        "EnvoyProductionUpdater": SupportedFeatures.METERING
-        | SupportedFeatures.TOTAL_CONSUMPTION
-        | SupportedFeatures.NET_CONSUMPTION
-        | SupportedFeatures.PRODUCTION,
-        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
-    }
-
-    assert envoy.part_number == "800-00654-r08"
-
-    assert data.system_consumption
-    assert data.system_production.watts_now == 488
-    assert data.system_production.watt_hours_today == 4425
-    assert data.system_production.watt_hours_last_7_days == 111093
-    assert data.system_production.watt_hours_lifetime == 3183793
-    assert (
-        envoy.envoy_model
-        == "Envoy, phases: 1, phase mode: three, net-consumption CT, production CT"
-    )
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_pr111_with_7_6_175_standard():
-    """Test envoy metered with ct to report from production eim PR111."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.6.175_standard"
-    _start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=_load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, text=_load_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(return_value=Response(200, text=""))
-
-    envoy = await _get_mock_envoy()
-    data = envoy.data
-    assert data is not None
-
-    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
-    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
-    assert envoy._supported_features & SupportedFeatures.PRODUCTION
-    assert envoy._supported_features & SupportedFeatures.INVERTERS
-    assert _updater_features(envoy._updaters) == {
-        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
-    }
-
-    assert envoy.part_number == "800-00656-r06"
-
-    assert not data.system_consumption
-    assert data.system_production.watts_now == 5740
-    assert data.system_production.watt_hours_today == 36462
-    assert data.system_production.watt_hours_last_7_days == 189712
-    assert data.system_production.watt_hours_lifetime == 6139406
-    assert envoy.envoy_model == "Envoy"
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
-    """Test meters model using envoy metered CT with multiple phases"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-
-    # start with regular data first
-    version = "7.6.175_with_cts_3phase"
-    _start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=_load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, text=_load_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(
-        return_value=Response(200, text=_load_fixture(version, "ivp_meters"))
-    )
-    respx.get("/ivp/meters/readings").mock(
-        return_value=Response(200, text=_load_fixture(version, "ivp_meters_readings"))
-    )
-
-    # details of this test is done elsewhere already, just check data is returned
-    envoy = await _get_mock_envoy()
-    data = envoy.data
-    assert data is not None
-
-    # Test prior similar updater active
-    remove_2nd_metersupdater = register_updater(EnvoyMetersUpdater)
-    await envoy.probe()
-    remove_2nd_metersupdater
-
-    # load mock data for meters and their readings
-    meters_status = _load_json_list_fixture(version, "ivp_meters")
-    meters_readings = _load_json_list_fixture(version, "ivp_meters_readings")
-
-    meter_status: CtMeterData = {
-        "eid": meters_status[0]["eid"],
-        "state": meters_status[0]["state"],
-        "measurementType": meters_status[0]["measurementType"],
-        "phaseMode": meters_status[0]["phaseMode"],
-        "phaseCount": meters_status[0]["phaseCount"],
-        "meteringStatus": meters_status[0]["meteringStatus"],
-        "statusFlags": meters_status[0]["statusFlags"],
-    }
-
-    # test meters.from_api method
-    ct_data: EnvoyMeterData = EnvoyMeterData.from_api(
-        meters_readings[0],
-        meter_status,
-    )
-    assert ct_data.eid == 704643328
-    assert ct_data.measurement_type == "production"
-
-    # test meters.from_phase method
-    ct_phase_data: EnvoyMeterData | None = EnvoyMeterData.from_phase(
-        meters_readings[0], meter_status, 0
-    )
-    assert ct_phase_data is not None
-    assert ct_phase_data.eid == 1778385169
-    assert ct_phase_data.measurement_type == "production"
-    assert ct_phase_data.energy_delivered == 3183794
-
-    assert (
-        envoy.envoy_model
-        == "Envoy, phases: 3, phase mode: three, net-consumption CT, production CT"
-    )
-
-    # test exception handling by specifying non-existing phase
-    ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[0], meter_status, 3)
-    assert ct_no_phase_data is None
-
-    # test exception handling for missing phase data, remove phase data from mock data
-    del meters_readings[0]["channels"]
-    ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[0], meter_status, 0)
-    assert ct_no_phase_data is None
-
-    # test exception handling for phase data in production using wrong phase
-    production_data = data.raw["/production"]
-    production_no_phase_data = EnvoySystemProduction.from_production_phase(
-        production_data, 3
-    )
-    assert production_no_phase_data is None
-
-    # test exception handling for phase data if key is missing
-    del production_data["production"][1]["type"]
-    try:
-        production_no_phase_data = EnvoySystemProduction.from_production_phase(
-            production_data, 0
-        )
-    except ValueError:
-        production_no_phase_data = None
-    assert production_no_phase_data is None
-
-    # test exception handling for phase data in consumption using wrong phase
-    consumption_data = data.raw["/production"]
-    consumption_no_phase_data = EnvoySystemConsumption.from_production_phase(
-        consumption_data, 3
-    )
-    assert consumption_no_phase_data is None
-
-    # test handling missing phases when expected in ct readings
-    meters_status = _load_json_list_fixture(version, "ivp_meters")
-    meters_readings = _load_json_list_fixture(version, "ivp_meters_readings")
-
-    # remove phase data from CT readings
-    del meters_readings[0]["channels"]
-    del meters_readings[1]["channels"]
-
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=meters_status))
-    respx.get("/ivp/meters/readings").mock(
-        return_value=Response(200, json=meters_readings)
-    )
-
-    await envoy.update()
-    assert envoy.data.ctmeter_production_phases is None
-    assert envoy.data.ctmeter_consumption_phases is None
 
 
 @pytest.mark.parametrize(
@@ -2519,16 +910,16 @@ async def test_with_7_x_firmware(
 ) -> None:
     """Verify with 7.x firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    _start_7_firmware_mock()
+    start_7_firmware_mock()
     path = f"tests/fixtures/{version}"
     files = [f for f in listdir(path) if isfile(join(path, f))]
     respx.get("/info").mock(
-        return_value=Response(200, text=_load_fixture(version, "info"))
+        return_value=Response(200, text=load_fixture(version, "info"))
     )
     respx.get("/info.xml").mock(return_value=Response(200, text=""))
     if "production" in files:
         try:
-            json_data = _load_json_fixture(version, "production")
+            json_data = load_json_fixture(version, "production")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/production").mock(return_value=Response(200, json=json_data))
@@ -2537,29 +928,27 @@ async def test_with_7_x_firmware(
     if "production.json" in files:
         respx.get("/production.json").mock(
             return_value=Response(
-                200, json=_load_json_fixture(version, "production.json")
+                200, json=load_json_fixture(version, "production.json")
             )
         )
     else:
         respx.get("/production.json").mock(return_value=Response(404))
     respx.get("/api/v1/production").mock(
-        return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production")
-        )
+        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
     )
     respx.get("/api/v1/production/inverters").mock(
         return_value=Response(
-            200, json=_load_json_fixture(version, "api_v1_production_inverters")
+            200, json=load_json_fixture(version, "api_v1_production_inverters")
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(
         return_value=Response(
-            200, json=_load_json_fixture(version, "ivp_ensemble_inventory")
+            200, json=load_json_fixture(version, "ivp_ensemble_inventory")
         )
     )
     if "ivp_ensemble_dry_contacts" in files:
         try:
-            json_data = _load_json_fixture(version, "ivp_ensemble_dry_contacts")
+            json_data = load_json_fixture(version, "ivp_ensemble_dry_contacts")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/ivp/ensemble/dry_contacts").mock(
@@ -2570,7 +959,7 @@ async def test_with_7_x_firmware(
         )
     if "ivp_ss_dry_contact_settings" in files:
         try:
-            json_data = _load_json_fixture(version, "ivp_ss_dry_contact_settings")
+            json_data = load_json_fixture(version, "ivp_ss_dry_contact_settings")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/ivp/ss/dry_contact_settings").mock(
@@ -2581,7 +970,7 @@ async def test_with_7_x_firmware(
         )
     if "ivp_ensemble_power" in files:
         try:
-            json_data = _load_json_fixture(version, "ivp_ensemble_power")
+            json_data = load_json_fixture(version, "ivp_ensemble_power")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/ivp/ensemble/power").mock(
@@ -2590,7 +979,7 @@ async def test_with_7_x_firmware(
 
     if "ivp_ensemble_secctrl" in files:
         try:
-            json_data = _load_json_fixture(version, "ivp_ensemble_secctrl")
+            json_data = load_json_fixture(version, "ivp_ensemble_secctrl")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/ivp/ensemble/secctrl").mock(
@@ -2599,7 +988,7 @@ async def test_with_7_x_firmware(
 
     if "admin_lib_tariff" in files:
         try:
-            json_data = _load_json_fixture(version, "admin_lib_tariff")
+            json_data = load_json_fixture(version, "admin_lib_tariff")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
@@ -2609,7 +998,7 @@ async def test_with_7_x_firmware(
 
     if "ivp_meters" in files:
         respx.get("/ivp/meters").mock(
-            return_value=Response(200, json=_load_json_fixture(version, "ivp_meters"))
+            return_value=Response(200, json=load_json_fixture(version, "ivp_meters"))
         )
     else:
         respx.get("/ivp/meters").mock(return_value=Response(404))
@@ -2617,7 +1006,7 @@ async def test_with_7_x_firmware(
     if "ivp_meters_readings" in files:
         respx.get("/ivp/meters/readings").mock(
             return_value=Response(
-                200, json=_load_json_fixture(version, "ivp_meters_readings")
+                200, json=load_json_fixture(version, "ivp_meters_readings")
             )
         )
     else:
@@ -2625,7 +1014,7 @@ async def test_with_7_x_firmware(
 
     caplog.set_level(logging.DEBUG)
 
-    envoy = await _get_mock_envoy()
+    envoy = await get_mock_envoy()
     data = envoy.data
     assert data == snapshot
 
@@ -2633,14 +1022,17 @@ async def test_with_7_x_firmware(
     assert envoy.serial_number
 
     assert envoy.part_number == part_number
-    assert _updater_features(envoy._updaters) == updaters
+    assert updater_features(envoy._updaters) == updaters
     # We're testing, disable warning on private member
     # pylint: disable=protected-access
     assert envoy._supported_features == supported_features
 
     if supported_features & supported_features.ENPOWER:
+        # switch off debug for one post to improve COV
+        logging.getLogger("pyenphase").setLevel(logging.WARN)
         respx.post(URL_GRID_RELAY).mock(return_value=Response(200, json={}))
         await envoy.go_on_grid()
+        logging.getLogger("pyenphase").setLevel(logging.DEBUG)
         assert respx.calls.last.request.content == orjson.dumps(
             {"mains_admin_state": "closed"}
         )
@@ -2654,7 +1046,7 @@ async def test_with_7_x_firmware(
             await envoy.update_dry_contact({"missing": "id"})
 
         with pytest.raises(ValueError):
-            bad_envoy = await _get_mock_envoy(False)
+            bad_envoy = await get_mock_envoy(False)
             await bad_envoy.probe()
             await bad_envoy.update_dry_contact({"id": "NC1"})
 
@@ -2752,7 +1144,67 @@ async def test_with_7_x_firmware(
         with pytest.raises(TypeError):
             await envoy.set_storage_mode("invalid")
 
-        bad_envoy = await _get_mock_envoy()
+        # COV test with missing logger
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        del json_data["tariff"]["logger"]
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        await envoy.update()
+        envoy.data.tariff.to_api()
+
+        # COV test with missing date for tariff and storage settings
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        del json_data["tariff"]["date"]
+        del json_data["tariff"]["storage_settings"]["date"]
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        await envoy.update()
+        envoy.data.tariff.to_api()
+
+        # COV test with missing storage settings
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        del json_data["tariff"]["storage_settings"]
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        await envoy.update()
+        envoy.data.tariff.to_api()
+
+        # COV test with error in result
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        json_data.update({"error": "error"})
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        try:
+            await envoy.probe()
+        except AttributeError:
+            assert "No tariff data found" in caplog.text
+
+        # COV test with no enpower features
+        json_data = load_json_fixture(version, "ivp_ensemble_inventory")
+        json_data[0]["type"] = "NOEXCHARGE"
+        respx.get("/ivp/ensemble/inventory").mock(
+            return_value=Response(200, json=json_data)
+        )
+        await envoy.probe()
+        await envoy.update()
+
+        # COV ensemble ENDPOINT_PROBE_EXCEPTIONS
+        respx.get("/ivp/ensemble/inventory").mock(
+            return_value=Response(
+                500, json=load_json_fixture(version, "ivp_ensemble_inventory")
+            )
+        )
+        await envoy.probe()
+
+        # restore from prior changes
+        respx.get("/ivp/ensemble/inventory").mock(
+            return_value=Response(
+                200, json=load_json_fixture(version, "ivp_ensemble_inventory")
+            )
+        )
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+
+        bad_envoy = await get_mock_envoy()
         await bad_envoy.probe()
         with pytest.raises(EnvoyFeatureNotAvailable):
             bad_envoy.data.tariff.storage_settings = None
@@ -2878,3 +1330,19 @@ async def test_with_7_x_firmware(
         # test each element of the phase data
         for key in modeldata:
             assert modeldata[key] == getattr(storedata, key)
+
+    # COV test with no production segment
+    if "production" in files:
+        try:
+            json_data = load_json_fixture(version, "production")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        if json_data:
+            del json_data["production"]
+        respx.get("/production").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/production").mock(return_value=Response(404))
+    try:
+        await envoy.probe()
+    except EnvoyProbeFailed:
+        pass
