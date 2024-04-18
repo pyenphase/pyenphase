@@ -367,7 +367,6 @@ async def test_token_with_7_6_175_standard() -> None:
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail
 @respx.mock
 async def test_remote_login_response_with_7_6_175_standard() -> None:
     """Test enlighten login response for is_consumer and manager_token"""
@@ -379,11 +378,7 @@ async def test_remote_login_response_with_7_6_175_standard() -> None:
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
 
-    token = jwt.encode(
-        payload={"name": "envoy", "exp": 1707837780}, key="secret", algorithm="HS256"
-    )
-
-    await envoy.authenticate("username", "password", token)
+    await envoy.authenticate("username", "password")
     assert isinstance(envoy.auth, EnvoyTokenAuth)
     assert envoy.auth.manager_token == "1234567890"
     assert envoy.auth.is_consumer
