@@ -599,6 +599,93 @@ LOGGER = logging.getLogger(__name__)
                 "productionMeter": CtType.PRODUCTION,
                 "storageMeter": None,
             },
+            {},
+            {},
+            {
+                "eid": 704643328,
+                "active_power": 489,
+                "measurement_type": CtType.PRODUCTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                "eid": 704643584,
+                "active_power": -36,
+                "measurement_type": CtType.NET_CONSUMPTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {},
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385169,
+                    "active_power": 489,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385170,
+                    "active_power": 0,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_3: {
+                    "eid": 1778385171,
+                    "active_power": -1,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385425,
+                    "active_power": -36,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385426,
+                    "active_power": -0,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_3: {
+                    "eid": 1778385427,
+                    "active_power": -0,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {},
+        ),
+        (
+            "7.3.466_with_cts_3phase",
+            "800-00654-r08",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.THREEPHASE
+            | SupportedFeatures.CTMETERS,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.THREEPHASE
+                | SupportedFeatures.CTMETERS,
+            },
+            3,
+            {
+                "ctMeters": 2,
+                "phaseCount": 3,
+                "phaseMode": EnvoyPhaseMode.THREE,
+                "consumptionMeter": CtType.NET_CONSUMPTION,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": None,
+            },
             {
                 PhaseNames.PHASE_1: {
                     "watt_hours_lifetime": 1869678,
@@ -883,6 +970,7 @@ LOGGER = logging.getLogger(__name__)
         "7.6.175_standard",
         "7.6.175_with_cts",
         "7.6.175_with_cts_3phase",
+        "7.3.466_with_cts_3phase",
         "7.6.185_with_cts_and_battery_3t",
         "8.1.41",
         "8.2.127_with_3cts_and_battery_split",
