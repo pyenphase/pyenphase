@@ -1,0 +1,18 @@
+7.6.175_with_cts_3phase
+
+Somewhere between fw 7.3.466 and 7.6.175 /production endpoint stopped reporting phase data
+for Envoy metered with CT and multi-phase (Split or Three).
+
+The original test fixture 7.6.175_with_cts_3phase includeded a /production endpoint file with phases included.
+
+To reflect actual firmware behavior the production and production.json files are updated to the pattern
+without phase details (lines:) as verified by ones from a diagnostics and debug log file for a 7.6.175 fw.
+
+Verified with 7.6.175 diagnostics:
+
+- admin_lib_tariff
+- api_v1_production_inverters
+- ivp_ensemble_inventory
+- ivp_meters
+- ivp_meters_readings
+- production
