@@ -198,12 +198,12 @@ async def test_pr111_with_7_6_175_standard():
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
+async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
     """Test meters model using envoy metered CT with multiple phases"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
 
     # start with regular data first
-    version = "7.6.175_with_cts_3phase"
+    version = "7.3.466_with_cts_3phase"
     start_7_firmware_mock()
     respx.get("/info").mock(
         return_value=Response(200, text=load_fixture(version, "info"))
