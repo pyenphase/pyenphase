@@ -18,7 +18,6 @@ class EnvoyAuth:
 
     def __init__(self, host: str) -> None:
         """Initialize the EnvoyAuth class."""
-        pass  # pragma: no cover
 
     @abstractmethod
     async def setup(self, client: httpx.AsyncClient) -> None:
