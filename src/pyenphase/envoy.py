@@ -239,7 +239,7 @@ class Envoy:
                 follow_redirects=True,
                 auth=self.auth.auth,
                 timeout=self._timeout,
-                data=orjson.dumps(data),
+                content=orjson.dumps(data),
             )
         else:
             _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
