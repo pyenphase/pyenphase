@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v1.20.2 (2024-04-18)
+
+### Fix
+
+* Add missing EnvoyTokenAuth class properties ([#150](https://github.com/pyenphase/pyenphase/issues/150)) ([`d01157a`](https://github.com/pyenphase/pyenphase/commit/d01157a1ec3139f67e085f0a4e529f2e7af09943))
+
+### Documentation
+
+* Use new format to specify virtual env for readthedocs ([#152](https://github.com/pyenphase/pyenphase/issues/152)) ([`4b9a9ea`](https://github.com/pyenphase/pyenphase/commit/4b9a9ea79ef94dfd1fed2b262a12cb016da2802c))
+* Let readthedocs use virtualenv for build ([#151](https://github.com/pyenphase/pyenphase/issues/151)) ([`9e8b648`](https://github.com/pyenphase/pyenphase/commit/9e8b648875db5fcc2210d7f180c0d278485eafb8))
+
 ## v1.20.1 (2024-03-26)
 
 ### Fix
