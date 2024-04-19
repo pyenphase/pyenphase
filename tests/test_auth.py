@@ -147,6 +147,10 @@ async def test_known_users_with_3_9_36_firmware(username: str, password: str) ->
     await envoy.setup()
     await envoy.authenticate(username, password)
 
+    # test cookies function now cookies are not on request
+    used_cookies = getattr(envoy.auth, "cookies")
+    assert used_cookies == {}
+
     data = await envoy.update()
     assert data
 
@@ -345,6 +349,9 @@ async def test_token_with_7_6_175_standard() -> None:
     assert isinstance(envoy.auth, EnvoyTokenAuth)
     assert envoy.auth.expire_timestamp == 1707837780
     assert envoy.auth.token == token
+
+    # test cookies function now cookies are not on request
+    assert envoy.auth.cookies == {}
 
     # execute refresh code cov
     await envoy.auth.refresh()

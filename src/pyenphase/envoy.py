@@ -235,7 +235,6 @@ class Envoy:
                 method if method else "POST",
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
-                cookies=self.auth.cookies,
                 follow_redirects=True,
                 auth=self.auth.auth,
                 timeout=self._timeout,
@@ -246,7 +245,6 @@ class Envoy:
             response = await self._client.get(
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
-                cookies=self.auth.cookies,
                 follow_redirects=True,
                 auth=self.auth.auth,
                 timeout=self._timeout,
