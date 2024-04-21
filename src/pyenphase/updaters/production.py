@@ -1,7 +1,7 @@
 """Envoy production data updater"""
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..const import PHASENAMES, URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
@@ -88,16 +88,18 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             working_endpoints.append(self.end_point)
 
         if not discovered_production:
-            production: list[dict[str, str | float | int]] | None = production_json.get(
-                "production"
-            )
+            production: list[
+                dict[str, str | float | int | Any]
+            ] | None = production_json.get("production")
             if production:
                 for type_ in production:
                     if type_["type"] == "eim" and type_["activeCount"]:
                         self._supported_features |= SupportedFeatures.METERING
                         self._supported_features |= SupportedFeatures.PRODUCTION
                         if lines := type_.get("lines"):
-                            active_phase_count = len(lines)  # type: ignore[arg-type]
+                            if TYPE_CHECKING:
+                                assert isinstance(lines, list)  # nosec
+                            active_phase_count = len(lines)
                         break
                     if (
                         self.allow_inverters_fallback
@@ -107,9 +109,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                         self._supported_features |= SupportedFeatures.PRODUCTION
                         break
 
-        consumption: list[dict[str, str | float | int]] | None = production_json.get(
-            "consumption"
-        )
+        consumption: list[
+            dict[str, str | float | int | Any]
+        ] | None = production_json.get("consumption")
         if consumption:
             for meter in consumption:
                 meter_type = meter["measurementType"]
@@ -124,7 +126,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     self._supported_features |= SupportedFeatures.NET_CONSUMPTION
 
                 if lines := meter.get("lines"):
-                    active_phase_count = len(lines)  # type: ignore[arg-type]
+                    if TYPE_CHECKING:
+                        assert isinstance(lines, list)  # nosec
+                    active_phase_count = len(lines)
 
         # register the updated fallback endpoints to the common list
         self._common_properties.production_fallback_list = working_endpoints
