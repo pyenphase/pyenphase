@@ -91,7 +91,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -197,7 +197,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
                 "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE
@@ -332,7 +332,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -582,7 +582,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -599,8 +599,46 @@ LOGGER = logging.getLogger(__name__)
                 "productionMeter": CtType.PRODUCTION,
                 "storageMeter": None,
             },
-            {},
-            {},
+            {
+                PhaseNames.PHASE_1: {
+                    "watt_hours_lifetime": 1869678,
+                    "watt_hours_last_7_days": 29891,
+                    "watt_hours_today": 2200,
+                    "watts_now": -3,
+                },
+                PhaseNames.PHASE_2: {
+                    "watt_hours_lifetime": 1241246,
+                    "watt_hours_last_7_days": 19794,
+                    "watt_hours_today": 1455,
+                    "watts_now": 0,
+                },
+                PhaseNames.PHASE_3: {
+                    "watt_hours_lifetime": 1240189,
+                    "watt_hours_last_7_days": 19807,
+                    "watt_hours_today": 1458,
+                    "watts_now": -4,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "watt_hours_lifetime": 2293783,
+                    "watt_hours_last_7_days": 39392,
+                    "watt_hours_today": 8585,
+                    "watts_now": 89,
+                },
+                PhaseNames.PHASE_2: {
+                    "watt_hours_lifetime": 948058,
+                    "watt_hours_last_7_days": 18949,
+                    "watt_hours_today": 2155,
+                    "watts_now": 123,
+                },
+                PhaseNames.PHASE_3: {
+                    "watt_hours_lifetime": 832954,
+                    "watt_hours_last_7_days": 10443,
+                    "watt_hours_today": 1683,
+                    "watts_now": -3,
+                },
+            },
             {
                 "eid": 704643328,
                 "active_power": 489,
@@ -669,7 +707,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -874,7 +912,7 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
                 | SupportedFeatures.ENPOWER,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -1019,8 +1057,14 @@ async def test_with_7_x_firmware(
                 200, json=load_json_fixture(version, "production.json")
             )
         )
+        respx.get("/production.json?details=1").mock(
+            return_value=Response(
+                200, json=load_json_fixture(version, "production.json")
+            )
+        )
     else:
         respx.get("/production.json").mock(return_value=Response(404))
+        respx.get("/production.json?details=1").mock(return_value=Response(404))
     respx.get("/api/v1/production").mock(
         return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
     )
@@ -1328,12 +1372,26 @@ async def test_with_7_x_firmware(
         envoy.storage_meter_type is None
     )
 
+    # data is the original collected envoy.data
     # are all production phases reported
-    assert (
-        envoy.active_phase_count == 0
-        if data.system_production_phases is None
-        else len(data.system_production_phases)
-    )
+    expected_phases = production_phases == {}
+    actual_phases = data.system_production_phases is None
+    assert not (expected_phases ^ actual_phases)
+
+    # are all consumption phases reported
+    expected_phases = consumption_phases == {}
+    actual_phases = data.system_consumption_phases is None
+    assert not (expected_phases ^ actual_phases)
+
+    reported_phase_count = envoy.active_phase_count
+    # are all production phases reported
+    expected_phase_count = len(production_phases)
+    assert expected_phase_count == reported_phase_count
+
+    # are all consumption phases reported
+    expected_phase_count = len(consumption_phases)
+    assert expected_phase_count == reported_phase_count
+
     # Test each production phase
     for phase in production_phases:
         proddata = envoy.data.system_production_phases[phase]

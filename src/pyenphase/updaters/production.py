@@ -1,4 +1,5 @@
 """Envoy production data updater"""
+
 import logging
 from typing import Any
 
@@ -17,6 +18,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
     end_point = URL_PRODUCTION
     allow_inverters_fallback = False
+    requires_ct_phases = False
 
     async def probe(
         self, discovered_features: SupportedFeatures
@@ -29,6 +31,15 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             SupportedFeatures.NET_CONSUMPTION in discovered_features
         )
         discovered_production = SupportedFeatures.PRODUCTION in discovered_features
+
+        discovered_phases = (
+            SupportedFeatures.THREEPHASE in discovered_features
+            or SupportedFeatures.DUALPHASE in discovered_features
+        )
+
+        # if production report is for multi phase and no multiphase detected return
+        if self.requires_ct_phases and not discovered_phases:
+            return None
 
         # obtain any registered production endpoints that replied back from the common list
         # when in allow_inverters_fallback mode we can use the first one that worked
@@ -66,6 +77,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 return None
             raise
 
+        active_phase_count = 0
+        phase_count = self._common_properties.phase_count
+
         # if endpoint is not in the list of successful endpoints yet, add it.
         if (
             self.end_point not in working_endpoints
@@ -82,6 +96,8 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     if type_["type"] == "eim" and type_["activeCount"]:
                         self._supported_features |= SupportedFeatures.METERING
                         self._supported_features |= SupportedFeatures.PRODUCTION
+                        if lines := type_.get("lines"):
+                            active_phase_count = len(lines)  # type: ignore[arg-type]
                         break
                     if (
                         self.allow_inverters_fallback
@@ -107,9 +123,18 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 if not discovered_net_consumption and meter_type == "net-consumption":
                     self._supported_features |= SupportedFeatures.NET_CONSUMPTION
 
+                if lines := meter.get("lines"):
+                    active_phase_count = len(lines)  # type: ignore[arg-type]
+
         # register the updated fallback endpoints to the common list
         self._common_properties.production_fallback_list = working_endpoints
-
+        self._common_properties.active_phase_count = active_phase_count
+        if active_phase_count != phase_count and phase_count > 1:
+            _LOGGER.debug(
+                "Production report Phase values not available fallback to ct meter phase data, %s of %s",
+                active_phase_count,
+                phase_count,
+            )
         return self._supported_features
 
     async def update(self, envoy_data: EnvoyData) -> None:
@@ -119,7 +144,6 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         # get phase count from Envoy common features
         phase_count = self._common_properties.phase_count
-        active_phase_count = 0
 
         if self._supported_features & SupportedFeatures.PRODUCTION:
             envoy_data.system_production = EnvoySystemProduction.from_production(
@@ -137,8 +161,6 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
             if len(phase_production) > 0:
                 envoy_data.system_production_phases = phase_production
-
-            active_phase_count = len(phase_production)
 
         if (
             self._supported_features & SupportedFeatures.NET_CONSUMPTION
@@ -161,17 +183,6 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             if len(phase_consumption) > 0:
                 envoy_data.system_consumption_phases = phase_consumption
 
-            active_phase_count = len(phase_consumption)
-
-        # save actual reporting phases in common properties
-        self._common_properties.active_phase_count = active_phase_count
-        if active_phase_count != phase_count:
-            _LOGGER.debug(
-                "Not all phases report phase data, %s of %s",
-                active_phase_count,
-                phase_count,
-            )
-
 
 class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):
     """Class to handle updates for production data from the production.json endpoint."""
@@ -186,3 +197,10 @@ class EnvoyProductionJsonFallbackUpdater(EnvoyProductionJsonUpdater):
     """
 
     allow_inverters_fallback = True
+
+
+class EnvoyProductionJsonDetailsUpdater(EnvoyProductionUpdater):
+    """Class to handle updates for production data with phase details from the production.json endpoint."""
+
+    end_point = f"{URL_PRODUCTION_JSON}?details=1"
+    requires_ct_phases = True

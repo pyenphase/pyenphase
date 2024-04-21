@@ -51,6 +51,7 @@ from .updaters.base import EnvoyUpdater
 from .updaters.ensemble import EnvoyEnembleUpdater
 from .updaters.meters import EnvoyMetersUpdater
 from .updaters.production import (
+    EnvoyProductionJsonDetailsUpdater,
     EnvoyProductionJsonFallbackUpdater,
     EnvoyProductionJsonUpdater,
     EnvoyProductionUpdater,
@@ -66,6 +67,7 @@ DEFAULT_HEADERS = {
 
 UPDATERS: list[type["EnvoyUpdater"]] = [
     EnvoyMetersUpdater,
+    EnvoyProductionJsonDetailsUpdater,
     EnvoyProductionUpdater,
     EnvoyProductionJsonUpdater,
     EnvoyApiV1ProductionUpdater,
@@ -349,9 +351,9 @@ class Envoy:
         if phase_count > 1 or ct_count > 0:
             model = f"{model}, phases: {phase_count}"
 
-            # if phase mode is known add to model
-            if phase_mode := self.phase_mode:
-                model = f"{model}, phase mode: {phase_mode}"
+            # Add phase mode to model
+            phase_mode = self.phase_mode
+            model = f"{model}, phase mode: {phase_mode}"
 
         # if consumption CT type is known add to model
         if ct_consumption_meter := self.consumption_meter_type:
