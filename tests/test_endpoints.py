@@ -1100,6 +1100,15 @@ async def test_with_7_x_firmware(
     else:
         respx.get("/ivp/meters/readings").mock(return_value=Response(404))
 
+    if "ivp_ss_gen_config" in files:
+        try:
+            json_data = load_json_fixture(version, "ivp_ss_gen_config")
+        except json.decoder.JSONDecodeError:
+            json_data = {}
+        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
+
     caplog.set_level(logging.DEBUG)
 
     envoy = await get_mock_envoy()

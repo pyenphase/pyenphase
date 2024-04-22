@@ -52,6 +52,7 @@ async def test_pr111_with_7_3_466_metered_disabled_cts():
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
     respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
     respx.get("/ivp/meters").mock(
         return_value=Response(200, text=load_fixture(version, "ivp_meters"))
     )
@@ -105,6 +106,7 @@ async def test_pr111_with_7_6_175_with_cts():
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
     respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
     respx.get("/ivp/meters").mock(
         return_value=Response(200, text=load_fixture(version, "ivp_meters"))
     )
@@ -170,6 +172,7 @@ async def test_pr111_with_7_6_175_standard():
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
     respx.get("/admin/lib/tariff").mock(return_value=Response(404))
     respx.get("/ivp/meters").mock(return_value=Response(200, text=""))
 
@@ -224,6 +227,7 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
     respx.get("/admin/lib/tariff").mock(return_value=Response(404))
     respx.get("/ivp/meters").mock(
         return_value=Response(200, text=load_fixture(version, "ivp_meters"))
@@ -357,6 +361,7 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split():
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
     respx.get("/admin/lib/tariff").mock(return_value=Response(404))
     respx.get("/ivp/meters").mock(
         return_value=Response(200, text=load_fixture(version, "ivp_meters"))
