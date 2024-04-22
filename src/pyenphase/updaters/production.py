@@ -1,7 +1,7 @@
 """Envoy production data updater"""
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from ..const import PHASENAMES, URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
@@ -88,17 +88,13 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             working_endpoints.append(self.end_point)
 
         if not discovered_production:
-            production: list[
-                dict[str, str | float | int | Any]
-            ] | None = production_json.get("production")
+            production: list[dict[str, Any]] | None = production_json.get("production")
             if production:
                 for type_ in production:
                     if type_["type"] == "eim" and type_["activeCount"]:
                         self._supported_features |= SupportedFeatures.METERING
                         self._supported_features |= SupportedFeatures.PRODUCTION
                         if lines := type_.get("lines"):
-                            if TYPE_CHECKING:
-                                assert isinstance(lines, list)  # nosec
                             active_phase_count = len(lines)
                         break
                     if (
@@ -109,9 +105,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                         self._supported_features |= SupportedFeatures.PRODUCTION
                         break
 
-        consumption: list[
-            dict[str, str | float | int | Any]
-        ] | None = production_json.get("consumption")
+        consumption: list[dict[str, Any]] | None = production_json.get("consumption")
         if consumption:
             for meter in consumption:
                 meter_type = meter["measurementType"]
@@ -124,10 +118,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     self._supported_features |= SupportedFeatures.TOTAL_CONSUMPTION
                 if not discovered_net_consumption and meter_type == "net-consumption":
                     self._supported_features |= SupportedFeatures.NET_CONSUMPTION
-
                 if lines := meter.get("lines"):
-                    if TYPE_CHECKING:
-                        assert isinstance(lines, list)  # nosec
                     active_phase_count = len(lines)
 
         # register the updated fallback endpoints to the common list
