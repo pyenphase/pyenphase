@@ -24,6 +24,10 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
             _LOGGER.debug("Firmware too old for Ensemble support")
             return None
 
+        # If there's no Enpower smart switch, we can skip the generator probe
+        if SupportedFeatures.ENPOWER not in discovered_features:
+            return None
+
         # Check for generator support
         try:
             result = await self._json_probe_request(URL_GEN_CONFIG)
