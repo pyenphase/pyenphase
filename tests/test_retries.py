@@ -293,7 +293,7 @@ async def test_noconnection_at_probe_with_7_6_175_standard():
     # Probe is re-calling retried probe_request before returning
     # we can only see stats for the last request done.
     # force 3 retries for last one
-    respx.get("/admin/lib/tariff").mock().side_effect = [
+    respx.get("/ivp/ss/gen_config").mock().side_effect = [
         httpx.NetworkError("Test timeoutexception"),
         httpx.RemoteProtocolError("Test timeoutexception"),
         httpx.TimeoutException("Test timeoutexception"),
