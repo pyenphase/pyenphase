@@ -1,3 +1,10 @@
+"""Create test fixture file set for pyenphase by scanning known endpoints on Envoy.
+
+Copy this file to the Home Assistant config folder. Open a terminal on your HA system
+Navigate to the config folder and execute python fixture_collector.py --help for directons.
+"""
+
+import argparse
 import asyncio
 import json
 import logging
@@ -5,22 +12,41 @@ import os
 import zipfile
 
 from pyenphase.envoy import DEFAULT_HEADERS, Envoy
+from pyenphase.exceptions import (
+    EnvoyAuthenticationRequired,
+    EnvoyFirmwareFatalCheckError,
+)
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.WARNING)
 
 
-async def main() -> None:
-    envoy = Envoy(os.environ.get("ENVOY_HOST", "envoy.local"))
+async def main(
+    envoy_address: str | None,
+    username: str | None,
+    password: str | None,
+    token: str | None,
+    verbose: bool = False,
+    label: str = "",
+    clean: bool = False,
+) -> None:
+    envoy = Envoy(os.environ.get("ENVOY_HOST", envoy_address or "envoy.local"))
+    try:
+        await envoy.setup()
+    except EnvoyFirmwareFatalCheckError as err:
+        print(f"Could not connect to Envoy: {err.status_code} {err.status}")
+        return None
 
-    await envoy.setup()
+    username = os.environ.get("ENVOY_USERNAME", username)
+    password = os.environ.get("ENVOY_PASSWORD", password)
+    token = os.environ.get("ENVOY_TOKEN", token)
 
-    username = os.environ.get("ENVOY_USERNAME")
-    password = os.environ.get("ENVOY_PASSWORD")
-    token = os.environ.get("ENVOY_TOKEN")
+    try:
+        await envoy.authenticate(username=username, password=password, token=token)
+    except EnvoyAuthenticationRequired:
+        print("Could not athenticate with Envoy")
+        return None
 
-    await envoy.authenticate(username=username, password=password, token=token)
-
-    target_dir = f"enphase-{envoy.firmware}"
+    target_dir = f"enphase-{envoy.firmware}{label}"
     try:
         os.mkdir(target_dir)
     except FileExistsError:
@@ -31,6 +57,7 @@ async def main() -> None:
         "/api/v1/production",
         "/api/v1/production/inverters",
         "/production.json",
+        "/production.json?details=1",
         "/production",
         "/ivp/ensemble/power",
         "/ivp/ensemble/inventory",
@@ -52,6 +79,8 @@ async def main() -> None:
 
     for end_point in end_points:
         url = envoy.auth.get_endpoint_url(end_point)
+        if verbose:
+            print(end_point)
         try:
             response = await envoy._client.get(
                 url,
@@ -63,7 +92,7 @@ async def main() -> None:
             )
         except Exception:
             continue  # nosec
-        file_name = end_point[1:].replace("/", "_")
+        file_name = end_point[1:].replace("/", "_").replace("?", "_").replace("=", "_")
         with open(os.path.join(target_dir, file_name), "w") as fixture_file:
             fixture_file.write(response.text)
 
@@ -79,14 +108,128 @@ async def main() -> None:
                 )
             )
 
-    print(f"Fixtures written to {target_dir}")
+    if not clean or verbose:
+        print(f"Fixtures written to {target_dir}")
 
     zip_file_name = f"{target_dir}.zip"
     with zipfile.ZipFile(zip_file_name, "w") as zip_file:
         for file_name in os.listdir(target_dir):
             zip_file.write(os.path.join(target_dir, file_name), file_name)
+            if clean:
+                os.remove(os.path.join(target_dir, file_name))
 
     print(f"Zip file written to {zip_file_name}")
 
+    if clean:
+        try:
+            os.rmdir(target_dir)
+            if verbose:
+                print(f"Removed {target_dir}")
+        except OSError as err:
+            print(f"Could not clean folder: {err.strerror}")
+        except FileNotFoundError:
+            pass
 
-asyncio.run(main())
+
+def _read_ha_config(file_path: str) -> list[str | None]:
+    result: list[str | None] = [None, None, None, None]
+    try:
+        with open(file_path) as fp:
+            content = json.load(fp)
+        if content:
+            for entry in content["data"]["entries"]:
+                if entry["domain"] == "enphase_envoy":
+                    result = [
+                        entry["data"]["host"],
+                        entry["data"]["username"],
+                        entry["data"]["password"],
+                        entry["data"]["token"],
+                    ]
+                    break
+    except FileNotFoundError:
+        return result
+    except ValueError:
+        return result
+    return result
+
+
+if __name__ == "__main__":
+    description = "Scan Enphase Envoy for endpoint list usable for pyenphase test fixtures. \
+        Creates output folder envoy_<firmware>[label] with results of scan.\
+        Zips content of created folder into envoy_<firmware>[label].zip.\
+        "
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument(
+        "-d", "--debug", help="Enable debug logging", action="store_true"
+    )
+    parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument(
+        "-c",
+        "--clean",
+        help="Remove created folder, but keep zip file",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-l", "--label", help="Label to append to output folder and zip file"
+    )
+    parser.add_argument(
+        "-r",
+        "--readhaconfig",
+        const=".",
+        nargs="?",
+        dest="ha_config_folder",
+        help="Read envoyname, username, password and token from HA config file. Use -c path_to_ha_config_folder. Default is current folder.",
+    )
+
+    parser.add_argument(
+        "-e",
+        "--envoyname",
+        default="envoy.local",
+        help="Envoy Name or IP address. Default is envoy.local",
+    )
+    parser.add_argument(
+        "-u", "--username", help="Username (for Envoy or for Enphase token website)"
+    )
+    parser.add_argument(
+        "-p", "--password", help="Password (blank or for Enphase token website)"
+    )
+    parser.add_argument(
+        "-t", "--token", help="Enphase owner token or @path_to_file to read from file"
+    )
+
+    args = parser.parse_args()
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
+    host = args.envoyname
+    username: str | None = args.username
+    password: str | None = args.password
+    read_ha_config: str = args.ha_config_folder
+    verbose: bool = args.verbose
+    token = args.token
+    if token and token[0] == "@":
+        try:
+            with open(token[1:]) as f:
+                token = f.read()
+        except FileExistsError:
+            token = None
+
+    if args.ha_config_folder:
+        target_ha_file = os.path.join(read_ha_config, ".storage/core.config_entries")
+        host, username, password, token = _read_ha_config(target_ha_file)
+
+    if verbose:
+        print(f"Using {host}, {target_ha_file}")
+
+    asyncio.run(
+        main(
+            envoy_address=host,
+            username=username,
+            password=password,
+            token=token,
+            verbose=verbose,
+            label=args.label or "",
+            clean=args.clean,
+        )
+    )
