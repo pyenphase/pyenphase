@@ -1,11 +1,7 @@
 import logging
 from typing import Any
 
-from ..const import (
-    ENSEMBLE_MIN_VERSION,
-    URL_GEN_CONFIG,
-    SupportedFeatures,
-)
+from ..const import ENSEMBLE_MIN_VERSION, URL_GEN_CONFIG, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
 from ..models.envoy import EnvoyData
 from .base import EnvoyUpdater
@@ -49,6 +45,6 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
 
         if supported_features & SupportedFeatures.GENERATOR:
             generator_config_data: list[dict[str, Any]] = await self._json_request(
-            URL_GEN_CONFIG
-        )
+                URL_GEN_CONFIG
+            )
         envoy_data.raw[URL_GEN_CONFIG] = generator_config_data
