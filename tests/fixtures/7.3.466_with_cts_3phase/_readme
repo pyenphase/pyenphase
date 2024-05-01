@@ -1,5 +1,13 @@
 7.3.466_with_cts_3phase
 
+UPDATE1:
+
+/production.json endpoint only provides phase details when passing parameter details=1
+
+so /production file has phases removed while /production.json file has them included.
+
+ORIGINAL:
+
 Somewhere between fw 7.3.466 and 7.6.175 /production endpoint stopped reporting phase data
 for Envoy metered with CT and multi-phase (Split or Three).
 
