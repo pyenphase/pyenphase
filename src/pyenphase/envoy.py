@@ -51,7 +51,6 @@ from .updaters.base import EnvoyUpdater
 from .updaters.ensemble import EnvoyEnembleUpdater
 from .updaters.meters import EnvoyMetersUpdater
 from .updaters.production import (
-    EnvoyProductionJsonDetailsUpdater,
     EnvoyProductionJsonFallbackUpdater,
     EnvoyProductionJsonUpdater,
     EnvoyProductionUpdater,
@@ -67,9 +66,8 @@ DEFAULT_HEADERS = {
 
 UPDATERS: list[type["EnvoyUpdater"]] = [
     EnvoyMetersUpdater,
-    EnvoyProductionJsonDetailsUpdater,
-    EnvoyProductionUpdater,
     EnvoyProductionJsonUpdater,
+    EnvoyProductionUpdater,
     EnvoyApiV1ProductionUpdater,
     EnvoyProductionJsonFallbackUpdater,
     EnvoyApiV1ProductionInvertersUpdater,

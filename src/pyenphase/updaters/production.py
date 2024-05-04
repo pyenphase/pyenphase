@@ -18,7 +18,6 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
     end_point = URL_PRODUCTION
     allow_inverters_fallback = False
-    requires_ct_phases = False
 
     async def probe(
         self, discovered_features: SupportedFeatures
@@ -31,15 +30,6 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             SupportedFeatures.NET_CONSUMPTION in discovered_features
         )
         discovered_production = SupportedFeatures.PRODUCTION in discovered_features
-
-        discovered_phases = (
-            SupportedFeatures.THREEPHASE in discovered_features
-            or SupportedFeatures.DUALPHASE in discovered_features
-        )
-
-        # if production report is for multi phase and no multiphase detected return
-        if self.requires_ct_phases and not discovered_phases:
-            return None
 
         # obtain any registered production endpoints that replied back from the common list
         # when in allow_inverters_fallback mode we can use the first one that worked
@@ -126,7 +116,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         self._common_properties.active_phase_count = active_phase_count
         if active_phase_count != phase_count and phase_count > 1:
             _LOGGER.debug(
-                "Production report Phase values not available fallback to ct meter phase data, %s of %s",
+                "Expected Production report Phase values not available, %s of %s",
                 active_phase_count,
                 phase_count,
             )
@@ -192,10 +182,3 @@ class EnvoyProductionJsonFallbackUpdater(EnvoyProductionJsonUpdater):
     """
 
     allow_inverters_fallback = True
-
-
-class EnvoyProductionJsonDetailsUpdater(EnvoyProductionUpdater):
-    """Class to handle updates for production data with phase details from the production.json endpoint."""
-
-    end_point = f"{URL_PRODUCTION_JSON}?details=1"
-    requires_ct_phases = True

@@ -91,7 +91,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -163,7 +163,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.PRODUCTION,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -197,7 +197,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.PRODUCTION,
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
                 "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE
@@ -252,7 +252,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.TARIFF,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -291,7 +291,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.TARIFF,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -332,7 +332,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -544,7 +544,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -582,7 +582,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -707,7 +707,7 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -833,7 +833,7 @@ LOGGER = logging.getLogger(__name__)
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE,
-                "EnvoyProductionUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,
@@ -872,7 +872,7 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENPOWER
                 | SupportedFeatures.ENCHARGE,
-                "EnvoyProductionUpdater": SupportedFeatures.PRODUCTION
+                "EnvoyProductionJsonUpdater": SupportedFeatures.PRODUCTION
                 | SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION,
@@ -912,7 +912,7 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
                 | SupportedFeatures.ENPOWER,
-                "EnvoyProductionJsonDetailsUpdater": SupportedFeatures.METERING
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
                 | SupportedFeatures.PRODUCTION,

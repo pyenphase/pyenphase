@@ -124,7 +124,7 @@ async def test_pr111_with_7_6_175_with_cts():
     assert envoy._supported_features & SupportedFeatures.CTMETERS
     assert updater_features(envoy._updaters) == {
         "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-        "EnvoyProductionUpdater": SupportedFeatures.METERING
+        "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
         | SupportedFeatures.TOTAL_CONSUMPTION
         | SupportedFeatures.NET_CONSUMPTION
         | SupportedFeatures.PRODUCTION,
