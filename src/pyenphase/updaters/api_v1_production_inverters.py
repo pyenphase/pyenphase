@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from ..const import URL_PRODUCTION_INVERTERS, SupportedFeatures
+from ..const import AUTH_TOKEN_MIN_VERSION, URL_PRODUCTION_INVERTERS, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.inverter import EnvoyInverter
@@ -17,6 +17,12 @@ class EnvoyApiV1ProductionInvertersUpdater(EnvoyUpdater):
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
         """Probe the Envoy for this updater and return SupportedFeatures."""
+        if self._envoy_version >= AUTH_TOKEN_MIN_VERSION:
+            # No need to probe for inverters if we have auth token support
+            # as it only slows down startup
+            self._supported_features |= SupportedFeatures.INVERTERS
+            return self._supported_features
+
         try:
             await self._json_probe_request(URL_PRODUCTION_INVERTERS)
         except ENDPOINT_PROBE_EXCEPTIONS as e:
