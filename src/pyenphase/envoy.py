@@ -103,7 +103,8 @@ class Envoy:
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._timeout = timeout or LOCAL_TIMEOUT
         self._client = client or httpx.AsyncClient(
-            verify=NO_VERIFY_SSL_CONTEXT
+            verify=NO_VERIFY_SSL_CONTEXT,
+            limits=httpx.Limits(max_keepalive_connections=0),
         )  # nosec
         self.auth: EnvoyAuth | None = None
         self._host = host
