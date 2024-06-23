@@ -11,7 +11,7 @@ AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
 # System Production
 URL_PRODUCTION_INVERTERS = "/api/v1/production/inverters"
 URL_PRODUCTION_V1 = "/api/v1/production"
-URL_PRODUCTION_JSON = "/production.json"
+URL_PRODUCTION_JSON = "/production.json?details=1"
 URL_PRODUCTION = "/production"
 
 # Authentication
