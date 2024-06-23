@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.20.3 (2024-05-07)
+
+### Fix
+
+* Get production phase data using details parameter ([#159](https://github.com/pyenphase/pyenphase/issues/159)) ([`d2a478c`](https://github.com/pyenphase/pyenphase/commit/d2a478c25581cbb147506d138db3043c70345fae))
+
 ## v1.20.2 (2024-04-18)
 
 ### Fix
