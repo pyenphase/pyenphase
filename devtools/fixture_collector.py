@@ -6,8 +6,8 @@ Navigate to the config folder and execute python fixture_collector.py --help for
 
 import argparse
 import asyncio
-import json
 import getpass
+import json
 import logging
 import os
 import zipfile
@@ -133,23 +133,22 @@ def _read_ha_config(file_path: str) -> dict[str, list[str | None]]:
     try:
         with open(file_path) as fp:
             content = json.load(fp)
-    except (FileNotFoundError,ValueError):
+    except (FileNotFoundError, ValueError):
         return result
     else:
         if content:
             for entry in content["data"]["entries"]:
-                if (
-                    entry["domain"] == "enphase_envoy"
-                    and entry["source"] != "ignore"
-                ):
-                    result.update({entry["unique_id"]:
-                        [
-                            entry["data"]["host"],
-                            entry["data"]["username"],
-                            entry["data"]["password"],
-                            entry["data"]["token"],
-                        ]
-                    })
+                if entry["domain"] == "enphase_envoy" and entry["source"] != "ignore":
+                    result.update(
+                        {
+                            entry["unique_id"]: [
+                                entry["data"]["host"],
+                                entry["data"]["username"],
+                                entry["data"]["password"],
+                                entry["data"]["token"],
+                            ]
+                        }
+                    )
 
     return result
 
@@ -209,7 +208,7 @@ if __name__ == "__main__":
     read_ha_config: str = args.ha_config_folder
     verbose: bool = args.verbose
 
-    config_entries: dict[str, list[str| None]] = {}
+    config_entries: dict[str, list[str | None]] = {}
     target_ha_file: str = ""
 
     if args.ha_config_folder:
@@ -219,19 +218,21 @@ if __name__ == "__main__":
         username: str | None = args.username
         password: str | None = args.password
         token = args.token
-        if not username: 
+        if not username:
             username = os.environ.get("ENVOY_USERNAME", input("Enter the Username: "))
         if not password:
-            password = os.environ.get("ENVOY_PASSWORD",   getpass.getpass("Enter the Password: "))
+            password = os.environ.get(
+                "ENVOY_PASSWORD", getpass.getpass("Enter the Password: ")
+            )
         if not token:
-            token = os.environ.get("ENVOY_TOKEN",   getpass.getpass("Enter the token: "))
+            token = os.environ.get("ENVOY_TOKEN", getpass.getpass("Enter the token: "))
         if token and token[0] == "@":
             try:
                 with open(token[1:]) as f:
                     token = f.read()
             except FileExistsError:
                 token = None
-        config_entries.update({"unknown":[host, username, password, token]})
+        config_entries.update({"unknown": [host, username, password, token]})
 
     for sn, configs in config_entries.items():
         host, username, password, token = configs
