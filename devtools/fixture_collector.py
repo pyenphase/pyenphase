@@ -5,7 +5,7 @@ execute python fixture_collector.py --help for directons
 Copy this file to the Home Assistant config folder. Open a terminal on your HA system
 Navigate to the config folder and execute python fixture_collector.py
 
-Alternatively copy and execute this file to a system with pyenphase installed and 
+Alternatively copy and execute this file to a system with pyenphase installed and
 network cnnectivity to your Home Assistant config folder and the Envoy.
 """
 
