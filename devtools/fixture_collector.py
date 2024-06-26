@@ -1,7 +1,12 @@
 """Create test fixture file set for pyenphase by scanning known endpoints on Envoy.
 
+execute python fixture_collector.py --help for directons
+
 Copy this file to the Home Assistant config folder. Open a terminal on your HA system
-Navigate to the config folder and execute python fixture_collector.py --help for directons.
+Navigate to the config folder and execute python fixture_collector.py
+
+Alternatively copy and execute this file to a system with pyenphase installed and 
+network cnnectivity to your Home Assistant config folder and the Envoy.
 """
 
 import argparse
@@ -170,7 +175,7 @@ if __name__ == "__main__":
         action="store_true",
     )
     parser.add_argument(
-        "-l", "--label", help="Label to append to output folder and zip file"
+        "-l", "--label", help="Label to append to output folder and zip file names"
     )
     parser.add_argument(
         "-r",
@@ -178,14 +183,16 @@ if __name__ == "__main__":
         const=".",
         nargs="?",
         dest="ha_config_folder",
-        help="Read envoyname, username, password and token from HA config file. Use -c path_to_ha_config_folder. Default is current folder.",
+        help="Read envoyname, username, password and token from HA config folder.\
+            Use -r path_to_ha_config_folder. Default is current folder.\
+                Overrides any specified username, password and token.",
     )
 
     parser.add_argument(
         "-e",
         "--envoyname",
         default="envoy.local",
-        help="Envoy Name or IP address. Default is envoy.local",
+        help="Envoy Name or IP address. IP is preferred, default is envoy.local",
     )
     parser.add_argument(
         "-u", "--username", help="Username (for Envoy or for Enphase token website)"
