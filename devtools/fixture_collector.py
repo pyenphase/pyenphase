@@ -216,8 +216,8 @@ if __name__ == "__main__":
         target_ha_file = os.path.join(read_ha_config, ".storage/core.config_entries")
         config_entries = _read_ha_config(target_ha_file)
     else:
-        username: str | None = args.username
-        password: str | None = args.password
+        username = args.username
+        password = args.password
         token = args.token
         if not username: 
             username = os.environ.get("ENVOY_USERNAME", input("Enter the Username: "))
