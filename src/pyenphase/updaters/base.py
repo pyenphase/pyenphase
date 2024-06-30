@@ -32,6 +32,8 @@ class EnvoyUpdater:
     async def _json_request(self, end_point: str) -> Any:
         """Make a request to the Envoy and return the JSON response."""
         response = await self._request(end_point)
+        if not (200 <= response.status_code < 300):
+            raise EnvoyHTTPStatusError(response.status_code, response.url)
         return json_loads(end_point, response.content)
 
     async def _json_probe_request(self, end_point: str) -> Any:
