@@ -36,6 +36,7 @@ from .exceptions import (
     EnvoyAuthenticationRequired,
     EnvoyCommunicationError,
     EnvoyFeatureNotAvailable,
+    EnvoyPoorDataQuality,
     EnvoyProbeFailed,
 )
 from .firmware import EnvoyFirmware
@@ -402,6 +403,24 @@ class Envoy:
         self._updaters = updaters
         self._supported_features = supported_features
 
+    def _validate_update(self, data: EnvoyData) -> None:
+        """Perform some overall validation checks and raise for issues."""
+        if self._firmware.version.major == "3" and data.system_production:
+            # FW R3.x will return status 200 with all zeros right after startup
+            # where never versions return status 503 to signal not ready yet
+            # raise error to avoid inserting zero's in historical series.
+            production = data.system_production
+            if (
+                production.watts_now
+                + production.watt_hours_today
+                + production.watt_hours_last_7_days
+                + production.watt_hours_lifetime
+            ) == 0:
+                raise EnvoyPoorDataQuality(
+                    "Data rejected on rule: "
+                    f"FW 3.x production all zero at startup ({self._firmware.version})."
+                )
+
     async def update(self) -> EnvoyData:
         """Update data."""
         # Some of the updaters user the same endpoint
@@ -418,6 +437,7 @@ class Envoy:
             except EndOfStream as err:
                 raise EnvoyCommunicationError("EndOfStream at update") from err
 
+        self._validate_update(data)
         self.data = data
         return data
 
