@@ -1,4 +1,5 @@
 import logging
+import time
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from functools import cached_property, partial
@@ -225,6 +226,7 @@ class Envoy:
 
         url = self.auth.get_endpoint_url(endpoint)
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
+        request_start = time.time()
 
         if data:
             if debugon:
@@ -250,6 +252,7 @@ class Envoy:
                 timeout=self._timeout,
             )
 
+        request_end = time.time()
         status_code = response.status_code
         if status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
             raise EnvoyAuthenticationRequired(
@@ -261,7 +264,8 @@ class Envoy:
             content_type = response.headers.get("content-type")
             content = response.content
             _LOGGER.debug(
-                "Request reply from %s status %s: %s %s",
+                "Request reply in %s sec from %s status %s: %s %s",
+                round(request_end - request_start, 1),
                 url,
                 status_code,
                 content_type,
