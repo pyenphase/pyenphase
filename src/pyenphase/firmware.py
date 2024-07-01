@@ -69,7 +69,8 @@ class EnvoyFirmware:
         """Obtain the firmware version for Envoy authentication."""
         # <envoy>/info will return XML with the firmware version
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
-        request_start = time.time()
+        if debugon:
+            request_start = time.monotonic()
         try:
             result = await self._get_info()
         except httpx.TimeoutException:
@@ -79,9 +80,9 @@ class EnvoyFirmware:
         except httpx.HTTPError:
             raise EnvoyFirmwareCheckError(500, "Unable to query firmware version")
 
-        request_end = time.time()
         if (status_code := result.status_code) == 200:
             if debugon:
+                request_end = time.monotonic()
                 content_type = result.headers.get("content-type")
                 content = result.content
                 _LOGGER.debug(

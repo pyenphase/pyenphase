@@ -226,7 +226,8 @@ class Envoy:
 
         url = self.auth.get_endpoint_url(endpoint)
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
-        request_start = time.time()
+        if debugon:
+            request_start = time.monotonic()
 
         if data:
             if debugon:
@@ -252,7 +253,6 @@ class Envoy:
                 timeout=self._timeout,
             )
 
-        request_end = time.time()
         status_code = response.status_code
         if status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
             raise EnvoyAuthenticationRequired(
@@ -261,6 +261,7 @@ class Envoy:
             )
         # show all responses centrally when in debug
         if debugon:
+            request_end = time.monotonic()
             content_type = response.headers.get("content-type")
             content = response.content
             _LOGGER.debug(
