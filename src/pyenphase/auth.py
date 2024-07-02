@@ -93,7 +93,7 @@ class EnvoyTokenAuth(EnvoyAuth):
             "Unable to verify token for Envoy authentication."
         )
 
-    async def _obtain_token(self) -> None:
+    async def _obtain_token(self) -> str:
         """Obtain the token for Envoy authentication."""
         # Raise if we don't have cloud credentials
         if not self.cloud_username or not self.cloud_password:
