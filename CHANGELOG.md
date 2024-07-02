@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.20.4 (2024-07-02)
+
+### Fix
+
+* For fw 3.x mark production with only zero values as EnvoyPoorDataQuality error ([#173](https://github.com/pyenphase/pyenphase/issues/173)) ([`8b6b302`](https://github.com/pyenphase/pyenphase/commit/8b6b302b626742e101708c5bbd0c0a46e86f9cb7))
+
 ## v1.20.3 (2024-05-07)
 
 ### Fix
