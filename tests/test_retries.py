@@ -65,9 +65,9 @@ async def test_full_disconnected_from_start_with_7_6_175_standard():
     envoy._firmware._get_info.retry.wait = wait_none()
     envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
 
-    respx.get("/info").mock(
-        return_value=Response(200, text="")
-    ).side_effect = httpx.ConnectError("Test timeoutexception")
+    respx.get("/info").mock(return_value=Response(200, text="")).side_effect = (
+        httpx.ConnectError("Test timeoutexception")
+    )
 
     with pytest.raises(EnvoyFirmwareFatalCheckError):
         await envoy.setup()
