@@ -1,0 +1,184 @@
+[
+  {
+    "serialNumber": "482218039091",
+    "lastReportDate": 1718213113,
+    "devType": 1,
+    "lastReportWatts": 67,
+    "maxReportWatts": 122
+  },
+  {
+    "serialNumber": "482218039209",
+    "lastReportDate": 1718213114,
+    "devType": 1,
+    "lastReportWatts": 61,
+    "maxReportWatts": 115
+  },
+  {
+    "serialNumber": "482218039304",
+    "lastReportDate": 1718213115,
+    "devType": 1,
+    "lastReportWatts": 69,
+    "maxReportWatts": 132
+  },
+  {
+    "serialNumber": "482218039386",
+    "lastReportDate": 1718213116,
+    "devType": 1,
+    "lastReportWatts": 64,
+    "maxReportWatts": 112
+  },
+  {
+    "serialNumber": "482218039390",
+    "lastReportDate": 1718213117,
+    "devType": 1,
+    "lastReportWatts": 63,
+    "maxReportWatts": 123
+  },
+  {
+    "serialNumber": "482218039529",
+    "lastReportDate": 1718213143,
+    "devType": 1,
+    "lastReportWatts": 75,
+    "maxReportWatts": 120
+  },
+  {
+    "serialNumber": "482218039700",
+    "lastReportDate": 1718213203,
+    "devType": 1,
+    "lastReportWatts": 89,
+    "maxReportWatts": 135
+  },
+  {
+    "serialNumber": "482218039736",
+    "lastReportDate": 1718213204,
+    "devType": 1,
+    "lastReportWatts": 84,
+    "maxReportWatts": 118
+  },
+  {
+    "serialNumber": "482218039788",
+    "lastReportDate": 1718213234,
+    "devType": 1,
+    "lastReportWatts": 95,
+    "maxReportWatts": 100
+  },
+  {
+    "serialNumber": "482218039880",
+    "lastReportDate": 1718213235,
+    "devType": 1,
+    "lastReportWatts": 96,
+    "maxReportWatts": 134
+  },
+  {
+    "serialNumber": "482218039911",
+    "lastReportDate": 1718213236,
+    "devType": 1,
+    "lastReportWatts": 97,
+    "maxReportWatts": 133
+  },
+  {
+    "serialNumber": "482218039918",
+    "lastReportDate": 1718213237,
+    "devType": 1,
+    "lastReportWatts": 99,
+    "maxReportWatts": 136
+  },
+  {
+    "serialNumber": "482218042609",
+    "lastReportDate": 1718213237,
+    "devType": 1,
+    "lastReportWatts": 95,
+    "maxReportWatts": 107
+  },
+  {
+    "serialNumber": "482218042662",
+    "lastReportDate": 1718213239,
+    "devType": 1,
+    "lastReportWatts": 90,
+    "maxReportWatts": 116
+  },
+  {
+    "serialNumber": "482218042737",
+    "lastReportDate": 1718213240,
+    "devType": 1,
+    "lastReportWatts": 96,
+    "maxReportWatts": 130
+  },
+  {
+    "serialNumber": "482218042901",
+    "lastReportDate": 1718213242,
+    "devType": 1,
+    "lastReportWatts": 96,
+    "maxReportWatts": 103
+  },
+  {
+    "serialNumber": "482218043030",
+    "lastReportDate": 1718213242,
+    "devType": 1,
+    "lastReportWatts": 95,
+    "maxReportWatts": 102
+  },
+  {
+    "serialNumber": "482218043257",
+    "lastReportDate": 1718213243,
+    "devType": 1,
+    "lastReportWatts": 98,
+    "maxReportWatts": 137
+  },
+  {
+    "serialNumber": "482218043590",
+    "lastReportDate": 1718213245,
+    "devType": 1,
+    "lastReportWatts": 95,
+    "maxReportWatts": 108
+  },
+  {
+    "serialNumber": "482218043592",
+    "lastReportDate": 1718213264,
+    "devType": 1,
+    "lastReportWatts": 98,
+    "maxReportWatts": 106
+  },
+  {
+    "serialNumber": "482218043652",
+    "lastReportDate": 1718213265,
+    "devType": 1,
+    "lastReportWatts": 101,
+    "maxReportWatts": 107
+  },
+  {
+    "serialNumber": "482218043981",
+    "lastReportDate": 1718213266,
+    "devType": 1,
+    "lastReportWatts": 96,
+    "maxReportWatts": 121
+  },
+  {
+    "serialNumber": "482218047061",
+    "lastReportDate": 1718213267,
+    "devType": 1,
+    "lastReportWatts": 100,
+    "maxReportWatts": 125
+  },
+  {
+    "serialNumber": "482218047087",
+    "lastReportDate": 1718213268,
+    "devType": 1,
+    "lastReportWatts": 101,
+    "maxReportWatts": 101
+  },
+  {
+    "serialNumber": "482218047088",
+    "lastReportDate": 1718213269,
+    "devType": 1,
+    "lastReportWatts": 98,
+    "maxReportWatts": 104
+  },
+  {
+    "serialNumber": "482218047099",
+    "lastReportDate": 1718212938,
+    "devType": 1,
+    "lastReportWatts": 74,
+    "maxReportWatts": 107
+  }
+]

@@ -112,6 +112,15 @@ def prep_envoy(
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(401))
 
+    if "ivp_ss_gen_config" in files:
+        try:
+            json_data = load_json_fixture(version, "ivp_ss_gen_config")
+        except json.decoder.JSONDecodeError:
+            json_data = {}
+        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
+
 
 def updater_features(updaters: list[EnvoyUpdater]) -> dict[str, SupportedFeatures]:
     """Return the updater supported features flags"""

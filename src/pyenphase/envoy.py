@@ -50,6 +50,7 @@ from .updaters.api_v1_production import EnvoyApiV1ProductionUpdater
 from .updaters.api_v1_production_inverters import EnvoyApiV1ProductionInvertersUpdater
 from .updaters.base import EnvoyUpdater
 from .updaters.ensemble import EnvoyEnembleUpdater
+from .updaters.generator import EnvoyGeneratorUpdater
 from .updaters.meters import EnvoyMetersUpdater
 from .updaters.production import (
     EnvoyProductionJsonFallbackUpdater,
@@ -74,6 +75,7 @@ UPDATERS: list[type["EnvoyUpdater"]] = [
     EnvoyApiV1ProductionInvertersUpdater,
     EnvoyEnembleUpdater,
     EnvoyTariffUpdater,
+    EnvoyGeneratorUpdater,
 ]
 
 
