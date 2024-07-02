@@ -1,4 +1,5 @@
 """Model for the Encharge/IQ Battery."""
+
 # Data Source: URL_ENSEMBLE_INVENTORY (primary) & URL_ENCHARGE_BATTERY
 
 from __future__ import annotations

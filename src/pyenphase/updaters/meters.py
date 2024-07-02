@@ -1,4 +1,5 @@
 """Envoy CT Meter updater"""
+
 import logging
 from typing import Any
 

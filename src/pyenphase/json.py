@@ -1,4 +1,5 @@
 """JSON utilities for pyenphase."""
+
 import logging
 from typing import Any
 

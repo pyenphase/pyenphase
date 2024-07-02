@@ -56,6 +56,7 @@ When in `net-consumption` mode, the [energy_delivered](#pyenphase.models.meters.
 [Active_power](#pyenphase.models.meters.EnvoyMeterData.active_power) is the current power flow and will be positive or negative based on actual flow of energy.
 
 [^1]: Provided the CT is installed on the main grid entry.
+
 [^2]: Variations between firmware release may exist.
 
 ```python

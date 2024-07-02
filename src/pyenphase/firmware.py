@@ -1,4 +1,5 @@
 """Envoy Firmware detection"""
+
 import logging
 
 import httpx
