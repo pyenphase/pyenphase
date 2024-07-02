@@ -17,6 +17,7 @@ from pyenphase.exceptions import (
     ENDPOINT_PROBE_EXCEPTIONS,
     EnvoyAuthenticationRequired,
     EnvoyFeatureNotAvailable,
+    EnvoyPoorDataQuality,
     EnvoyProbeFailed,
 )
 from pyenphase.models.envoy import EnvoyData
@@ -1242,3 +1243,56 @@ async def test_with_3_17_3_firmware():
             max_report_watts=239,
         ),
     }
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_with_3_17_3_firmware_zero_production():
+    """Verify with 3.17.3 firmware."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
+    version = "3.17.3"
+    respx.get("/info").mock(
+        return_value=Response(200, text=load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(return_value=Response(404))
+    respx.get("/production.json").mock(return_value=Response(404))
+    respx.get("/api/v1/production").mock(
+        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
+    )
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            200, json=load_json_fixture(version, "api_v1_production_inverters")
+        )
+    )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+
+    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
+
+    envoy = await get_mock_envoy()
+
+    respx.get("/api/v1/production").mock(
+        return_value=Response(
+            status_code=200,
+            json={
+                "wattHoursToday": 0,
+                "wattHoursSevenDays": 0,
+                "wattHoursLifetime": 0,
+                "wattsNow": 0,
+            },
+        )
+    )
+
+    with pytest.raises(EnvoyPoorDataQuality):
+        await envoy.update()
