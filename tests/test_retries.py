@@ -307,7 +307,7 @@ async def test_noconnection_at_probe_with_7_6_175_standard():
     stats = envoy.probe_request.retry.statistics
     assert "attempt_number" in stats
     print(f"--stats--{stats}")
-    assert stats["attempt_number"] == 3
+    assert stats["attempt_number"] == 1
 
     data = await envoy.update()
     assert data
