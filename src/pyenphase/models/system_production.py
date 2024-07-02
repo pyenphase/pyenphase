@@ -1,4 +1,5 @@
 """Model for the Envoy's production data."""
+
 # Data Source: URL_PRODUCTION
 from __future__ import annotations
 
@@ -19,7 +20,9 @@ class EnvoySystemProduction:
     """Model for the Envoy's production data."""
 
     watt_hours_lifetime: int  #: Lifetime Energy produced
-    watt_hours_last_7_days: int  #: Energy produced in previous 7 days (not including today)
+    watt_hours_last_7_days: (
+        int  #: Energy produced in previous 7 days (not including today)
+    )
     watt_hours_today: int  #: Energy produced since start of day
     watts_now: int  #: Current Power production
 
