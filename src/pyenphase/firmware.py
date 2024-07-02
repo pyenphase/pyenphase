@@ -1,6 +1,7 @@
 """Envoy Firmware detection"""
 
 import logging
+import time
 
 import httpx
 from awesomeversion import AwesomeVersion
@@ -28,6 +29,7 @@ class EnvoyFirmware:
         "_firmware_version",
         "_serial_number",
         "_part_number",
+        "_url",
     )
 
     def __init__(
@@ -41,6 +43,7 @@ class EnvoyFirmware:
         self._firmware_version: str | None = None
         self._serial_number: str | None = None
         self._part_number: str | None = None
+        self._url: str = ""
 
     @retry(
         retry=retry_if_exception_type((httpx.NetworkError, httpx.RemoteProtocolError)),
@@ -51,22 +54,24 @@ class EnvoyFirmware:
     )
     async def _get_info(self) -> httpx.Response:
         """Obtain the firmware version for Envoy authentication."""
-        url = f"https://{self._host}/info"
-        _LOGGER.debug("Requesting %s with timeout %s", url, LOCAL_TIMEOUT)
+        self._url = f"https://{self._host}/info"
+        _LOGGER.debug("Requesting %s with timeout %s", self._url, LOCAL_TIMEOUT)
         try:
-            return await self._client.get(url, timeout=LOCAL_TIMEOUT)
+            return await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
         except (httpx.ConnectError, httpx.TimeoutException):
             # Firmware < 7.0.0 does not support HTTPS so we need to try HTTP
             # as a fallback, worse sometimes http will redirect to https://localhost
             # which is not helpful
-            url = f"http://{self._host}/info"
-            _LOGGER.debug("Retrying to %s with timeout %s", url, LOCAL_TIMEOUT)
-            return await self._client.get(url, timeout=LOCAL_TIMEOUT)
+            self._url = f"http://{self._host}/info"
+            _LOGGER.debug("Retrying to %s with timeout %s", self._url, LOCAL_TIMEOUT)
+            return await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
 
     async def setup(self) -> None:
         """Obtain the firmware version for Envoy authentication."""
         # <envoy>/info will return XML with the firmware version
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
+        if debugon:
+            request_start = time.monotonic()
         try:
             result = await self._get_info()
         except httpx.TimeoutException:
@@ -78,10 +83,13 @@ class EnvoyFirmware:
 
         if (status_code := result.status_code) == 200:
             if debugon:
+                request_end = time.monotonic()
                 content_type = result.headers.get("content-type")
                 content = result.content
                 _LOGGER.debug(
-                    "Request reply status %s: %s %s",
+                    "Request reply in %s sec from %s status %s: %s %s",
+                    round(request_end - request_start, 1),
+                    self._url,
                     status_code,
                     content_type,
                     content,
