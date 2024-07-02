@@ -1,4 +1,5 @@
 """Model for the Envoy tariff data."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -32,9 +33,11 @@ class EnvoyTariff:
             currency=data["currency"],
             logger=data.get("logger"),
             date=data.get("date"),
-            storage_settings=EnvoyStorageSettings.from_api(data["storage_settings"])
-            if data.get("storage_settings")
-            else None,
+            storage_settings=(
+                EnvoyStorageSettings.from_api(data["storage_settings"])
+                if data.get("storage_settings")
+                else None
+            ),
             single_rate=data["single_rate"],
             seasons=data["seasons"],
             seasons_sell=data.get("seasons_sell"),
@@ -77,9 +80,11 @@ class EnvoyStorageSettings:
             # It appears a `mode` value of `economy` and `savings-mode` is interchangeable
             # However, the Enlighten app is using the `economy` value, so we will convert
             # `savings-mode` to `economy`
-            mode=EnvoyStorageMode.SAVINGS
-            if data["mode"] == EnvoyStorageMode.LEGACY_SAVINGS.value
-            else EnvoyStorageMode(data["mode"]),
+            mode=(
+                EnvoyStorageMode.SAVINGS
+                if data["mode"] == EnvoyStorageMode.LEGACY_SAVINGS.value
+                else EnvoyStorageMode(data["mode"])
+            ),
             operation_mode_sub_type=data["operation_mode_sub_type"],
             reserved_soc=data["reserved_soc"],
             very_low_soc=data["very_low_soc"],
