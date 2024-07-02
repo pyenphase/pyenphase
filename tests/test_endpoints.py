@@ -992,6 +992,87 @@ LOGGER = logging.getLogger(__name__)
                 },
             },
         ),
+        (
+            "8.2.127_with_generator_running",
+            "800-00647-r09",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.ENPOWER
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.DUALPHASE
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.GENERATOR,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
+                | SupportedFeatures.ENPOWER,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE
+                | SupportedFeatures.CTMETERS,
+                "EnvoyGeneratorUpdater": SupportedFeatures.GENERATOR,
+            },
+            2,
+            {
+                "ctMeters": 2,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "consumptionMeter": CtType.NET_CONSUMPTION,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": None,
+            },
+            {},
+            {},
+            {
+                "eid": 704643328,
+                "active_power": 2336,
+                "measurement_type": CtType.PRODUCTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                "eid": 704643584,
+                "active_power": 196,
+                "measurement_type": CtType.NET_CONSUMPTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {},
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385169,
+                    "active_power": 1173,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385170,
+                    "active_power": 1163,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385425,
+                    "active_power": 268,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385426,
+                    "active_power": -72,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {},
+        ),
     ],
     ids=[
         "5.0.62",
@@ -1012,6 +1093,7 @@ LOGGER = logging.getLogger(__name__)
         "7.6.185_with_cts_and_battery_3t",
         "8.1.41",
         "8.2.127_with_3cts_and_battery_split",
+        "8.2.127_with_generator_running",
     ],
 )
 @pytest.mark.asyncio

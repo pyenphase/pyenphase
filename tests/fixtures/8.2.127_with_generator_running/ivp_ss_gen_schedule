@@ -1,0 +1,38 @@
+{
+    "exercise_config": {
+        "freq_in_weeks": 1,
+        "start": 750,
+        "duration": 30,
+        "day": "Sun"
+    },
+    "default_soc": {
+        "start_soc": 30,
+        "stop_soc": 70
+    },
+    "schedule": {
+        "default": [
+            {
+                "id": "always_on",
+                "start": "1/1",
+                "end": "12/31",
+                "days": [
+                    {
+                        "id": "all_days",
+                        "week_days": "Mon,Tue,Wed,Thu,Fri,Sat,Sun",
+                        "periods": [
+                            {
+                                "id": "normal_1",
+                                "start": 0.0,
+                                "duration": 1440.0,
+                                "start_soc": 100.0,
+                                "stop_soc": -1.0,
+                                "setting": "AON"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "last_updated_by": "ITK"
+}
