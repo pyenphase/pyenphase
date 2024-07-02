@@ -8,7 +8,7 @@ Phase names are enumerated as `L1`, `L2`, and `L3` by `pyenphase.const.PhaseName
 
 Be aware that `phase_count` and `phase_mode` applies for all configured CT's. The Envoy metered can however be configured with only 1, 2 or all 3 CT. In this case the not used CT data in `system_production_phases` or `system_consumption_phases` or `system_storage_phases` will be `None`
 
-The Envoy property [active_phase_count](#pyenphase.Envoy.active_phase_count) reports the number of phases reported in the production and consumption report. This will be 0 for `single` and `split` phase use and the atual used phases for `three` mode.
+The Envoy property [active_phase_count](#pyenphase.Envoy.active_phase_count) reports the number of phases reported in the production and consumption report. This will be 0 for `single` and `split` phase use and the actual used phases for `three` mode.
 
 ```python
 

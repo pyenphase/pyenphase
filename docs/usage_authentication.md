@@ -13,7 +13,7 @@ await envoy.authenticate(username=username, password=password, token=token)
 
 ## Obtain and renew token
 
-Upon completion of the authentication, the token can be requested and stored for later re-use in authentication. The application should check for [token expiry](#pyenphase.auth.EnvoyTokenAuth.expire_timestamp) and request timely [renewal](#pyenphase.auth.EnvoyTokenAuth.refresh). Until the token is expired it can be used with each authenticate request.
+Upon completion of the authentication, the token can be requested and stored for later reuse in authentication. The application should check for [token expiry](#pyenphase.auth.EnvoyTokenAuth.expire_timestamp) and request timely [renewal](#pyenphase.auth.EnvoyTokenAuth.refresh). Until the token is expired it can be used with each authenticate request.
 
 ```python
 from pyenphase import Envoy
