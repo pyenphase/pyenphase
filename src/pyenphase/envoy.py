@@ -436,6 +436,8 @@ class Envoy:
                 await updater.update(data)
             except EndOfStream as err:
                 raise EnvoyCommunicationError("EndOfStream at update") from err
+            except (httpx.ConnectError, httpx.TimeoutException) as err:
+                raise EnvoyCommunicationError(f"{err}") from err
 
         self._validate_update(data)
         self.data = data
