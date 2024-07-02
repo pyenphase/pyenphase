@@ -1,4 +1,5 @@
 """Model for the Envoy's consumption data."""
+
 # Data Source: URL_PRODUCTION
 
 from __future__ import annotations
@@ -12,8 +13,12 @@ class EnvoySystemConsumption:
     """Model for the Envoy's (total, house) consumption data."""
 
     watt_hours_lifetime: int  #: Lifetime Energy consumed (total-consumption, house)
-    watt_hours_last_7_days: int  #: Energy consumed in previous 7 days (not including today)
-    watt_hours_today: int  #: Energy consumption since start of day (total-consumption, house)
+    watt_hours_last_7_days: (
+        int  #: Energy consumed in previous 7 days (not including today)
+    )
+    watt_hours_today: (
+        int  #: Energy consumption since start of day (total-consumption, house)
+    )
     watts_now: int  #: Current Power consumption (total-consumption, house)
 
     @classmethod
