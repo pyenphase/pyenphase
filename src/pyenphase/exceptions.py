@@ -58,6 +58,13 @@ class EnvoyFeatureNotAvailable(EnvoyError):
     """Exception raised when the Envoy feature is not available."""
 
 
+class EnvoyPoorDataQuality(EnvoyError):
+    """Exception raised when data identifies known issues."""
+
+    def __init__(self, status: str) -> None:
+        self.status = status
+
+
 ENDPOINT_PROBE_EXCEPTIONS = (
     json.JSONDecodeError,
     httpx.HTTPError,

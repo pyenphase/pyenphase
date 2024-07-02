@@ -1,4 +1,5 @@
 """Model for the Envoy's CT Meters."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
