@@ -382,7 +382,7 @@ async def test_noconnection_at_update_with_7_6_175_standard():
         httpx.NetworkError("Test timeoutexception"),
     ]
 
-    with pytest.raises(httpx.NetworkError):
+    with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
     stats = envoy.request.retry.statistics
