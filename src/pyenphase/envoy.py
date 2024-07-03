@@ -1,4 +1,5 @@
 import logging
+import time
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from functools import cached_property, partial
@@ -228,6 +229,8 @@ class Envoy:
 
         url = self.auth.get_endpoint_url(endpoint)
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
+        if debugon:
+            request_start = time.monotonic()
 
         if data:
             if debugon:
@@ -261,10 +264,12 @@ class Envoy:
             )
         # show all responses centrally when in debug
         if debugon:
+            request_end = time.monotonic()
             content_type = response.headers.get("content-type")
             content = response.content
             _LOGGER.debug(
-                "Request reply from %s status %s: %s %s",
+                "Request reply in %s sec from %s status %s: %s %s",
+                round(request_end - request_start, 1),
                 url,
                 status_code,
                 content_type,
