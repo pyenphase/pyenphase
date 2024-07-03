@@ -140,20 +140,19 @@ def _read_ha_config(file_path: str) -> dict[str, list[str | None]]:
             content = json.load(fp)
     except (FileNotFoundError, ValueError):
         return result
-    else:
-        if content:
-            for entry in content["data"]["entries"]:
-                if entry["domain"] == "enphase_envoy" and entry["source"] != "ignore":
-                    result.update(
-                        {
-                            entry["unique_id"]: [
-                                entry["data"]["host"],
-                                entry["data"]["username"],
-                                entry["data"]["password"],
-                                entry["data"]["token"],
-                            ]
-                        }
-                    )
+
+    if content:
+        for entry in content["data"]["entries"]:
+            if entry["domain"] != "enphase_envoy" or entry["source"] == "ignore":
+                continue
+            data = entry["data"]
+            unique_id = entry["unique_id"]
+            result[unique_id] = [
+                data["host"],
+                data["username"],
+                data["password"],
+                data["token"],
+            ]
 
     return result
 
