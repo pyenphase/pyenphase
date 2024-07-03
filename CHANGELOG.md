@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.20.5 (2024-07-03)
+
+### Fix
+
+* Report EnvoyHTTPStatusError for _json_request if status not in 200-300 ([#171](https://github.com/pyenphase/pyenphase/issues/171)) ([`46fb2b3`](https://github.com/pyenphase/pyenphase/commit/46fb2b386ff1991ba26d4b60628163cff147afa9))
+
 ## v1.20.4 (2024-07-02)
 
 ### Fix
