@@ -17,6 +17,7 @@ from pyenphase.exceptions import (
     EnvoyCommunicationError,
     EnvoyFirmwareCheckError,
     EnvoyFirmwareFatalCheckError,
+    EnvoyHTTPStatusError,
 )
 
 from .common import load_fixture, prep_envoy, start_7_firmware_mock
@@ -429,3 +430,33 @@ async def test_noconnection_at_update_with_7_6_175_standard():
     stats = envoy.request.retry.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 2
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_bad_request_status_7_6_175_standard():
+    """Test request status not between 200-300."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
+    version = "7.6.175_standard"
+    start_7_firmware_mock()
+    prep_envoy(version, info=True)
+    envoy = Envoy("127.0.0.1")
+    envoy._firmware._get_info.retry.wait = wait_none()
+    envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
+
+    await envoy.setup()
+    await envoy.authenticate("username", "password")
+
+    data = await envoy.update()
+    assert data
+
+    # force status 503 on /api/vi/production
+    # test status results in EnvoyHTTPStatusError
+    respx.get("/api/v1/production").mock(return_value=Response(503))
+
+    with pytest.raises(EnvoyHTTPStatusError):
+        await envoy.update()
+
+    stats = envoy.request.retry.statistics
+    assert "attempt_number" in stats
+    assert stats["attempt_number"] == 1
