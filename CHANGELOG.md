@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.20.6 (2024-07-03)
+
+### Fix
+
+*  raise EnvoyCommunicationError for httpx ConnectError and TimeoutException exceptions during Envoy.update ([#170](https://github.com/pyenphase/pyenphase/issues/170)) ([`c6d238f`](https://github.com/pyenphase/pyenphase/commit/c6d238f83b10622cb20493bcf70e4e54deb751d2))
+
 ## v1.20.5 (2024-07-03)
 
 ### Fix

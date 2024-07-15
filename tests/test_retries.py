@@ -348,7 +348,16 @@ async def test_noconnection_at_update_with_7_6_175_standard():
         httpx.TimeoutException("Test timeoutexception"),
     ]
 
-    with pytest.raises(httpx.TimeoutException):
+    with pytest.raises(EnvoyCommunicationError):
+        await envoy.update()
+
+    respx.get("/api/v1/production").mock().side_effect = [
+        httpx.ConnectError("Test timeoutexception"),
+        httpx.ConnectError("Test timeoutexception"),
+        httpx.ConnectError("Test timeoutexception"),
+    ]
+
+    with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
     stats = envoy.request.retry.statistics
@@ -374,7 +383,7 @@ async def test_noconnection_at_update_with_7_6_175_standard():
         httpx.NetworkError("Test timeoutexception"),
     ]
 
-    with pytest.raises(httpx.NetworkError):
+    with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
     stats = envoy.request.retry.statistics
