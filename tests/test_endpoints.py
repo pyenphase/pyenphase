@@ -1318,7 +1318,7 @@ async def test_with_7_x_firmware(
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.close_dry_contact("NC1")
 
-    if (supported_features & SupportedFeatures.GENERATOR):
+    if supported_features & SupportedFeatures.GENERATOR:
         # COV ensemble ENDPOINT_PROBE_EXCEPTIONS
         respx.get("/ivp/ss/gen_config").mock(
             return_value=Response(
