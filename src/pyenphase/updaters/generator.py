@@ -41,10 +41,7 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
 
     async def update(self, envoy_data: EnvoyData) -> None:
         """Update the generator data if supported."""
-        supported_features = self._supported_features
-
-        if supported_features & SupportedFeatures.GENERATOR:
-            generator_config_data: list[dict[str, Any]] = await self._json_request(
-                URL_GEN_CONFIG
-            )
+        generator_config_data: list[dict[str, Any]] = await self._json_request(
+            URL_GEN_CONFIG
+        )
         envoy_data.raw[URL_GEN_CONFIG] = generator_config_data

@@ -1318,6 +1318,22 @@ async def test_with_7_x_firmware(
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.close_dry_contact("NC1")
 
+    if (supported_features & SupportedFeatures.GENERATOR):
+        # COV ensemble ENDPOINT_PROBE_EXCEPTIONS
+        respx.get("/ivp/ss/gen_config").mock(
+            return_value=Response(
+                500, json=load_json_fixture(version, "ivp_ss_gen_config")
+            )
+        )
+        await envoy.probe()
+        # restore from prior changes
+        respx.get("/ivp/ss/gen_config").mock(
+            return_value=Response(
+                200, json=load_json_fixture(version, "ivp_ss_gen_config")
+            )
+        )
+        await envoy.probe()
+
     if (supported_features & SupportedFeatures.ENCHARGE) and (
         supported_features & SupportedFeatures.TARIFF
     ):
