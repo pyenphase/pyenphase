@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.21.0 (2024-07-16)
+
+### Feature
+
+* **generator:** Probe for generator ([#160](https://github.com/pyenphase/pyenphase/issues/160)) ([`42a2533`](https://github.com/pyenphase/pyenphase/commit/42a2533f44ec975c72bd0be9dc70c75a987ff030))
+
 ## v1.20.6 (2024-07-03)
 
 ### Fix
