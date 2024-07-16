@@ -64,6 +64,7 @@ class SupportedFeatures(enum.IntFlag):
     DUALPHASE = 256  #: Envoy metered is configured in split phase mode
     THREEPHASE = 512  #: Envoy metered is configured in three phase mode
     CTMETERS = 1024  #: Envoy has enabled CT meter(s)
+    GENERATOR = 2048  #: Envoy reports generator data
 
 
 class PhaseNames(enum.StrEnum):

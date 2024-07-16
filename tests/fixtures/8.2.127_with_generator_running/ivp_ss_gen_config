@@ -1,0 +1,15 @@
+{
+    "max_cont_gen_amps": 58.3,
+    "min_gen_loading_perc": 5,
+    "max_gen_efficiency_perc": 100,
+    "name_plate_rating_wat": 14.0,
+    "start_method": "Auto",
+    "warm_up_mins": 0,
+    "cool_down_mins": 0,
+    "gen_type": "Standby",
+    "model": "G007223-0, G007224-0, G007225-0 (14kW)",
+    "manufacturer": "Generac",
+    "last_updated_by": "ITK",
+    "generator_id": "",
+    "charge_from_generator": true
+}

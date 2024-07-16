@@ -59,6 +59,15 @@ async def test_with_4_2_27_firmware():
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
+    if "ivp_ss_gen_config" in files:
+        try:
+            json_data = load_json_fixture(version, "ivp_ss_gen_config")
+        except json.decoder.JSONDecodeError:
+            json_data = {}
+        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
+
     respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
 
     envoy = await get_mock_envoy()
@@ -131,6 +140,15 @@ async def test_with_5_0_49_firmware():
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
     else:
         respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+
+    if "ivp_ss_gen_config" in files:
+        try:
+            json_data = load_json_fixture(version, "ivp_ss_gen_config")
+        except json.decoder.JSONDecodeError:
+            json_data = {}
+        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
 
     respx.get("/ivp/meters").mock(return_value=Response(404))
 

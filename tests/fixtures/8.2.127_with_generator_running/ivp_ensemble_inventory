@@ -1,0 +1,67 @@
+[
+    {
+        "type": "ENCHARGE",
+        "devices": [
+            {
+                "part_num": "836-00750-r32",
+                "serial_num": "492234001350",
+                "installed": 1718210586,
+                "device_status": [
+                    "envoy.global.ok",
+                    "prop.done"
+                ],
+                "last_rpt_date": 1718213052,
+                "admin_state": 6,
+                "admin_state_str": "ENCHG_STATE_READY",
+                "created_date": 1718210586,
+                "img_load_date": 1718210586,
+                "img_pnum_running": "2.0.6727_rel/22.15",
+                "bmu_fw_version": "2.1.34",
+                "communicating": true,
+                "sleep_enabled": false,
+                "percentFull": 98,
+                "temperature": 27,
+                "maxCellTemp": 27,
+                "reported_enc_grid_state": "grid-tied",
+                "comm_level_sub_ghz": 2,
+                "comm_level_2_4_ghz": 2,
+                "led_status": 12,
+                "dc_switch_off": false,
+                "encharge_rev": 2,
+                "encharge_capacity": 3360,
+                "phase": "ph-a",
+                "der_index": 2
+            }
+        ]
+    },
+    {
+        "type": "ENPOWER",
+        "devices": [
+            {
+                "part_num": "860-00376-r37",
+                "serial_num": "122210043898",
+                "installed": 1718209911,
+                "device_status": [
+                    "envoy.global.ok",
+                    "prop.done"
+                ],
+                "last_rpt_date": 1718213328,
+                "admin_state": 30,
+                "admin_state_str": "ENPWR_STATE_OPER_GEN_CLOSE",
+                "created_date": 1718209911,
+                "img_load_date": 1718209911,
+                "img_pnum_running": "2.0.5729_rel/22.15",
+                "communicating": true,
+                "temperature": 91,
+                "comm_level_sub_ghz": 5,
+                "comm_level_2_4_ghz": 5,
+                "mains_admin_state": "closed",
+                "mains_oper_state": "open",
+                "Enpwr_grid_mode": "multimode-ongrid",
+                "Enchg_grid_mode": "multimode-generator",
+                "Enpwr_relay_state_bm": 16124,
+                "Enpwr_curr_state_id": 128
+            }
+        ]
+    }
+]
