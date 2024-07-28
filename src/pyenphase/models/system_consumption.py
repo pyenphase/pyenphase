@@ -22,13 +22,15 @@ class EnvoySystemConsumption:
     watts_now: int  #: Current Power consumption (total-consumption, house)
 
     @classmethod
-    def from_production(cls, data: dict[str, Any]) -> EnvoySystemConsumption:
+    def from_production(
+        cls, data: dict[str, Any], consumption_segment: int = 0
+    ) -> EnvoySystemConsumption:
         """Initialize from the production API.
 
         :param data: JSON reply from /production endpoint
         :return: Lifetime, last 7 days, todays energy and current power for total-consumption
         """
-        consumption = data["consumption"][0]
+        consumption = data["consumption"][consumption_segment]
         return cls(
             watt_hours_lifetime=int(round(consumption["whLifetime"])),
             watt_hours_last_7_days=int(round(consumption["whLastSevenDays"])),
@@ -38,7 +40,7 @@ class EnvoySystemConsumption:
 
     @classmethod
     def from_production_phase(
-        cls, data: dict[str, Any], phase: int
+        cls, data: dict[str, Any], phase: int, consumption_segment: int = 0
     ) -> EnvoySystemConsumption | None:
         """Initialize from the production API phase data.
 
@@ -47,7 +49,7 @@ class EnvoySystemConsumption:
         :return: Lifetime, last 7 days, todays energy and current power for total-consumption phase
         """
         # get first consumtpion section which is the total-consumption one.
-        consumption = data["consumption"][0]
+        consumption = data["consumption"][consumption_segment]
         phases = consumption.get("lines")
 
         # Only return data if phase is present.

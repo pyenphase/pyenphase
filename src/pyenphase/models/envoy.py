@@ -29,6 +29,10 @@ class EnvoyData:
     system_production_phases: dict[str, EnvoySystemProduction | None] | None = (
         None  #: Individual phase production data, only for Envoy metered with CT installed
     )
+    system_net_consumption: EnvoySystemConsumption | None = None
+    system_net_consumption_phases: dict[str, EnvoySystemConsumption | None] | None = (
+        None  #: net consumption individual phase data, only for Envoy metered with CT installed
+    )
     ctmeter_production: EnvoyMeterData | None = None  #: Production CT Meter data
     ctmeter_consumption: EnvoyMeterData | None = None  #: Consumption CT Meter data
     ctmeter_storage: EnvoyMeterData | None = None  #: Storage CT Meter data
