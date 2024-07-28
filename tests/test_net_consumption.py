@@ -30,6 +30,7 @@ from .common import (
 
 LOGGER = logging.getLogger(__name__)
 
+
 @pytest.mark.asyncio
 @respx.mock
 async def test_with_4_2_27_firmware():
@@ -79,6 +80,7 @@ async def test_with_4_2_27_firmware():
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
     assert not data.system_net_consumption
     assert not data.system_net_consumption_phases
+
 
 @pytest.mark.parametrize(
     (
@@ -182,7 +184,7 @@ async def test_with_4_2_27_firmware():
                 "watt_hours_today": 0,
                 "watts_now": 48,
             },
-             {},
+            {},
         ),
         (
             "7.3.466_metered_disabled_cts",
@@ -568,7 +570,6 @@ async def test_with_7_x_firmware(
     expected_phase_count = len(net_consumption_phases)
     assert expected_phase_count == reported_phase_count
 
-
     # are all consumption phases reported
     assert (
         envoy.active_phase_count == 0
@@ -577,7 +578,7 @@ async def test_with_7_x_firmware(
     )
     # Test each consumption phase
     for phase in net_consumption_phases:
-        assert (data.system_net_consumption_phases)
+        assert data.system_net_consumption_phases
         assert (consdata := data.system_net_consumption_phases[phase])
         modeldata = net_consumption_phases[phase]
 
