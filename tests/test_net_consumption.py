@@ -2,30 +2,24 @@
 
 import json
 import logging
-from dataclasses import replace
 from os import listdir
 from os.path import isfile, join
 from typing import Any
 
-import orjson
 import pytest
 import respx
 from httpx import Response
 from syrupy.assertion import SnapshotAssertion
 
-from pyenphase.const import URL_GRID_RELAY, URL_TARIFF, PhaseNames
-from pyenphase.envoy import EnvoyProbeFailed, SupportedFeatures
-from pyenphase.exceptions import EnvoyFeatureNotAvailable
-from pyenphase.models.dry_contacts import DryContactStatus
-from pyenphase.models.meters import CtMeterStatus, CtType, EnvoyPhaseMode
-from pyenphase.models.tariff import EnvoyStorageMode
+from pyenphase.const import PhaseNames
+from pyenphase.envoy import SupportedFeatures
+from pyenphase.models.envoy import EnvoyData
 
 from .common import (
     get_mock_envoy,
     load_fixture,
     load_json_fixture,
     start_7_firmware_mock,
-    updater_features,
 )
 
 LOGGER = logging.getLogger(__name__)
