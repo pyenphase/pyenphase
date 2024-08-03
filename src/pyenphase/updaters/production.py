@@ -154,9 +154,13 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             envoy_data.system_consumption = EnvoySystemConsumption.from_production(
                 production_data
             )
+            envoy_data.system_net_consumption = EnvoySystemConsumption.from_production(
+                production_data, consumption_segment=1
+            )
 
             # get consumption phase data if more then 1 phase is found
             phase_consumption: dict[str, EnvoySystemConsumption | None] = {}
+            phase_net_consumption: dict[str, EnvoySystemConsumption | None] = {}
             for phase in range(phase_count if phase_count > 1 else 0):
                 consumption: EnvoySystemConsumption | None = (
                     EnvoySystemConsumption.from_production_phase(production_data, phase)
@@ -165,8 +169,18 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 if consumption:
                     phase_consumption[PHASENAMES[phase]] = consumption
 
+                if net_consumption := (
+                    EnvoySystemConsumption.from_production_phase(
+                        production_data, phase, consumption_segment=1
+                    )
+                ):
+                    phase_net_consumption[PHASENAMES[phase]] = net_consumption
+
             if len(phase_consumption) > 0:
                 envoy_data.system_consumption_phases = phase_consumption
+
+            if len(phase_net_consumption) > 0:
+                envoy_data.system_net_consumption_phases = phase_net_consumption
 
 
 class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):
