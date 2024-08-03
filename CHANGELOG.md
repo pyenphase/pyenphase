@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.22.0 (2024-08-03)
+
+### Feature
+
+* **netconsumption:** Add system_net_consumption and phases ([#177](https://github.com/pyenphase/pyenphase/issues/177)) ([`c734a6d`](https://github.com/pyenphase/pyenphase/commit/c734a6d67b6ac355ba528fcf78fd86a33e48a419))
+
 ## v1.21.0 (2024-07-16)
 
 ### Feature
