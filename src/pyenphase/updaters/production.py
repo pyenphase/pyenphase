@@ -169,12 +169,11 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 if consumption:
                     phase_consumption[PHASENAMES[phase]] = consumption
 
-                net_consumption: EnvoySystemConsumption | None = (
+                if net_consumption := (
                     EnvoySystemConsumption.from_production_phase(
                         production_data, phase, consumption_segment=1
                     )
-                )
-                if net_consumption:
+                ):
                     phase_net_consumption[PHASENAMES[phase]] = net_consumption
 
             if len(phase_consumption) > 0:
