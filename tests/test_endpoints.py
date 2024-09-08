@@ -1478,7 +1478,10 @@ async def test_with_7_x_firmware(
             assert "date" not in new_model.to_api()
 
         if envoy.data.tariff.storage_settings.opt_schedules is not None:
-            assert new_model.to_api()["opt_schedules"] == envoy.data.tariff.storage_settings.opt_schedules
+            assert (
+                new_model.to_api()["opt_schedules"]
+                == envoy.data.tariff.storage_settings.opt_schedules
+            )
         else:
             assert "opt_schedules" not in new_model.to_api()
 
