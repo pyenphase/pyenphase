@@ -128,7 +128,22 @@ class Envoy:
         password: str | None = None,
         token: str | None = None,
     ) -> None:
-        """Authenticate to the Envoy based on firmware version."""
+        """Authenticate to the Envoy based on firmware version.
+
+        If firmware version retrieved in Envoy.setup is < 7 then create DigestAuth using
+        passed username and password. Use 'envoy' or 'installer' username and blank password.
+
+        If Firmware is >= 7 create JWT Token based authorization. If token is passed, use
+        it for authorization. If no token is passed, username and password should be
+        Enlighten Cloud credentials to obtain a token. Validate the token with the local Envoy.
+
+        :param username: Enligthen Cloud username or local Envoy username, defaults to None
+        :param password: Enligthen Cloud password or local Envoy password, defaults to None
+        :param token: Token to use with authentication, defaults to None
+        :raises EnvoyAuthenticationRequired: Authentication failed with the local Envoy,
+            provided token is expired or no token could be obtained from Enlighten cloud 
+            due to error or missing parameters.
+        """
         if self._firmware.version < AUTH_TOKEN_MIN_VERSION:
             # Envoy firmware using old envoy/installer authentication
             _LOGGER.debug(

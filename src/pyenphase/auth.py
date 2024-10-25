@@ -14,14 +14,24 @@ from .ssl import SSL_CONTEXT
 
 
 class EnvoyAuth:
-    """Base class for Envoy authentication."""
+    """Base class for local Envoy authentication."""
 
     def __init__(self, host: str) -> None:
-        """Initialize the EnvoyAuth class."""
+        """Base class for local Envoy authentication.
+        
+        :param host: local Envoy DNS name or IP Address
+        
+        """
 
     @abstractmethod
     async def setup(self, client: httpx.AsyncClient) -> None:
-        """Obtain the token for Envoy authentication."""
+        """Setup token based authentication with the local Envoy.
+
+        Required for Envoy firmware >= 7.0
+
+        :param client: a httpx Async client to communicate with the local Envoy,
+
+        """
 
     @abstractproperty
     def cookies(self) -> dict[str, str]:
@@ -29,18 +39,29 @@ class EnvoyAuth:
 
     @abstractproperty
     def auth(self) -> httpx.DigestAuth | None:
-        """Return the httpx auth object."""
+        """Setup Digest authentication for local Envoy.
+        
+        Required for Envoy firmware < 7.0
+
+        """
 
     @abstractproperty
     def headers(self) -> dict[str, str]:
-        """Return the auth headers."""
+        """Return the auth headers for Envoy communication."""
 
     @abstractmethod
     def get_endpoint_url(self, endpoint: str) -> str:
-        """Return the URL for the endpoint."""
+        """Return the URL for the endpoint.
 
+        :param endpoint: Envoy Endpoint to access, start with leading /
+
+        :return: formatted full URL string
+        """
 
 class EnvoyTokenAuth(EnvoyAuth):
+    """Class to authenticate with Envoy using Tokens."""
+    # autodoc docstring is supplied from __init__
+
     JSON_LOGIN_URL = "https://enlighten.enphaseenergy.com/login/login.json?"
     TOKEN_URL = "https://entrez.enphaseenergy.com/tokens"  # nosec
 
@@ -52,6 +73,22 @@ class EnvoyTokenAuth(EnvoyAuth):
         envoy_serial: str | None = None,
         token: str | None = None,
     ) -> None:
+        """Class to authenticate with Envoy using Tokens.
+
+        Use with Envoy firmware 7.x and newer
+
+        :param host: local Envoy DNS name or IP Address
+        :param cloud_username: Enligthen Cloud username, required to obtain new
+            token when token is not specified or expired, defaults to None
+        :param cloud_password: Enligthen Cloud password, required to obtain new
+            token when token is not specified or expired, defaults to None
+        :param envoy_serial: Envoy serial number, required to obtain new
+            token when token is not specified or expired, defaults to None
+        :param token: Token to use with authentication, if not specified,
+            one will be obtained from Enlighten cloud if username, password
+            and serial are specified, defaults to None
+
+        """
         self.host = host
         self.cloud_username = cloud_username
         self.cloud_password = cloud_password
@@ -62,7 +99,20 @@ class EnvoyTokenAuth(EnvoyAuth):
         self._cookies: dict[str, str] = {}
 
     async def setup(self, client: httpx.AsyncClient) -> None:
-        """Obtain the token for Envoy authentication."""
+        """Setup token based authentication with the local Envoy
+
+        If no token is specified, a token is obtained from Enlighten Cloud using
+        specified username, password and serialnumber. With the specified or obtained
+        token, validates the token with the local Envoy. New or updated token
+        can be acccessed using the token property. Token is not stored persistent,
+        caller should store and specify token over restarts.
+
+        :param client: a httpx Async client to communicate with the local Envoy,
+        :raises EnvoyAuthenticationError: Authentication failed with the local Envoy
+            or no token could be obtained from Enlighten cloud due to error or
+            missing parameters,
+
+        """
         if not self._token:
             self._token = await self._obtain_token()
 
@@ -156,12 +206,27 @@ class EnvoyTokenAuth(EnvoyAuth):
             return response.text
 
     async def refresh(self) -> None:
-        """Refresh the token for Envoy authentication."""
+        """Refresh the token for Envoy authentication.
+
+        Retrieves a new token from the Enlighten cloud using
+        specified username, password and Envoy serial number of
+        the class object. Updated token can be acccessed
+        using the token property. Token is not stored persistent,
+        caller should store it after refresh and specify token
+        over restarts.
+
+        """
         self._token = await self._obtain_token()
 
     @property
     def expire_timestamp(self) -> int:
-        """Return the remaining seconds for the token."""
+        """Return the expiration time for the token.
+
+        Owner useraccount type tokens are valid for a year 
+        while installer tokens are only valid for 12 hours.
+
+        :return: epoch expiration time
+        """
         jwt_payload = jwt.decode(self.token, options={"verify_signature": False})
         return cast(int, jwt_payload["exp"])
 
@@ -183,7 +248,16 @@ class EnvoyTokenAuth(EnvoyAuth):
 
     @property
     def token(self) -> str:
-        """Return token retrieved from enligthen"""
+        """Return token used with the Envoy.
+
+        Returns the current token, either the original specified token, 
+        or the token obtained from the Enlighten cloud if not specified
+        or the refreshed token at expiration.
+
+        Will assert if no token was ever specified or obtained.
+
+        :return: jwt token string
+        """
         assert self._token is not None  # nosec
         return self._token
 
@@ -195,7 +269,13 @@ class EnvoyTokenAuth(EnvoyAuth):
 
     @property
     def cookies(self) -> dict[str, str]:
-        """return cookies returned from local jwt check"""
+        """return cookies returned during setup of the envoy.
+
+        Cookies received from the local Envoy during setup and local
+        jwt check are stored in the class, this method returns these.
+
+        :return: cookies dict
+        """
         return self._cookies
 
     @property
@@ -205,47 +285,102 @@ class EnvoyTokenAuth(EnvoyAuth):
 
     @property
     def auth(self) -> None:
-        """No auth required for token authentication."""
+        """Digest authentication for local Envoy.
+
+        Not used with token authentication. Placeholder
+        for EnvoyAuth abstractproperty
+
+        :return: None
+        """
         return None
 
     @property
     def headers(self) -> dict[str, str]:
-        """Return the headers for Envoy authentication."""
+        """Return the authentication headers for Envoy communication.
+
+        Token authorization with Envoy requires an Authorization header
+        in Bearer format with token.
+
+        :return: token authorization header
+        """
         return {"Authorization": f"Bearer {self.token}"}
 
     def get_endpoint_url(self, endpoint: str) -> str:
-        """Return the URL for the endpoint."""
+        """Return the URL for the endpoint.
+
+        :param endpoint: Envoy Endpoint to access, start with leading /
+
+        :return: formatted https URL string
+        """
         return f"https://{self.host}{endpoint}"
 
 
 class EnvoyLegacyAuth(EnvoyAuth):
-    """Class for legacy Envoy authentication."""
+    """Class to authenticate with legacy Envoy using digest."""
 
     def __init__(self, host: str, username: str, password: str) -> None:
+        """Class to authenticate with legacy Envoy using digest.
+
+        Use with Envoy firmware before 7.0
+
+        :param host: local Envoy DNS name or IP Address
+        :param local_username: Username to access Envoy
+        :param local_password: Password to access Envoy
+        """
         self.host = host
         self.local_username = username
         self.local_password = password
 
     @property
     def auth(self) -> httpx.DigestAuth:
-        """Digest authentication for local Envoy."""
+        """Digest authentication for local Envoy.
+
+        Creates DigestAuth based on username and password.
+
+        :return: DigestAuthentication for local Envoy or None
+            if username and/or password are not specified
+        """
         if not self.local_username or not self.local_password:
             return None
         return httpx.DigestAuth(self.local_username, self.local_password)
 
     async def setup(self, client: httpx.AsyncClient) -> None:
-        """Setup auth"""
+        """Setup authentication with the local Envoy
+
+        DigestAuth does not use additional setup,
+        placeholder for EnvoyAuth abstractpropery.
+
+        :param client: Client to communicate with local Envoy
+        """
         # No setup required for legacy authentication
 
     @property
     def headers(self) -> dict[str, str]:
-        """Return the headers for legacy Envoy authentication."""
+        """Return the headers needed for Envoy authentication.
+
+        DigestAuth does not use authorization header. Placeholder
+        for EnvoyAuth abstractproperty.
+
+        :return: empty dict
+        """
         return {}
 
     def get_endpoint_url(self, endpoint: str) -> str:
-        """Return the URL for the endpoint."""
+        """Return the URL for the endpoint.
+
+        :param endpoint: Envoy Endpoint to access, start with leading /
+
+        :return: formatted http URL string
+        """
         return f"http://{self.host}{endpoint}"
 
     @property
     def cookies(self) -> dict[str, str]:
+        """return cookies returned during setup of the envoy.
+
+        DigestAuth does not use cookies. Placeholder
+        for EnvoyAuth abstractproperty.
+
+        :return: empty dict
+        """
         return {}

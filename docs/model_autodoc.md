@@ -42,11 +42,30 @@
 ```
 
 ```{eval-rst}
+.. autoclass:: pyenphase.auth.EnvoyAuth
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+  :class-doc-from: init
+```
+
+```{eval-rst}
 .. autoclass:: pyenphase.auth.EnvoyTokenAuth
   :members:
   :undoc-members:
   :show-inheritance:
   :member-order: bysource
+  :class-doc-from: init
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.auth.EnvoyLegacyAuth
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+  :class-doc-from: init
 ```
 
 ```{eval-rst}
