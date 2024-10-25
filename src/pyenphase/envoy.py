@@ -141,7 +141,7 @@ class Envoy:
         :param password: Enligthen Cloud password or local Envoy password, defaults to None
         :param token: Token to use with authentication, defaults to None
         :raises EnvoyAuthenticationRequired: Authentication failed with the local Envoy,
-            provided token is expired or no token could be obtained from Enlighten cloud 
+            provided token is expired or no token could be obtained from Enlighten cloud
             due to error or missing parameters.
         """
         if self._firmware.version < AUTH_TOKEN_MIN_VERSION:

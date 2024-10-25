@@ -18,9 +18,9 @@ class EnvoyAuth:
 
     def __init__(self, host: str) -> None:
         """Base class for local Envoy authentication.
-        
+
         :param host: local Envoy DNS name or IP Address
-        
+
         """
 
     @abstractmethod
@@ -40,7 +40,7 @@ class EnvoyAuth:
     @abstractproperty
     def auth(self) -> httpx.DigestAuth | None:
         """Setup Digest authentication for local Envoy.
-        
+
         Required for Envoy firmware < 7.0
 
         """
@@ -58,8 +58,10 @@ class EnvoyAuth:
         :return: formatted full URL string
         """
 
+
 class EnvoyTokenAuth(EnvoyAuth):
     """Class to authenticate with Envoy using Tokens."""
+
     # autodoc docstring is supplied from __init__
 
     JSON_LOGIN_URL = "https://enlighten.enphaseenergy.com/login/login.json?"
@@ -222,7 +224,7 @@ class EnvoyTokenAuth(EnvoyAuth):
     def expire_timestamp(self) -> int:
         """Return the expiration time for the token.
 
-        Owner useraccount type tokens are valid for a year 
+        Owner useraccount type tokens are valid for a year
         while installer tokens are only valid for 12 hours.
 
         :return: epoch expiration time
@@ -250,7 +252,7 @@ class EnvoyTokenAuth(EnvoyAuth):
     def token(self) -> str:
         """Return token used with the Envoy.
 
-        Returns the current token, either the original specified token, 
+        Returns the current token, either the original specified token,
         or the token obtained from the Enlighten cloud if not specified
         or the refreshed token at expiration.
 

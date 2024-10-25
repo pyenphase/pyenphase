@@ -1,6 +1,7 @@
 # Authentication
 
 ## Introduction
+
 Before firmware 7, authentication was based on username/password using Digest. Either `Envoy` or `Installer` usernames with a blank password or a known username/password can be used. If the password is left blank, the authentication module will calculate the password for the 2 named accounts, based on the Envoy serial number.
 
 As of firmware 7, token based authentication is required. The authentication module can retrieve the token from the Enlighten website using the Envoy serial number, the Enlighten username and password, which all need to be specified. If a token is known, it can be specified and it will be used instead of obtaining one from the Enlighten website. Even if a token is known, it's best practice to also specify username and password to enable automatic refresh of an expired token.
@@ -8,6 +9,7 @@ As of firmware 7, token based authentication is required. The authentication mod
 Based on the firmware version retrieved from the envoy in envoy.setup(), the [envoy.authenticate](#pyenphase.Envoy.authenticate) method will determine which of the 2 authentication methods to use.
 
 This example will work with both firmware <7 and >=7. In the first case specify the local Envoy username `envoy`, in the latter case specify the Enlighten cloud credentials and the required token will be obtained from the Enlighten cloud.
+
 ```python
 envoy = Envoy(host_ip_or_name)
 await envoy.setup()
@@ -127,4 +129,3 @@ else:
 ```
 
 [^2]: Data provided by pyenphase is only sourced from endpoints that allow access by at least Home owner accounts. The Envoy [Request method](#pyenphase.Envoy.request) allows access to [additional endpoints](./advanced.md#bring-your-own-endpoint), provided the user account has the required authorization level.
-
