@@ -212,7 +212,7 @@ class EnvoyTokenAuth(EnvoyAuth):
         This property is only available if a token has been requested
         from the Enlighten cloud. This is only the case if no token
         was specified, or a token refresh was requested. If a valid
-        token with a future expiration time was specfied this method
+        token with a future expiration time was specified this method
         will assert.
 
         :return: token string
@@ -232,7 +232,7 @@ class EnvoyTokenAuth(EnvoyAuth):
         This property is only available if a token has been requested
         from the Enlighten cloud. This is only the case if no token
         was specified, or a token refresh was requested. If a valid
-        token with a future expiration time was specfied no login was
+        token with a future expiration time was specified no login was
         attempted and this method will return the default false. 
         If an installer account was used it will return false as well.
 
