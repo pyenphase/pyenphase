@@ -233,7 +233,7 @@ class EnvoyTokenAuth(EnvoyAuth):
         from the Enlighten cloud. This is only the case if no token
         was specified, or a token refresh was requested. If a valid
         token with a future expiration time was specified no login was
-        attempted and this method will return the default false. 
+        attempted and this method will return the default false.
         If an installer account was used it will return false as well.
 
         :return: true if enlighten login was performed and
