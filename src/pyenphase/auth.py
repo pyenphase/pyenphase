@@ -236,7 +236,7 @@ class EnvoyTokenAuth(EnvoyAuth):
         attempted and this method will return the default false. 
         If an installer account was used it will return false as well.
 
-        :return: true if enlighten login was performed and 
+        :return: true if enlighten login was performed and
             used credentials are for consumer account, otherwise false
         """
         return self._is_consumer
