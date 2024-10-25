@@ -25,7 +25,7 @@ await envoy.setup()
 await envoy.authenticate(username=username, password=password, token=token)
 ```
 
-## Obtain, re-use and renew token
+## Obtain, reuse and renew token
 
 Upon completion of the authentication, the token can be requested and stored for later reuse in authentication. At a next application startup, pass the stored token to envoy.authenticate, in addition to the username and password. Until the token is expired it can be used with each authenticate request. If the token is expired while using it in authentication, an exception [EnvoyAuthenticationError](#pyenphase.exceptions.EnvoyAuthenticationError) is returned. In that case redo the authentication without specifying a token to force getting a new one.
 
@@ -62,7 +62,7 @@ expire_time = envoy.auth.expire_timestamp
 if expire_time < (datetime.now() - timedelta(days=7)):
     await self.envoy.auth.refresh()
     token = envoy.auth.token
-    # save token in some storage for later re-use
+    # save token in some storage for later reuse
 
 ```
 

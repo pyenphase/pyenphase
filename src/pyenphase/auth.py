@@ -106,7 +106,7 @@ class EnvoyTokenAuth(EnvoyAuth):
         If no token is specified, a token is obtained from Enlighten Cloud using
         specified username, password and serialnumber. With the specified or obtained
         token, validates the token with the local Envoy. New or updated token
-        can be acccessed using the token property. Token is not stored persistent,
+        can be accessed using the token property. Token is not stored persistent,
         caller should store and specify token over restarts.
 
         :param client: a httpx Async client to communicate with the local Envoy,
@@ -212,7 +212,7 @@ class EnvoyTokenAuth(EnvoyAuth):
 
         Retrieves a new token from the Enlighten cloud using
         specified username, password and Envoy serial number of
-        the class object. Updated token can be acccessed
+        the class object. Updated token can be accessed
         using the token property. Token is not stored persistent,
         caller should store it after refresh and specify token
         over restarts.
