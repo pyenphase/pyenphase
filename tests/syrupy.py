@@ -8,7 +8,6 @@ from syrupy.types import (
     PropertyMatcher,
     PropertyPath,
     SerializableData,
-    SerializedData,
 )
 
 
