@@ -3,12 +3,7 @@ from typing import Any
 
 from syrupy.extensions import AmberSnapshotExtension
 from syrupy.extensions.amber import AmberDataSerializer
-from syrupy.types import (
-    PropertyFilter,
-    PropertyMatcher,
-    PropertyPath,
-    SerializableData,
-)
+from syrupy.types import PropertyFilter, PropertyMatcher, PropertyPath, SerializableData
 
 
 class EnphaseSnapshotSerializer(AmberDataSerializer):
