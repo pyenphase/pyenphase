@@ -3,13 +3,7 @@ from typing import Any
 
 from syrupy.extensions import AmberSnapshotExtension
 from syrupy.extensions.amber import AmberDataSerializer
-from syrupy.types import (
-    PropertyFilter,
-    PropertyMatcher,
-    PropertyPath,
-    SerializableData,
-    SerializedData,
-)
+from syrupy.types import PropertyFilter, PropertyMatcher, PropertyPath, SerializableData
 
 
 class EnphaseSnapshotSerializer(AmberDataSerializer):
@@ -29,13 +23,13 @@ class EnphaseSnapshotSerializer(AmberDataSerializer):
         matcher: PropertyMatcher | None = None,
         path: PropertyPath = (),
         visited: set[Any] | None = None,
-    ) -> SerializedData:
+    ) -> str:
         """Pre-process data before serializing.
 
         This allows us to handle specific cases for Enphase data structures.
         """
         serializable_data = data
-        if is_dataclass(data):
+        if is_dataclass(type(data)):
             serializable_data = asdict(data)
 
         return super()._serialize(
