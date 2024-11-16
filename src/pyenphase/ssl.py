@@ -1,4 +1,5 @@
 """Pyenphase SSL helper"""
+
 import contextlib
 import ssl
 
