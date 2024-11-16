@@ -37,7 +37,12 @@ class EnvoyFirmware:
         _client: httpx.AsyncClient,
         host: str,
     ) -> None:
-        """Initialize the Envoy firmware version."""
+        """Class for querying and determining the Envoy firmware version.
+
+        :param client: httpx Asyncclient not verifying SSL
+            certificates, see :class:`pyenphase.ssl`.
+        :param host: Envoy DNS name or IP address
+        """
         self._client = _client
         self._host = host
         self._firmware_version: str | None = None
@@ -53,7 +58,17 @@ class EnvoyFirmware:
         reraise=True,
     )
     async def _get_info(self) -> httpx.Response:
-        """Obtain the firmware version for Envoy authentication."""
+        """Perform GET request to /info endpoint on envoy.
+
+        Try GET request to https://<host>/info to read info endpoint.
+        If connection error or timeout, retry on http://<host>/info.
+
+        Will retry up to 4 times or 50 sec elapsed at next try, which
+        ever comes first on network or remote protocol errors.
+        HTTP status is not verified.
+
+        :return: GET response as received from Envoy
+        """
         self._url = f"https://{self._host}/info"
         _LOGGER.debug("Requesting %s with timeout %s", self._url, LOCAL_TIMEOUT)
         try:
@@ -67,7 +82,28 @@ class EnvoyFirmware:
             return await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
 
     async def setup(self) -> None:
-        """Obtain the firmware version for Envoy authentication."""
+        """Obtain the firmware version, serial-number and part-number from Envoy.
+
+        Read /info on Envoy, accessible without authentication.
+        Store firmware version, serial-number and part-number properties
+        from xml response.
+
+        Reads first on HTTPS, if that fails on HTTP for firmware < 7.
+        Will retry up to 4 times or 50 sec elapsed at next try, which
+        ever comes first.
+
+        .. code-block:: python
+
+            client = httpx.AsyncClient(verify=create_no_verify_ssl_context())
+            firmware = EnvoyFirmware(client,host)
+            await firmware.setup()
+            print(firmware.version)
+
+        :raises EnvoyFirmwareFatalCheckError: if connection or timeout
+            failure occurs
+        :raises EnvoyFirmwareCheckError: on http errors or any HTTP
+            status other then 200
+        """
         # <envoy>/info will return XML with the firmware version
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
         if debugon:
@@ -112,12 +148,27 @@ class EnvoyFirmware:
 
     @property
     def version(self) -> AwesomeVersion:
+        """Return firmware version as read from Envoy.
+
+        :return: Envoy firmware version or None if
+            :class:`pyenphase.firmware.EnvoyFirmware.setup` was not used
+        """
         return self._firmware_version
 
     @property
     def serial(self) -> str | None:
+        """Return serial number as read from Envoy.
+
+        :return: Envoy serial number or None if
+            :class:`pyenphase.firmware.EnvoyFirmware.setup` was not used
+        """
         return self._serial_number
 
     @property
     def part_number(self) -> str | None:
+        """Return part number as read from Envoy.
+
+        :return: Envoy part number or None if
+            :class:`pyenphase.firmware.EnvoyFirmware.setup` was not used
+        """
         return self._part_number
