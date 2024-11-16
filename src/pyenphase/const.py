@@ -102,13 +102,13 @@ class PhaseNames(enum.StrEnum):
     PHASE_3 = "L3"  #: third phase (3, C, ..)
 
 
+#: list to access :any:`PhaseNames` by numerical index.
+#:
+#: .. code-block:: python
+#:
+#:     phase_count = 2
+#:     for phase in range(phase_count):
+#:         print(production[PHASENAMES[phase]])
+#:
 PHASENAMES: list[str] = list(PhaseNames)
-"""list to access :any:`PhaseNames` by numerical index.
 
-.. code-block:: python
-
-    phase_count = 2
-    for phase in range(phase_count):
-        print(production[PHASENAMES[phase]])
-
-"""
