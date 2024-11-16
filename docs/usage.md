@@ -1,9 +1,15 @@
 # Usage
 
-The pyenphase package provides the Envoy class to collect data from [Enphase IQ Gateway](https://enphase.com/en-us/products-and-services/envoy-and-combiner). To use this package, import it:
+The pyenphase package provides the [Envoy class](#pyenphase.Envoy) to collect data from [Enphase IQ Gateway](https://enphase.com/en-us/products-and-services/envoy-and-combiner). To use this package, import classes and modules from it:
 
 ```python
-import pyenphase
+from pyenphase import Envoy, EnvoyData
+
+envoy: Envoy = Envoy(host)
+await envoy.setup()
+
+await envoy.authenticate(username=username, password=password, token=token)
+data: EnvoyData = await envoy.update()
 ```
 
 ```{toctree}
