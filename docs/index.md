@@ -23,6 +23,7 @@ model_autodoc
 :caption: Project Info
 :maxdepth: 2
 
+license
 changelog
 contributing
 documenting
