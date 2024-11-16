@@ -32,7 +32,7 @@ To add links to other modules from the docstring, use ":class:`path_to_some_clas
     ) -> None:
         """Class for querying and determining the Envoy firmware version.
 
-        :param client: httpx AsyncClient not veryfying SSL
+        :param client: httpx AsyncClient not verifying SSL
             certificates, see :class:`pyenphase.ssl`.
         :param host: Envoy DNS name or IP address
         """
