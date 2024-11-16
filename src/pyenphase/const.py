@@ -111,4 +111,3 @@ class PhaseNames(enum.StrEnum):
 #:         print(production[PHASENAMES[phase]])
 #:
 PHASENAMES: list[str] = list(PhaseNames)
-
