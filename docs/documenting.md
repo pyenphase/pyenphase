@@ -83,7 +83,7 @@ NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 
 ### Classes
 
-Use the \_\_init\_\_ of a class to document the class parameters. 
+Use the \_\_init\_\_ of a class to document the class parameters.
 
 ```python
    def __init__(
@@ -167,9 +167,9 @@ This is the overall setup for the document generation. Any extension to use in d
 
 ## Build the docs locally
 
-To test build the docs, change the working directory to the /docs folder in your project working folder. In there use 
+To test build the docs, change the working directory to the /docs folder in your project working folder. In there use
 
     make clean
     make html
 
-The output is created in /docs/build/html. Open `index.html` in there to inspect the documentation locally. 
+The output is created in /docs/build/html. Open `index.html` in there to inspect the documentation locally.
