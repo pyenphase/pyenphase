@@ -263,11 +263,13 @@
 
 ## SSL
 
+Helper functions for SSL
+
 ```{eval-rst}
 .. automodule:: pyenphase.ssl
-  :members:
+  :members: NO_VERIFY_SSL_CONTEXT, SSL_CONTEXT, create_no_verify_ssl_context, create_default_ssl_context
   :show-inheritance:
-  :member-order: bysource
+
 ```
 
 # Exceptions
