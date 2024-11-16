@@ -253,6 +253,8 @@
 
 ## Json
 
+Helper functions for JSON.
+
 ```{eval-rst}
 .. autoclass:: pyenphase.json.json_loads
   :members:
