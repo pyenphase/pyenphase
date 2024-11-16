@@ -138,16 +138,16 @@ class Envoy:
             envoy = Envoy(host_ip_or_name)
             await envoy.setup()
             await envoy.authenticate(
-                username=username, 
-                password=password, 
+                username=username,
+                password=password,
                 token=token
             )
             await envoy.update()
 
         :param host: Envoy DNS name or IP address
-        :param client: httpx Asyncclient not veryfying SSL 
+        :param client: httpx Asyncclient not veryfying SSL
             certificates, if not specified one will be created.
-        :param timeout: httpx Timeout to use, if not specified 
+        :param timeout: httpx Timeout to use, if not specified
             10 sec connection and 45 sec read timeouts will be used.
         """
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
@@ -167,7 +167,7 @@ class Envoy:
     async def setup(self) -> None:
         """Initiate Envoy communication by obtaining firmware version.
 
-        Read /info on Envoy, accessible withouth authentication.
+        Read /info on Envoy, accessible without authentication.
         Instantiates EnvoyFirmware class object. Required to
         decide what authentication to use for sub-sequent Envoy
         communication. Use this method as first step after class instantiation
@@ -248,10 +248,10 @@ class Envoy:
     async def probe_request(self, endpoint: str) -> httpx.Response:
         """Make a probe request to the Envoy.
 
-        Probe requests are intended for use  by updatres during initial 
-        search of available features in the Envoy. They are not retried 
-        on connection errors, timeouts or bad JSON responses. 
-        For regular data retrieval, use the request method. 
+        Probe requests are intended for use  by updatres during initial
+        search of available features in the Envoy. They are not retried
+        on connection errors, timeouts or bad JSON responses.
+        For regular data retrieval, use the request method.
         Sends GET request to endpoint on Envoy and returns the response.
 
         :param endpoint: Envoy Endpoint to access, start with leading /.
@@ -428,7 +428,7 @@ class Envoy:
 
     @property
     def production_meter_type(self) -> CtType | None:
-        """Return the type of production ct meter installed 
+        """Return the type of production ct meter installed
         (Production or None) as read from the Envoy."""
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.production_meter_type
@@ -580,7 +580,7 @@ class Envoy:
         updater scope and save to the Envoy data set.
 
         :raises EnvoyCommunicationError: when EndOfStream is reported during communication.
-        :raises EnvoyCommunicationError: when httpx network or communication error occurrs.
+        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: Collected Envoy data
         """

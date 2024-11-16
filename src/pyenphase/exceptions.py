@@ -76,7 +76,7 @@ class EnvoyCommunicationError(EnvoyError):
     """Exception raised when the Envoy communication fails.
 
     - EndOfStream is reported during communication.
-    - httpx.NetworkError error occurrs.
+    - httpx.NetworkError error occurs.
     - httpx.TimeoutException error occurs
     """
 
