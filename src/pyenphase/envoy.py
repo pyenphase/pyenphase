@@ -1,3 +1,5 @@
+"""Enphase Envoy class"""
+
 import logging
 import time
 from collections.abc import Awaitable, Callable
@@ -144,7 +146,7 @@ class Envoy:
             await envoy.update()
 
         :param host: Envoy DNS name or IP address
-        :param client: httpx Asyncclient not veryfying SSL
+        :param client: httpx Asyncclient not verifying SSL
             certificates, if not specified one will be created.
         :param timeout: httpx Timeout to use, if not specified
             10 sec connection and 45 sec read timeouts will be used.
@@ -247,7 +249,7 @@ class Envoy:
     async def probe_request(self, endpoint: str) -> httpx.Response:
         """Make a probe request to the Envoy.
 
-        Probe requests are intended for use  by updatres during initial
+        Probe requests are intended for use  by updates during initial
         search of available features in the Envoy. They are not retried
         on connection errors, timeouts or bad JSON responses.
         For regular data retrieval, use the request method.
