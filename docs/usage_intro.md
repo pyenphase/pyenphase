@@ -33,4 +33,6 @@ while True:
     await asyncio.sleep(some_time)
 ```
 
+For all available data refer to [Data](./data.md).
+
 [^1]: The probe method will be called by the update method if not called before. It needs to be called only once to initiate data collection parameters.
