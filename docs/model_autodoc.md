@@ -39,6 +39,7 @@
   :undoc-members:
   :show-inheritance:
   :member-order: bysource
+  :class-doc-from: init
 ```
 
 ```{eval-rst}
