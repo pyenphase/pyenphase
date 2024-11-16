@@ -97,8 +97,7 @@ def register_updater(updater: type[EnvoyUpdater]) -> Callable[[], None]:
     UPDATERS.append(updater)
 
     def _remove_updater() -> None:
-        """Callable to remove a prior registered updater.
-        """
+        """Callable to remove a prior registered updater."""
         UPDATERS.remove(updater)
 
     return _remove_updater
