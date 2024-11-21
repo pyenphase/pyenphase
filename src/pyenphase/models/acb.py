@@ -57,15 +57,16 @@ class EnvoyBatteryAggregate:
 class EnvoyACBPower:
     """Model for the ACB battery power."""
 
-    power: int  #: Current discharge/charge power for ACB batteries from wNow.
-    charge_wh: int  #: Current available capacity in Wh for ACB batteries from whNow
-    state_of_charge: (
-        int  #: Current SOC in percentage for ACB batteries from percentFull
-    )
-    state: (
-        str  #: Current state for ACB batteries (discharging/idle/charging) from state
-    )
-    batteries: int  #: Number of reported ACB batteries from activeCount
+    #: Current discharge/charge power for ACB batteries from wNow.
+    power: int
+    #: Current available capacity in Wh for ACB batteries from whNow
+    charge_wh: int
+    #: Current SOC in percentage for ACB batteries from percentFull
+    state_of_charge: int
+    #: Current state for ACB batteries (discharging/idle/charging) from state
+    state: str
+    #: Number of reported ACB batteries from activeCount
+    batteries: int
 
     @classmethod
     def from_production(

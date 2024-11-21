@@ -118,12 +118,16 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         acb_storage: list[dict[str, Any]] | None = production_json.get("storage")
         # if storage segment is present and activeCount > 0 then signal as detected
         # only report we support ACB if no prior updater did
-        if acb_storage and not discovered_acb_storage:
-            # only consider first list element
-            if acb_count := acb_storage[0].get("activeCount"):
-                self._supported_features |= SupportedFeatures.ACB
-                # save acb batt count in common properties so Ensemble can report combined soc
-                self._common_properties.acb_batteries_reported = acb_count
+        # only report first list element as that's where ACB data is
+        if (
+            acb_storage
+            and not discovered_acb_storage
+            and (acb_count := acb_storage[0].get("activeCount"))
+        ):
+            # signal we can provide ACB data
+            self._supported_features |= SupportedFeatures.ACB
+            # save acb batt count in common properties so Ensemble can report combined soc
+            self._common_properties.acb_batteries_reported = acb_count
 
         # register the updated fallback endpoints to the common list
         self._common_properties.production_fallback_list = working_endpoints
