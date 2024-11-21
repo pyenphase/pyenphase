@@ -65,6 +65,7 @@ class SupportedFeatures(enum.IntFlag):
     THREEPHASE = 512  #: Envoy metered is configured in three phase mode
     CTMETERS = 1024  #: Envoy has enabled CT meter(s)
     GENERATOR = 2048  #: Envoy reports generator data
+    ACB = 4096  #: Envoy reports ACB Battery data
 
 
 class PhaseNames(enum.StrEnum):

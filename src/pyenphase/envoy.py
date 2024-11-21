@@ -346,6 +346,12 @@ class Envoy:
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.phase_mode
 
+    @property
+    def acb_count(self) -> int:
+        """Return the number of reported ACB batteries in Production storage report section."""
+        assert self._common_properties is not None, "Call setup() first"  # nosec
+        return self._common_properties.acb_batteries_reported
+
     @cached_property
     def envoy_model(self) -> str:
         """Return Envoy model description."""
