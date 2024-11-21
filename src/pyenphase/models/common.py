@@ -23,6 +23,10 @@ class CommonProperties:
         default_factory=list[str]
     )  #: Fallback production endpoints for Metered without CT
 
+    #: ACB batteries report current power in production and in ensemble secctl
+    #: Ensemble updater should only report combined ACB en Encharge if production report has data
+    acb_batteries_reported: int = 0
+
     # other properties from here, reset by originator
 
     # controlled by meters updater
@@ -55,8 +59,12 @@ class CommonProperties:
         reset properties:
 
             production_fallback_list shared amongst production updaters
+            ACB_batteries_reported shared between production and Ensemble
         """
         # shared amongst production updaters
         self.production_fallback_list = []
+
+        # shared between production and ensemble
+        self.acb_batteries_reported = 0
 
         # shared by

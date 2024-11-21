@@ -229,6 +229,26 @@
   :member-order: bysource
 ```
 
+## ACBPower
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.acb.EnvoyACBPower
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+```
+
+## Envoy Aggregate Battery SOC
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.acb.EnvoyBatteryAggregate
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+```
+
 ## EnvoyDryContactSettings
 
 ```{eval-rst}

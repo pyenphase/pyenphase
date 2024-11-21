@@ -1,0 +1,108 @@
+{
+    "tariff": {
+        "currency": {
+            "code": "EUR"
+        },
+        "logger": "mylogger",
+        "date": "1701165193",
+        "storage_settings": {
+            "mode": "self-consumption",
+            "operation_mode_sub_type": "",
+            "reserved_soc": 0.0,
+            "very_low_soc": 5,
+            "charge_from_grid": false,
+            "date": "1725861428",
+            "opt_schedules": true
+        },
+        "single_rate": {
+            "rate": 0.20000000298023224,
+            "sell": 0.0
+        },
+        "seasons": [],
+        "seasons_sell": []
+    },
+    "schedule": {
+        "filename": "",
+        "source": "",
+        "date": "2024-11-20 08:56:04 UTC",
+        "version": "",
+        "reserved_soc": 30.0,
+        "very_low_soc": 10,
+        "charge_from_grid": false,
+        "batt_mode": "self-consumption",
+        "battery_mode": "self-consumption",
+        "operation_mode_sub_type": "",
+        "opt_schedules": false,
+        "override": false,
+        "override_backup_soc": 30.0,
+        "override_chg_dischg_rate": 0.0,
+        "override_tou_mode": "StorageTouMode_DEFAULT_TOU_MODE",
+        "schedule": {
+            "Disable": [
+                {
+                    "Sun": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Mon": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Tue": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Wed": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Thu": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Fri": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                },
+                {
+                    "Sat": [
+                        {
+                            "start": 0,
+                            "duration": 1440,
+                            "setting": "ID"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
