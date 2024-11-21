@@ -1,0 +1,37 @@
+[
+    {
+        "type": "ENCHARGE",
+        "devices": [
+            {
+                "part_num": "830-01760-r42",
+                "serial_num": "122311091641",
+                "installed": 1731789415,
+                "device_status": [
+                    "envoy.global.ok",
+                    "prop.done"
+                ],
+                "last_rpt_date": 1732092823,
+                "admin_state": 6,
+                "admin_state_str": "ENCHG_STATE_READY",
+                "created_date": 1731789415,
+                "img_load_date": 1731789415,
+                "img_pnum_running": "2.6.7854_rel/22.33",
+                "bmu_fw_version": "2.1.38",
+                "communicating": true,
+                "sleep_enabled": false,
+                "percentFull": 10,
+                "temperature": 11,
+                "maxCellTemp": 11,
+                "reported_enc_grid_state": "grid-tied",
+                "comm_level_sub_ghz": 3,
+                "comm_level_2_4_ghz": 3,
+                "led_status": 17,
+                "dc_switch_off": false,
+                "encharge_rev": 2,
+                "encharge_capacity": 3500,
+                "phase": "ph-a",
+                "der_index": 1
+            }
+        ]
+    }
+]
