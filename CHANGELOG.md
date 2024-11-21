@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v1.23.0 (2024-11-21)
+
+### Feature
+
+* Add support for ACB batteries ([#191](https://github.com/pyenphase/pyenphase/issues/191)) ([`1caeff2`](https://github.com/pyenphase/pyenphase/commit/1caeff2f49397e6c2dabf2ff99cb7a8ccc685a50))
+
+### Documentation
+
+* Minor updates to usage example. ([#183](https://github.com/pyenphase/pyenphase/issues/183)) ([`b287005`](https://github.com/pyenphase/pyenphase/commit/b28700558b53ebfaeb7d21e7cdb68415c9a78f1a))
+* Add license to documentation project info section ([#182](https://github.com/pyenphase/pyenphase/issues/182)) ([`fa24372`](https://github.com/pyenphase/pyenphase/commit/fa2437208e76d6c1f90a01b55c98fdd1ca3cb450))
+
 ## v1.22.0 (2024-08-03)
 
 ### Feature

@@ -7,9 +7,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "pyenphase"
-copyright = "2023, pyenphase"
+copyright = "2023-2024, pyenphase"
 author = "pyenphase"
-release = "1.14.0"
+release = "|release|"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

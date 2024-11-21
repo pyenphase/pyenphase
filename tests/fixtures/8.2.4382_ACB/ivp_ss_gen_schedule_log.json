@@ -1,0 +1,12 @@
+{
+    "headers": {
+        "server": "openresty/1.17.8.1",
+        "date": "Wed, 20 Nov 2024 08:56:04 GMT",
+        "content-length": "2",
+        "connection": "keep-alive",
+        "strict-transport-security": "max-age=63072000; includeSubdomains",
+        "x-frame-options": "DENY",
+        "x-content-type-options": "nosniff"
+    },
+    "code": 200
+}

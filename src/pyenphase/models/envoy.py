@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Any
 
+from .acb import EnvoyACBPower, EnvoyBatteryAggregate
 from .dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from .enpower import EnvoyEnpower
@@ -30,6 +31,10 @@ class EnvoyData:
     encharge_aggregate: EnvoyEnchargeAggregate | None = None
     #: EnchargePower device information
     enpower: EnvoyEnpower | None = None
+    #: Power and soc for aggregated ACB batteries
+    acb_power: EnvoyACBPower | None = None
+    #: aggregated Enphase and ACB battery SOC and total capacity
+    battery_aggregate: EnvoyBatteryAggregate | None = None
     #: Consumption power & energy values, only for Envoy metered with CT installed
     system_consumption: EnvoySystemConsumption | None = None
     #: Solar Production power & energy values

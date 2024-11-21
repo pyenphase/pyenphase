@@ -1,3 +1,5 @@
+"""Pyenphase Ensemble updater class."""
+
 import logging
 from typing import Any
 
@@ -11,6 +13,7 @@ from ..const import (
     SupportedFeatures,
 )
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
+from ..models.acb import EnvoyBatteryAggregate
 from ..models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from ..models.encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from ..models.enpower import EnvoyEnpower
@@ -120,3 +123,12 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
                 relay["id"]: EnvoyDryContactSettings.from_api(relay)
                 for relay in dry_contact_settings_data["dry_contacts"]
             }
+
+        # production updater will set common_properties.ACB_batteries_reported
+        # to count of ACB batteries. Check if production report found
+        # acb batteries and if so report combined soc and max capacity
+        # for Encharge and ACB batteries
+        if self._common_properties.acb_batteries_reported:
+            envoy_data.battery_aggregate = EnvoyBatteryAggregate.from_api(
+                ensemble_secctrl_data
+            )

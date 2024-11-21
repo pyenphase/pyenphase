@@ -39,6 +39,16 @@
   :undoc-members:
   :show-inheritance:
   :member-order: bysource
+  :class-doc-from: init
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.auth.EnvoyAuth
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+  :class-doc-from: init
 ```
 
 ```{eval-rst}
@@ -47,6 +57,16 @@
   :undoc-members:
   :show-inheritance:
   :member-order: bysource
+  :class-doc-from: init
+```
+
+```{eval-rst}
+.. autoclass:: pyenphase.auth.EnvoyLegacyAuth
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+  :class-doc-from: init
 ```
 
 ```{eval-rst}
@@ -55,6 +75,7 @@
   :undoc-members:
   :show-inheritance:
   :member-order: bysource
+  :class-doc-from: init
 ```
 
 ```{eval-rst}
@@ -229,6 +250,26 @@
   :member-order: bysource
 ```
 
+## ACBPower
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.acb.EnvoyACBPower
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+```
+
+## Envoy Aggregate Battery SOC
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.acb.EnvoyBatteryAggregate
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+```
+
 ## EnvoyDryContactSettings
 
 ```{eval-rst}
@@ -253,6 +294,8 @@
 
 ## Json
 
+Helper functions for JSON.
+
 ```{eval-rst}
 .. autoclass:: pyenphase.json.json_loads
   :members:
@@ -265,9 +308,9 @@
 
 ```{eval-rst}
 .. automodule:: pyenphase.ssl
-  :members:
+  :members: NO_VERIFY_SSL_CONTEXT, SSL_CONTEXT, create_no_verify_ssl_context, create_default_ssl_context
   :show-inheritance:
-  :member-order: bysource
+
 ```
 
 # Exceptions

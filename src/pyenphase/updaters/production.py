@@ -5,6 +5,7 @@ from typing import Any
 
 from ..const import PHASENAMES, URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
+from ..models.acb import EnvoyACBPower
 from ..models.envoy import EnvoyData
 from ..models.system_consumption import EnvoySystemConsumption
 from ..models.system_production import EnvoySystemProduction
@@ -30,6 +31,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             SupportedFeatures.NET_CONSUMPTION in discovered_features
         )
         discovered_production = SupportedFeatures.PRODUCTION in discovered_features
+
+        # check if prior updaters reported supporting ACB
+        discovered_acb_storage = SupportedFeatures.ACB in discovered_features
 
         # obtain any registered production endpoints that replied back from the common list
         # when in allow_inverters_fallback mode we can use the first one that worked
@@ -111,6 +115,20 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 if lines := meter.get("lines"):
                     active_phase_count = len(lines)
 
+        acb_storage: list[dict[str, Any]] | None = production_json.get("storage")
+        # if storage segment is present and activeCount > 0 then signal as detected
+        # only report we support ACB if no prior updater did
+        # only report first list element as that's where ACB data is
+        if (
+            acb_storage
+            and not discovered_acb_storage
+            and (acb_count := acb_storage[0].get("activeCount"))
+        ):
+            # signal we can provide ACB data
+            self._supported_features |= SupportedFeatures.ACB
+            # save acb batt count in common properties so Ensemble can report combined soc
+            self._common_properties.acb_batteries_reported = acb_count
+
         # register the updated fallback endpoints to the common list
         self._common_properties.production_fallback_list = working_endpoints
         self._common_properties.active_phase_count = active_phase_count
@@ -181,6 +199,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
             if len(phase_net_consumption) > 0:
                 envoy_data.system_net_consumption_phases = phase_net_consumption
+
+        if self._supported_features & SupportedFeatures.ACB:
+            envoy_data.acb_power = EnvoyACBPower.from_production(production_data)
 
 
 class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):

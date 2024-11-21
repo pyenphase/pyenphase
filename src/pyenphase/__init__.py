@@ -11,6 +11,7 @@ from .exceptions import (
     EnvoyFirmwareFatalCheckError,
     EnvoyProbeFailed,
 )
+from .models.acb import EnvoyACBPower, EnvoyBatteryAggregate
 from .models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .models.encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from .models.enpower import EnvoyEnpower
@@ -18,6 +19,7 @@ from .models.envoy import EnvoyData
 from .models.inverter import EnvoyInverter
 from .models.system_consumption import EnvoySystemConsumption
 from .models.system_production import EnvoySystemProduction
+from .models.tariff import EnvoyTariff
 
 __all__ = (
     AUTH_TOKEN_MIN_VERSION,
@@ -39,6 +41,8 @@ __all__ = (
     "EnvoyEnchargeAggregate",
     "EnvoyEnchargePower",
     "EnvoyEnpower",
+    "EnvoyACBPower",
+    "EnvoyBatteryAggregate",
     "EnvoyDryContactSettings",
     "EnvoyDryContactStatus",
     "EnvoyTariff",
