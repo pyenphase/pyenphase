@@ -24,14 +24,27 @@ class EnvoyFirmwareFatalCheckError(EnvoyError):
 
 
 class EnvoyAuthenticationError(EnvoyError):
-    """Exception raised when unable to query the Envoy firmware version."""
+    """Exception raised when Envoy Authentication fails.
+
+    - When a jwt token authentication failure occurs with the local Envoy.
+    - When using token authentication and no cloud credentials or envoy serial are specified
+    - When a failure occurs during obtaining a token from the Enlighten cloud
+
+    :param status: Error status description
+    """
 
     def __init__(self, status: str) -> None:
         self.status = status
 
 
 class EnvoyAuthenticationRequired(EnvoyError):
-    """Exception raised when authentication hasn't been setup."""
+    """Exception raised when authentication hasn't been setup.
+
+    - When communication with Envoy was attempted without setting up authentication.
+    - When neither token nor username and/or password are specified during authentication.
+
+    :param status: Error status description
+    """
 
     def __init__(self, status: str) -> None:
         self.status = status
