@@ -1,6 +1,8 @@
 # serializer version: 1
 # name: test_with_7_x_firmware[4.10.35]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': dict({
       'active_power': 567,
       'current': 8.389,
@@ -716,6 +718,8 @@
 # ---
 # name: test_with_7_x_firmware[5.0.62]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -1313,6 +1317,8 @@
 # ---
 # name: test_with_7_x_firmware[7.3.130]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -1601,6 +1607,8 @@
 # ---
 # name: test_with_7_x_firmware[7.3.130_no_consumption]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': dict({
@@ -2349,6 +2357,8 @@
 # ---
 # name: test_with_7_x_firmware[7.3.466_metered_disabled_cts]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -2801,6 +2811,8 @@
 # ---
 # name: test_with_7_x_firmware[7.3.466_with_cts_3phase]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': dict({
       'active_power': -36,
       'current': 2.745,
@@ -3771,6 +3783,8 @@
 # ---
 # name: test_with_7_x_firmware[7.3.517]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -4853,6 +4867,8 @@
 # ---
 # name: test_with_7_x_firmware[7.3.517_legacy_savings_mode]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -5935,6 +5951,8 @@
 # ---
 # name: test_with_7_x_firmware[7.3.517_system_2]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': dict({
       'active_power': 23,
       'current': 2.985,
@@ -7577,6 +7595,8 @@
 # ---
 # name: test_with_7_x_firmware[7.6.114_without_cts]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -7788,6 +7808,8 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -7999,6 +8021,8 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175_standard]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -8353,6 +8377,8 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175_total]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -8906,6 +8932,8 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175_with_cts]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': dict({
       'active_power': -36,
       'current': 2.745,
@@ -9562,6 +9590,8 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175_with_cts_3phase]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': dict({
       'active_power': -36,
       'current': 2.745,
@@ -10532,6 +10562,8 @@
 # ---
 # name: test_with_7_x_firmware[7.6.185_with_cts_and_battery_3t]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': dict({
       'active_power': 522,
       'current': 3.138,
@@ -11343,6 +11375,8 @@
 # ---
 # name: test_with_7_x_firmware[8.1.41]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -12466,6 +12500,8 @@
 # ---
 # name: test_with_7_x_firmware[8.2.127_with_3cts_and_battery_split]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': dict({
       'active_power': 129,
       'current': 21.241,
@@ -14228,6 +14264,8 @@
 # ---
 # name: test_with_7_x_firmware[8.2.127_with_generator_running]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': dict({
       'active_power': 196,
       'current': 9.098,
