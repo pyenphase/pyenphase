@@ -66,7 +66,7 @@ class EnvoyTariff:
 class EnvoyStorageSettings:
     """Model for the Envoy storage settings."""
 
-    mode: EnvoyStorageMode
+    mode: EnvoyStorageMode | None
     operation_mode_sub_type: str
     reserved_soc: float
     very_low_soc: int
@@ -80,10 +80,11 @@ class EnvoyStorageSettings:
             # It appears a `mode` value of `economy` and `savings-mode` is interchangeable
             # However, the Enlighten app is using the `economy` value, so we will convert
             # `savings-mode` to `economy`
+            # some fw return None in storage_settings["data"]
             mode=(
                 EnvoyStorageMode.SAVINGS
                 if data["mode"] == EnvoyStorageMode.LEGACY_SAVINGS.value
-                else EnvoyStorageMode(data["mode"])
+                else EnvoyStorageMode(data["mode"]) if data.get("mode") else None
             ),
             operation_mode_sub_type=data["operation_mode_sub_type"],
             reserved_soc=data["reserved_soc"],
@@ -96,7 +97,7 @@ class EnvoyStorageSettings:
     def to_api(self) -> dict[str, Any]:
         """Convert to API format."""
         retval = {
-            "mode": self.mode.value,
+            "mode": self.mode.value if self.mode else None,
             "operation_mode_sub_type": self.operation_mode_sub_type,
             "reserved_soc": self.reserved_soc,
             "very_low_soc": self.very_low_soc,
