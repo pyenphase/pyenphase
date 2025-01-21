@@ -1383,6 +1383,14 @@ async def test_with_7_x_firmware(
         with pytest.raises(TypeError):
             await envoy.set_storage_mode("invalid")
 
+        # test correct handling if storage_settings mode = None
+        # should result no longer throw Valueerror but result in None value
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        json_data["tariff"]["storage_settings"]["mode"] = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        await envoy.update()
+        assert envoy.data.tariff.storage_settings.mode is None
+
         # COV test with missing logger
         json_data = load_json_fixture(version, "admin_lib_tariff")
         del json_data["tariff"]["logger"]
