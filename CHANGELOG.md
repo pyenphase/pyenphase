@@ -2,6 +2,23 @@
 
 <!--next-version-placeholder-->
 
+## v1.23.1 (2025-01-21)
+
+### Fix
+
+* Set EnvoyStorageMode to None if tariff storage_settings mode is null and causes exception None is not a valid EnvoyStorageMode. ([#199](https://github.com/pyenphase/pyenphase/issues/199)) ([`d06680a`](https://github.com/pyenphase/pyenphase/commit/d06680adee686929aa648d294358e0c9a951f1be))
+
+### Documentation
+
+* Refactor EnvoyData class documentation using docstrings ([#189](https://github.com/pyenphase/pyenphase/issues/189)) ([`6048a0f`](https://github.com/pyenphase/pyenphase/commit/6048a0fda2ef9eae1404962db13fcf300291530e))
+* Refactor const.py to use docstring for documentation. ([#190](https://github.com/pyenphase/pyenphase/issues/190)) ([`58b2df1`](https://github.com/pyenphase/pyenphase/commit/58b2df1faa077fcc834377b4a03caf619156c2d2))
+* Refactor json helper documentation using docstrings ([#188](https://github.com/pyenphase/pyenphase/issues/188)) ([`aea3359`](https://github.com/pyenphase/pyenphase/commit/aea3359762a105106705d066324729d7ac768b48))
+* Refactor ssl helper documentation using docstring ([#186](https://github.com/pyenphase/pyenphase/issues/186)) ([`76de306`](https://github.com/pyenphase/pyenphase/commit/76de306906e0a7252def6c133a16c88d71913276))
+* Update guidelines to documentation for using docstring ([#187](https://github.com/pyenphase/pyenphase/issues/187)) ([`ecc88c2`](https://github.com/pyenphase/pyenphase/commit/ecc88c285147ac55b2c370a6b28376ca68d4532d))
+* Refactor firmware class documentation using docstrings ([#185](https://github.com/pyenphase/pyenphase/issues/185)) ([`ab7bae4`](https://github.com/pyenphase/pyenphase/commit/ab7bae40d135207f34ba762a14b35c0fa24acb08))
+* Refactor envoy class documentation using docstrings ([#184](https://github.com/pyenphase/pyenphase/issues/184)) ([`b869d0d`](https://github.com/pyenphase/pyenphase/commit/b869d0d9bcb9341c83d3848879efcac5ff5d597f))
+* Docs gen 2, refactor authentication doc ([#181](https://github.com/pyenphase/pyenphase/issues/181)) ([`a6bbc25`](https://github.com/pyenphase/pyenphase/commit/a6bbc256eedf2b8edbcaae7ed0549cb99957fc11))
+
 ## v1.23.0 (2024-11-21)
 
 ### Feature
