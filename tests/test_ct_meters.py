@@ -583,3 +583,49 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split():
 
     await envoy.update()
     assert envoy.data.ctmeter_storage_phases is None
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_battery_split():
+    """Test meters model with additional meter readings entry not in meters config"""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
+
+    # start with regular data first we use this fixture to test issue reported in 8.3.5025
+    version = "8.2.127_with_3cts_and_battery_split"
+    start_7_firmware_mock()
+    respx.get("/info").mock(
+        return_value=Response(200, text=load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(
+        return_value=Response(200, text=load_fixture(version, "production"))
+    )
+    respx.get("/production.json").mock(
+        return_value=Response(200, text=load_fixture(version, "production.json"))
+    )
+    respx.get("/api/v1/production").mock(
+        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
+    )
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            200, json=load_json_fixture(version, "api_v1_production_inverters")
+        )
+    )
+    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
+    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+    respx.get("/ivp/meters").mock(
+        return_value=Response(200, text=load_fixture(version, "ivp_meters"))
+    )
+    # fw D8.3.5027 has 3th (zero) entry for Storage CT, even if not configured
+    # this caused Indexerror crash. Test if extra data is now handled without crash
+    readings_data = load_json_list_fixture(version, "ivp_meters_readings")
+    readings_data.append({"eid": 1023410688,"channels": [{},{},{}]})
+    respx.get("/ivp/meters/readings").mock(
+        return_value=Response(200, json=readings_data)
+    )
+
+    # details of this test is done elsewhere already, just check data is returned
+    envoy = await get_mock_envoy()
+    data = envoy.data
+    assert data is not None
