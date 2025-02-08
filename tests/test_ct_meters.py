@@ -584,6 +584,7 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split():
     await envoy.update()
     assert envoy.data.ctmeter_storage_phases is None
 
+
 @pytest.mark.asyncio
 @respx.mock
 async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_battery_split():
@@ -620,7 +621,7 @@ async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_ba
     # fw D8.3.5027 has 3th (zero) entry for Storage CT, even if not configured
     # this caused Indexerror crash. Test if extra data is now handled without crash
     readings_data = load_json_list_fixture(version, "ivp_meters_readings")
-    readings_data.append({"eid": 1023410688,"channels": [{},{},{}]})
+    readings_data.append({"eid": 1023410688, "channels": [{}, {}, {}]})
     respx.get("/ivp/meters/readings").mock(
         return_value=Response(200, json=readings_data)
     )

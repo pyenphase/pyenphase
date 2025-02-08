@@ -175,11 +175,13 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         for meter in meters_readings:
             eid = meter["eid"]
 
-            if not (ct_data := next((ct for ct in meters_status if ct["eid"]==eid ),None)):
-                # fw 8.3.5025 also has a 3rd entry for storage ct even if not configured 
+            if not (
+                ct_data := next((ct for ct in meters_status if ct["eid"] == eid), None)
+            ):
+                # fw 8.3.5025 also has a 3rd entry for storage ct even if not configured
                 # and it has all zeros values. Ignore data if eid not in meter status
                 continue
-            
+
             # match meter identifier to one found during probe to identify production or consumption
             if eid == self.production_meter_eid and self.production_meter_type:
                 # if production meter was enabled (type known) store ctmeter production data
