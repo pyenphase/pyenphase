@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## v1.25.3 (2025-02-11)
+
+### Fix
+
+* Bump orjson requirement to 3.10+ for Python 3.13 ([#215](https://github.com/pyenphase/pyenphase/issues/215)) ([`7db2256`](https://github.com/pyenphase/pyenphase/commit/7db2256a59a26a4fc89b79a8dbaf4fbb16d5eb35))
+
+## v1.25.2 (2025-02-11)
+
+### Fix
+
+* Update to poetry 2 ([#212](https://github.com/pyenphase/pyenphase/issues/212)) ([`43e5a15`](https://github.com/pyenphase/pyenphase/commit/43e5a15d747251dbecbad343b71562000d7f5b4f))
+
 ## v1.25.1 (2025-02-11)
 
 ### Fix
