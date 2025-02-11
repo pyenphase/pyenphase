@@ -2,6 +2,19 @@
 
 <!--next-version-placeholder-->
 
+## v1.25.0 (2025-02-11)
+
+### Feature
+
+* Add http method to request method parameters ([#197](https://github.com/pyenphase/pyenphase/issues/197)) ([`943f8d9`](https://github.com/pyenphase/pyenphase/commit/943f8d99306cc3dd1b45cf9ec810aa8936698c53))
+
+## v1.24.0 (2025-02-11)
+
+### Feature
+
+* Add token_type property to identify user or installer type token. ([#180](https://github.com/pyenphase/pyenphase/issues/180)) ([`3708a54`](https://github.com/pyenphase/pyenphase/commit/3708a543bada7827fc16c52f9b747c0808061260))
+* **tariff:** Add new firmware 8.2.42xx Storage settings opt_schedules property to EnvoyStorageSettings ([#179](https://github.com/pyenphase/pyenphase/issues/179)) ([`7b3d559`](https://github.com/pyenphase/pyenphase/commit/7b3d559ab56582519a6ccd34ce446f0f4014656e))
+
 ## v1.23.1 (2025-01-21)
 
 ### Fix

@@ -39,6 +39,7 @@ from .exceptions import (
     EnvoyAuthenticationRequired,
     EnvoyCommunicationError,
     EnvoyFeatureNotAvailable,
+    EnvoyHTTPStatusError,
     EnvoyPoorDataQuality,
     EnvoyProbeFailed,
 )
@@ -292,7 +293,10 @@ class Envoy:
         reraise=True,
     )
     async def request(
-        self, endpoint: str, data: dict[str, Any] | None = None
+        self,
+        endpoint: str,
+        data: dict[str, Any] | None = None,
+        method: str | None = None,
     ) -> httpx.Response:
         """Make a request to the Envoy.
 
@@ -307,13 +311,16 @@ class Envoy:
         ever comes first.
 
         :param endpoint: Envoy Endpoint to access, start with leading /
-        :param data: data dictionary to send to the Envoy, defaults to None
+        :param data: optional data dictionary to send to the Envoy
+            Defaults to none, if none a GET request is issued.
+        :param method: HTTP method to use when sending data dictionary,
+            if none and data is specified POST is default
         :raises EnvoyAuthenticationRequired: if no prior authentication
             was completed or HTTP status 401 or 404 is returned.
         :raises: Any communication errors when retries are exceeded
         :return: request response.
         """
-        return await self._request(endpoint, data)
+        return await self._request(endpoint, data, method)
 
     async def _request(
         self,
@@ -640,9 +647,19 @@ class Envoy:
         :param data: data dictionary to send to the Envoy, defaults to None
         :param method: method to use to send data dictionary,
             POST if none, only used for data send
+        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: response content as JSON
         """
-        response = await self._request(end_point, data, method)
+        try:
+            response = await self._request(end_point, data, method)
+        except httpx.NetworkError as err:
+            raise EnvoyCommunicationError(f"HTTPX NetworkError {str(err)}") from err
+        except httpx.TimeoutException as err:
+            raise EnvoyCommunicationError(f"HTTPX Timeout {str(err)}") from err
+        if not (200 <= response.status_code < 300):
+            raise EnvoyHTTPStatusError(response.status_code, response.url)
+
         return json_loads(end_point, response.content)
 
     async def go_on_grid(self) -> dict[str, Any]:
@@ -652,6 +669,7 @@ class Envoy:
         to connect to the grid. Requires ENPOWER installed.
 
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
+        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: JSON returned by Envoy
         """
@@ -668,6 +686,7 @@ class Envoy:
         to disconnect from the grid. Requires ENPOWER installed.
 
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
+        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: JSON returned by Envoy
         """
@@ -705,6 +724,8 @@ class Envoy:
 
         :param new_data: dict of settings to change, "id" key/value required
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
+        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :raises ValueError: If no "id" key is present in data dict to send.
         :return: dry_contact_settings JSON returned by Envoy
@@ -740,6 +761,8 @@ class Envoy:
 
         :param id: relay id of dry contact relay to open
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
+        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: JSON response of Envoy
         """
         if not self.supported_features & SupportedFeatures.ENPOWER:
@@ -767,6 +790,8 @@ class Envoy:
 
         :param id: relay id of dry contact relay to open
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
+        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: JSON response of Envoy
         """
         if not self.supported_features & SupportedFeatures.ENPOWER:
@@ -794,6 +819,8 @@ class Envoy:
 
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
+        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy
         """
@@ -817,6 +844,8 @@ class Envoy:
 
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
+        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy
         """
@@ -841,6 +870,8 @@ class Envoy:
         :param mode: storage mode to set
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
+        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy
         """
@@ -867,6 +898,8 @@ class Envoy:
         :param value: reserve soc to set
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
+        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy
         """

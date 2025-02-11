@@ -7,15 +7,22 @@ from os import listdir
 from os.path import isfile, join
 from typing import Any
 
+import httpx
 import orjson
 import pytest
 import respx
 from httpx import Response
 from syrupy.assertion import SnapshotAssertion
 
-from pyenphase.const import URL_GRID_RELAY, URL_TARIFF, PhaseNames
+from pyenphase.const import (
+    URL_DRY_CONTACT_SETTINGS,
+    URL_DRY_CONTACT_STATUS,
+    URL_GRID_RELAY,
+    URL_TARIFF,
+    PhaseNames,
+)
 from pyenphase.envoy import EnvoyProbeFailed, SupportedFeatures
-from pyenphase.exceptions import EnvoyFeatureNotAvailable
+from pyenphase.exceptions import EnvoyError, EnvoyFeatureNotAvailable
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.meters import CtMeterStatus, CtType, EnvoyPhaseMode
 from pyenphase.models.tariff import EnvoyStorageMode
@@ -1073,6 +1080,129 @@ LOGGER = logging.getLogger(__name__)
             },
             {},
         ),
+        (
+            "8.2.4286_with_3cts_and_battery_split",
+            "800-00664-r05",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.ENPOWER
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.DUALPHASE
+            | SupportedFeatures.CTMETERS,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
+                | SupportedFeatures.ENPOWER,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE
+                | SupportedFeatures.CTMETERS,
+            },
+            2,
+            {
+                "ctMeters": 3,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "consumptionMeter": CtType.NET_CONSUMPTION,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": CtType.STORAGE,
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "watt_hours_lifetime": 6709433,
+                    "watt_hours_last_7_days": 6703259,
+                    "watt_hours_today": 6277,
+                    "watts_now": 3559,
+                },
+                PhaseNames.PHASE_2: {
+                    "watt_hours_lifetime": 6721896,
+                    "watt_hours_last_7_days": 6715706,
+                    "watt_hours_today": 6293,
+                    "watts_now": 3564,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "watt_hours_lifetime": 7197821,
+                    "watt_hours_last_7_days": 0,
+                    "watt_hours_today": 0,
+                    "watts_now": 4407,
+                },
+                PhaseNames.PHASE_2: {
+                    "watt_hours_lifetime": 7915653,
+                    "watt_hours_last_7_days": 0,
+                    "watt_hours_today": 0,
+                    "watts_now": 4478,
+                },
+            },
+            {
+                "eid": 704643328,
+                "active_power": 7131,
+                "measurement_type": CtType.PRODUCTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                "eid": 704643584,
+                "active_power": 1750,
+                "measurement_type": CtType.NET_CONSUMPTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                "eid": 704643840,
+                "active_power": -7084,
+                "measurement_type": CtType.STORAGE,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385169,
+                    "active_power": 3562,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385170,
+                    "active_power": 3569,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385425,
+                    "active_power": 810,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385426,
+                    "active_power": 940,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385681,
+                    "active_power": -3538,
+                    "measurement_type": CtType.STORAGE,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385682,
+                    "active_power": -3545,
+                    "measurement_type": CtType.STORAGE,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+        ),
     ],
     ids=[
         "5.0.62",
@@ -1094,6 +1224,7 @@ LOGGER = logging.getLogger(__name__)
         "8.1.41",
         "8.2.127_with_3cts_and_battery_split",
         "8.2.127_with_generator_running",
+        "8.2.4286_with_3cts_and_battery_split",
     ],
 )
 @pytest.mark.asyncio
@@ -1250,6 +1381,29 @@ async def test_with_7_x_firmware(
     # pylint: disable=protected-access
     assert envoy._supported_features == supported_features
 
+    # test envoy request methods GET, PUT and POST
+    test_data = load_json_fixture(version, "api_v1_production_inverters")
+    respx.post("/api/v1/production/inverters").mock(
+        return_value=Response(200, json=test_data)
+    )
+    respx.put("/api/v1/production/inverters").mock(
+        return_value=Response(200, json=test_data)
+    )
+
+    # test request with just an endpoint, should be a GET
+    await envoy.request("/api/v1/production/inverters")
+    assert respx.calls.last.request.method == "GET"
+
+    # with data but no method should be post
+    await envoy.request("/api/v1/production/inverters", data=test_data)
+    assert respx.calls.last.request.method == "POST"
+
+    # with method should be specified method
+    await envoy.request("/api/v1/production/inverters", data=test_data, method="PUT")
+    assert respx.calls.last.request.method == "PUT"
+    await envoy.request("/api/v1/production/inverters", data=test_data, method="POST")
+    assert respx.calls.last.request.method == "POST"
+
     if supported_features & supported_features.ENPOWER:
         # switch off debug for one post to improve COV
         logging.getLogger("pyenphase").setLevel(logging.WARN)
@@ -1304,6 +1458,40 @@ async def test_with_7_x_firmware(
 
         assert "Sending POST" in caplog.text
 
+        # test error returned by action methods calling _json_request
+        respx.post(URL_GRID_RELAY).mock(return_value=Response(300, json={}))
+        with pytest.raises(EnvoyError):
+            await envoy.go_on_grid()
+        with pytest.raises(EnvoyError):
+            await envoy.go_off_grid()
+
+        respx.post(URL_GRID_RELAY).mock(
+            return_value=Response(200, json={})
+        ).side_effect = httpx.ConnectError("Test Connection error")
+        with pytest.raises(EnvoyError):
+            await envoy.go_on_grid()
+        respx.post(URL_GRID_RELAY).mock(
+            return_value=Response(200, json={})
+        ).side_effect = httpx.TimeoutException("Test timeout exception")
+        with pytest.raises(EnvoyError):
+            await envoy.go_off_grid()
+
+        respx.post(URL_DRY_CONTACT_SETTINGS).mock(return_value=Response(300, json={}))
+        with pytest.raises(EnvoyError):
+            await envoy.update_dry_contact(new_data)
+
+        respx.post(URL_DRY_CONTACT_STATUS).mock(
+            return_value=Response(200, json={})
+        ).side_effect = httpx.ConnectError("Test Connection error")
+        with pytest.raises(EnvoyError):
+            await envoy.close_dry_contact("NC1")
+
+        respx.post(URL_DRY_CONTACT_STATUS).mock(
+            return_value=Response(200, json={})
+        ).side_effect = httpx.TimeoutException("Test timeout exception")
+        with pytest.raises(EnvoyError):
+            await envoy.open_dry_contact("NC1")
+
     else:
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.go_off_grid()
@@ -1353,6 +1541,14 @@ async def test_with_7_x_firmware(
         else:
             assert "date" not in new_model.to_api()
 
+        if envoy.data.tariff.storage_settings.opt_schedules is not None:
+            assert (
+                new_model.to_api()["opt_schedules"]
+                == envoy.data.tariff.storage_settings.opt_schedules
+            )
+        else:
+            assert "opt_schedules" not in new_model.to_api()
+
         # Test setting battery features
         await envoy.enable_charge_from_grid()
         assert envoy.data.tariff.storage_settings.charge_from_grid is True
@@ -1382,6 +1578,26 @@ async def test_with_7_x_firmware(
 
         with pytest.raises(TypeError):
             await envoy.set_storage_mode("invalid")
+
+        # test error returned by action methods calling _json_request
+        respx.put(URL_TARIFF).mock(return_value=Response(300, json={}))
+        with pytest.raises(EnvoyError):
+            await envoy.enable_charge_from_grid()
+        respx.put(URL_TARIFF).mock(return_value=Response(200, json={})).side_effect = (
+            httpx.TimeoutException("Test timeout exception")
+        )
+        with pytest.raises(EnvoyError):
+            await envoy.disable_charge_from_grid()
+        respx.put(URL_TARIFF).mock(return_value=Response(200, json={})).side_effect = (
+            httpx.ConnectError("Test Connection error")
+        )
+        with pytest.raises(EnvoyError):
+            await envoy.set_storage_mode(EnvoyStorageMode.SELF_CONSUMPTION)
+        respx.put(URL_TARIFF).mock(return_value=Response(200, json={})).side_effect = (
+            httpx.ConnectError("Test Connection error")
+        )
+        with pytest.raises(EnvoyError):
+            await envoy.set_reserve_soc(50)
 
         # test correct handling if storage_settings mode = None
         # should result no longer throw Valueerror but result in None value
