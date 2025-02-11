@@ -5,6 +5,7 @@ description = "Library to control enphase envoy"
 authors = [{ name = "pyenphase", email = "cgarwood@gmail.com" }]
 license = "MIT"
 readme = "README.md"
+requires-python = ">=3.10"
 dynamic = ["classifiers", "dependencies"]
 
 [tool.poetry]
