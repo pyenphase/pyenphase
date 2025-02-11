@@ -1,6 +1,6 @@
 from abc import abstractmethod
-from collections.abc import Awaitable
-from typing import Any, Callable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 import httpx
 from awesomeversion import AwesomeVersion
