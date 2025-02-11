@@ -452,8 +452,9 @@ async def test_with_7_x_firmware(
     caplog.set_level(logging.DEBUG)
 
     envoy = await get_mock_envoy()
-    assert envoy.data
-    assert envoy.data == snapshot
+    data = envoy.data
+    assert data
+    assert data == snapshot
 
     assert envoy.acb_count == acb_count
 
@@ -479,7 +480,7 @@ async def test_with_7_x_firmware(
 
     # test for code coverage if no storage section is available
     # use fixtures with METERING in supported_features:
-    production_data = envoy.data.raw["/production.json?details=1"]
+    production_data = data.raw["/production.json?details=1"]
 
     acb_data = production_data["storage"][0]
     assert acb_data["activeCount"] == acb_count
@@ -489,5 +490,6 @@ async def test_with_7_x_firmware(
     del prod_json["storage"]
     respx.get("/production.json").mock(return_value=Response(200, json=prod_json))
     envoy = await get_mock_envoy()
-    assert envoy.data
-    assert envoy.data.acb_count == 0
+    data = envoy.data
+    assert data
+    assert envoy.acb_count == 0
