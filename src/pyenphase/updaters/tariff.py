@@ -24,7 +24,7 @@ class EnvoyTariffUpdater(EnvoyUpdater):
             # For some systems (Firmware: 3.9.36) return 401 for
             # this endpoint even if the user is authenticated.
             _LOGGER.debug(
-                "Skipping tariff endpoint as user does" " not have access to %s: %s",
+                "Skipping tariff endpoint as user does not have access to %s: %s",
                 URL_TARIFF,
                 e,
             )

@@ -85,7 +85,9 @@ class EnvoyStorageSettings:
             mode=(
                 EnvoyStorageMode.SAVINGS
                 if data["mode"] == EnvoyStorageMode.LEGACY_SAVINGS.value
-                else EnvoyStorageMode(data["mode"]) if data.get("mode") else None
+                else EnvoyStorageMode(data["mode"])
+                if data.get("mode")
+                else None
             ),
             operation_mode_sub_type=data["operation_mode_sub_type"],
             reserved_soc=data["reserved_soc"],

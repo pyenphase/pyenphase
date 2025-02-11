@@ -53,7 +53,8 @@ MAX_REQUEST_ATTEMPTS = 4
 
 
 class SupportedFeatures(enum.IntFlag):
-    """Features available from Envoy
+    """
+    Features available from Envoy
 
     Each supported feature maps to a specific data set or information
     that can be provided by an Envoy. Depending on actual make, firmware

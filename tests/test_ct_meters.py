@@ -244,7 +244,7 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
     # Test prior similar updater active
     remove_2nd_metersupdater = register_updater(EnvoyMetersUpdater)
     await envoy.probe()
-    remove_2nd_metersupdater
+    remove_2nd_metersupdater()
 
     # load mock data for meters and their readings
     meters_status = load_json_list_fixture(version, "ivp_meters")
@@ -378,7 +378,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
     # Test prior similar updater active
     remove_2nd_metersupdater = register_updater(EnvoyMetersUpdater)
     await envoy.probe()
-    remove_2nd_metersupdater
+    remove_2nd_metersupdater()
 
     # load mock data for meters and their readings
     meters_status = load_json_list_fixture(version, "ivp_meters")

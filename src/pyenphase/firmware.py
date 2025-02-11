@@ -25,10 +25,10 @@ class EnvoyFirmware:
 
     __slots__ = (
         "_client",
-        "_host",
         "_firmware_version",
-        "_serial_number",
+        "_host",
         "_part_number",
+        "_serial_number",
         "_url",
     )
 
@@ -37,7 +37,8 @@ class EnvoyFirmware:
         _client: httpx.AsyncClient,
         host: str,
     ) -> None:
-        """Class for querying and determining the Envoy firmware version.
+        """
+        Class for querying and determining the Envoy firmware version.
 
         :param client: httpx Asyncclient not verifying SSL
             certificates, see :class:`pyenphase.ssl`.
@@ -58,7 +59,8 @@ class EnvoyFirmware:
         reraise=True,
     )
     async def _get_info(self) -> httpx.Response:
-        """Perform GET request to /info endpoint on envoy.
+        """
+        Perform GET request to /info endpoint on envoy.
 
         Try GET request to https://<host>/info to read info endpoint.
         If connection error or timeout, retry on http://<host>/info.
@@ -82,7 +84,8 @@ class EnvoyFirmware:
             return await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
 
     async def setup(self) -> None:
-        """Obtain the firmware version, serial-number and part-number from Envoy.
+        """
+        Obtain the firmware version, serial-number and part-number from Envoy.
 
         Read /info on Envoy, accessible without authentication.
         Store firmware version, serial-number and part-number properties
@@ -110,12 +113,18 @@ class EnvoyFirmware:
             request_start = time.monotonic()
         try:
             result = await self._get_info()
-        except httpx.TimeoutException:
-            raise EnvoyFirmwareFatalCheckError(500, "Timeout connecting to Envoy")
-        except httpx.ConnectError:
-            raise EnvoyFirmwareFatalCheckError(500, "Unable to connect to Envoy")
-        except httpx.HTTPError:
-            raise EnvoyFirmwareCheckError(500, "Unable to query firmware version")
+        except httpx.TimeoutException as ex:
+            raise EnvoyFirmwareFatalCheckError(
+                500, "Timeout connecting to Envoy"
+            ) from ex
+        except httpx.ConnectError as ex:
+            raise EnvoyFirmwareFatalCheckError(
+                500, "Unable to connect to Envoy"
+            ) from ex
+        except httpx.HTTPError as ex:
+            raise EnvoyFirmwareCheckError(
+                500, "Unable to query firmware version"
+            ) from ex
 
         if (status_code := result.status_code) == 200:
             if debugon:
@@ -130,7 +139,7 @@ class EnvoyFirmware:
                     content_type,
                     content,
                 )
-            xml = etree.fromstring(result.content)  # nosec
+            xml = etree.fromstring(result.content)  # nosec  # noqa: S320
             if (device_tag := xml.find("device")) is not None:
                 if (software_tag := device_tag.find("software")) is not None:
                     self._firmware_version = AwesomeVersion(
@@ -148,7 +157,8 @@ class EnvoyFirmware:
 
     @property
     def version(self) -> AwesomeVersion:
-        """Return firmware version as read from Envoy.
+        """
+        Return firmware version as read from Envoy.
 
         :return: Envoy firmware version or None if
             :class:`pyenphase.firmware.EnvoyFirmware.setup` was not used
@@ -157,7 +167,8 @@ class EnvoyFirmware:
 
     @property
     def serial(self) -> str | None:
-        """Return serial number as read from Envoy.
+        """
+        Return serial number as read from Envoy.
 
         :return: Envoy serial number or None if
             :class:`pyenphase.firmware.EnvoyFirmware.setup` was not used
@@ -166,7 +177,8 @@ class EnvoyFirmware:
 
     @property
     def part_number(self) -> str | None:
-        """Return part number as read from Envoy.
+        """
+        Return part number as read from Envoy.
 
         :return: Envoy part number or None if
             :class:`pyenphase.firmware.EnvoyFirmware.setup` was not used

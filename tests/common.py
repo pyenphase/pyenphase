@@ -74,7 +74,7 @@ def prep_envoy(
     meters: bool = True,  #: if true mock meters
     inverters: bool = True,  #: if true mock inverters
 ) -> None:
-    """setup response mocks for envoy requests."""
+    """Setup response mocks for envoy requests."""
     path = f"{_fixtures_dir()}/{version}"
     files = [f for f in listdir(path) if isfile(join(path, f))]
 

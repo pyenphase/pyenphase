@@ -5,7 +5,8 @@ import ssl
 
 
 def create_no_verify_ssl_context() -> ssl.SSLContext:
-    """Return an SSL context that does not verify the server certificate.
+    """
+    Return an SSL context that does not verify the server certificate.
 
     This is a copy of aiohttp's create_default_context() function, with the
     ssl verify turned off and old SSL versions enabled.

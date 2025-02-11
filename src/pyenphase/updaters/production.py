@@ -211,7 +211,8 @@ class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):
 
 
 class EnvoyProductionJsonFallbackUpdater(EnvoyProductionJsonUpdater):
-    """Class to handle updates for production data from the production.json endpoint.
+    """
+    Class to handle updates for production data from the production.json endpoint.
 
     This class will accept the production endpoint even if activeCount is 0
     """

@@ -28,7 +28,8 @@ class EnvoySystemProduction:
 
     @classmethod
     def from_v1_api(cls, data: dict[str, Any]) -> EnvoySystemProduction:
-        """Initialize from the V1 API.
+        """
+        Initialize from the V1 API.
 
         :param data:  JSON reply from api/v1/production endpoint
         :return: Lifetime, last seven days, todays energy and current power for solar production
@@ -42,7 +43,8 @@ class EnvoySystemProduction:
 
     @classmethod
     def from_production(cls, data: dict[str, Any]) -> EnvoySystemProduction:
-        """Initialize from the production API.
+        """
+        Initialize from the production API.
 
         :param data: JSON reply from /production endpoint
         :return: Lifetime, last seven days, todays energy and current power for solar production
@@ -74,7 +76,8 @@ class EnvoySystemProduction:
     def from_production_phase(
         cls, data: dict[str, Any], phase: int
     ) -> EnvoySystemProduction | None:
-        """Initialize from the production API phase data.
+        """
+        Initialize from the production API phase data.
 
         :param data: JSON reply from /production endpoint
         :param phase: Index (0-2) in [lines] segment for which to return data

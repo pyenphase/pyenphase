@@ -84,7 +84,8 @@ UPDATERS: list[type["EnvoyUpdater"]] = [
 
 
 def register_updater(updater: type[EnvoyUpdater]) -> Callable[[], None]:
-    """Register an updater in the updaters list.
+    """
+    Register an updater in the updaters list.
 
     Registers a callable updater at the end of the updaters list. Probe
     method of the registered updater will be called during Envoy.probe().
@@ -107,7 +108,8 @@ def register_updater(updater: type[EnvoyUpdater]) -> Callable[[], None]:
 
 
 def get_updaters() -> list[type[EnvoyUpdater]]:
-    """Return list of registered updaters.
+    """
+    Return list of registered updaters.
 
     Returns current list of registered updaters. Changes
     to the list will not be in effect until
@@ -127,7 +129,8 @@ class Envoy:
         client: httpx.AsyncClient | None = None,
         timeout: float | httpx.Timeout | None = None,
     ) -> None:
-        """Class for communicating with an envoy.
+        """
+        Class for communicating with an envoy.
 
         Collects solar production data for all Envoy models as of
         firmware 3.9. Depending on model and installed components
@@ -154,9 +157,7 @@ class Envoy:
         """
         # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._timeout = timeout or LOCAL_TIMEOUT
-        self._client = client or httpx.AsyncClient(
-            verify=NO_VERIFY_SSL_CONTEXT
-        )  # nosec
+        self._client = client or httpx.AsyncClient(verify=NO_VERIFY_SSL_CONTEXT)  # nosec
         self.auth: EnvoyAuth | None = None
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
@@ -167,7 +168,8 @@ class Envoy:
         self._common_properties: CommonProperties = CommonProperties()
 
     async def setup(self) -> None:
-        """Initiate Envoy communication by obtaining firmware version.
+        """
+        Initiate Envoy communication by obtaining firmware version.
 
         Read /info on Envoy, accessible without authentication.
         Instantiates EnvoyFirmware class object. Required to
@@ -190,7 +192,8 @@ class Envoy:
         password: str | None = None,
         token: str | None = None,
     ) -> None:
-        """Authenticate to the Envoy based on firmware version.
+        """
+        Authenticate to the Envoy based on firmware version.
 
         If firmware version retrieved in Envoy.setup is < 7 then create DigestAuth using
         passed username and password. Use 'envoy' or 'installer' username and blank password.
@@ -263,7 +266,8 @@ class Envoy:
         reraise=True,
     )
     async def probe_request(self, endpoint: str) -> httpx.Response:
-        """Make a probe request to the Envoy.
+        """
+        Make a probe request to the Envoy.
 
         Probe requests are intended for use  by updates during initial
         search of available features in the Envoy. They are not retried
@@ -298,7 +302,8 @@ class Envoy:
         data: dict[str, Any] | None = None,
         method: str | None = None,
     ) -> httpx.Response:
-        """Make a request to the Envoy.
+        """
+        Make a request to the Envoy.
 
         Send GET or POST request to Envoy. Defaults to GET, specify
         data dictionary to perform a POST. Only specify the endpoint
@@ -328,7 +333,8 @@ class Envoy:
         data: dict[str, Any] | None = None,
         method: str | None = None,
     ) -> httpx.Response:
-        """Make a request to the Envoy.
+        """
+        Make a request to the Envoy.
 
         If data is specified use POST or specified method to
         send data dictionary as json string to the endpoint.
@@ -444,15 +450,19 @@ class Envoy:
 
     @property
     def consumption_meter_type(self) -> CtType | None:
-        """Return the type of consumption ct meter installed (total
-        or net-consumption or None) as read from the Envoy."""
+        """
+        Return the type of consumption ct meter installed (total
+        or net-consumption or None) as read from the Envoy.
+        """
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.consumption_meter_type
 
     @property
     def production_meter_type(self) -> CtType | None:
-        """Return the type of production ct meter installed
-        (Production or None) as read from the Envoy."""
+        """
+        Return the type of production ct meter installed
+        (Production or None) as read from the Envoy.
+        """
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.production_meter_type
 
@@ -476,7 +486,8 @@ class Envoy:
 
     @cached_property
     def envoy_model(self) -> str:
-        """Return Envoy model description.
+        """
+        Return Envoy model description.
 
         Describes the Envoy model based on properties found.
 
@@ -528,7 +539,8 @@ class Envoy:
         return response
 
     async def probe(self) -> None:
-        """Probe for Envoy model and supported features.
+        """
+        Probe for Envoy model and supported features.
 
         For each updater in the list of updaters returned by get_updaters,
         execute the probe() method. Build and store a list of updaters to use,
@@ -568,7 +580,8 @@ class Envoy:
         self._supported_features = supported_features
 
     def _validate_update(self, data: EnvoyData) -> None:
-        """Perform some overall validation checks and raise for issues.
+        """
+        Perform some overall validation checks and raise for issues.
 
         Envoy data returned can be impacted by the state of the Envoy. This
         validates searches for known cases and rules the data as invalid.
@@ -599,7 +612,8 @@ class Envoy:
                 )
 
     async def update(self) -> EnvoyData:
-        """Read data from Envoy.
+        """
+        Read data from Envoy.
 
         For each updater in the list of established updaters during probe(),
         execute the update() method to collect current data from the Envoy.
@@ -627,9 +641,9 @@ class Envoy:
             except EndOfStream as err:
                 raise EnvoyCommunicationError("EndOfStream at update") from err
             except httpx.NetworkError as err:
-                raise EnvoyCommunicationError(f"HTTPX NetworkError {str(err)}") from err
+                raise EnvoyCommunicationError(f"HTTPX NetworkError {err!s}") from err
             except httpx.TimeoutException as err:
-                raise EnvoyCommunicationError(f"HTTPX Timeout {str(err)}") from err
+                raise EnvoyCommunicationError(f"HTTPX Timeout {err!s}") from err
 
         self._validate_update(data)
         self.data = data
@@ -638,7 +652,8 @@ class Envoy:
     async def _json_request(
         self, end_point: str, data: dict[str, Any] | None, method: str | None = None
     ) -> Any:
-        """Make a request to the Envoy and return the JSON response.
+        """
+        Make a request to the Envoy and return the JSON response.
 
         Uses _request() to obtain response and returns response content
         as formatted JSON.
@@ -654,16 +669,17 @@ class Envoy:
         try:
             response = await self._request(end_point, data, method)
         except httpx.NetworkError as err:
-            raise EnvoyCommunicationError(f"HTTPX NetworkError {str(err)}") from err
+            raise EnvoyCommunicationError(f"HTTPX NetworkError {err!s}") from err
         except httpx.TimeoutException as err:
-            raise EnvoyCommunicationError(f"HTTPX Timeout {str(err)}") from err
+            raise EnvoyCommunicationError(f"HTTPX Timeout {err!s}") from err
         if not (200 <= response.status_code < 300):
             raise EnvoyHTTPStatusError(response.status_code, response.url)
 
         return json_loads(end_point, response.content)
 
     async def go_on_grid(self) -> dict[str, Any]:
-        """Make a request to the Envoy to go on grid.
+        """
+        Make a request to the Envoy to go on grid.
 
         POST {"mains_admin_state": "closed"} to /ivp/ensemble/relay directing
         to connect to the grid. Requires ENPOWER installed.
@@ -680,7 +696,8 @@ class Envoy:
         return await self._json_request(URL_GRID_RELAY, {"mains_admin_state": "closed"})
 
     async def go_off_grid(self) -> dict[str, Any]:
-        """Make a request to the Envoy to go off grid.
+        """
+        Make a request to the Envoy to go off grid.
 
         POST {"mains_admin_state": "open"} to /ivp/ensemble/relay directing
         to disconnect from the grid. Requires ENPOWER installed.
@@ -697,7 +714,8 @@ class Envoy:
         return await self._json_request(URL_GRID_RELAY, {"mains_admin_state": "open"})
 
     async def update_dry_contact(self, new_data: dict[str, Any]) -> dict[str, Any]:
-        """Update settings for an Enpower dry contact relay.
+        """
+        Update settings for an Enpower dry contact relay.
 
         POST updated dry contact settings to /ivp/ss/dry_contact_settings
         in the Envoy. New_data dict can contain one or more of below items
@@ -752,7 +770,8 @@ class Envoy:
         )
 
     async def open_dry_contact(self, id: str) -> dict[str, Any]:
-        """Open a dry contact relay.
+        """
+        Open a dry contact relay.
 
         POST {"dry_contacts": {"id": id, "status": "open"}} to Envoy to
         open dry contact with specified id. Upon successful POST,
@@ -781,7 +800,8 @@ class Envoy:
         return result
 
     async def close_dry_contact(self, id: str) -> dict[str, Any]:
-        """Close a dry contact relay.
+        """
+        Close a dry contact relay.
 
         POST {"dry_contacts": {"id": id, "status": "closed"}} to Envoy to
         close dry contact with specified id. Upon successful POST,
@@ -810,7 +830,8 @@ class Envoy:
         return result
 
     async def enable_charge_from_grid(self) -> dict[str, Any]:
-        """Enable charge from grid for Encharge batteries.
+        """
+        Enable charge from grid for Encharge batteries.
 
         Set charge_from_grid true in internal stored
         tariff data and send updated tariff data to Envoy using PUT.
@@ -835,7 +856,8 @@ class Envoy:
         )
 
     async def disable_charge_from_grid(self) -> dict[str, Any]:
-        """Disable charge from grid for Encharge batteries.
+        """
+        Disable charge from grid for Encharge batteries.
 
         Set charge_from_grid false in internal stored
         tariff data and send updated tariff data to Envoy using PUT.
@@ -860,7 +882,8 @@ class Envoy:
         )
 
     async def set_storage_mode(self, mode: EnvoyStorageMode) -> dict[str, Any]:
-        """Set the Encharge storage mode.
+        """
+        Set the Encharge storage mode.
 
         Set storage_mode in internal stored tariff data to specified
         mode and send updated tariff data to /admin/lib/tariff in Envoy
@@ -888,7 +911,8 @@ class Envoy:
         )
 
     async def set_reserve_soc(self, value: int) -> dict[str, Any]:
-        """Set the Encharge reserve state of charge.
+        """
+        Set the Encharge reserve state of charge.
 
         Set reserved_soc in internal stored tariff data to specified
         value and send updated tariff data to /admin/lib/tariff in Envoy
@@ -914,7 +938,8 @@ class Envoy:
         )
 
     def _verify_tariff_storage_or_raise(self) -> None:
-        """verify Encharge or IQ batteries and tariff data are available in Envoy
+        """
+        Verify Encharge or IQ batteries and tariff data are available in Envoy
 
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy

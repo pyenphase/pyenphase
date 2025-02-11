@@ -16,7 +16,8 @@ from .tariff import EnvoyTariff
 
 @dataclass(slots=True)
 class EnvoyData:
-    """Data Model for an envoy.
+    """
+    Data Model for an envoy.
 
     Data is extract from raw data requested from Envoy. All raw
     data is also available as-received in :any:`raw`. For details

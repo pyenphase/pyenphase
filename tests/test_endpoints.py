@@ -1583,19 +1583,19 @@ async def test_with_7_x_firmware(
         respx.put(URL_TARIFF).mock(return_value=Response(300, json={}))
         with pytest.raises(EnvoyError):
             await envoy.enable_charge_from_grid()
-        respx.put(URL_TARIFF).mock(return_value=Response(200, json={})).side_effect = (
-            httpx.TimeoutException("Test timeout exception")
-        )
+        respx.put(URL_TARIFF).mock(
+            return_value=Response(200, json={})
+        ).side_effect = httpx.TimeoutException("Test timeout exception")
         with pytest.raises(EnvoyError):
             await envoy.disable_charge_from_grid()
-        respx.put(URL_TARIFF).mock(return_value=Response(200, json={})).side_effect = (
-            httpx.ConnectError("Test Connection error")
-        )
+        respx.put(URL_TARIFF).mock(
+            return_value=Response(200, json={})
+        ).side_effect = httpx.ConnectError("Test Connection error")
         with pytest.raises(EnvoyError):
             await envoy.set_storage_mode(EnvoyStorageMode.SELF_CONSUMPTION)
-        respx.put(URL_TARIFF).mock(return_value=Response(200, json={})).side_effect = (
-            httpx.ConnectError("Test Connection error")
-        )
+        respx.put(URL_TARIFF).mock(
+            return_value=Response(200, json={})
+        ).side_effect = httpx.ConnectError("Test Connection error")
         with pytest.raises(EnvoyError):
             await envoy.set_reserve_soc(50)
 
