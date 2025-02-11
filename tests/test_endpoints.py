@@ -1080,6 +1080,129 @@ LOGGER = logging.getLogger(__name__)
             },
             {},
         ),
+        (
+            "8.2.4286_with_3cts_and_battery_split",
+            "800-00664-r05",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.ENPOWER
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.DUALPHASE
+            | SupportedFeatures.CTMETERS,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
+                | SupportedFeatures.ENPOWER,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE
+                | SupportedFeatures.CTMETERS,
+            },
+            2,
+            {
+                "ctMeters": 3,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "consumptionMeter": CtType.NET_CONSUMPTION,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": CtType.STORAGE,
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "watt_hours_lifetime": 6709433,
+                    "watt_hours_last_7_days": 6703259,
+                    "watt_hours_today": 6277,
+                    "watts_now": 3559,
+                },
+                PhaseNames.PHASE_2: {
+                    "watt_hours_lifetime": 6721896,
+                    "watt_hours_last_7_days": 6715706,
+                    "watt_hours_today": 6293,
+                    "watts_now": 3564,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "watt_hours_lifetime": 7197821,
+                    "watt_hours_last_7_days": 0,
+                    "watt_hours_today": 0,
+                    "watts_now": 4407,
+                },
+                PhaseNames.PHASE_2: {
+                    "watt_hours_lifetime": 7915653,
+                    "watt_hours_last_7_days": 0,
+                    "watt_hours_today": 0,
+                    "watts_now": 4478,
+                },
+            },
+            {
+                "eid": 704643328,
+                "active_power": 7131,
+                "measurement_type": CtType.PRODUCTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                "eid": 704643584,
+                "active_power": 1750,
+                "measurement_type": CtType.NET_CONSUMPTION,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                "eid": 704643840,
+                "active_power": -7084,
+                "measurement_type": CtType.STORAGE,
+                "metering_status": CtMeterStatus.NORMAL,
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385169,
+                    "active_power": 3562,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385170,
+                    "active_power": 3569,
+                    "measurement_type": CtType.PRODUCTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385425,
+                    "active_power": 810,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385426,
+                    "active_power": 940,
+                    "measurement_type": CtType.NET_CONSUMPTION,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "eid": 1778385681,
+                    "active_power": -3538,
+                    "measurement_type": CtType.STORAGE,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+                PhaseNames.PHASE_2: {
+                    "eid": 1778385682,
+                    "active_power": -3545,
+                    "measurement_type": CtType.STORAGE,
+                    "metering_status": CtMeterStatus.NORMAL,
+                },
+            },
+        ),
     ],
     ids=[
         "5.0.62",
@@ -1101,6 +1224,7 @@ LOGGER = logging.getLogger(__name__)
         "8.1.41",
         "8.2.127_with_3cts_and_battery_split",
         "8.2.127_with_generator_running",
+        "8.2.4286_with_3cts_and_battery_split",
     ],
 )
 @pytest.mark.asyncio
@@ -1394,6 +1518,14 @@ async def test_with_7_x_firmware(
         else:
             assert "date" not in new_model.to_api()
 
+        if envoy.data.tariff.storage_settings.opt_schedules is not None:
+            assert (
+                new_model.to_api()["opt_schedules"]
+                == envoy.data.tariff.storage_settings.opt_schedules
+            )
+        else:
+            assert "opt_schedules" not in new_model.to_api()
+
         # Test setting battery features
         await envoy.enable_charge_from_grid()
         assert envoy.data.tariff.storage_settings.charge_from_grid is True
@@ -1443,6 +1575,14 @@ async def test_with_7_x_firmware(
         )
         with pytest.raises(EnvoyError):
             await envoy.set_reserve_soc(50)
+
+        # test correct handling if storage_settings mode = None
+        # should result no longer throw Valueerror but result in None value
+        json_data = load_json_fixture(version, "admin_lib_tariff")
+        json_data["tariff"]["storage_settings"]["mode"] = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        await envoy.update()
+        assert envoy.data.tariff.storage_settings.mode is None
 
         # COV test with missing logger
         json_data = load_json_fixture(version, "admin_lib_tariff")
