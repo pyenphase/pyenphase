@@ -9,6 +9,10 @@ requires-python = ">=3.10"
 dynamic = ["classifiers", "dependencies"]
 
 [tool.poetry]
+name = "pyenphase"
+version = "1.25.4"
+description = "Library to control enphase envoy"
+authors = ["pyenphase <cgarwood@gmail.com>"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
@@ -56,7 +60,7 @@ sphinx-autodoc-typehints = ">=1.25.2,<4.0.0"
 
 [tool.semantic_release]
 branch = "main"
-version_toml = ["pyproject.toml:project.version"]
+version_toml = ["pyproject.toml:project.version", "pyproject.toml:tool.poetry.version"]
 version_variables = ["src/pyenphase/__init__.py:__version__"]
 build_command = "pip install poetry && poetry build"
 
