@@ -7,7 +7,8 @@ from ..models.meters import CtType, EnvoyPhaseMode
 
 @dataclass(slots=True)
 class CommonProperties:
-    """Model for common properties of an envoy shared amongst all updaters.
+    """
+    Model for common properties of an envoy shared amongst all updaters.
 
     One set are properties set during probe to share amongst updaters
     and with clients. These should be reset at each probe run.
@@ -49,7 +50,8 @@ class CommonProperties:
     # none_probe_property: str = "hello world" #: test
 
     def reset_probe_properties(self) -> None:
-        """Reset common properties that are initialized during probe.
+        """
+        Reset common properties that are initialized during probe.
 
         probe properties are reset at each probe to avoid sticking memories.
         This should exclude common properties set outside of probe

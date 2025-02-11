@@ -549,7 +549,8 @@ async def test_with_7_x_firmware(
     caplog.set_level(logging.DEBUG)
 
     envoy = await get_mock_envoy()
-    assert (data := envoy.data)
+    data = envoy.data
+    assert data
     assert data == snapshot
 
     assert envoy.phase_count == phase_count

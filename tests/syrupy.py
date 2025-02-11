@@ -7,7 +7,8 @@ from syrupy.types import PropertyFilter, PropertyMatcher, PropertyPath, Serializ
 
 
 class EnphaseSnapshotSerializer(AmberDataSerializer):
-    """Enphase snapshot serializer for Syrupy.
+    """
+    Enphase snapshot serializer for Syrupy.
 
     Handles special cases for Enphase data structures.
     """
@@ -24,7 +25,8 @@ class EnphaseSnapshotSerializer(AmberDataSerializer):
         path: PropertyPath = (),
         visited: set[Any] | None = None,
     ) -> str:
-        """Pre-process data before serializing.
+        """
+        Pre-process data before serializing.
 
         This allows us to handle specific cases for Enphase data structures.
         """

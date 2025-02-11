@@ -22,7 +22,8 @@ class EnvoyBatteryAggregate:
 
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> EnvoyBatteryAggregate:
-        """Fill Aggregated battery data from Envoy data format.
+        """
+        Fill Aggregated battery data from Envoy data format.
 
         Source data parts of URL_ENSEMBLE_SECCTRL
             .. code-block:: json
@@ -45,6 +46,7 @@ class EnvoyBatteryAggregate:
 
         Returns:
             EnvoyBatteryAggregate: Aggregated Battery data for all Encharge and ACB batteries
+
         """
         return cls(
             available_energy=data["ENC_agg_avail_energy"] + data["ACB_agg_energy"],
@@ -72,7 +74,8 @@ class EnvoyACBPower:
     def from_production(
         cls, data: dict[str, Any], acb_segment: int = 0
     ) -> EnvoyACBPower:
-        """Fill ACB battery power data from Envoy data format.
+        """
+        Fill ACB battery power data from Envoy data format.
 
         Source data URL_PRODUCTION_JSON["storage"]
             .. code-block:: json
@@ -94,6 +97,7 @@ class EnvoyACBPower:
 
         Returns:
             EnvoyACBPower: ACB battery current power out/in and energy content and status
+
         """
         storage_data = data["storage"][acb_segment]
         return cls(

@@ -148,7 +148,8 @@ async def test_known_users_with_3_9_36_firmware(username: str, password: str) ->
     await envoy.authenticate(username, password)
 
     # test cookies function now cookies are not on request
-    used_cookies = getattr(envoy.auth, "cookies")
+    assert envoy.auth
+    used_cookies = envoy.auth.cookies
     assert used_cookies == {}
 
     data = await envoy.update()

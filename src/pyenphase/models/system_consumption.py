@@ -25,7 +25,8 @@ class EnvoySystemConsumption:
     def from_production(
         cls, data: dict[str, Any], consumption_segment: int = 0
     ) -> EnvoySystemConsumption:
-        """Initialize from the production API.
+        """
+        Initialize from the production API.
 
         :param data: JSON reply from /production endpoint
         :return: Lifetime, last 7 days, todays energy and current power for total-consumption
@@ -42,7 +43,8 @@ class EnvoySystemConsumption:
     def from_production_phase(
         cls, data: dict[str, Any], phase: int, consumption_segment: int = 0
     ) -> EnvoySystemConsumption | None:
-        """Initialize from the production API phase data.
+        """
+        Initialize from the production API phase data.
 
         :param data: JSON reply from /production endpoint
         :param phase: Index (0-2) in [lines] segment for which to return data

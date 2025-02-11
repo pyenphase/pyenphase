@@ -1,4 +1,5 @@
-"""Create test fixture file set for pyenphase by scanning known endpoints on Envoy.
+"""
+Create test fixture file set for pyenphase by scanning known endpoints on Envoy.
 
 execute python fixture_collector.py --help for directons
 
@@ -24,6 +25,8 @@ from pyenphase.exceptions import (
 )
 
 # logging.basicConfig(level=logging.WARNING)
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def main(
@@ -92,8 +95,9 @@ async def main(
                 auth=envoy.auth.auth,
                 timeout=envoy._timeout,
             )
-        except Exception:
-            continue  # nosec
+        except Exception as ex:
+            _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
+            continue
         file_name = end_point[1:].replace("/", "_").replace("?", "_").replace("=", "_")
         with open(os.path.join(target_dir, file_name), "w") as fixture_file:
             fixture_file.write(response.text)
@@ -104,7 +108,7 @@ async def main(
             metadata_file.write(
                 json.dumps(
                     {
-                        "headers": {k: v for k, v in response.headers.items()},
+                        "headers": dict(response.headers.items()),
                         "code": response.status_code,
                     }
                 )
@@ -158,10 +162,12 @@ def _read_ha_config(file_path: str) -> dict[str, list[str | None]]:
 
 
 if __name__ == "__main__":
-    description = "Scan Enphase Envoy for endpoint list usable for pyenphase test fixtures. \
+    description = (
+        "Scan Enphase Envoy for endpoint list usable for pyenphase test fixtures. \
         Creates output folder envoy_<firmware>[label] with results of scan.\
         Zips content of created folder into envoy_<firmware>[label].zip.\
         "
+    )
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "-d", "--debug", help="Enable debug logging", action="store_true"

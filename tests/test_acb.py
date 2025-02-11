@@ -319,7 +319,8 @@ async def test_with_7_x_firmware(
     battery_aggregate: dict[str, Any],
     acb_power: dict[str, dict[str, Any]],
 ) -> None:
-    """Verify with 7.x firmware.
+    """
+    Verify with 7.x firmware.
 
     Test with fixture that have SupportedFeatures.METERING
 
@@ -451,8 +452,8 @@ async def test_with_7_x_firmware(
     caplog.set_level(logging.DEBUG)
 
     envoy = await get_mock_envoy()
-    assert (data := envoy.data)
-    assert data == snapshot
+    assert envoy.data
+    assert envoy.data == snapshot
 
     assert envoy.acb_count == acb_count
 
@@ -478,7 +479,7 @@ async def test_with_7_x_firmware(
 
     # test for code coverage if no storage section is available
     # use fixtures with METERING in supported_features:
-    production_data = data.raw["/production.json?details=1"]
+    production_data = envoy.data.raw["/production.json?details=1"]
 
     acb_data = production_data["storage"][0]
     assert acb_data["activeCount"] == acb_count
@@ -488,5 +489,5 @@ async def test_with_7_x_firmware(
     del prod_json["storage"]
     respx.get("/production.json").mock(return_value=Response(200, json=prod_json))
     envoy = await get_mock_envoy()
-    assert (data := envoy.data)
-    assert envoy.acb_count == 0
+    assert envoy.data
+    assert envoy.data.acb_count == 0

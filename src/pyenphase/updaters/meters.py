@@ -50,7 +50,8 @@ class EnvoyMetersUpdater(EnvoyUpdater):
     async def probe(
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
-        """Probe the Envoy meter setup and return CT and multiphase details in SupportedFeatures.
+        """
+        Probe the Envoy meter setup and return CT and multiphase details in SupportedFeatures.
 
         Get CT configuration info from ivp/meters in the Envoy and determine any multi-phase setup.
         Set Threephase or Dualphase supported feature if Envoy is in one of these setups.
@@ -150,7 +151,8 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         return self._supported_features
 
     async def update(self, envoy_data: EnvoyData) -> None:
-        """Update the Envoy data from the meters endpoints.
+        """
+        Update the Envoy data from the meters endpoints.
 
         Get CT configuration from ivp/meters and CT readings from ivp/meters/readings.
         Store data as EnvoyMeterData in ctmeter_production, ctmeter_consumption if
