@@ -10,7 +10,7 @@ dynamic = ["classifiers", "dependencies"]
 
 [tool.poetry]
 name = "pyenphase"
-version = "1.25.1"
+version = "1.25.4"
 description = "Library to control enphase envoy"
 authors = ["pyenphase <cgarwood@gmail.com>"]
 classifiers = [
