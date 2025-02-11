@@ -15615,6 +15615,8 @@
 # ---
 # name: test_with_7_x_firmware[8.2.4286_with_3cts_and_battery_split]
   dict({
+    'acb_power': None,
+    'battery_aggregate': None,
     'ctmeter_consumption': dict({
       'active_power': 1750,
       'current': 22.923,
