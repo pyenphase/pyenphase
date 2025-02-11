@@ -171,9 +171,16 @@ class EnvoyMetersUpdater(EnvoyUpdater):
 
         phase_range = self.phase_count if self.phase_count > 1 else 0
 
-        for index, meter in enumerate(meters_readings):
+        # no longer assume 2 lists are the same order and size. Size differs in fw 8.3.5025
+        for meter in meters_readings:
             eid = meter["eid"]
-            ct_data = meters_status[index]
+
+            if not (
+                ct_data := next((ct for ct in meters_status if ct["eid"] == eid), None)
+            ):
+                # fw 8.3.5025 also has a 3rd entry for storage ct even if not configured
+                # and it has all zeros values. Ignore data if eid not in meter status
+                continue
 
             # match meter identifier to one found during probe to identify production or consumption
             if eid == self.production_meter_eid and self.production_meter_type:
