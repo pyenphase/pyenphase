@@ -76,7 +76,7 @@ jobs:
         uses: python-semantic-release/python-semantic-release@v9.19.1
         if: github.ref_name != 'main'
         with:
-          additional_options: --noop
+          root_options: --noop
       - name: Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         if: steps.release.outputs.released == 'true'
