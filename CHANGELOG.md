@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.25.1 (2025-02-11)
+
+### Fix
+
+* Indexerror crash for fw 8.3.5027 that sends data for not present CT ([#203](https://github.com/pyenphase/pyenphase/issues/203)) ([`770cab0`](https://github.com/pyenphase/pyenphase/commit/770cab092890d05b8f32fc9b180be6f58081a013))
+
 ## v1.25.0 (2025-02-11)
 
 ### Feature
