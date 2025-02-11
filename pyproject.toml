@@ -34,7 +34,7 @@ pyjwt = ">=2.7.0"
 awesomeversion = ">=22.9.0"
 tenacity = "^8.2.2"
 envoy-utils = ">=0.0.1"
-orjson = ">=3.9.2"
+orjson = ">=3.10"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"
