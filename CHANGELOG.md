@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.25.0 (2025-02-11)
+
+### Feature
+
+* Add http method to request method parameters ([#197](https://github.com/pyenphase/pyenphase/issues/197)) ([`943f8d9`](https://github.com/pyenphase/pyenphase/commit/943f8d99306cc3dd1b45cf9ec810aa8936698c53))
+
 ## v1.24.0 (2025-02-11)
 
 ### Feature
