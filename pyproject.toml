@@ -1,12 +1,13 @@
-[tool.poetry]
+[project]
 name = "pyenphase"
 version = "1.25.1"
 description = "Library to control enphase envoy"
-authors = ["pyenphase <cgarwood@gmail.com>"]
+authors = [{ name = "pyenphase", email = "cgarwood@gmail.com" }]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/pyenphase/pyenphase"
-documentation = "https://pyenphase.readthedocs.io"
+dynamic = ["classifiers", "dependencies"]
+
+[tool.poetry]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
@@ -18,9 +19,12 @@ packages = [
     { include = "pyenphase", from = "src" },
 ]
 
-[tool.poetry.urls]
+[project.urls]
+"Documentation" = "https://pyenphase.readthedocs.io"
+"Repository" = "https://github.com/pyenphase/pyenphase"
 "Bug Tracker" = "https://github.com/pyenphase/pyenphase/issues"
 "Changelog" = "https://github.com/pyenphase/pyenphase/blob/main/CHANGELOG.md"
+
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -47,11 +51,11 @@ optional = true
 myst-parser = ">=0.16"
 sphinx = ">=4.0"
 sphinx-rtd-theme = ">=1.0"
-sphinx-autodoc-typehints = "^1.25.2"
+sphinx-autodoc-typehints = ">=1.25.2,<4.0.0"
 
 [tool.semantic_release]
 branch = "main"
-version_toml = "pyproject.toml:tool.poetry.version"
+version_toml = "pyproject.toml:project.version"
 version_variable = "src/pyenphase/__init__.py:__version__"
 build_command = "pip install poetry && poetry build"
 
@@ -99,5 +103,5 @@ module = "docs.*"
 ignore_errors = true
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
