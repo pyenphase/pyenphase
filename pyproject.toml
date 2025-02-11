@@ -29,7 +29,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 httpx = ">=0.24.0"
-lxml = ">=4.9.2"
+lxml = ">=5.0.1"
 pyjwt = ">=2.7.0"
 awesomeversion = ">=22.9.0"
 tenacity = "^8.2.2"
