@@ -52,37 +52,46 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   release:
-    runs-on: ubuntu-latest
-    environment: release
     needs:
       - test
       - lint
+
+    runs-on: ubuntu-latest
+    environment: release
+    concurrency: release
     permissions:
       id-token: write
       contents: write
+    outputs:
+      released: ${{ steps.release.outputs.released }}
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref || github.ref_name }}
 
-      - name: Release
-        id: release
-        uses: python-semantic-release/python-semantic-release@v9.19.1
-        if: github.ref_name == 'main'
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      # Do a dry run of PSR
       - name: Test release
         uses: python-semantic-release/python-semantic-release@v9.19.1
         if: github.ref_name != 'main'
         with:
           root_options: --noop
-      - name: Upload package to PyPI
+
+      # On main branch: actual PSR + upload to PyPI & GitHub
+      - name: Release
+        uses: python-semantic-release/python-semantic-release@v9.19.1
+        id: release
+        if: github.ref_name == 'main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         if: steps.release.outputs.released == 'true'
-      - name: Upload Github Release Assets
-        uses: python-semantic-release/publish-action@v9.17.0
+
+      - name: Publish package distributions to GitHub Releases
+        uses: python-semantic-release/publish-action@v9.19.1
         if: steps.release.outputs.released == 'true'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.release.outputs.tag }}
