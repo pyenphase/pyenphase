@@ -15,7 +15,8 @@ Example of a docstring generated with autoDoc and [included in this documentatio
 ```python
     @classmethod
     def from_v1_api(cls, data: dict[str, Any]) -> EnvoySystemProduction:
-        """Initialize from the V1 API.
+        """
+        Initialize from the V1 API.
 
         :param data:  JSON reply from api/v1/production endpoint
         :return: Lifetime, last seven days, todays energy and current power for solar production
@@ -30,7 +31,8 @@ To add links to other modules from the docstring, use ":class:`path_to_some_clas
         _client: httpx.AsyncClient,
         host: str,
     ) -> None:
-        """Class for querying and determining the Envoy firmware version.
+        """
+        Class for querying and determining the Envoy firmware version.
 
         :param client: httpx AsyncClient not verifying SSL
             certificates, see :class:`pyenphase.ssl`.
@@ -57,7 +59,8 @@ Similar for enumerations
 
 ```python
 class SupportedFeatures(enum.IntFlag):
-    """ Flags for each feature supported
+    """
+    Flags for each feature supported
 
     :param enum: Feature Name
     """
@@ -100,7 +103,8 @@ Use the \_\_init\_\_ of a class to document the class parameters.
         token: str | None = None,
         token: str | None = None,
     ) -> None:
-        """Class to authenticate with Envoy using Tokens.
+        """
+        Class to authenticate with Envoy using Tokens.
 
         Use with Envoy firmware 7.x and newer
 
