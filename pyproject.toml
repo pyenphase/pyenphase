@@ -37,7 +37,7 @@ httpx = ">=0.24.0"
 lxml = ">=4.9.2"
 pyjwt = ">=2.7.0"
 awesomeversion = ">=22.9.0"
-tenacity = "^8.2.2"
+tenacity = ">=8.2.2,<10.0.0"
 envoy-utils = ">=0.0.1"
 orjson = ">=3.10"
 
