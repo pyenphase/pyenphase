@@ -1,4 +1,4 @@
-"""Test tenacety retry functioning."""
+"""Test tenacity retry functioning."""
 
 import logging
 from typing import Any
@@ -43,7 +43,7 @@ async def test_full_connected_from_start_with_7_6_175_standard():
     await envoy.authenticate("username", "password")
 
     # Ensure that there was 1 attempt only.
-    stats: dict[str, Any] = envoy._firmware._get_info.retry.statistics
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
 
@@ -73,7 +73,7 @@ async def test_full_disconnected_from_start_with_7_6_175_standard():
         await envoy.setup()
 
     # Ensure that there were 3 attempts.
-    stats: dict[str, Any] = envoy._firmware._get_info.retry.statistics
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 3
 
@@ -98,7 +98,7 @@ async def test_2_timeout_from_start_with_7_6_175_standard():
         await envoy.setup()
 
     # Ensure that there were no retries.
-    stats: dict[str, Any] = envoy._firmware._get_info.retry.statistics
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
 
@@ -126,7 +126,7 @@ async def test_httperror_from_start_with_7_6_175_standard():
         await envoy.setup()
 
     # Ensure that there were no retries.
-    stats: dict[str, Any] = envoy._firmware._get_info.retry.statistics
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
 
@@ -154,7 +154,7 @@ async def test_1_timeout_from_start_with_7_6_175_standard():
     await envoy.authenticate("username", "password")
 
     # Ensure that there were no retries.
-    stats: dict[str, Any] = envoy._firmware._get_info.retry.statistics
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
 
@@ -192,7 +192,7 @@ async def test_5_not_connected_at_start_with_7_6_175_standard():
     await envoy.authenticate("username", "password")
 
     # Ensure that there were no retries.
-    stats: dict[str, Any] = envoy._firmware._get_info.retry.statistics
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 3
 
@@ -228,7 +228,7 @@ async def test_2_network_errors_at_start_with_7_6_175_standard():
     await envoy.authenticate("username", "password")
 
     # Ensure that there were no retries.
-    stats: dict[str, Any] = envoy._firmware._get_info.retry.statistics
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 3
 
@@ -264,7 +264,7 @@ async def test_3_network_errors_at_start_with_7_6_175_standard():
         await envoy.setup()
 
     # Ensure that there were no retries.
-    stats: dict[str, Any] = envoy._firmware._get_info.retry.statistics
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 3
 
@@ -287,7 +287,7 @@ async def test_noconnection_at_probe_with_7_6_175_standard():
     await envoy.authenticate("username", "password")
 
     # Ensure that there were no retries.
-    stats: dict[str, Any] = envoy._firmware._get_info.retry.statistics
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
 
@@ -305,7 +305,7 @@ async def test_noconnection_at_probe_with_7_6_175_standard():
     await envoy.probe()
     # assert data
 
-    stats = envoy.probe_request.retry.statistics
+    stats = envoy.probe_request.statistics
     assert "attempt_number" in stats
     print(f"--stats--{stats}")
     assert stats["attempt_number"] == 1
@@ -332,13 +332,13 @@ async def test_noconnection_at_update_with_7_6_175_standard():
     await envoy.authenticate("username", "password")
 
     # Ensure that there were no retries.
-    stats: dict[str, Any] = envoy._firmware._get_info.retry.statistics
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
 
     await envoy.probe()
 
-    stats = envoy.probe_request.retry.statistics
+    stats = envoy.probe_request.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
 
@@ -360,7 +360,7 @@ async def test_noconnection_at_update_with_7_6_175_standard():
     with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
-    stats = envoy.request.retry.statistics
+    stats = envoy.request.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 3
 
@@ -373,7 +373,7 @@ async def test_noconnection_at_update_with_7_6_175_standard():
     with pytest.raises(httpx.RemoteProtocolError):
         await envoy.update()
 
-    stats = envoy.request.retry.statistics
+    stats = envoy.request.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 3
 
@@ -386,7 +386,7 @@ async def test_noconnection_at_update_with_7_6_175_standard():
     with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
-    stats = envoy.request.retry.statistics
+    stats = envoy.request.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 3
 
@@ -399,7 +399,7 @@ async def test_noconnection_at_update_with_7_6_175_standard():
     with pytest.raises(orjson.JSONDecodeError):
         await envoy.update()
 
-    stats = envoy.request.retry.statistics
+    stats = envoy.request.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 3
 
@@ -413,7 +413,7 @@ async def test_noconnection_at_update_with_7_6_175_standard():
     with pytest.raises(EnvoyAuthenticationRequired):
         await envoy.update()
 
-    stats = envoy.request.retry.statistics
+    stats = envoy.request.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 2
 
@@ -427,7 +427,7 @@ async def test_noconnection_at_update_with_7_6_175_standard():
     with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
-    stats = envoy.request.retry.statistics
+    stats = envoy.request.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 2
 
@@ -457,6 +457,6 @@ async def test_bad_request_status_7_6_175_standard():
     with pytest.raises(EnvoyHTTPStatusError):
         await envoy.update()
 
-    stats = envoy.request.retry.statistics
+    stats = envoy.request.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
