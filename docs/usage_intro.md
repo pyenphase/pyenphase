@@ -36,8 +36,7 @@ For all available data refer to [Data](./data.md).
 
 When first data collection is performed, the update method will perform a probe of the Envoy to determine what data is actually available. This may vary by model or running firmware version. This probing also provides the data for various envoy properties.
 
-If the need exists to inspect properties before first data collection, use the [probe method](#pyenphase.Envoy.probe). 
-
+If the need exists to inspect properties before first data collection, use the [probe method](#pyenphase.Envoy.probe).
 
 ```python
 from pyenphase import Envoy, EnvoyData
