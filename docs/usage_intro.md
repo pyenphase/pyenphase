@@ -1,14 +1,14 @@
-# Initialization
+# Data collection
+
+## Update
 
 Access to the Envoy device requires specifying its ip address or dns name when creating an Instance of the [Envoy class](#pyenphase.Envoy).
 
 Next the envoy serial number and active firmware version should be obtained to identify which authentication method is required. Use the [setup method](#pyenphase.Envoy.setup).
 
-Once the firmware version is known, authentication can take place using the required parameters for the firmware. The [authenticate method](#pyenphase.Envoy.authenticate) requires a username and password and/or a JWT Token. What the username and password are and if the token is required [depends on the firmware](./usage_authentication.md#authentication) active in the Envoy.
+Once the firmware version is known, [authentication](./usage_authentication.md#authentication) can take place using the required parameters for the firmware. The [authenticate method](#pyenphase.Envoy.authenticate) requires a username and password and/or a JWT Token. What the username and password are and if the token is required [depends on the firmware](./usage_authentication.md#authentication) active in the Envoy.
 
-Upon successful authentication the data collection can be initiated by using the [probe method](#pyenphase.Envoy.probe). This will gather and set all required information for the data collection.[^1]
-
-Upon probe completion the data can be collected (repeatedly) using the [update method](#pyenphase.Envoy.update).
+Upon authentication completion the data can be collected (repeatedly) using the [update method](#pyenphase.Envoy.update).
 
 ```python
 from pyenphase import Envoy, EnvoyData
@@ -18,9 +18,6 @@ await envoy.setup()
 print(f'Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}')
 
 await envoy.authenticate(username=username, password=password, token=token)
-
-await envoy.probe()
-print(f'Phases: {envoy.phase_count}')
 
 while True:
     data: EnvoyData = await envoy.update()
@@ -35,4 +32,27 @@ while True:
 
 For all available data refer to [Data](./data.md).
 
-[^1]: The probe method will be called by the update method if not called before. It needs to be called only once to initiate data collection parameters.
+## Probe
+
+When first data collection is performed, the update method will perform a probe of the Envoy to determine what data is actually available. This may vary by model or running firmware version. This probing also provides the data for various envoy properties.
+
+If the need exists to inspect properties before first data collection, use the [probe method](#pyenphase.Envoy.probe). 
+
+
+```python
+from pyenphase import Envoy, EnvoyData
+
+envoy = Envoy(host_ip_or_name)
+await envoy.setup()
+print(f'Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}')
+
+await envoy.authenticate(username=username, password=password, token=token)
+
+await envoy.probe()
+print(f'Phases: {envoy.phase_count}')
+
+consumption_ct = 'installed' if envoy.production_meter_type else 'not installed'
+production_ct = 'installed' if envoy.consumption_meter_type else 'not installed'
+print(f'This envoy has Production ct {production_ct} and Consumption CT {consumption_ct})
+
+```
