@@ -17,7 +17,7 @@ await envoy.authenticate(username=username, password=password)
 
 ```
 
-For firmware >= 7 and a known token, specifying it will use it and skip reaching out to the Enlghten cloud.
+For firmware >= 7 and a known token, specifying it will use it and skip reaching out to the Enlighten cloud.
 
 ```python
 envoy = Envoy(host_ip_or_name)
@@ -128,4 +128,4 @@ else:
     ...
 ```
 
-[^2]: Data provided by pyenphase is only sourced from endpoints that allow access by at least Home owner accounts. The Envoy [Request method](#pyenphase.Envoy.request) allows access to [additional endpoints](./advanced.md#bring-your-own-endpoint), provided the user account has the required authorization level.
+[^2]: Data provided by pyenphase is only sourced from endpoints that allow access by at least Home owner accounts. The Envoy [Request method](#pyenphase.Envoy.request) allows access to [additional endpoints](./requests.md#requests), provided the user account has the required authorization level.

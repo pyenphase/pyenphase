@@ -1,28 +1,10 @@
-# Advanced Usage
-
-## Bring your own endpoint
-
-The pyenphase package can be used to obtain Envoy data from endpoints not already collected. Access to these endpoint is enabled by the [Authorization level](./usage_authentication.md#authorization-levels) set during authentication. Data is returned directly to the caller and not stored in the Envoy data model.
-
-```python
-envoy = Envoy(host_ip_or_name)
-await envoy.setup()
-await envoy.authenticate(username=username, password=password, token=token)
-
-myresponse: httpx.Response = await envoy.request('/my/own/endpoint')
-status_code = response.status_code
-if status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
-    # authentication error
-
-content = myresponse.content
-
-```
+# Updater modification
 
 ## Register updater
 
 The package can be extended by registering an additional `updater` as a sub class of `EnvoyUpdater`. Such an updater can serve as an alternative data source for existing data sources and provide requested data if other updaters don't. The added updater can only store data in one of the existing data attributes of [EnvoyData](#pyenphase.EnvoyData) or store the raw data in Envoy's [`raw`](./data_raw.md#raw-data) attribute.
 
-An updater requires 2 methods. A `probe` method which is used to initialize the updater and is only called once and signals capability to provide the data, and an `update` method which is called repeatidly to collect the data. Each may collect the same or different data based on the needs. The updater will have to provide same data as other updaters for the data attributes in scope.
+An updater requires 2 methods. A `probe` method which is used to initialize the updater and is only called once and signals capability to provide the data, and an `update` method which is called repeatedly to collect the data. Each may collect the same or different data based on the needs. The updater will have to provide same data as other updaters for the data attributes in scope.
 
 ### Example: Extend EnvoySystemProduction
 
@@ -113,7 +95,7 @@ To collect the data the EnvoyUpdater class provides the methods `_probe_request(
 
 ##### Update
 
-The `update` method is called at each update cycle to provide the actual data. It is passed the EnvoyData class to store the data to. The data colloction methods provided by the EnvoyUpdater class are `_json_request(endpoint)` and `_request(endpoint)`. Typically the method uses a data model to extract the data from the response.
+The `update` method is called at each update cycle to provide the actual data. It is passed the EnvoyData class to store the data to. The data collection methods provided by the EnvoyUpdater class are `_json_request(endpoint)` and `_request(endpoint)`. Typically the method uses a data model to extract the data from the response.
 
 ```python
     async def update(self, envoy_data: EnvoyData) -> None:
@@ -167,7 +149,7 @@ The previous example [Extend EnvoySystemProduction](#example-extend-envoysystemp
 
 #### EnvoyHomeInformation
 
-The datamodel to use is new and designed towards the needs.
+The data model to use is new and designed towards the needs.
 
 ```python
 from pyenphase import EnvoyData, EnvoySystemProduction, register_updater
@@ -195,7 +177,7 @@ class EnvoyHomeInformation():
 
 As described, the updater is a subclass of [EnvoyUpdater](#pyenphase.updaters.base.EnvoyUpdater) and provides `probe` and `update` methods. As this is a new attribute no SupportedFeatures flags exists for it. The next higher flag is used to signal back this updater has data to provide. [^2]
 
-[^2]: When adding multiple new unique features make sure flags are unique by adding more left shits as needed `myflag = 1 << (len(SupportedFeatures) + 1)`.
+[^2]: When adding multiple new unique features make sure flags are unique by adding more left shifts as needed `myflag = 1 << (len(SupportedFeatures) + 1)`.
 
 ```python
 class EnvoyHome(EnvoyUpdater):
@@ -224,7 +206,7 @@ class EnvoyHome(EnvoyUpdater):
     async def update(self, envoy_data: EnvoyData) -> None:
         """Update the Envoy for this /home.json."""
         home_data = await self._json_request("/home.json")
-        # No EnoyData attribute, only return raw as is
+        # No EnvoyData attribute, only return raw as is
         envoy_data.raw["/home.json"] = home_data
 ```
 
@@ -254,5 +236,19 @@ As there's no EnvoyData attribute to store the `EnvoyHome` data it should be obt
     )
     print(f'Home info: {home_info.timezone}')
 
+```
 
+## Unregister updater
+
+The reverse of [registering an updater](#register-updater) is to remove an existing updater by removing its registration. If the data should not be collected, or causes issues, one could consider removing the registration. Make sure to do this before first probe/data collection, or re-run probe after removing an updater.
+
+```python
+from pyenphase.envoy import get_updaters
+from pyenphase.updaters.base import EnvoyUpdater
+from pyenphase.updaters.tariff import EnvoyTariffUpdater
+
+    """Remove the EnvoyTariffUpdater Pyenphase UPDATERS."""
+    updaters: list[type[EnvoyUpdater]] = get_updaters()
+    if EnvoyTariffUpdater in updaters:
+        updaters.remove(EnvoyTariffUpdater)
 ```

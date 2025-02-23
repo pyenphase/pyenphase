@@ -18,5 +18,7 @@ data: EnvoyData = await envoy.update()
 
 usage_intro
 usage_authentication
+requests
+advanced
 
 ```
