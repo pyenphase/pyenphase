@@ -16,4 +16,4 @@ content = myresponse.content
 
 ```
 
-You can run the package only using requests only (without calling probe and update), which provides an API into the Envoy without using the internally pre-configured data collections.
+You can run the package using requests only (without calling probe and update), which provides an API into the Envoy without using the internally pre-configured data collections.

@@ -2,7 +2,7 @@
 
 ## Update
 
-Access to the Envoy device requires specifying its ip address or dns name, when creating an Instance of the [Envoy class](#pyenphase.Envoy).
+Access to the Envoy device requires specifying its ip address or dns name when creating an Instance of the [Envoy class](#pyenphase.Envoy).
 
 Next the envoy serial number and active firmware version should be obtained to identify which authentication method is required. Use the [setup method](#pyenphase.Envoy.setup).
 
@@ -52,6 +52,6 @@ print(f'Phases: {envoy.phase_count}')
 
 production_ct = 'installed' if envoy.production_meter_type else 'not installed'
 consumption_ct = 'installed' if envoy.consumption_meter_type else 'not installed'
-print(f'This envoy has Production ct {production_ct} and Consumption CT {consumption_ct}')
+print(f'This envoy has Production CT {production_ct} and Consumption CT {consumption_ct}')
 
 ```
