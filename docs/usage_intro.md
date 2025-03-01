@@ -50,8 +50,8 @@ await envoy.authenticate(username=username, password=password, token=token)
 await envoy.probe()
 print(f'Phases: {envoy.phase_count}')
 
-consumption_ct = 'installed' if envoy.production_meter_type else 'not installed'
-production_ct = 'installed' if envoy.consumption_meter_type else 'not installed'
-print(f'This envoy has Production ct {production_ct} and Consumption CT {consumption_ct})
+production_ct = 'installed' if envoy.production_meter_type else 'not installed'
+consumption_ct = 'installed' if envoy.consumption_meter_type else 'not installed'
+print(f'This envoy has Production ct {production_ct} and Consumption CT {consumption_ct}')
 
 ```
