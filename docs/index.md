@@ -6,15 +6,14 @@
 
 installation
 usage
-advanced
+data
 
 ```
 
 ```{toctree}
-:caption: Data & Reference
+:caption: Reference
 :maxdepth: 3
 
-data
 model_autodoc
 
 ```
