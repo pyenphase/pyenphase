@@ -60,16 +60,12 @@ class EnvoySystemProduction:
         now_source = eim if eim["activeCount"] else inverters
 
         return cls(
-            watt_hours_lifetime=int(round(now_source["whLifetime"])),
-            watt_hours_last_7_days=int(
-                round(
-                    eim.get("whLastSevenDays") or inverters.get("whLastSevenDays") or 0
-                )
+            watt_hours_lifetime=round(now_source["whLifetime"]),
+            watt_hours_last_7_days=round(
+                eim.get("whLastSevenDays") or inverters.get("whLastSevenDays") or 0
             ),
-            watt_hours_today=int(
-                round(eim.get("whToday") or inverters.get("whToday") or 0)
-            ),
-            watts_now=int(round(now_source["wNow"])),
+            watt_hours_today=round(eim.get("whToday") or inverters.get("whToday") or 0),
+            watts_now=round(now_source["wNow"]),
         )
 
     @classmethod
@@ -93,8 +89,8 @@ class EnvoySystemProduction:
 
         phase_data = phases[phase]
         return cls(
-            watt_hours_lifetime=int(round(phase_data.get("whLifetime") or 0)),
-            watt_hours_last_7_days=int(round(phase_data.get("whLastSevenDays") or 0)),
-            watt_hours_today=int(round(phase_data.get("whToday") or 0)),
-            watts_now=int(round(phase_data.get("wNow") or 0)),
+            watt_hours_lifetime=round(phase_data.get("whLifetime") or 0),
+            watt_hours_last_7_days=round(phase_data.get("whLastSevenDays") or 0),
+            watt_hours_today=round(phase_data.get("whToday") or 0),
+            watts_now=round(phase_data.get("wNow") or 0),
         )

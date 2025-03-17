@@ -33,10 +33,10 @@ class EnvoySystemConsumption:
         """
         consumption = data["consumption"][consumption_segment]
         return cls(
-            watt_hours_lifetime=int(round(consumption["whLifetime"])),
-            watt_hours_last_7_days=int(round(consumption["whLastSevenDays"])),
-            watt_hours_today=int(round(consumption["whToday"])),
-            watts_now=int(round(consumption["wNow"])),
+            watt_hours_lifetime=round(consumption["whLifetime"]),
+            watt_hours_last_7_days=round(consumption["whLastSevenDays"]),
+            watt_hours_today=round(consumption["whToday"]),
+            watts_now=round(consumption["wNow"]),
         )
 
     @classmethod
@@ -60,8 +60,8 @@ class EnvoySystemConsumption:
 
         phase_data = phases[phase]
         return cls(
-            watt_hours_lifetime=int(round(phase_data["whLifetime"])),
-            watt_hours_last_7_days=int(round(phase_data["whLastSevenDays"])),
-            watt_hours_today=int(round(phase_data["whToday"])),
-            watts_now=int(round(phase_data["wNow"])),
+            watt_hours_lifetime=round(phase_data["whLifetime"]),
+            watt_hours_last_7_days=round(phase_data["whLastSevenDays"]),
+            watt_hours_today=round(phase_data["whToday"]),
+            watts_now=round(phase_data["wNow"]),
         )

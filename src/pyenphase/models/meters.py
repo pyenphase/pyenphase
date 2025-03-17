@@ -74,9 +74,9 @@ class EnvoyMeterData:
         return cls(
             eid=data["eid"],
             timestamp=data["timestamp"],
-            energy_delivered=int(round(data["actEnergyDlvd"])),
-            energy_received=int(round(data["actEnergyRcvd"])),
-            active_power=int(round(data["activePower"])),
+            energy_delivered=round(data["actEnergyDlvd"]),
+            energy_received=round(data["actEnergyRcvd"]),
+            active_power=round(data["activePower"]),
             power_factor=data["pwrFactor"],
             voltage=data["voltage"],
             current=data["current"],
