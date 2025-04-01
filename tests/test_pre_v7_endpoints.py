@@ -108,6 +108,84 @@ async def test_with_4_2_27_firmware():
 
 @pytest.mark.asyncio
 @respx.mock
+async def test_with_4_2_33_firmware_no_cons_ct():
+    """Verify with 4.2.33 firmware."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
+    version = "4.2.33"
+    respx.get("/info").mock(
+        return_value=Response(200, text=load_fixture(version, "info"))
+    )
+    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    respx.get("/production").mock(return_value=Response(404))
+    respx.get("/production.json").mock(
+        return_value=Response(200, json=load_json_fixture(version, "production.json"))
+    )
+    respx.get("/api/v1/production").mock(
+        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
+    )
+    respx.get("/api/v1/production/inverters").mock(return_value=Response(404))
+
+    path = f"tests/fixtures/{version}"
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+    if "admin_lib_tariff" in files:
+        try:
+            json_data = load_json_fixture(version, "admin_lib_tariff")
+        except json.decoder.JSONDecodeError:
+            json_data = None
+        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+
+    if "ivp_ss_gen_config" in files:
+        try:
+            json_data = load_json_fixture(version, "ivp_ss_gen_config")
+        except json.decoder.JSONDecodeError:
+            json_data = {}
+        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json=json_data))
+    else:
+        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
+
+    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
+
+    envoy = await get_mock_envoy()
+    data: EnvoyData | None = envoy.data
+    assert data is not None
+
+    assert envoy._supported_features & SupportedFeatures.METERING
+    assert not (envoy._supported_features & SupportedFeatures.INVERTERS)
+    assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
+    assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
+    assert updater_features(envoy._updaters) == {
+        "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+        | SupportedFeatures.PRODUCTION,
+    }
+    assert envoy.part_number == "800-00551-r02"
+
+    assert data.system_production is not None
+    assert (
+        data.system_production.watts_now == 1377
+    )  # This used to use the production.json endpoint, but its always a bit behind
+    assert data.system_production.watt_hours_today == 5117
+    assert data.system_production.watt_hours_last_7_days == 5735
+    assert data.system_production.watt_hours_lifetime == 8593159
+    assert not data.inverters
+    assert envoy.ct_meter_count == 0
+    assert envoy.phase_count == 1
+    assert envoy.phase_mode is None
+    assert envoy.consumption_meter_type is None
+    assert not data.system_consumption_phases
+    assert not data.system_production_phases
+    assert envoy.envoy_model == "Envoy"
+
+    # Test that Ensemble commands raise FeatureNotAvailable
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.go_off_grid()
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.go_on_grid()
+
+
+@pytest.mark.asyncio
+@respx.mock
 async def test_with_5_0_49_firmware():
     """Verify with 5.0.49 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
