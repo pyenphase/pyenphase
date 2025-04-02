@@ -1,26 +1,29 @@
 {
-    "production": [{
+    "production": [
+        {
             "type": "inverters",
-            "wNow": 1406,
-            "whLifetime": 11420402.10388889,
-            "readingTime": 1743529602,
+            "wNow": 0,
+            "whLifetime": 11425504.1275,
+            "readingTime": 1743563782,
             "activeCount": 19
-        }, {
+        },
+        {
             "type": "eim",
             "activeCount": 1,
-            "whLifetime": 8593158.949,
-            "whLastSevenDays": 5734.949,
-            "whToday": 5116.949,
-            "wNow": 1377.422,
-            "rmsCurrent": 11.486,
-            "rmsVoltage": 243.419,
-            "reactPwr": 241.26,
-            "apprntPwr": 1397.953,
-            "pwrFactor": 0.99,
-            "readingTime": 1743529602
+            "whLifetime": 8598256.633,
+            "whLastSevenDays": 10832.633,
+            "whToday": 10214.633,
+            "wNow": -8.796,
+            "rmsCurrent": 1.767,
+            "rmsVoltage": 241.934,
+            "reactPwr": 206.72,
+            "apprntPwr": 213.736,
+            "pwrFactor": -0.04,
+            "readingTime": 1743563782
         }
     ],
-    "consumption": [{
+    "consumption": [
+        {
             "type": "eim",
             "activeCount": 0,
             "whLifetime": 0,

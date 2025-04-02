@@ -21,6 +21,7 @@ from pyenphase.exceptions import (
     EnvoyProbeFailed,
 )
 from pyenphase.models.envoy import EnvoyData
+from pyenphase.models.meters import EnvoyPhaseMode
 from pyenphase.models.system_production import EnvoySystemProduction
 from pyenphase.updaters.base import EnvoyUpdater
 
@@ -123,7 +124,11 @@ async def test_with_4_2_33_firmware_no_cons_ct():
     respx.get("/api/v1/production").mock(
         return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
     )
-    respx.get("/api/v1/production/inverters").mock(return_value=Response(404))
+    respx.get("/api/v1/production/inverters").mock(
+        return_value=Response(
+            200, json=load_json_fixture(version, "api_v1_production_inverters")
+        )
+    )
 
     path = f"tests/fixtures/{version}"
     files = [f for f in listdir(path) if isfile(join(path, f))]
@@ -145,43 +150,66 @@ async def test_with_4_2_33_firmware_no_cons_ct():
     else:
         respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
 
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
+    respx.get("/ivp/meters").mock(
+        return_value=Response(200, json=load_json_fixture(version, "ivp_meters"))
+    )
+    respx.get("/ivp/meters/readings").mock(
+        return_value=Response(
+            200, json=load_json_fixture(version, "ivp_meters_readings")
+        )
+    )
 
     envoy = await get_mock_envoy()
     data: EnvoyData | None = envoy.data
     assert data is not None
 
     assert envoy._supported_features & SupportedFeatures.METERING
-    assert not (envoy._supported_features & SupportedFeatures.INVERTERS)
+    assert envoy._supported_features & SupportedFeatures.INVERTERS
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
     assert updater_features(envoy._updaters) == {
         "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
         | SupportedFeatures.PRODUCTION,
+        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE | SupportedFeatures.CTMETERS,
     }
-    assert envoy.part_number == "800-00551-r02"
+    assert envoy.part_number == "800-00547-r05"
 
     assert data.system_production is not None
     assert (
-        data.system_production.watts_now == 1377
+        data.system_production.watts_now == -9
     )  # This used to use the production.json endpoint, but its always a bit behind
-    assert data.system_production.watt_hours_today == 5117
-    assert data.system_production.watt_hours_last_7_days == 5735
-    assert data.system_production.watt_hours_lifetime == 8593159
-    assert not data.inverters
-    assert envoy.ct_meter_count == 0
-    assert envoy.phase_count == 1
-    assert envoy.phase_mode is None
+    assert data.system_production.watt_hours_today == 10215
+    assert data.system_production.watt_hours_last_7_days == 10833
+    assert data.system_production.watt_hours_lifetime == 8598257
+    assert not data.system_consumption
+    assert data.inverters["1234567890"] == EnvoyInverter(
+        serial_number="1234567890",
+        last_report_date=1743551631,
+        last_report_watts=3,
+        max_report_watts=131,
+    )
+    assert data.inverters["121622033019"] == EnvoyInverter(
+        serial_number="121622033019",
+        last_report_date=1536668634,
+        last_report_watts=17,
+        max_report_watts=17,
+    )
+    assert envoy.ct_meter_count == 1
+    assert envoy.phase_count == 2
+    assert envoy.phase_mode == EnvoyPhaseMode.SPLIT
     assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
-    assert envoy.envoy_model == "Envoy"
+    assert envoy.envoy_model == "Envoy, phases: 2, phase mode: split, production CT"
 
     # Test that Ensemble commands raise FeatureNotAvailable
     with pytest.raises(EnvoyFeatureNotAvailable):
         await envoy.go_off_grid()
     with pytest.raises(EnvoyFeatureNotAvailable):
         await envoy.go_on_grid()
+
+    await envoy.update()
 
 
 @pytest.mark.asyncio

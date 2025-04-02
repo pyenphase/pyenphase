@@ -1,0 +1,18 @@
+[
+    {
+        "eid": 704643328,
+        "state": "enabled",
+        "measurementType": "production",
+        "phaseMode": "split",
+        "phaseCount": 2,
+        "meteringStatus": "normal"
+    },
+    {
+        "eid": 704643584,
+        "state": "disabled",
+        "measurementType": "net-consumption",
+        "phaseMode": "split",
+        "phaseCount": 2,
+        "meteringStatus": "not-metering"
+    }
+]
