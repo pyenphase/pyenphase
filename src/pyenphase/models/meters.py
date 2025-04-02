@@ -84,7 +84,8 @@ class EnvoyMeterData:
             state=meter_status["state"],
             measurement_type=meter_status["measurementType"],
             metering_status=meter_status["meteringStatus"],
-            status_flags=meter_status["statusFlags"],
+            # statusFlags are not present in older firmware versions
+            status_flags=meter_status.get("statusFlags"),
         )
 
     @classmethod
