@@ -1,6 +1,299 @@
 # CHANGELOG
 
 
+## v1.25.5 (2025-04-02)
+
+### Bug Fixes
+
+- V4 metered without cons CT crashes with KeyError: 'measurementType'
+  ([#259](https://github.com/pyenphase/pyenphase/pull/259),
+  [`da11b5b`](https://github.com/pyenphase/pyenphase/commit/da11b5bd84463188e6f98eb823a1a2f8420fde60))
+
+* fix: v4 metered without cons CT crashes with KeyError: 'measurementType' * Ignore meter if
+  activeCount is zero * Make meters statusFlags optional
+
+### Chores
+
+- Restore some legacy poetry keys to fix dependabot
+  ([#232](https://github.com/pyenphase/pyenphase/pull/232),
+  [`48e930e`](https://github.com/pyenphase/pyenphase/commit/48e930e51ceb9bada135b7fa6a064dc36c5b78de))
+
+- Update dependabot.yml to force re-run attempt
+  ([#231](https://github.com/pyenphase/pyenphase/pull/231),
+  [`baabe6e`](https://github.com/pyenphase/pyenphase/commit/baabe6e5ddfe3f13c75c8b638b90f96cb7c990ec))
+
+- Update dependabot.yml to force rerun
+  ([`ba8f487`](https://github.com/pyenphase/pyenphase/commit/ba8f487f1f036304b7433276fffb23a3c77dc436))
+
+- Update dev status to production/stable ([#243](https://github.com/pyenphase/pyenphase/pull/243),
+  [`d97f24c`](https://github.com/pyenphase/pyenphase/commit/d97f24cb14451ea75d16e43e796e0ea968c38ff7))
+
+- **ci**: Bump the github-actions group with 2 updates
+  ([#247](https://github.com/pyenphase/pyenphase/pull/247),
+  [`31475ff`](https://github.com/pyenphase/pyenphase/commit/31475ffd7772b5bab3915c29aa2f52e789f8aec1))
+
+- **deps**: Bump orjson from 3.10.15 to 3.10.16
+  ([#256](https://github.com/pyenphase/pyenphase/pull/256),
+  [`abfd861`](https://github.com/pyenphase/pyenphase/commit/abfd8617dd006b3d40ac8a08bcef222c9ad14928))
+
+- **deps**: Bump tenacity from 8.2.3 to 9.0.0
+  ([#236](https://github.com/pyenphase/pyenphase/pull/236),
+  [`dffeee0`](https://github.com/pyenphase/pyenphase/commit/dffeee0becae187b154e8c63b56ccfdd6b6abaae))
+
+* chore(deps): bump tenacity from 8.2.3 to 9.0.0
+
+Bumps [tenacity](https://github.com/jd/tenacity) from 8.2.3 to 9.0.0. - [Release
+  notes](https://github.com/jd/tenacity/releases) -
+  [Commits](https://github.com/jd/tenacity/compare/8.2.3...9.0.0)
+
+--- updated-dependencies: - dependency-name: tenacity dependency-type: direct:production
+
+update-type: version-update:semver-major ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+* chore: lock due to https://github.com/dependabot/dependabot-core/pull/11275
+
+* chore: replace tenacity .retry.statistics by .statistics
+
+---------
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: J. Nick Koston <nick@koston.org>
+
+Co-authored-by: Arie Catsman <catsmanac@outlook.com>
+
+- **deps-dev**: Bump jinja2 from 3.1.5 to 3.1.6
+  ([#251](https://github.com/pyenphase/pyenphase/pull/251),
+  [`f0b50de`](https://github.com/pyenphase/pyenphase/commit/f0b50dea3f98374821d0d01055d95c3bcba0ff65))
+
+Bumps [jinja2](https://github.com/pallets/jinja) from 3.1.5 to 3.1.6. - [Release
+  notes](https://github.com/pallets/jinja/releases) -
+  [Changelog](https://github.com/pallets/jinja/blob/main/CHANGES.rst) -
+  [Commits](https://github.com/pallets/jinja/compare/3.1.5...3.1.6)
+
+--- updated-dependencies: - dependency-name: jinja2 dependency-type: indirect ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps-dev**: Bump myst-parser from 4.0.0 to 4.0.1
+  ([#240](https://github.com/pyenphase/pyenphase/pull/240),
+  [`5423632`](https://github.com/pyenphase/pyenphase/commit/54236321c624e980a537fb6b7af01e5d1a14fc45))
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: J. Nick Koston <nick@koston.org>
+
+- **deps-dev**: Bump pytest from 7.4.4 to 8.3.4
+  ([#235](https://github.com/pyenphase/pyenphase/pull/235),
+  [`199bd4a`](https://github.com/pyenphase/pyenphase/commit/199bd4a9cbe3c96a6abbee8a2c0b2dc4371e3a26))
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: J. Nick Koston <nick@koston.org>
+
+- **deps-dev**: Bump pytest from 8.3.4 to 8.3.5
+  ([#248](https://github.com/pyenphase/pyenphase/pull/248),
+  [`fb8ad43`](https://github.com/pyenphase/pyenphase/commit/fb8ad430a676ce43d22e9210d5e18e06eab3606d))
+
+* chore(deps-dev): bump pytest from 8.3.4 to 8.3.5
+
+Bumps [pytest](https://github.com/pytest-dev/pytest) from 8.3.4 to 8.3.5. - [Release
+  notes](https://github.com/pytest-dev/pytest/releases) -
+  [Changelog](https://github.com/pytest-dev/pytest/blob/main/CHANGELOG.rst) -
+  [Commits](https://github.com/pytest-dev/pytest/compare/8.3.4...8.3.5)
+
+--- updated-dependencies: - dependency-name: pytest dependency-type: direct:development
+
+update-type: version-update:semver-patch ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+* chore: update poetry.lock
+
+---------
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: Arie Catsman <catsmanac@outlook.com>
+
+- **deps-dev**: Bump pytest-asyncio from 0.21.2 to 0.25.3
+  ([#239](https://github.com/pyenphase/pyenphase/pull/239),
+  [`24ab1c0`](https://github.com/pyenphase/pyenphase/commit/24ab1c0c36a1b5fcdcce7c4d948f7bed7d34445e))
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: J. Nick Koston <nick@koston.org>
+
+- **deps-dev**: Bump pytest-asyncio from 0.25.3 to 0.26.0
+  ([#257](https://github.com/pyenphase/pyenphase/pull/257),
+  [`9f73bce`](https://github.com/pyenphase/pyenphase/commit/9f73bce62b15fed33082a36ff5f8b150eef0eaf5))
+
+- **deps-dev**: Bump sphinx from 7.3.7 to 8.1.3
+  ([#234](https://github.com/pyenphase/pyenphase/pull/234),
+  [`6310f28`](https://github.com/pyenphase/pyenphase/commit/6310f2881e5b7250b69885a2344bbdf6d71f7933))
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: J. Nick Koston <nick@koston.org>
+
+- **deps-dev**: Bump sphinx-autodoc-typehints from 1.25.3 to 3.0.1
+  ([#233](https://github.com/pyenphase/pyenphase/pull/233),
+  [`29ca29d`](https://github.com/pyenphase/pyenphase/commit/29ca29dd8e97b59a427d7fe017ea5bc34411c238))
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: J. Nick Koston <nick@koston.org>
+
+- **deps-dev**: Bump sphinx-rtd-theme from 2.0.0 to 3.0.2
+  ([#237](https://github.com/pyenphase/pyenphase/pull/237),
+  [`7d4498b`](https://github.com/pyenphase/pyenphase/commit/7d4498b2327f1e39a524668f578c923636d2a783))
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: J. Nick Koston <nick@koston.org>
+
+- **deps-dev**: Bump syrupy from 4.8.1 to 4.8.2
+  ([#245](https://github.com/pyenphase/pyenphase/pull/245),
+  [`351036f`](https://github.com/pyenphase/pyenphase/commit/351036fa541075073c5bec8c30cfdf1dfc02a613))
+
+* chore(deps-dev): bump syrupy from 4.8.1 to 4.8.2
+
+Bumps [syrupy](https://github.com/syrupy-project/syrupy) from 4.8.1 to 4.8.2. - [Release
+  notes](https://github.com/syrupy-project/syrupy/releases) -
+  [Changelog](https://github.com/syrupy-project/syrupy/blob/main/CHANGELOG.md) -
+  [Commits](https://github.com/syrupy-project/syrupy/compare/v4.8.1...v4.8.2)
+
+--- updated-dependencies: - dependency-name: syrupy dependency-type: direct:development
+
+update-type: version-update:semver-patch ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+* chore: rebuild poetry.lock
+
+---------
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: Arie Catsman <catsmanac@outlook.com>
+
+- **deps-dev**: Bump syrupy from 4.8.2 to 4.9.0
+  ([#250](https://github.com/pyenphase/pyenphase/pull/250),
+  [`107e0c6`](https://github.com/pyenphase/pyenphase/commit/107e0c6e9829dafd0dca90ea754c4a408d0e8b4e))
+
+Bumps [syrupy](https://github.com/syrupy-project/syrupy) from 4.8.2 to 4.9.0. - [Release
+  notes](https://github.com/syrupy-project/syrupy/releases) -
+  [Changelog](https://github.com/syrupy-project/syrupy/blob/main/CHANGELOG.md) -
+  [Commits](https://github.com/syrupy-project/syrupy/compare/v4.8.2...v4.9.0)
+
+--- updated-dependencies: - dependency-name: syrupy dependency-type: direct:development
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps-dev**: Bump syrupy from 4.9.0 to 4.9.1
+  ([#254](https://github.com/pyenphase/pyenphase/pull/254),
+  [`7f964d2`](https://github.com/pyenphase/pyenphase/commit/7f964d2e6dafed0dc62cf38a542c61e11c8fe2c6))
+
+Bumps [syrupy](https://github.com/syrupy-project/syrupy) from 4.9.0 to 4.9.1. - [Release
+  notes](https://github.com/syrupy-project/syrupy/releases) -
+  [Changelog](https://github.com/syrupy-project/syrupy/blob/main/CHANGELOG.md) -
+  [Commits](https://github.com/syrupy-project/syrupy/compare/v4.9.0...v4.9.1)
+
+--- updated-dependencies: - dependency-name: syrupy dependency-type: direct:development
+
+update-type: version-update:semver-patch ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#241](https://github.com/pyenphase/pyenphase/pull/241),
+  [`df71b5c`](https://github.com/pyenphase/pyenphase/commit/df71b5c3de495acaab0d484ff732b9044279b4f5))
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#246](https://github.com/pyenphase/pyenphase/pull/246),
+  [`9878d8f`](https://github.com/pyenphase/pyenphase/commit/9878d8fb0e4946bf1a2566fd72c6100b4c300464))
+
+updates: - [github.com/astral-sh/ruff-pre-commit: v0.9.6 →
+  v0.9.7](https://github.com/astral-sh/ruff-pre-commit/compare/v0.9.6...v0.9.7)
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#249](https://github.com/pyenphase/pyenphase/pull/249),
+  [`78547ef`](https://github.com/pyenphase/pyenphase/commit/78547efabf80242680498c801823ee8f661c535a))
+
+updates: - [github.com/astral-sh/ruff-pre-commit: v0.9.7 →
+  v0.9.9](https://github.com/astral-sh/ruff-pre-commit/compare/v0.9.7...v0.9.9)
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#252](https://github.com/pyenphase/pyenphase/pull/252),
+  [`ea01214`](https://github.com/pyenphase/pyenphase/commit/ea012147bb5b18efc6f3f6d831708af23f5cc438))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#253](https://github.com/pyenphase/pyenphase/pull/253),
+  [`3601946`](https://github.com/pyenphase/pyenphase/commit/3601946bed60eea298f215735fc0695d15af55d2))
+
+* chore(pre-commit.ci): pre-commit autoupdate
+
+updates: - [github.com/astral-sh/ruff-pre-commit: v0.9.10 →
+  v0.11.0](https://github.com/astral-sh/ruff-pre-commit/compare/v0.9.10...v0.11.0)
+
+* refactor: remove unneeded int cast based on ruf046
+
+---------
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+Co-authored-by: Arie Catsman <catsmanac@outlook.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#255](https://github.com/pyenphase/pyenphase/pull/255),
+  [`20772e5`](https://github.com/pyenphase/pyenphase/commit/20772e5039e24983fbc2c030bd881dc044b925e5))
+
+updates: - [github.com/astral-sh/ruff-pre-commit: v0.11.0 →
+  v0.11.2](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.0...v0.11.2)
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#258](https://github.com/pyenphase/pyenphase/pull/258),
+  [`153787d`](https://github.com/pyenphase/pyenphase/commit/153787d76070f30504dd41847b2863ca2471535d))
+
+updates: - [github.com/python-poetry/poetry: 2.1.1 →
+  2.1.2](https://github.com/python-poetry/poetry/compare/2.1.1...2.1.2)
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+### Documentation
+
+- Reorganize and update usage documentation
+  ([#244](https://github.com/pyenphase/pyenphase/pull/244),
+  [`37d107b`](https://github.com/pyenphase/pyenphase/commit/37d107be3e9f87d02fe45d6abd36b4f8f25004fb))
+
+* docs: reorganize and update usage documentation
+
+---------
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+Co-authored-by: J. Nick Koston <nick@koston.org>
+
+- Replace black badge by ruff badge in readme
+  ([#242](https://github.com/pyenphase/pyenphase/pull/242),
+  [`d3fb541`](https://github.com/pyenphase/pyenphase/commit/d3fb541e342377e0eed98d6c8561f99deb9b3a2f))
+
+- Update docstring examples to reflect ruff formatting rules.
+  ([#238](https://github.com/pyenphase/pyenphase/pull/238),
+  [`ede8786`](https://github.com/pyenphase/pyenphase/commit/ede87866a41cd55403c12031058cef28fc0c4852))
+
+
 ## v1.25.4 (2025-02-11)
 
 ### Bug Fixes
