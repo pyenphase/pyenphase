@@ -1,0 +1,46 @@
+{
+    "production": [
+        {
+            "type": "inverters",
+            "wNow": 0,
+            "whLifetime": 11425504.1275,
+            "readingTime": 1743563782,
+            "activeCount": 19
+        },
+        {
+            "type": "eim",
+            "activeCount": 1,
+            "whLifetime": 8598256.633,
+            "whLastSevenDays": 10832.633,
+            "whToday": 10214.633,
+            "wNow": -8.796,
+            "rmsCurrent": 1.767,
+            "rmsVoltage": 241.934,
+            "reactPwr": 206.72,
+            "apprntPwr": 213.736,
+            "pwrFactor": -0.04,
+            "readingTime": 1743563782
+        }
+    ],
+    "consumption": [
+        {
+            "type": "eim",
+            "activeCount": 0,
+            "whLifetime": 0,
+            "whLastSevenDays": 0,
+            "whToday": 0,
+            "wNow": 0,
+            "varhLeadToday": 0,
+            "varhLagToday": 0,
+            "vahToday": 0,
+            "varhLeadLifetime": 0,
+            "varhLagLifetime": 0,
+            "vahLifetime": 0,
+            "rmsCurrent": 0,
+            "rmsVoltage": 0,
+            "reactPwr": 0,
+            "apprntPwr": 0,
+            "pwrFactor": 0
+        }
+    ]
+}

@@ -102,9 +102,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         consumption: list[dict[str, Any]] | None = production_json.get("consumption")
         if consumption:
             for meter in consumption:
-                meter_type = meter["measurementType"]
+                # first test activecount >0 before trying measurementType
                 if not meter.get("activeCount"):
                     continue
+                meter_type = meter["measurementType"]
                 if (
                     not discovered_total_consumption
                     and meter_type == "total-consumption"
