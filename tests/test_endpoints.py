@@ -3,8 +3,6 @@
 import json
 import logging
 from dataclasses import replace
-from os import listdir
-from os.path import isfile, join
 from typing import Any
 
 import httpx
@@ -29,8 +27,8 @@ from pyenphase.models.tariff import EnvoyStorageMode
 
 from .common import (
     get_mock_envoy,
-    load_fixture,
     load_json_fixture,
+    prep_envoy,
     start_7_firmware_mock,
     updater_features,
 )
@@ -1250,122 +1248,7 @@ async def test_with_7_x_firmware(
     """Verify with 7.x firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     start_7_firmware_mock()
-    path = f"tests/fixtures/{version}"
-    files = [f for f in listdir(path) if isfile(join(path, f))]
-    respx.get("/info").mock(
-        return_value=Response(200, text=load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    if "production" in files:
-        try:
-            json_data = load_json_fixture(version, "production")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/production").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/production").mock(return_value=Response(404))
-    if "production.json" in files:
-        respx.get("/production.json").mock(
-            return_value=Response(
-                200, json=load_json_fixture(version, "production.json")
-            )
-        )
-        respx.get("/production.json?details=1").mock(
-            return_value=Response(
-                200, json=load_json_fixture(version, "production.json")
-            )
-        )
-    else:
-        respx.get("/production.json").mock(return_value=Response(404))
-        respx.get("/production.json?details=1").mock(return_value=Response(404))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(
-        return_value=Response(
-            200, json=load_json_fixture(version, "ivp_ensemble_inventory")
-        )
-    )
-    if "ivp_ensemble_dry_contacts" in files:
-        try:
-            json_data = load_json_fixture(version, "ivp_ensemble_dry_contacts")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/ivp/ensemble/dry_contacts").mock(
-            return_value=Response(200, json=json_data)
-        )
-        respx.post("/ivp/ensemble/dry_contacts").mock(
-            return_value=Response(200, json=json_data)
-        )
-    if "ivp_ss_dry_contact_settings" in files:
-        try:
-            json_data = load_json_fixture(version, "ivp_ss_dry_contact_settings")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/ivp/ss/dry_contact_settings").mock(
-            return_value=Response(200, json=json_data)
-        )
-        respx.post("/ivp/ss/dry_contact_settings").mock(
-            return_value=Response(200, json=json_data)
-        )
-    if "ivp_ensemble_power" in files:
-        try:
-            json_data = load_json_fixture(version, "ivp_ensemble_power")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/ivp/ensemble/power").mock(
-            return_value=Response(200, json=json_data)
-        )
-
-    if "ivp_ensemble_secctrl" in files:
-        try:
-            json_data = load_json_fixture(version, "ivp_ensemble_secctrl")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/ivp/ensemble/secctrl").mock(
-            return_value=Response(200, json=json_data)
-        )
-
-    if "admin_lib_tariff" in files:
-        try:
-            json_data = load_json_fixture(version, "admin_lib_tariff")
-        except json.decoder.JSONDecodeError:
-            json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-
-    if "ivp_meters" in files:
-        respx.get("/ivp/meters").mock(
-            return_value=Response(200, json=load_json_fixture(version, "ivp_meters"))
-        )
-    else:
-        respx.get("/ivp/meters").mock(return_value=Response(404))
-
-    if "ivp_meters_readings" in files:
-        respx.get("/ivp/meters/readings").mock(
-            return_value=Response(
-                200, json=load_json_fixture(version, "ivp_meters_readings")
-            )
-        )
-    else:
-        respx.get("/ivp/meters/readings").mock(return_value=Response(404))
-
-    if "ivp_ss_gen_config" in files:
-        try:
-            json_data = load_json_fixture(version, "ivp_ss_gen_config")
-        except json.decoder.JSONDecodeError:
-            json_data = {}
-        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
-
+    files = prep_envoy(version)
     caplog.set_level(logging.DEBUG)
 
     envoy = await get_mock_envoy()
