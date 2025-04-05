@@ -32,7 +32,7 @@ async def test_full_connected_from_start_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version=version, info=True)
+    prep_envoy(version)
 
     envoy = Envoy("127.0.0.1")
     # remove the waits between retries for this test and set known retries
@@ -110,7 +110,7 @@ async def test_httperror_from_start_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version=version)
+    prep_envoy(version)
 
     envoy = Envoy("127.0.0.1")
     envoy._firmware._get_info.retry.wait = wait_none()
@@ -138,7 +138,7 @@ async def test_1_timeout_from_start_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version=version)
+    prep_envoy(version)
 
     envoy = Envoy("127.0.0.1")
     envoy._firmware._get_info.retry.wait = wait_none()
@@ -276,7 +276,7 @@ async def test_noconnection_at_probe_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    prep_envoy(version)
 
     envoy = Envoy("127.0.0.1")
     # remove the waits between retries for this test and set known retries
@@ -321,7 +321,7 @@ async def test_noconnection_at_update_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    prep_envoy(version)
 
     envoy = Envoy("127.0.0.1")
     # remove the waits between retries for this test and set known retries
@@ -439,7 +439,7 @@ async def test_bad_request_status_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    prep_envoy(version)
     envoy = Envoy("127.0.0.1")
     envoy._firmware._get_info.retry.wait = wait_none()
     envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)

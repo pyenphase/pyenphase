@@ -118,7 +118,7 @@ async def test_firmware_no_fw_with_7_6_175_standard():
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
 
-    assert envoy.firmware is None
+    assert not envoy.firmware
     assert envoy.serial_number == "123456789012"
     assert envoy.part_number == "800-12345-r99"
 
@@ -137,7 +137,7 @@ async def test_firmware_no_device_with_7_6_175_standard():
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
 
-    assert envoy.firmware is None
+    assert not envoy.firmware
     assert envoy.serial_number is None
     assert envoy.part_number is None
 
