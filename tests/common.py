@@ -30,7 +30,7 @@ def _load_fixture(path: str) -> str:
 async def load_fixture(version: str, name: str) -> str:
     """Return fixture file content as text in executor."""
     path: str = f"{_fixtures_dir()}/{version}/{name}"
-    content: str = await asyncio.get_event_loop().run_in_executor(
+    content: str = await asyncio.get_running_loop().run_in_executor(
         None, _load_fixture, path
     )
     return content
@@ -56,7 +56,7 @@ def _fixture_files(path: str) -> list[str]:
 async def fixture_files(version: str) -> list[str]:
     """Get fixture files list in executor"""
     path: str = f"{_fixtures_dir()}/{version}"
-    files: list[str] = await asyncio.get_event_loop().run_in_executor(
+    files: list[str] = await asyncio.get_running_loop().run_in_executor(
         None, _fixture_files, path
     )
     return files
