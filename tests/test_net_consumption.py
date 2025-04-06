@@ -26,7 +26,7 @@ async def test_with_4_2_27_firmware():
     """Verify with 4.2.27 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.27"
-    prep_envoy(version)
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
     data: EnvoyData | None = envoy.data
@@ -392,7 +392,7 @@ async def test_with_7_x_firmware(
     """Verify with 7.x firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
 
     caplog.set_level(logging.DEBUG)
 

@@ -38,7 +38,7 @@ async def test_with_4_2_27_firmware():
     """Verify with 4.2.27 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.27"
-    prep_envoy(version)
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
     data: EnvoyData | None = envoy.data
@@ -82,7 +82,7 @@ async def test_with_4_2_33_firmware_no_cons_ct():
     """Verify with 4.2.33 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.33"
-    prep_envoy(version)
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
     data: EnvoyData | None = envoy.data
@@ -143,7 +143,7 @@ async def test_with_5_0_49_firmware():
     """Verify with 5.0.49 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "5.0.49"
-    prep_envoy(version)
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
     data = envoy.data
@@ -421,7 +421,7 @@ async def test_with_3_7_0_firmware():
     """Verify with 3.7.0 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.7.0"
-    prep_envoy(version)
+    await prep_envoy(version)
 
     # Verify the library does not support scraping to comply with ADR004
     with pytest.raises(EnvoyProbeFailed):
@@ -529,10 +529,12 @@ async def test_with_3_9_36_firmware_bad_auth():
     """Verify with 3.9.36 firmware with incorrect auth."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
-    prep_envoy(version)
+    await prep_envoy(version)
     # for auth failure
     respx.get("/api/v1/production").mock(
-        return_value=Response(401, json=load_json_fixture(version, "api_v1_production"))
+        return_value=Response(
+            401, json=await load_json_fixture(version, "api_v1_production")
+        )
     )
 
     with pytest.raises(EnvoyAuthenticationRequired):
@@ -545,11 +547,11 @@ async def test_with_3_9_36_firmware_no_inverters():
     """Verify with 3.9.36 firmware with auth that does not allow inverters."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
-    prep_envoy(version)
+    await prep_envoy(version)
     # force auth failure on inverters
     respx.get("/api/v1/production/inverters").mock(
         return_value=Response(
-            401, json=load_json_fixture(version, "api_v1_production_inverters")
+            401, json=await load_json_fixture(version, "api_v1_production_inverters")
         )
     )
 
@@ -578,7 +580,7 @@ async def test_with_3_9_36_firmware():
     """Verify with 3.9.36 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
-    prep_envoy(version)
+    await prep_envoy(version)
     # no access to tariff
     respx.get("/admin/lib/tariff").mock(return_value=Response(401))
 
@@ -689,7 +691,7 @@ async def test_with_3_9_36_firmware_with_production_401():
     """Verify with 3.9.36 firmware when /production throws a 401."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
-    prep_envoy(version)
+    await prep_envoy(version)
     # force 401 on production
     respx.get("/production").mock(return_value=Response(401))
 
@@ -726,7 +728,7 @@ async def test_with_3_9_36_firmware_with_production_and_production_json_401():
     """Verify with 3.9.36 firmware when /production and /production.json throws a 401."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
-    prep_envoy(version)
+    await prep_envoy(version)
     # force 401 on production
     respx.get("/production").mock(return_value=Response(401))
     respx.get("/production.json").mock(return_value=Response(401))
@@ -743,7 +745,7 @@ async def test_with_3_8_10_firmware_with_meters_401(
     """Verify with 3.8.10 firmware when /ivp/meters throws a 401."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.8.10"
-    prep_envoy(version)
+    await prep_envoy(version)
     respx.get("/ivp/meters").mock(return_value=Response(401))
     caplog.set_level(logging.DEBUG)
     await get_mock_envoy()
@@ -756,7 +758,7 @@ async def test_with_3_17_3_firmware():
     """Verify with 3.17.3 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.17.3"
-    prep_envoy(version)
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
     data = envoy.data
@@ -1038,7 +1040,7 @@ async def test_with_3_17_3_firmware_zero_production():
     """Verify with 3.17.3 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.17.3"
-    prep_envoy(version)
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
 

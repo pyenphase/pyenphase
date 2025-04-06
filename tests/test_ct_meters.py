@@ -33,7 +33,7 @@ async def test_pr111_with_7_3_466_metered_disabled_cts():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.3.466_metered_disabled_cts"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
     data = envoy.data
@@ -65,7 +65,7 @@ async def test_pr111_with_7_6_175_with_cts():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_with_cts"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
     data = envoy.data
@@ -108,7 +108,7 @@ async def test_pr111_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
     data = envoy.data
@@ -142,7 +142,7 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
     # start with regular data first
     version = "7.3.466_with_cts_3phase"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
 
     # details of this test is done elsewhere already, just check data is returned
     envoy = await get_mock_envoy()
@@ -155,8 +155,8 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
     remove_2nd_metersupdater()
 
     # load mock data for meters and their readings
-    meters_status = load_json_list_fixture(version, "ivp_meters")
-    meters_readings = load_json_list_fixture(version, "ivp_meters_readings")
+    meters_status = await load_json_list_fixture(version, "ivp_meters")
+    meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
 
     meter_status: CtMeterData = {
         "eid": meters_status[0]["eid"],
@@ -224,8 +224,8 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
     assert consumption_no_phase_data is None
 
     # test handling missing phases when expected in ct readings
-    meters_status = load_json_list_fixture(version, "ivp_meters")
-    meters_readings = load_json_list_fixture(version, "ivp_meters_readings")
+    meters_status = await load_json_list_fixture(version, "ivp_meters")
+    meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
 
     # remove phase data from CT readings
     del meters_readings[0]["channels"]
@@ -250,7 +250,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
     # start with regular data first
     version = "7.6.175_with_cts_3phase"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
 
     # details of this test is done elsewhere already, just check data is returned
     envoy = await get_mock_envoy()
@@ -263,8 +263,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
     remove_2nd_metersupdater()
 
     # load mock data for meters and their readings
-    meters_status = load_json_list_fixture(version, "ivp_meters")
-    meters_readings = load_json_list_fixture(version, "ivp_meters_readings")
+    meters_status = await load_json_list_fixture(version, "ivp_meters")
+    meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
 
     meter_status: CtMeterData = {
         "eid": meters_status[0]["eid"],
@@ -323,8 +323,8 @@ async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase():
     # start with regular data first
     version = "7.6.175_with_cts_3phase"
     start_7_firmware_mock()
-    prep_envoy(version)
-    production_json = load_json_fixture(version, "production.json")
+    await prep_envoy(version)
+    production_json = await load_json_fixture(version, "production.json")
     # remove production data to test COV consumption ct only
     del production_json["production"]
     respx.get("/production.json").mock(return_value=Response(200, json=production_json))
@@ -333,7 +333,7 @@ async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase():
     )
 
     # Force ct consumption meter to total consumption for COV
-    ivp_Meters = load_fixture(version, "ivp_meters").replace(
+    ivp_Meters = (await load_fixture(version, "ivp_meters")).replace(
         CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION
     )
     respx.get("/ivp/meters").mock(return_value=Response(200, text=ivp_Meters))
@@ -358,7 +358,7 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split():
     # start with regular data first
     version = "8.2.127_with_3cts_and_battery_split"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
 
     # details of this test is done elsewhere already, just check data is returned
     envoy = await get_mock_envoy()
@@ -366,8 +366,8 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split():
     assert data is not None
 
     # load mock data for meters and their readings
-    meters_status = load_json_list_fixture(version, "ivp_meters")
-    meters_readings = load_json_list_fixture(version, "ivp_meters_readings")
+    meters_status = await load_json_list_fixture(version, "ivp_meters")
+    meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
 
     meter_status: CtMeterData = {
         "eid": meters_status[2]["eid"],
@@ -428,11 +428,11 @@ async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_ba
     # start with regular data first we use this fixture to test issue reported in 8.3.5025
     version = "8.2.127_with_3cts_and_battery_split"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
 
     # fw D8.3.5027 has 3th (zero) entry for Storage CT, even if not configured
     # this caused Indexerror crash. Test if extra data is now handled without crash
-    readings_data = load_json_list_fixture(version, "ivp_meters_readings")
+    readings_data = await load_json_list_fixture(version, "ivp_meters_readings")
     readings_data.append({"eid": 1023410688, "channels": [{}, {}, {}]})
     respx.get("/ivp/meters/readings").mock(
         return_value=Response(200, json=readings_data)

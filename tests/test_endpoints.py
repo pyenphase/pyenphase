@@ -1248,7 +1248,7 @@ async def test_with_7_x_firmware(
     """Verify with 7.x firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     start_7_firmware_mock()
-    files = prep_envoy(version)
+    files = await prep_envoy(version)
     caplog.set_level(logging.DEBUG)
 
     envoy = await get_mock_envoy()
@@ -1265,7 +1265,7 @@ async def test_with_7_x_firmware(
     assert envoy._supported_features == supported_features
 
     # test envoy request methods GET, PUT and POST
-    test_data = load_json_fixture(version, "api_v1_production_inverters")
+    test_data = await load_json_fixture(version, "api_v1_production_inverters")
     respx.post("/api/v1/production/inverters").mock(
         return_value=Response(200, json=test_data)
     )
@@ -1393,14 +1393,14 @@ async def test_with_7_x_firmware(
         # COV ensemble ENDPOINT_PROBE_EXCEPTIONS
         respx.get("/ivp/ss/gen_config").mock(
             return_value=Response(
-                500, json=load_json_fixture(version, "ivp_ss_gen_config")
+                500, json=await load_json_fixture(version, "ivp_ss_gen_config")
             )
         )
         await envoy.probe()
         # restore from prior changes
         respx.get("/ivp/ss/gen_config").mock(
             return_value=Response(
-                200, json=load_json_fixture(version, "ivp_ss_gen_config")
+                200, json=await load_json_fixture(version, "ivp_ss_gen_config")
             )
         )
         await envoy.probe()
@@ -1484,14 +1484,14 @@ async def test_with_7_x_firmware(
 
         # test correct handling if storage_settings mode = None
         # should result no longer throw Valueerror but result in None value
-        json_data = load_json_fixture(version, "admin_lib_tariff")
+        json_data = await load_json_fixture(version, "admin_lib_tariff")
         json_data["tariff"]["storage_settings"]["mode"] = None
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
         await envoy.update()
         assert envoy.data.tariff.storage_settings.mode is None
 
         # COV test with missing logger
-        json_data = load_json_fixture(version, "admin_lib_tariff")
+        json_data = await load_json_fixture(version, "admin_lib_tariff")
         del json_data["tariff"]["logger"]
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
         respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
@@ -1499,7 +1499,7 @@ async def test_with_7_x_firmware(
         envoy.data.tariff.to_api()
 
         # COV test with missing date for tariff and storage settings
-        json_data = load_json_fixture(version, "admin_lib_tariff")
+        json_data = await load_json_fixture(version, "admin_lib_tariff")
         del json_data["tariff"]["date"]
         del json_data["tariff"]["storage_settings"]["date"]
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
@@ -1508,7 +1508,7 @@ async def test_with_7_x_firmware(
         envoy.data.tariff.to_api()
 
         # COV test with missing storage settings
-        json_data = load_json_fixture(version, "admin_lib_tariff")
+        json_data = await load_json_fixture(version, "admin_lib_tariff")
         del json_data["tariff"]["storage_settings"]
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
         respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
@@ -1516,7 +1516,7 @@ async def test_with_7_x_firmware(
         envoy.data.tariff.to_api()
 
         # COV test with error in result
-        json_data = load_json_fixture(version, "admin_lib_tariff")
+        json_data = await load_json_fixture(version, "admin_lib_tariff")
         json_data.update({"error": "error"})
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
         try:
@@ -1525,7 +1525,7 @@ async def test_with_7_x_firmware(
             assert "No tariff data found" in caplog.text
 
         # COV test with no enpower features
-        json_data = load_json_fixture(version, "ivp_ensemble_inventory")
+        json_data = await load_json_fixture(version, "ivp_ensemble_inventory")
         json_data[0]["type"] = "NOEXCHARGE"
         respx.get("/ivp/ensemble/inventory").mock(
             return_value=Response(200, json=json_data)
@@ -1536,7 +1536,7 @@ async def test_with_7_x_firmware(
         # COV ensemble ENDPOINT_PROBE_EXCEPTIONS
         respx.get("/ivp/ensemble/inventory").mock(
             return_value=Response(
-                500, json=load_json_fixture(version, "ivp_ensemble_inventory")
+                500, json=await load_json_fixture(version, "ivp_ensemble_inventory")
             )
         )
         await envoy.probe()
@@ -1544,10 +1544,10 @@ async def test_with_7_x_firmware(
         # restore from prior changes
         respx.get("/ivp/ensemble/inventory").mock(
             return_value=Response(
-                200, json=load_json_fixture(version, "ivp_ensemble_inventory")
+                200, json=await load_json_fixture(version, "ivp_ensemble_inventory")
             )
         )
-        json_data = load_json_fixture(version, "admin_lib_tariff")
+        json_data = await load_json_fixture(version, "admin_lib_tariff")
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
 
         bad_envoy = await get_mock_envoy()
@@ -1694,7 +1694,7 @@ async def test_with_7_x_firmware(
     # COV test with no production segment
     if "production" in files:
         try:
-            json_data = load_json_fixture(version, "production")
+            json_data = await load_json_fixture(version, "production")
         except json.decoder.JSONDecodeError:
             json_data = None
         if json_data:

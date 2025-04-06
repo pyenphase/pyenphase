@@ -27,7 +27,7 @@ async def test_with_4_2_27_firmware():
     """Verify with 4.2.27 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.27"
-    prep_envoy(version)
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
     data: EnvoyData | None = envoy.data
@@ -291,7 +291,7 @@ async def test_with_7_x_firmware(
     """
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
 
     caplog.set_level(logging.DEBUG)
 
@@ -330,7 +330,7 @@ async def test_with_7_x_firmware(
     assert acb_data["activeCount"] == acb_count
 
     # test with missing storage section
-    prod_json = load_json_fixture(version, "production.json")
+    prod_json = await load_json_fixture(version, "production.json")
     del prod_json["storage"]
     respx.get("/production.json").mock(return_value=Response(200, json=prod_json))
     envoy = await get_mock_envoy()
