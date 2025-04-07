@@ -18,6 +18,7 @@ from .common import (
     load_fixture,
     load_json_fixture,
     load_json_list_fixture,
+    prep_envoy,
     start_7_firmware_mock,
     updater_features,
 )
@@ -32,30 +33,7 @@ async def test_pr111_with_7_3_466_metered_disabled_cts():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.3.466_metered_disabled_cts"
     start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, text=load_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
-    respx.get("/ivp/meters").mock(
-        return_value=Response(200, text=load_fixture(version, "ivp_meters"))
-    )
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
     data = envoy.data
@@ -69,6 +47,7 @@ async def test_pr111_with_7_3_466_metered_disabled_cts():
     assert updater_features(envoy._updaters) == {
         "EnvoyProductionJsonFallbackUpdater": SupportedFeatures.PRODUCTION,
         "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
     }
     assert envoy.part_number == "800-00654-r08"
 
@@ -86,33 +65,8 @@ async def test_pr111_with_7_6_175_with_cts():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_with_cts"
     start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, text=load_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
-    respx.get("/ivp/meters").mock(
-        return_value=Response(200, text=load_fixture(version, "ivp_meters"))
-    )
-    respx.get("/ivp/meters/readings").mock(
-        return_value=Response(200, text=load_fixture(version, "ivp_meters_readings"))
-    )
+    await prep_envoy(version)
+
     envoy = await get_mock_envoy()
     data = envoy.data
     assert data is not None
@@ -131,6 +85,7 @@ async def test_pr111_with_7_6_175_with_cts():
         | SupportedFeatures.NET_CONSUMPTION
         | SupportedFeatures.PRODUCTION,
         "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+        "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
     }
 
     assert envoy.part_number == "800-00654-r08"
@@ -153,28 +108,7 @@ async def test_pr111_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, text=load_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(return_value=Response(200, text=""))
+    await prep_envoy(version)
 
     envoy = await get_mock_envoy()
     data = envoy.data
@@ -208,33 +142,7 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
     # start with regular data first
     version = "7.3.466_with_cts_3phase"
     start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, text=load_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(
-        return_value=Response(200, text=load_fixture(version, "ivp_meters"))
-    )
-    respx.get("/ivp/meters/readings").mock(
-        return_value=Response(200, text=load_fixture(version, "ivp_meters_readings"))
-    )
+    await prep_envoy(version)
 
     # details of this test is done elsewhere already, just check data is returned
     envoy = await get_mock_envoy()
@@ -247,8 +155,8 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
     remove_2nd_metersupdater()
 
     # load mock data for meters and their readings
-    meters_status = load_json_list_fixture(version, "ivp_meters")
-    meters_readings = load_json_list_fixture(version, "ivp_meters_readings")
+    meters_status = await load_json_list_fixture(version, "ivp_meters")
+    meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
 
     meter_status: CtMeterData = {
         "eid": meters_status[0]["eid"],
@@ -316,8 +224,8 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
     assert consumption_no_phase_data is None
 
     # test handling missing phases when expected in ct readings
-    meters_status = load_json_list_fixture(version, "ivp_meters")
-    meters_readings = load_json_list_fixture(version, "ivp_meters_readings")
+    meters_status = await load_json_list_fixture(version, "ivp_meters")
+    meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
 
     # remove phase data from CT readings
     del meters_readings[0]["channels"]
@@ -342,33 +250,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
     # start with regular data first
     version = "7.6.175_with_cts_3phase"
     start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, text=load_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-
-    respx.get("/ivp/meters").mock(
-        return_value=Response(200, text=load_fixture(version, "ivp_meters"))
-    )
-    respx.get("/ivp/meters/readings").mock(
-        return_value=Response(200, text=load_fixture(version, "ivp_meters_readings"))
-    )
+    await prep_envoy(version)
 
     # details of this test is done elsewhere already, just check data is returned
     envoy = await get_mock_envoy()
@@ -381,8 +263,8 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
     remove_2nd_metersupdater()
 
     # load mock data for meters and their readings
-    meters_status = load_json_list_fixture(version, "ivp_meters")
-    meters_readings = load_json_list_fixture(version, "ivp_meters_readings")
+    meters_status = await load_json_list_fixture(version, "ivp_meters")
+    meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
 
     meter_status: CtMeterData = {
         "eid": meters_status[0]["eid"],
@@ -435,48 +317,26 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
 @pytest.mark.asyncio
 @respx.mock
 async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase():
-    """Test meters model using envoy metered total-consumption CT with multiple phases"""
+    """Test meters model using envoy metered without production CT and total-consumption CT with multiple phases"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
 
     # start with regular data first
     version = "7.6.175_with_cts_3phase"
     start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-
-    # remove production segment from production for COV test
-    production_json = load_json_fixture(version, "production")
-    del production_json["production"]
-    respx.get("/production").mock(return_value=Response(200, json=production_json))
-    production_json = load_json_fixture(version, "production.json")
+    await prep_envoy(version)
+    production_json = await load_json_fixture(version, "production.json")
+    # remove production data to test COV consumption ct only
     del production_json["production"]
     respx.get("/production.json").mock(return_value=Response(200, json=production_json))
-    production_json = load_json_fixture(version, "production.json")
-    del production_json["production"]
     respx.get("/production.json?details=1").mock(
         return_value=Response(200, json=production_json)
     )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
 
     # Force ct consumption meter to total consumption for COV
-    ivp_Meters = load_fixture(version, "ivp_meters").replace(
+    ivp_Meters = (await load_fixture(version, "ivp_meters")).replace(
         CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION
     )
     respx.get("/ivp/meters").mock(return_value=Response(200, text=ivp_Meters))
-    respx.get("/ivp/meters/readings").mock(
-        return_value=Response(200, text=load_fixture(version, "ivp_meters_readings"))
-    )
 
     # details of this test is done elsewhere already, just check data is returned
     envoy = await get_mock_envoy()
@@ -498,33 +358,7 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split():
     # start with regular data first
     version = "8.2.127_with_3cts_and_battery_split"
     start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, text=load_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(
-        return_value=Response(200, text=load_fixture(version, "ivp_meters"))
-    )
-    respx.get("/ivp/meters/readings").mock(
-        return_value=Response(200, text=load_fixture(version, "ivp_meters_readings"))
-    )
+    await prep_envoy(version)
 
     # details of this test is done elsewhere already, just check data is returned
     envoy = await get_mock_envoy()
@@ -532,8 +366,8 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split():
     assert data is not None
 
     # load mock data for meters and their readings
-    meters_status = load_json_list_fixture(version, "ivp_meters")
-    meters_readings = load_json_list_fixture(version, "ivp_meters_readings")
+    meters_status = await load_json_list_fixture(version, "ivp_meters")
+    meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
 
     meter_status: CtMeterData = {
         "eid": meters_status[2]["eid"],
@@ -594,33 +428,11 @@ async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_ba
     # start with regular data first we use this fixture to test issue reported in 8.3.5025
     version = "8.2.127_with_3cts_and_battery_split"
     start_7_firmware_mock()
-    respx.get("/info").mock(
-        return_value=Response(200, text=load_fixture(version, "info"))
-    )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(
-        return_value=Response(200, text=load_fixture(version, "production"))
-    )
-    respx.get("/production.json").mock(
-        return_value=Response(200, text=load_fixture(version, "production.json"))
-    )
-    respx.get("/api/v1/production").mock(
-        return_value=Response(200, json=load_json_fixture(version, "api_v1_production"))
-    )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=load_json_fixture(version, "api_v1_production_inverters")
-        )
-    )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
-    respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
-    respx.get("/admin/lib/tariff").mock(return_value=Response(404))
-    respx.get("/ivp/meters").mock(
-        return_value=Response(200, text=load_fixture(version, "ivp_meters"))
-    )
+    await prep_envoy(version)
+
     # fw D8.3.5027 has 3th (zero) entry for Storage CT, even if not configured
     # this caused Indexerror crash. Test if extra data is now handled without crash
-    readings_data = load_json_list_fixture(version, "ivp_meters_readings")
+    readings_data = await load_json_list_fixture(version, "ivp_meters_readings")
     readings_data.append({"eid": 1023410688, "channels": [{}, {}, {}]})
     respx.get("/ivp/meters/readings").mock(
         return_value=Response(200, json=readings_data)

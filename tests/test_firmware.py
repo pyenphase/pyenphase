@@ -21,7 +21,7 @@ async def test_firmware_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         "<envoy_info>"
@@ -49,7 +49,7 @@ async def test_firmware_no_sn_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         "<envoy_info>"
@@ -76,7 +76,7 @@ async def test_firmware_no_pn_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         "<envoy_info>"
@@ -103,7 +103,7 @@ async def test_firmware_no_fw_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         "<envoy_info>"
@@ -118,7 +118,7 @@ async def test_firmware_no_fw_with_7_6_175_standard():
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
 
-    assert envoy.firmware is None
+    assert not envoy.firmware
     assert envoy.serial_number == "123456789012"
     assert envoy.part_number == "800-12345-r99"
 
@@ -130,14 +130,14 @@ async def test_firmware_no_device_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
     info = "<?xml version='1.0' encoding='UTF-8'?><envoy_info></envoy_info>"
     respx.get("/info").mock(return_value=Response(200, text=info))
 
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
 
-    assert envoy.firmware is None
+    assert not envoy.firmware
     assert envoy.serial_number is None
     assert envoy.part_number is None
 
@@ -149,7 +149,7 @@ async def test_firmware_no_200__with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version)
+    await prep_envoy(version)
     info = "<?xml version='1.0' encoding='UTF-8'?><envoy_info></envoy_info>"
     respx.get("/info").mock(return_value=Response(500, text=info))
 

@@ -34,7 +34,7 @@ async def test_wrong_auth_order_with_7_6_175_standard():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    await prep_envoy(version)
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
 
@@ -54,17 +54,19 @@ async def test_with_3_9_36_firmware_bad_auth():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
     respx.get("/info").mock(
-        return_value=Response(200, text=load_fixture(version, "info"))
+        return_value=Response(200, text=await load_fixture(version, "info"))
     )
     respx.get("/info.xml").mock(return_value=Response(200, text=""))
     respx.get("/production").mock(return_value=Response(404))
     respx.get("/production.json").mock(return_value=Response(404))
     respx.get("/api/v1/production").mock(
-        return_value=Response(401, json=load_json_fixture(version, "api_v1_production"))
+        return_value=Response(
+            401, json=await load_json_fixture(version, "api_v1_production")
+        )
     )
     respx.get("/api/v1/production/inverters").mock(
         return_value=Response(
-            200, json=load_json_fixture(version, "api_v1_production_inverters")
+            200, json=await load_json_fixture(version, "api_v1_production_inverters")
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
@@ -73,7 +75,7 @@ async def test_with_3_9_36_firmware_bad_auth():
     files = [f for f in listdir(path) if isfile(join(path, f))]
     if "admin_lib_tariff" in files:
         try:
-            json_data = load_json_fixture(version, "admin_lib_tariff")
+            json_data = await load_json_fixture(version, "admin_lib_tariff")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
@@ -93,17 +95,19 @@ async def test_production_with_3_9_36_firmware_bad_auth():
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
     respx.get("/info").mock(
-        return_value=Response(200, text=load_fixture(version, "info"))
+        return_value=Response(200, text=await load_fixture(version, "info"))
     )
     respx.get("/info.xml").mock(return_value=Response(200, text=""))
     respx.get("/production").mock(return_value=Response(404))
     respx.get("/production.json").mock(return_value=Response(404))
     respx.get("/api/v1/production").mock(
-        return_value=Response(401, json=load_json_fixture(version, "api_v1_production"))
+        return_value=Response(
+            401, json=await load_json_fixture(version, "api_v1_production")
+        )
     )
     respx.get("/api/v1/production/inverters").mock(
         return_value=Response(
-            200, json=load_json_fixture(version, "api_v1_production_inverters")
+            200, json=await load_json_fixture(version, "api_v1_production_inverters")
         )
     )
     respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
@@ -112,7 +116,7 @@ async def test_production_with_3_9_36_firmware_bad_auth():
     files = [f for f in listdir(path) if isfile(join(path, f))]
     if "admin_lib_tariff" in files:
         try:
-            json_data = load_json_fixture(version, "admin_lib_tariff")
+            json_data = await load_json_fixture(version, "admin_lib_tariff")
         except json.decoder.JSONDecodeError:
             json_data = None
         respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
@@ -141,7 +145,7 @@ async def test_known_users_with_3_9_36_firmware(username: str, password: str) ->
     """Test successful login with known usernames."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
-    prep_envoy(version, info=True)
+    await prep_envoy(version)
 
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
@@ -167,7 +171,7 @@ async def test_unknown_user_with_3_9_36_firmware():
     """Test Could not setup authentication object with 3.9.x"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
-    prep_envoy(version, info=True, inverters=False)
+    await prep_envoy(version)
 
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
@@ -195,7 +199,7 @@ async def test_blank_passwords_with_7_6_175_standard(
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    await prep_envoy(version)
 
     envoy = Envoy("127.0.0.1")
 
@@ -212,7 +216,7 @@ async def test_no_token_obtained_with_7_6_175_standard() -> None:
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    await prep_envoy(version)
 
     with patch("pyenphase.EnvoyTokenAuth._obtain_token", return_value=None):
         envoy = Envoy("127.0.0.1")
@@ -228,7 +232,7 @@ async def test_jwt_failure_with_7_6_175_standard() -> None:
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    await prep_envoy(version)
 
     respx.get(URL_AUTH_CHECK_JWT).mock(return_value=Response(404, text="no jwt"))
 
@@ -245,7 +249,7 @@ async def test_no_remote_login_with_7_6_175_standard() -> None:
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    await prep_envoy(version)
 
     respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
         return_value=Response(
@@ -278,7 +282,7 @@ async def test_no_remote_token_with_7_6_175_standard() -> None:
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    await prep_envoy(version)
 
     respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
         return_value=Response(
@@ -315,7 +319,7 @@ async def test_enlighten_json_error_with_7_6_175_standard() -> None:
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    await prep_envoy(version)
 
     respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
         return_value=Response(
@@ -341,7 +345,7 @@ async def test_token_with_7_6_175_standard() -> None:
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    await prep_envoy(version)
 
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
@@ -388,7 +392,7 @@ async def test_remote_login_response_with_7_6_175_standard() -> None:
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock()
-    prep_envoy(version, info=True)
+    await prep_envoy(version)
 
     envoy = Envoy("127.0.0.1")
     await envoy.setup()
