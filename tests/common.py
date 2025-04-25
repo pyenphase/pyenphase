@@ -254,8 +254,7 @@ async def prep_envoy(
             return_value=Response(200, json=await load_json_fixture(version, "home"))
         )
     else:
-        respx.get("home").mock(return_value=Response(404))
-
+        respx.get("/home").mock(return_value=Response(404))
     return files
 
 
