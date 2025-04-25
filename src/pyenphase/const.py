@@ -39,6 +39,9 @@ URL_GEN_SCHEDULE = "/ivp/ss/gen_schedule"
 ENDPOINT_URL_METERS = "/ivp/meters"
 ENDPOINT_URL_METERS_READINGS = "/ivp/meters/readings"
 
+# Interface configuration
+ENDPOINT_URL_HOME = "/home"
+
 LOCAL_TIMEOUT = httpx.Timeout(
     # The envoy can be slow to respond but fast to connect to we
     # need to set a long timeout for the read and a short timeout

@@ -22,10 +22,12 @@ from tenacity import (
 )
 
 from pyenphase.models.dry_contacts import DryContactStatus
+from pyenphase.models.home import EnvoyInterfaceInformation
 
 from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
 from .const import (
     AUTH_TOKEN_MIN_VERSION,
+    ENDPOINT_URL_HOME,
     LOCAL_TIMEOUT,
     MAX_REQUEST_ATTEMPTS,
     MAX_REQUEST_DELAY,
@@ -38,6 +40,7 @@ from .const import (
 from .exceptions import (
     EnvoyAuthenticationRequired,
     EnvoyCommunicationError,
+    EnvoyError,
     EnvoyFeatureNotAvailable,
     EnvoyHTTPStatusError,
     EnvoyPoorDataQuality,
@@ -166,6 +169,7 @@ class Envoy:
         self._endpoint_cache: dict[str, httpx.Response] = {}
         self.data: EnvoyData | None = None
         self._common_properties: CommonProperties = CommonProperties()
+        self._interface_settings: EnvoyInterfaceInformation | None = None
 
     async def setup(self) -> None:
         """
@@ -185,6 +189,8 @@ class Envoy:
             status other then 200
         """
         await self._firmware.setup()
+        # force refetch of interface data next time requested
+        self._interface_settings = None
 
     async def authenticate(
         self,
@@ -403,6 +409,34 @@ class Envoy:
             )
 
         return response
+
+    async def interface_settings(self) -> EnvoyInterfaceInformation | None:
+        """
+        Returns Envoy active interface information.
+
+        Returned data includes interface mac, interface type, software
+        build date, configured timezone and DHCP settings
+
+        This data is sourced from the /home endpoint which is a slower
+        responding endpoint with some potential overhead on the Envoy.
+        For this reason, as well as the fact that the data is static,
+        it will only be fetched one time when called first time and
+        cached internally. Subsequent calls will be fulfilled from the cache.
+        A call to envoy.setup() will invalidate the cached data and
+        result in a one-time read from Envoy upon next call.
+
+        :return: Interface details or None if error
+
+        """
+        if not self._interface_settings:
+            try:
+                home_json = await self._json_request(
+                    end_point=ENDPOINT_URL_HOME, data=None
+                )
+                self._interface_settings = EnvoyInterfaceInformation.from_api(home_json)
+            except EnvoyError as exc:
+                _LOGGER.debug("Failure getting interface information %s", exc)
+        return self._interface_settings
 
     @property
     def host(self) -> str:
