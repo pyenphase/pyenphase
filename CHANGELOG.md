@@ -1,6 +1,101 @@
 # CHANGELOG
 
 
+## v1.26.0 (2025-04-25)
+
+### Chores
+
+- **deps**: Bump lxml from 5.3.1 to 5.3.2 ([#262](https://github.com/pyenphase/pyenphase/pull/262),
+  [`eea42ef`](https://github.com/pyenphase/pyenphase/commit/eea42ef0700ca583728a650dfec6c96fbe18f74b))
+
+Bumps [lxml](https://github.com/lxml/lxml) from 5.3.1 to 5.3.2. - [Release
+  notes](https://github.com/lxml/lxml/releases) -
+  [Changelog](https://github.com/lxml/lxml/blob/master/CHANGES.txt) -
+  [Commits](https://github.com/lxml/lxml/compare/lxml-5.3.1...lxml-5.3.2)
+
+--- updated-dependencies: - dependency-name: lxml dependency-version: 5.3.2
+
+dependency-type: direct:production
+
+update-type: version-update:semver-patch ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump tenacity from 9.0.0 to 9.1.2
+  ([#263](https://github.com/pyenphase/pyenphase/pull/263),
+  [`7a3e38b`](https://github.com/pyenphase/pyenphase/commit/7a3e38b0fdb0d46a32f4b43e1efc86c07383af80))
+
+Bumps [tenacity](https://github.com/jd/tenacity) from 9.0.0 to 9.1.2. - [Release
+  notes](https://github.com/jd/tenacity/releases) -
+  [Commits](https://github.com/jd/tenacity/compare/9.0.0...9.1.2)
+
+--- updated-dependencies: - dependency-name: tenacity dependency-version: 9.1.2
+
+dependency-type: direct:production
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps-dev**: Bump pytest-cov from 6.0.0 to 6.1.1
+  ([#264](https://github.com/pyenphase/pyenphase/pull/264),
+  [`aa99971`](https://github.com/pyenphase/pyenphase/commit/aa99971016ca1808a1a90f704c4771ec754d2e97))
+
+Bumps [pytest-cov](https://github.com/pytest-dev/pytest-cov) from 6.0.0 to 6.1.1. -
+  [Changelog](https://github.com/pytest-dev/pytest-cov/blob/master/CHANGELOG.rst) -
+  [Commits](https://github.com/pytest-dev/pytest-cov/compare/v6.0.0...v6.1.1)
+
+--- updated-dependencies: - dependency-name: pytest-cov dependency-version: 6.1.1
+
+dependency-type: direct:development
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#265](https://github.com/pyenphase/pyenphase/pull/265),
+  [`5f5b120`](https://github.com/pyenphase/pyenphase/commit/5f5b12053df3c4165c2e6df130afafeeeeb703b1))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#266](https://github.com/pyenphase/pyenphase/pull/266),
+  [`ff371d0`](https://github.com/pyenphase/pyenphase/commit/ff371d0b24292d73605b41e437a74c3d31efde0d))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#267](https://github.com/pyenphase/pyenphase/pull/267),
+  [`e3f555c`](https://github.com/pyenphase/pyenphase/commit/e3f555c246561f35c1befee1a25c880485803829))
+
+updates: - [github.com/astral-sh/ruff-pre-commit: v0.11.5 →
+  v0.11.6](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.5...v0.11.6)
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+### Features
+
+- Add method to return envoy active interface settings
+  ([#268](https://github.com/pyenphase/pyenphase/pull/268),
+  [`70ff7ac`](https://github.com/pyenphase/pyenphase/commit/70ff7ac6e1a01b6ea62e1ea6df2638cddd4215e1))
+
+* feat: add method to return envoy active interface settings
+
+---------
+
+Co-authored-by: coderabbitai[bot] <136622811+coderabbitai[bot]@users.noreply.github.com>
+
+### Testing
+
+- De-duplicate fixture loading by using single fixture load function
+  ([#261](https://github.com/pyenphase/pyenphase/pull/261),
+  [`8ec3fba`](https://github.com/pyenphase/pyenphase/commit/8ec3fba4c1769bd1df702b5db182ec18cb0a6d2c))
+
+* test: de-duplicate fixture loading by using single function
+
+* test: run blocking calls in executor
+
+
 ## v1.25.5 (2025-04-02)
 
 ### Bug Fixes
