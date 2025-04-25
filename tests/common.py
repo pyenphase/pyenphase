@@ -249,6 +249,13 @@ async def prep_envoy(
     else:
         respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
 
+    if "home" in files:
+        respx.get("/home").mock(
+            return_value=Response(200, json=await load_json_fixture(version, "home"))
+        )
+    else:
+        respx.get("home").mock(return_value=Response(404))
+
     return files
 
 

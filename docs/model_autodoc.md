@@ -290,6 +290,16 @@
   :member-order: bysource
 ```
 
+## Interface data
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.home.EnvoyInterfaceInformation
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+```
+
 # Utilities
 
 ## Json
