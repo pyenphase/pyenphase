@@ -1,7 +1,11 @@
 import logging
 from typing import Any
 
-from ..const import URL_PRODUCTION_V1, SupportedFeatures
+from ..const import (
+    METERED_NOCT_FALLBACK_TO_INVERTERS,
+    URL_PRODUCTION_V1,
+    SupportedFeatures,
+)
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
 from ..models.envoy import EnvoyData
 from ..models.system_production import EnvoySystemProduction
@@ -40,6 +44,21 @@ class EnvoyApiV1ProductionUpdater(EnvoyUpdater):
                 "Detected broken production endpoint bug at %s: %s",
                 URL_PRODUCTION_V1,
                 response,
+            )
+            return None
+
+        # Envoy metered without configured CT in firmware 8.2.8.2.4264 and newer returns
+        # stalled values in V1 Production Endpoint. When /info is_meter is set, no configured
+        # CT are found and firmware is 8.2.4264 or newer, it is an indication envoy is not reporting proper
+        # summed values in V1 production. Return None to fallback to inverters section in production endpoint.
+        if (
+            self._common_properties.imeter_info
+            and self._envoy_version >= METERED_NOCT_FALLBACK_TO_INVERTERS
+            and not self._common_properties.ct_meter_count
+        ):
+            _LOGGER.debug(
+                "Detected metered Envoy without connected CT will fallback to using inverter values from /production. fw %s",
+                self._envoy_version,
             )
             return None
 
