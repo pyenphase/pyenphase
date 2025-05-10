@@ -47,7 +47,7 @@ class EnvoyApiV1ProductionUpdater(EnvoyUpdater):
             )
             return None
 
-        # Envoy metered without configured CT in firmware 8.2.4248 and newer returns
+        # Envoy metered without configured CT in firmware 8.2.8.2.4264 and newer returns
         # stalled values in V1 Production Endpoint. When /info is_meter is set, no configured
         # CT are found and firmware is 8.2.4264 or newer, it is an indication envoy is not reporting proper
         # summed values in V1 production. Return None to fallback to inverters section in production endpoint.
