@@ -27,6 +27,7 @@ class EnvoyFirmware:
         "_client",
         "_firmware_version",
         "_host",
+        "_metered",
         "_part_number",
         "_serial_number",
         "_url",
@@ -50,6 +51,7 @@ class EnvoyFirmware:
         self._serial_number: str | None = None
         self._part_number: str | None = None
         self._url: str = ""
+        self._metered: bool = False
 
     @retry(
         retry=retry_if_exception_type((httpx.NetworkError, httpx.RemoteProtocolError)),
@@ -149,6 +151,8 @@ class EnvoyFirmware:
                     self._serial_number = sn_tag.text
                 if (pn_tag := device_tag.find("pn")) is not None:
                     self._part_number = pn_tag.text
+                if (imeter_tag := device_tag.find("imeter")) is not None:
+                    self._metered = imeter_tag.text == "true"
                 return
 
         else:
@@ -184,3 +188,13 @@ class EnvoyFirmware:
             :class:`pyenphase.firmware.EnvoyFirmware.setup` was not used
         """
         return self._part_number
+
+    @property
+    def is_metered(self) -> bool:
+        """
+        Return imetered setting as read from Envoy.
+
+        :return: Envoy info imetered setting. Only True if read and set in info
+
+        """
+        return self._metered

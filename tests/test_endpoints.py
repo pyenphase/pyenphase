@@ -1201,6 +1201,35 @@ LOGGER = logging.getLogger(__name__)
                 },
             },
         ),
+        (
+            "8.2.4264_metered_noct",
+            "800-00554-r03",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyProductionJsonFallbackUpdater": SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+            },
+            1,
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "consumptionMeter": None,
+                "productionMeter": None,
+                "storageMeter": None,
+            },
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+        ),
     ],
     ids=[
         "5.0.62",
@@ -1223,6 +1252,7 @@ LOGGER = logging.getLogger(__name__)
         "8.2.127_with_3cts_and_battery_split",
         "8.2.127_with_generator_running",
         "8.2.4286_with_3cts_and_battery_split",
+        "8.2.4264_metered_noct",
     ],
 )
 @pytest.mark.asyncio

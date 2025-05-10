@@ -459,6 +459,11 @@ class Envoy:
         return self._firmware.serial
 
     @property
+    def is_metered(self) -> bool:
+        """Return the Envoy imetered info as read from the Envoy."""
+        return self._firmware.is_metered
+
+    @property
     def supported_features(self) -> SupportedFeatures:
         """Return the mask of Envoy supported features as established during Probe."""
         assert self._supported_features is not None, "Call setup() first"  # nosec
@@ -594,10 +599,11 @@ class Envoy:
         supported_features = SupportedFeatures(0)
         updaters: list[EnvoyUpdater] = []
         version = self._firmware.version
+        metered = self.is_metered
         self._endpoint_cache.clear()
         cached_probe = partial(self._make_cached_request, self.probe_request)
         cached_request = partial(self._make_cached_request, self.request)
-        self._common_properties.reset_probe_properties()
+        self._common_properties.reset_probe_properties(is_metered=metered)
 
         for updater in get_updaters():
             klass = updater(

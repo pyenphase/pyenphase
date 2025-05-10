@@ -156,3 +156,83 @@ async def test_firmware_no_200__with_7_6_175_standard():
     envoy = Envoy("127.0.0.1")
     with pytest.raises(EnvoyFirmwareCheckError):
         await envoy.setup()
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_firmware_metered_with_7_6_175_standard():
+    """Test firmware is processed ok."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
+    version = "7.6.175_standard"
+    start_7_firmware_mock()
+    await prep_envoy(version)
+    info = (
+        "<?xml version='1.0' encoding='UTF-8'?>"
+        "<envoy_info>"
+        "  <device>"
+        "    <sn>123456789012</sn>"
+        "    <pn>800-12345-r99</pn>"
+        "    <software>D7.8.901</software>"
+        "    <imeter>true</imeter>"
+        "  </device>"
+        "</envoy_info>"
+    )
+    respx.get("/info").mock(return_value=Response(200, text=info))
+
+    envoy = Envoy("127.0.0.1")
+    await envoy.setup()
+
+    assert envoy.is_metered
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_firmware_not_metered_with_7_6_175_standard():
+    """Test firmware is processed ok."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
+    version = "7.6.175_standard"
+    start_7_firmware_mock()
+    await prep_envoy(version)
+    info = (
+        "<?xml version='1.0' encoding='UTF-8'?>"
+        "<envoy_info>"
+        "  <device>"
+        "    <sn>123456789012</sn>"
+        "    <pn>800-12345-r99</pn>"
+        "    <software>D7.8.901</software>"
+        "    <imeter>false</imeter>"
+        "  </device>"
+        "</envoy_info>"
+    )
+    respx.get("/info").mock(return_value=Response(200, text=info))
+
+    envoy = Envoy("127.0.0.1")
+    await envoy.setup()
+
+    assert not envoy.is_metered
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_firmware_missing_metered_with_7_6_175_standard():
+    """Test firmware is processed ok."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
+    version = "7.6.175_standard"
+    start_7_firmware_mock()
+    await prep_envoy(version)
+    info = (
+        "<?xml version='1.0' encoding='UTF-8'?>"
+        "<envoy_info>"
+        "  <device>"
+        "    <sn>123456789012</sn>"
+        "    <pn>800-12345-r99</pn>"
+        "    <software>D7.8.901</software>"
+        "  </device>"
+        "</envoy_info>"
+    )
+    respx.get("/info").mock(return_value=Response(200, text=info))
+
+    envoy = Envoy("127.0.0.1")
+    await envoy.setup()
+
+    assert not envoy.is_metered
