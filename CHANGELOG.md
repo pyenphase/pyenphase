@@ -1,6 +1,79 @@
 # CHANGELOG
 
 
+## v1.26.1 (2025-05-10)
+
+### Bug Fixes
+
+- Metered envoy without ct reports wrong production in fw 8.2.4264
+  ([#275](https://github.com/pyenphase/pyenphase/pull/275),
+  [`a998bab`](https://github.com/pyenphase/pyenphase/commit/a998bab2fbc3251371b2833100d8cf16de098088))
+
+* fix: metered envoy without ct reports wrong production in fw 8.2.4264
+
+### Chores
+
+- **deps**: Bump h11 from 0.14.0 to 0.16.0 ([#269](https://github.com/pyenphase/pyenphase/pull/269),
+  [`a6c8fce`](https://github.com/pyenphase/pyenphase/commit/a6c8fce90afe016de64af7df954ae85a8158c419))
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump lxml from 5.3.2 to 5.4.0 ([#270](https://github.com/pyenphase/pyenphase/pull/270),
+  [`ffced2f`](https://github.com/pyenphase/pyenphase/commit/ffced2f4466bc29d57fbdfeefb430218c6fdd650))
+
+Bumps [lxml](https://github.com/lxml/lxml) from 5.3.2 to 5.4.0. - [Release
+  notes](https://github.com/lxml/lxml/releases) -
+  [Changelog](https://github.com/lxml/lxml/blob/master/CHANGES.txt) -
+  [Commits](https://github.com/lxml/lxml/compare/lxml-5.3.2...lxml-5.4.0)
+
+--- updated-dependencies: - dependency-name: lxml dependency-version: 5.4.0
+
+dependency-type: direct:production
+
+update-type: version-update:semver-minor ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump orjson from 3.10.16 to 3.10.18
+  ([#272](https://github.com/pyenphase/pyenphase/pull/272),
+  [`4cee284`](https://github.com/pyenphase/pyenphase/commit/4cee2843989981b947825d33cf64b0f1291007e0))
+
+Bumps [orjson](https://github.com/ijl/orjson) from 3.10.16 to 3.10.18. - [Release
+  notes](https://github.com/ijl/orjson/releases) -
+  [Changelog](https://github.com/ijl/orjson/blob/master/CHANGELOG.md) -
+  [Commits](https://github.com/ijl/orjson/compare/3.10.16...3.10.18)
+
+--- updated-dependencies: - dependency-name: orjson dependency-version: 3.10.18
+
+dependency-type: direct:production
+
+update-type: version-update:semver-patch ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#271](https://github.com/pyenphase/pyenphase/pull/271),
+  [`b53cbae`](https://github.com/pyenphase/pyenphase/commit/b53cbaecbd995f978a37372a5f7ee590d153ce09))
+
+updates: - [github.com/astral-sh/ruff-pre-commit: v0.11.6 →
+  v0.11.7](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.6...v0.11.7)
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#273](https://github.com/pyenphase/pyenphase/pull/273),
+  [`03af646`](https://github.com/pyenphase/pyenphase/commit/03af6469eb0560bafc86e0711073ce6d0011b95c))
+
+updates: - [github.com/python-poetry/poetry: 2.1.2 →
+  2.1.3](https://github.com/python-poetry/poetry/compare/2.1.2...2.1.3) -
+  [github.com/astral-sh/ruff-pre-commit: v0.11.7 →
+  v0.11.8](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.7...v0.11.8)
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+
 ## v1.26.0 (2025-04-25)
 
 ### Chores
