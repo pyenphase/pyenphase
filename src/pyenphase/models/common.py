@@ -28,6 +28,10 @@ class CommonProperties:
     #: Ensemble updater should only report combined ACB en Encharge if production report has data
     acb_batteries_reported: int = 0
 
+    #: imeter flag from /info. If true envoy is metered type
+    #: used to detect metered without actual CT installed to enable picking correct data
+    imeter_info: bool = False
+
     # other properties from here, reset by originator
 
     # controlled by meters updater
@@ -49,7 +53,7 @@ class CommonProperties:
     # controlled by
     # none_probe_property: str = "hello world" #: test
 
-    def reset_probe_properties(self) -> None:
+    def reset_probe_properties(self, is_metered: bool = False) -> None:
         """
         Reset common properties that are initialized during probe.
 
@@ -62,9 +66,11 @@ class CommonProperties:
 
             production_fallback_list shared amongst production updaters
             ACB_batteries_reported shared between production and Ensemble
+            imeter_info setting from /info indicating envoy is metered type
         """
         # shared amongst production updaters
         self.production_fallback_list = []
+        self.imeter_info = is_metered
 
         # shared between production and ensemble
         self.acb_batteries_reported = 0
