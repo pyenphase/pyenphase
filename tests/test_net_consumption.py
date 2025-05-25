@@ -24,7 +24,7 @@ LOGGER = logging.getLogger(__name__)
 @pytest.mark.asyncio
 async def test_with_4_2_27_firmware(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Verify with 4.2.27 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.27"
