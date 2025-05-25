@@ -43,7 +43,7 @@ LOGGER = logging.getLogger(__name__)
 @pytest.mark.asyncio
 async def test_full_connected_from_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test envoy connected and replying from start"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
@@ -73,7 +73,7 @@ async def test_full_connected_from_start_with_7_6_175_standard(
 @pytest.mark.asyncio
 async def test_full_disconnected_from_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test envoy disconnect at start, should return EnvoyFirmwareFatalCheckError."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     start_7_firmware_mock(mock_aioresponse)
@@ -108,7 +108,7 @@ async def test_full_disconnected_from_start_with_7_6_175_standard(
 @pytest.mark.asyncio
 async def test_2_timeout_from_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test envoy timeout at start, timeout is not in retry loop."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     start_7_firmware_mock(mock_aioresponse)
@@ -139,7 +139,7 @@ async def test_2_timeout_from_start_with_7_6_175_standard(
 @pytest.mark.asyncio
 async def test_httperror_from_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test envoy httperror at start, is not in retry loop."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     start_7_firmware_mock(mock_aioresponse)
@@ -170,7 +170,7 @@ async def test_httperror_from_start_with_7_6_175_standard(
 @pytest.mark.asyncio
 async def test_1_timeout_from_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test envoy timeout at start, timeout is not in retry loop but tries http after https."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
@@ -208,7 +208,7 @@ async def test_1_timeout_from_start_with_7_6_175_standard(
 @pytest.mark.asyncio
 async def test_5_not_connected_at_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test 5 connection failures at start and last one works"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
@@ -269,7 +269,7 @@ async def test_5_not_connected_at_start_with_7_6_175_standard(
 @pytest.mark.asyncio
 async def test_2_network_errors_at_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test 2 network error failures at start and 3th works"""
     logging.getLogger("pyenphase").setLevel(logging.WARN)
     version = "7.6.175_standard"
@@ -314,7 +314,7 @@ async def test_2_network_errors_at_start_with_7_6_175_standard(
 @pytest.mark.asyncio
 async def test_3_network_errors_at_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test 3 network error failures at start"""
     logging.getLogger("pyenphase").setLevel(logging.WARN)
     start_7_firmware_mock(mock_aioresponse)
@@ -346,7 +346,7 @@ async def test_3_network_errors_at_start_with_7_6_175_standard(
 @pytest.mark.asyncio
 async def test_noconnection_at_probe_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test 3 network error failures at start"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
@@ -402,7 +402,7 @@ async def test_noconnection_at_probe_with_7_6_175_standard(
 @pytest.mark.asyncio
 async def test_noconnection_at_update_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test 3 network error failures at start"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
@@ -614,7 +614,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
 @pytest.mark.asyncio
 async def test_bad_request_status_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test request status not between 200-300."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
