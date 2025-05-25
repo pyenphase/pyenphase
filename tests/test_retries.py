@@ -460,7 +460,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         exception=_make_client_connector_error("Test timeoutexception"),
     )
 
-    with pytest.raises(EnvoyCommunicationError):
+    with pytest.raises(EnvoyCommunicationError, match="aiohttp ClientError"):
         await envoy.update()
 
     stats = envoy.request.statistics
@@ -483,7 +483,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         exception=_make_client_connector_error("Test timeoutexception"),
     )
 
-    with pytest.raises(EnvoyCommunicationError):
+    with pytest.raises(EnvoyCommunicationError, match="aiohttp ClientError"):
         await envoy.update()
 
     stats = envoy.request.statistics
@@ -503,7 +503,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         exception=aiohttp.ClientError("Test timeoutexception"),
     )
 
-    with pytest.raises(EnvoyCommunicationError):
+    with pytest.raises(EnvoyCommunicationError, match="aiohttp ClientError"):
         await envoy.update()
 
     stats = envoy.request.statistics
@@ -524,7 +524,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         "https://127.0.0.1/api/v1/production", status=200, body="invalid json"
     )
 
-    with pytest.raises(orjson.JSONDecodeError):
+    with pytest.raises(orjson.JSONDecodeError, match="unexpected character"):
         await envoy.update()
 
     stats = envoy.request.statistics
@@ -548,7 +548,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         exception=aiohttp.ClientError("Test timeoutexception"),
     )
 
-    with pytest.raises(EnvoyAuthenticationRequired):
+    with pytest.raises(EnvoyAuthenticationRequired, match="Test timeoutexception"):
         await envoy.update()
 
     stats = envoy.request.statistics
@@ -572,7 +572,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         exception=aiohttp.ClientError("Test timeoutexception"),
     )
 
-    with pytest.raises(EnvoyCommunicationError):
+    with pytest.raises(EnvoyCommunicationError, match="aiohttp ClientError"):
         await envoy.update()
 
     stats = envoy.request.statistics
@@ -603,7 +603,7 @@ async def test_bad_request_status_7_6_175_standard(
     # test status results in EnvoyHTTPStatusError
     mock_aioresponse.get("https://127.0.0.1/api/v1/production", status=503)
 
-    with pytest.raises(EnvoyHTTPStatusError):
+    with pytest.raises(EnvoyHTTPStatusError, match="503"):
         await envoy.update()
 
     stats = envoy.request.statistics
