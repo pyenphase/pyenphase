@@ -286,8 +286,14 @@ async def test_jwt_failure_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    mock_aioresponse.get(
-        "https://127.0.0.1" + URL_AUTH_CHECK_JWT, status=404, body="no jwt"
+    from .common import override_mock
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1" + URL_AUTH_CHECK_JWT,
+        status=404,
+        body="no jwt",
     )
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
@@ -306,7 +312,11 @@ async def test_no_remote_login_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    mock_aioresponse.post(
+    from .common import override_mock
+
+    override_mock(
+        mock_aioresponse,
+        "post",
         "https://enlighten.enphaseenergy.com/login/login.json?",
         status=500,
         payload={
@@ -318,10 +328,20 @@ async def test_no_remote_login_with_7_6_175_standard(
             "manager_token": "1234567890",
         },
     )
-    mock_aioresponse.post(
-        "https://entrez.enphaseenergy.com/tokens", status=500, body="token"
+    override_mock(
+        mock_aioresponse,
+        "post",
+        "https://entrez.enphaseenergy.com/tokens",
+        status=500,
+        body="token",
     )
-    mock_aioresponse.get("https://127.0.0.1/auth/check_jwt", status=200, payload={})
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/auth/check_jwt",
+        status=200,
+        payload={},
+    )
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
