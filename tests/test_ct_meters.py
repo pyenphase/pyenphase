@@ -232,8 +232,12 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
     del meters_readings[0]["channels"]
     del meters_readings[1]["channels"]
 
-    mock_aioresponse.get("https://127.0.0.1/ivp/meters", status=200, payload=meters_status)
-    mock_aioresponse.get("https://127.0.0.1/ivp/meters/readings", status=200, payload=meters_readings)
+    mock_aioresponse.get(
+        "https://127.0.0.1/ivp/meters", status=200, payload=meters_status
+    )
+    mock_aioresponse.get(
+        "https://127.0.0.1/ivp/meters/readings", status=200, payload=meters_readings
+    )
 
     await envoy.update()
     assert envoy.data.ctmeter_production_phases is None
@@ -241,18 +245,19 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
+async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test meters model using envoy metered CT with multiple phases"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
 
     # start with regular data first
     version = "7.6.175_with_cts_3phase"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
 
@@ -314,31 +319,36 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase():
+async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test meters model using envoy metered without production CT and total-consumption CT with multiple phases"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
 
     # start with regular data first
     version = "7.6.175_with_cts_3phase"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     production_json = await load_json_fixture(version, "production.json")
     # remove production data to test COV consumption ct only
     del production_json["production"]
-    respx.get("/production.json").mock(return_value=Response(200, json=production_json))
-    respx.get("/production.json?details=1").mock(
-        return_value=Response(200, json=production_json)
+    mock_aioresponse.get(
+        "https://127.0.0.1/production.json", status=200, payload=production_json
+    )
+    mock_aioresponse.get(
+        "https://127.0.0.1/production.json?details=1",
+        status=200,
+        payload=production_json,
     )
 
     # Force ct consumption meter to total consumption for COV
     ivp_Meters = (await load_fixture(version, "ivp_meters")).replace(
         CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION
     )
-    respx.get("/ivp/meters").mock(return_value=Response(200, text=ivp_Meters))
+    mock_aioresponse.get("https://127.0.0.1/ivp/meters", status=200, body=ivp_Meters)
 
     # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
 
@@ -349,18 +359,19 @@ async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split():
+async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test meters model using envoy metered CT with multiple phases"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
 
     # start with regular data first
     version = "8.2.127_with_3cts_and_battery_split"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
 
@@ -409,9 +420,11 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split():
     ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[2], meter_status, 0)
     assert ct_no_phase_data is None
 
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=meters_status))
-    respx.get("/ivp/meters/readings").mock(
-        return_value=Response(200, json=meters_readings)
+    mock_aioresponse.get(
+        "https://127.0.0.1/ivp/meters", status=200, payload=meters_status
+    )
+    mock_aioresponse.get(
+        "https://127.0.0.1/ivp/meters/readings", status=200, payload=meters_readings
     )
 
     await envoy.update()
@@ -419,25 +432,26 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_battery_split():
+async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_battery_split(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test meters model with additional meter readings entry not in meters config"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
 
     # start with regular data first we use this fixture to test issue reported in 8.3.5025
     version = "8.2.127_with_3cts_and_battery_split"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # fw D8.3.5027 has 3th (zero) entry for Storage CT, even if not configured
     # this caused Indexerror crash. Test if extra data is now handled without crash
     readings_data = await load_json_list_fixture(version, "ivp_meters_readings")
     readings_data.append({"eid": 1023410688, "channels": [{}, {}, {}]})
-    respx.get("/ivp/meters/readings").mock(
-        return_value=Response(200, json=readings_data)
+    mock_aioresponse.get(
+        "https://127.0.0.1/ivp/meters/readings", status=200, payload=readings_data
     )
 
     # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
