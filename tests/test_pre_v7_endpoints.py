@@ -25,6 +25,7 @@ from pyenphase.updaters.base import EnvoyUpdater
 from .common import (
     get_mock_envoy,
     load_json_fixture,
+    override_mock,
     prep_envoy,
     updater_features,
 )
@@ -540,17 +541,32 @@ async def test_with_3_9_36_firmware_bad_auth(
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-    # for auth failure
-    mock_aioresponse.get(
+
+    # Override production endpoints to return 401
+    override_mock(
+        mock_aioresponse,
+        "get",
         "https://127.0.0.1/api/v1/production",
         status=401,
-        payload=await load_json_fixture(version, "api_v1_production"),
+        payload={
+            "status": 401,
+            "error": "",
+            "info": "Authentication required",
+            "moreInfo": "",
+        },
         repeat=True,
     )
-    mock_aioresponse.get(
+    override_mock(
+        mock_aioresponse,
+        "get",
         "http://127.0.0.1/api/v1/production",
         status=401,
-        payload=await load_json_fixture(version, "api_v1_production"),
+        payload={
+            "status": 401,
+            "error": "",
+            "info": "Authentication required",
+            "moreInfo": "",
+        },
         repeat=True,
     )
 
@@ -610,8 +626,20 @@ async def test_with_3_9_36_firmware(
     version = "3.9.36"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     # no access to tariff
-    mock_aioresponse.get("https://127.0.0.1/admin/lib/tariff", status=401, repeat=True)
-    mock_aioresponse.get("http://127.0.0.1/admin/lib/tariff", status=401, repeat=True)
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/admin/lib/tariff",
+        status=401,
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/admin/lib/tariff",
+        status=401,
+        repeat=True,
+    )
 
     envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
@@ -764,10 +792,41 @@ async def test_with_3_9_36_firmware_with_production_and_production_json_401(
     version = "3.9.36"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     # force 401 on production
-    mock_aioresponse.get("https://127.0.0.1/production", status=401, repeat=True)
-    mock_aioresponse.get("http://127.0.0.1/production", status=401, repeat=True)
-    mock_aioresponse.get("https://127.0.0.1/production.json", status=401, repeat=True)
-    mock_aioresponse.get("http://127.0.0.1/production.json", status=401, repeat=True)
+    override_mock(
+        mock_aioresponse, "get", "https://127.0.0.1/production", status=401, repeat=True
+    )
+    override_mock(
+        mock_aioresponse, "get", "http://127.0.0.1/production", status=401, repeat=True
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json",
+        status=401,
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/production.json",
+        status=401,
+        repeat=True,
+    )
+    # Also need to override the API v1 endpoint
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/api/v1/production",
+        status=401,
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/api/v1/production",
+        status=401,
+        repeat=True,
+    )
 
     with pytest.raises(EnvoyAuthenticationRequired):
         await get_mock_envoy(version, test_client_session)
@@ -783,8 +842,12 @@ async def test_with_3_8_10_firmware_with_meters_401(
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.8.10"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-    mock_aioresponse.get("https://127.0.0.1/ivp/meters", status=401, repeat=True)
-    mock_aioresponse.get("http://127.0.0.1/ivp/meters", status=401, repeat=True)
+    override_mock(
+        mock_aioresponse, "get", "https://127.0.0.1/ivp/meters", status=401, repeat=True
+    )
+    override_mock(
+        mock_aioresponse, "get", "http://127.0.0.1/ivp/meters", status=401, repeat=True
+    )
     caplog.set_level(logging.DEBUG)
     await get_mock_envoy(version, test_client_session)
     assert "Skipping meters endpoint as user does not have access to" in caplog.text
@@ -1084,9 +1147,13 @@ async def test_with_3_17_3_firmware_zero_production(
     version = "3.17.3"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    # Get envoy without updating first
+    envoy = await get_mock_envoy(version, test_client_session, update=False)
 
-    mock_aioresponse.get(
+    # Now override the production endpoint to return zeros
+    override_mock(
+        mock_aioresponse,
+        "get",
         "https://127.0.0.1/api/v1/production",
         status=200,
         payload={
@@ -1097,7 +1164,9 @@ async def test_with_3_17_3_firmware_zero_production(
         },
         repeat=True,
     )
-    mock_aioresponse.get(
+    override_mock(
+        mock_aioresponse,
+        "get",
         "http://127.0.0.1/api/v1/production",
         status=200,
         payload={
@@ -1109,5 +1178,6 @@ async def test_with_3_17_3_firmware_zero_production(
         repeat=True,
     )
 
+    # Now update should fail with poor data quality
     with pytest.raises(EnvoyPoorDataQuality):
         await envoy.update()

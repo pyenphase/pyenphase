@@ -113,6 +113,37 @@ async def get_mock_envoy(version: str, client_session, update: bool = True):  # 
     return envoy
 
 
+def override_mock(mock_aioresponse: aioresponses, method: str, url: str, **kwargs):  # type: ignore[no-untyped-def]
+    """Override an existing mock by removing it first and adding a new one."""
+    from yarl import URL
+
+    url_obj = URL(url)
+
+    # Remove existing mocks for this URL and method from _matches
+    keys_to_remove = []
+    for key, matcher in mock_aioresponse._matches.items():
+        # Check if this matches our URL and method
+        url_matches = False
+        if hasattr(matcher.url_or_pattern, "match"):
+            # It's a regex pattern
+            url_matches = matcher.url_or_pattern.match(str(url_obj))
+        else:
+            # It's a URL
+            url_matches = str(matcher.url_or_pattern).rstrip("/") == str(
+                url_obj
+            ).rstrip("/")
+
+        if url_matches and matcher.method.lower() == method.lower():
+            keys_to_remove.append(key)
+
+    # Remove the matching mocks
+    for key in keys_to_remove:
+        del mock_aioresponse._matches[key]
+
+    # Add the new mock
+    getattr(mock_aioresponse, method.lower())(url, **kwargs)
+
+
 async def prep_envoy(
     mock_aioresponse: aioresponses,
     host: str,
@@ -240,16 +271,24 @@ async def prep_envoy(
         mock_aioresponse.get(url("/production.json?details=1"), status=404, repeat=True)
 
     if "api_v1_production" in files:
+        # Check if this is a bad_auth version by looking at the fixture content
+        api_v1_prod_data = await load_json_fixture(version, "api_v1_production")
+        status = (
+            401
+            if "status" in api_v1_prod_data and api_v1_prod_data["status"] == 401
+            else 200
+        )
+
         mock_aioresponse.get(
             url("/api/v1/production"),
-            status=200,
-            payload=await load_json_fixture(version, "api_v1_production"),
+            status=status,
+            payload=api_v1_prod_data,
             repeat=True,
         )
         mock_aioresponse.get(
             url_http("/api/v1/production"),
-            status=200,
-            payload=await load_json_fixture(version, "api_v1_production"),
+            status=status,
+            payload=api_v1_prod_data,
             repeat=True,
         )
     else:
@@ -257,16 +296,28 @@ async def prep_envoy(
         mock_aioresponse.get(url_http("/api/v1/production"), status=404, repeat=True)
 
     if "api_v1_production_inverters" in files:
+        # Check if this is a bad_auth version by looking at the fixture content
+        api_v1_inv_data = await load_json_fixture(
+            version, "api_v1_production_inverters"
+        )
+        status = (
+            401
+            if isinstance(api_v1_inv_data, dict)
+            and "status" in api_v1_inv_data
+            and api_v1_inv_data["status"] == 401
+            else 200
+        )
+
         mock_aioresponse.get(
             url("/api/v1/production/inverters"),
-            status=200,
-            payload=await load_json_fixture(version, "api_v1_production_inverters"),
+            status=status,
+            payload=api_v1_inv_data,
             repeat=True,
         )
         mock_aioresponse.get(
             url_http("/api/v1/production/inverters"),
-            status=200,
-            payload=await load_json_fixture(version, "api_v1_production_inverters"),
+            status=status,
+            payload=api_v1_inv_data,
             repeat=True,
         )
     else:
