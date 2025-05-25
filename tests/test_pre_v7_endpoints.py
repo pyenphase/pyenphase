@@ -1147,10 +1147,10 @@ async def test_with_3_17_3_firmware_zero_production(
     version = "3.17.3"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    # Get envoy without updating first
-    envoy = await get_mock_envoy(version, test_client_session, update=False)
+    # Get envoy and let it probe with good data
+    envoy = await get_mock_envoy(version, test_client_session, update=True)
 
-    # Now override the production endpoint to return zeros
+    # Now override the production endpoint to return zeros for the next update
     override_mock(
         mock_aioresponse,
         "get",
