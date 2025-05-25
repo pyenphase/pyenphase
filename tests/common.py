@@ -168,8 +168,15 @@ async def prep_envoy(
             payload=await load_json_fixture(version, "ivp_meters_readings"),
             repeat=True,
         )
+        mock_aioresponse.get(
+            url_http("/ivp/meters/readings"),
+            status=200,
+            payload=await load_json_fixture(version, "ivp_meters_readings"),
+            repeat=True,
+        )
     else:
         mock_aioresponse.get(url("/ivp/meters/readings"), status=404, repeat=True)
+        mock_aioresponse.get(url_http("/ivp/meters/readings"), status=404, repeat=True)
 
     if "production" in files:
         try:
