@@ -277,8 +277,17 @@ async def prep_envoy(
             payload=await load_json_fixture(version, "ivp_ensemble_inventory"),
             repeat=True,
         )
+        mock_aioresponse.get(
+            url_http("/ivp/ensemble/inventory"),
+            status=200,
+            payload=await load_json_fixture(version, "ivp_ensemble_inventory"),
+            repeat=True,
+        )
     else:
         mock_aioresponse.get(url("/ivp/ensemble/inventory"), status=404, repeat=True)
+        mock_aioresponse.get(
+            url_http("/ivp/ensemble/inventory"), status=404, repeat=True
+        )
 
     if "ivp_ensemble_dry_contacts" in files:
         try:
@@ -341,6 +350,9 @@ async def prep_envoy(
             json_data = {}
         mock_aioresponse.get(
             url("/admin/lib/tariff"), status=200, payload=json_data, repeat=True
+        )
+        mock_aioresponse.get(
+            url_http("/admin/lib/tariff"), status=200, payload=json_data, repeat=True
         )
         mock_aioresponse.put(
             url("/admin/lib/tariff"), status=200, payload=json_data, repeat=True
