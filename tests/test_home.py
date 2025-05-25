@@ -75,7 +75,7 @@ async def test_home_from_api_with_7_6_175(mock_aioresponse: aioresponses):
 
 @pytest.mark.asyncio
 async def test_interface_settings_with_7_6_175(
-    mock_aioresponse: aioresponses, test_client_session
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ):
     """Test home interface information data"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
@@ -88,7 +88,7 @@ async def test_interface_settings_with_7_6_175(
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # Create envoy using get_mock_envoy which handles all the setup
-    envoy = await get_mock_envoy(test_client_session, update=False)
+    envoy = await get_mock_envoy(version, test_client_session, update=False)
 
     # test interface_settings method
     home_data: EnvoyInterfaceInformation | None = await envoy.interface_settings()
@@ -134,7 +134,7 @@ async def test_interface_settings_with_7_6_175(
 @pytest.mark.asyncio
 async def test_home_endpoint_errors_with_7_6_175(
     mock_aioresponse: aioresponses,
-    test_client_session,
+    test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test home interface information data"""

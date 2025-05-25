@@ -391,15 +391,16 @@ async def test_enlighten_json_error_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    mock_aioresponse.post(
+    from .common import override_mock
+
+    # Override the login endpoint to return invalid JSON
+    override_mock(
+        mock_aioresponse,
+        "post",
         "https://enlighten.enphaseenergy.com/login/login.json?",
         status=200,
         body="nojson",
     )
-    mock_aioresponse.post(
-        "https://entrez.enphaseenergy.com/tokens", status=200, body="token"
-    )
-    mock_aioresponse.get("https://127.0.0.1/auth/check_jwt", status=200, payload={})
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
