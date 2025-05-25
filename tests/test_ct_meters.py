@@ -232,8 +232,12 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
     del meters_readings[0]["channels"]
     del meters_readings[1]["channels"]
 
-    mock_aioresponse.get("https://127.0.0.1/ivp/meters", status=200, payload=meters_status)
-    mock_aioresponse.get("https://127.0.0.1/ivp/meters/readings", status=200, payload=meters_readings)
+    mock_aioresponse.get(
+        "https://127.0.0.1/ivp/meters", status=200, payload=meters_status
+    )
+    mock_aioresponse.get(
+        "https://127.0.0.1/ivp/meters/readings", status=200, payload=meters_readings
+    )
 
     await envoy.update()
     assert envoy.data.ctmeter_production_phases is None
