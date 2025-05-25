@@ -1281,6 +1281,15 @@ async def test_with_7_x_firmware(
     files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
 
+    # Add debugging to see what's being requested
+    original_get = test_client_session.get
+
+    async def debug_get(url, *args, **kwargs):
+        print(f"DEBUG: GET request to {url}")
+        return await original_get(url, *args, **kwargs)
+
+    test_client_session.get = debug_get
+
     envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data == snapshot

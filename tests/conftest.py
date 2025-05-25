@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import aiohttp
 import pytest
 import pytest_asyncio
@@ -30,3 +32,10 @@ async def test_client_session():
 def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
     """Return snapshot assertion fixture with the Enphase extension."""
     return snapshot.use_extension(EnphaseSnapshotExtension)
+
+
+@pytest.fixture(autouse=True)
+def fast_tenacity():
+    """Make tenacity retries fast by mocking time.sleep."""
+    with patch("tenacity.nap.time"), patch("asyncio.sleep", return_value=None):
+        yield

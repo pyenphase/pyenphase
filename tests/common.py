@@ -147,11 +147,19 @@ async def prep_envoy(
                 payload=(await load_json_fixture(version, "ivp_meters")),
                 repeat=True,
             )
+            mock_aioresponse.get(
+                url_http("/ivp/meters"),
+                status=200,
+                payload=(await load_json_fixture(version, "ivp_meters")),
+                repeat=True,
+            )
         except json.decoder.JSONDecodeError:
             # v3 fw with html return 401
             mock_aioresponse.get(url("/ivp/meters"), status=401, repeat=True)
+            mock_aioresponse.get(url_http("/ivp/meters"), status=401, repeat=True)
     else:
         mock_aioresponse.get(url("/ivp/meters"), status=404, repeat=True)
+        mock_aioresponse.get(url_http("/ivp/meters"), status=404, repeat=True)
 
     if "ivp_meters_readings" in files:
         mock_aioresponse.get(
@@ -169,6 +177,9 @@ async def prep_envoy(
             mock_aioresponse.get(
                 url("/production"), status=200, payload=json_data, repeat=True
             )
+            mock_aioresponse.get(
+                url_http("/production"), status=200, payload=json_data, repeat=True
+            )
         except json.decoder.JSONDecodeError:
             # v3 fw reports production in html format
             mock_aioresponse.get(
@@ -177,8 +188,15 @@ async def prep_envoy(
                 body=await load_fixture(version, "production"),
                 repeat=True,
             )
+            mock_aioresponse.get(
+                url_http("/production"),
+                status=200,
+                body=await load_fixture(version, "production"),
+                repeat=True,
+            )
     else:
         mock_aioresponse.get(url("/production"), status=404, repeat=True)
+        mock_aioresponse.get(url_http("/production"), status=404, repeat=True)
 
     if "production.json" in files:
         try:
@@ -187,15 +205,28 @@ async def prep_envoy(
                 url("/production.json"), status=200, payload=json_data, repeat=True
             )
             mock_aioresponse.get(
+                url_http("/production.json"), status=200, payload=json_data, repeat=True
+            )
+            mock_aioresponse.get(
                 url("/production.json?details=1"),
+                status=200,
+                payload=json_data,
+                repeat=True,
+            )
+            mock_aioresponse.get(
+                url_http("/production.json?details=1"),
                 status=200,
                 payload=json_data,
                 repeat=True,
             )
         except json.decoder.JSONDecodeError:
             mock_aioresponse.get(url("/production.json"), status=404, repeat=True)
+            mock_aioresponse.get(url_http("/production.json"), status=404, repeat=True)
             mock_aioresponse.get(
                 url("/production.json?details=1"), status=404, repeat=True
+            )
+            mock_aioresponse.get(
+                url_http("/production.json?details=1"), status=404, repeat=True
             )
     else:
         mock_aioresponse.get(url("/production.json"), status=404, repeat=True)
@@ -208,8 +239,15 @@ async def prep_envoy(
             payload=await load_json_fixture(version, "api_v1_production"),
             repeat=True,
         )
+        mock_aioresponse.get(
+            url_http("/api/v1/production"),
+            status=200,
+            payload=await load_json_fixture(version, "api_v1_production"),
+            repeat=True,
+        )
     else:
         mock_aioresponse.get(url("/api/v1/production"), status=404, repeat=True)
+        mock_aioresponse.get(url_http("/api/v1/production"), status=404, repeat=True)
 
     if "api_v1_production_inverters" in files:
         mock_aioresponse.get(
@@ -218,9 +256,18 @@ async def prep_envoy(
             payload=await load_json_fixture(version, "api_v1_production_inverters"),
             repeat=True,
         )
+        mock_aioresponse.get(
+            url_http("/api/v1/production/inverters"),
+            status=200,
+            payload=await load_json_fixture(version, "api_v1_production_inverters"),
+            repeat=True,
+        )
     else:
         mock_aioresponse.get(
             url("/api/v1/production/inverters"), status=404, repeat=True
+        )
+        mock_aioresponse.get(
+            url_http("/api/v1/production/inverters"), status=404, repeat=True
         )
 
     if "ivp_ensemble_inventory" in files:
