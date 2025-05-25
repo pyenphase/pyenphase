@@ -1,9 +1,10 @@
 """Envoy Firmware detection"""
 
+import asyncio
 import logging
 import time
 
-import httpx
+import aiohttp
 from awesomeversion import AwesomeVersion
 from lxml import etree  # nosec
 from tenacity import (
@@ -35,13 +36,13 @@ class EnvoyFirmware:
 
     def __init__(
         self,
-        _client: httpx.AsyncClient,
+        _client: aiohttp.ClientSession,
         host: str,
     ) -> None:
         """
         Class for querying and determining the Envoy firmware version.
 
-        :param client: httpx Asyncclient not verifying SSL
+        :param client: aiohttp ClientSession not verifying SSL
             certificates, see :class:`pyenphase.ssl`.
         :param host: Envoy DNS name or IP address
         """
@@ -54,13 +55,13 @@ class EnvoyFirmware:
         self._metered: bool = False
 
     @retry(
-        retry=retry_if_exception_type((httpx.NetworkError, httpx.RemoteProtocolError)),
+        retry=retry_if_exception_type(aiohttp.ClientError),
         wait=wait_random_exponential(multiplier=2, max=5),
         stop=stop_after_delay(MAX_REQUEST_DELAY)
         | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
         reraise=True,
     )
-    async def _get_info(self) -> httpx.Response:
+    async def _get_info(self) -> tuple[int, bytes]:
         """
         Perform GET request to /info endpoint on envoy.
 
@@ -71,19 +72,21 @@ class EnvoyFirmware:
         ever comes first on network or remote protocol errors.
         HTTP status is not verified.
 
-        :return: GET response as received from Envoy
+        :return: tuple of (status_code, content)
         """
         self._url = f"https://{self._host}/info"
         _LOGGER.debug("Requesting %s with timeout %s", self._url, LOCAL_TIMEOUT)
         try:
-            return await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
-        except (httpx.ConnectError, httpx.TimeoutException):
+            async with self._client.get(self._url, timeout=LOCAL_TIMEOUT) as resp:
+                return resp.status, await resp.read()
+        except (aiohttp.ClientConnectorError, asyncio.TimeoutError):
             # Firmware < 7.0.0 does not support HTTPS so we need to try HTTP
             # as a fallback, worse sometimes http will redirect to https://localhost
             # which is not helpful
             self._url = f"http://{self._host}/info"
             _LOGGER.debug("Retrying to %s with timeout %s", self._url, LOCAL_TIMEOUT)
-            return await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
+            async with self._client.get(self._url, timeout=LOCAL_TIMEOUT) as resp:
+                return resp.status, await resp.read()
 
     async def setup(self) -> None:
         """
@@ -99,7 +102,8 @@ class EnvoyFirmware:
 
         .. code-block:: python
 
-            client = httpx.AsyncClient(verify=create_no_verify_ssl_context())
+            connector = aiohttp.TCPConnector(ssl=create_no_verify_ssl_context())
+            client = aiohttp.ClientSession(connector=connector)
             firmware = EnvoyFirmware(client,host)
             await firmware.setup()
             print(firmware.version)
@@ -114,34 +118,30 @@ class EnvoyFirmware:
         if debugon:
             request_start = time.monotonic()
         try:
-            result = await self._get_info()
-        except httpx.TimeoutException as ex:
+            status_code, content = await self._get_info()
+        except asyncio.TimeoutError as ex:
             raise EnvoyFirmwareFatalCheckError(
                 500, "Timeout connecting to Envoy"
             ) from ex
-        except httpx.ConnectError as ex:
+        except aiohttp.ClientConnectorError as ex:
             raise EnvoyFirmwareFatalCheckError(
                 500, "Unable to connect to Envoy"
             ) from ex
-        except httpx.HTTPError as ex:
+        except aiohttp.ClientError as ex:
             raise EnvoyFirmwareCheckError(
                 500, "Unable to query firmware version"
             ) from ex
 
-        if (status_code := result.status_code) == 200:
+        if status_code == 200:
             if debugon:
                 request_end = time.monotonic()
-                content_type = result.headers.get("content-type")
-                content = result.content
                 _LOGGER.debug(
-                    "Request reply in %s sec from %s status %s: %s %s",
+                    "Request reply in %s sec from %s status %s",
                     round(request_end - request_start, 1),
                     self._url,
                     status_code,
-                    content_type,
-                    content,
                 )
-            xml = etree.fromstring(result.content)  # nosec  # noqa: S320
+            xml = etree.fromstring(content)  # nosec  # noqa: S320
             if (device_tag := xml.find("device")) is not None:
                 if (software_tag := device_tag.find("software")) is not None:
                     self._firmware_version = AwesomeVersion(
@@ -157,7 +157,7 @@ class EnvoyFirmware:
 
         else:
             # If we get a different status code, raise an exception
-            raise EnvoyFirmwareCheckError(result.status_code, result.text)
+            raise EnvoyFirmwareCheckError(status_code, content.decode())
 
     @property
     def version(self) -> AwesomeVersion:

@@ -2,7 +2,7 @@
 
 import enum
 
-import httpx
+import aiohttp
 from awesomeversion import AwesomeVersion
 
 # Versions
@@ -43,12 +43,13 @@ ENDPOINT_URL_METERS_READINGS = "/ivp/meters/readings"
 # Interface configuration
 ENDPOINT_URL_HOME = "/home"
 
-LOCAL_TIMEOUT = httpx.Timeout(
+LOCAL_TIMEOUT = aiohttp.ClientTimeout(
     # The envoy can be slow to respond but fast to connect to we
     # need to set a long timeout for the read and a short timeout
     # for the connect
-    timeout=10.0,
-    read=45.0,
+    total=45.0,
+    connect=10.0,
+    sock_read=45.0,
 )
 
 # Requests should no longer retry after max delay (sec) or times since first try

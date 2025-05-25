@@ -2,7 +2,7 @@
 
 import json
 
-import httpx
+import aiohttp
 
 
 class EnvoyError(Exception):
@@ -29,7 +29,7 @@ class EnvoyFirmwareFatalCheckError(EnvoyError):
     """
     Exception raised when we should not retry getting the Envoy firmware version.
 
-    - httpx timeout or connection error when sending request to Envoy
+    - aiohttp timeout or connection error when sending request to Envoy
 
     :param status_code: http status code
     :param status: Error status description
@@ -95,8 +95,8 @@ class EnvoyCommunicationError(EnvoyError):
     Exception raised when the Envoy communication fails.
 
     - EndOfStream is reported during communication.
-    - httpx.NetworkError error occurs.
-    - httpx.TimeoutException error occurs
+    - aiohttp.ClientError error occurs.
+    - asyncio.TimeoutError error occurs
     """
 
 
@@ -124,6 +124,6 @@ class EnvoyPoorDataQuality(EnvoyError):
 
 ENDPOINT_PROBE_EXCEPTIONS = (
     json.JSONDecodeError,
-    httpx.HTTPError,
+    aiohttp.ClientError,
     EnvoyHTTPStatusError,
 )

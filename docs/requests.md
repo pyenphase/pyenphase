@@ -7,7 +7,7 @@ envoy = Envoy(host_ip_or_name)
 await envoy.setup()
 await envoy.authenticate(username=username, password=password, token=token)
 
-myresponse: httpx.Response = await envoy.request('/my/own/endpoint')
+myresponse: aiohttp.ClientResponse = await envoy.request('/my/own/endpoint')
 status_code = myresponse.status_code
 if status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
     # authentication error
