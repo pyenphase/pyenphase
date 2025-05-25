@@ -2,6 +2,7 @@
 
 import logging
 
+import aiohttp
 import pytest
 from aioresponses import aioresponses
 
@@ -13,8 +14,8 @@ LOGGER = logging.getLogger(__name__)
 
 @pytest.mark.asyncio
 async def test_firmware_with_7_6_175_standard(
-    mock_aioresponse: aioresponses, test_client_session
-):
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test firmware is processed ok."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     info = (
@@ -37,8 +38,8 @@ async def test_firmware_with_7_6_175_standard(
 
 @pytest.mark.asyncio
 async def test_firmware_no_sn_with_7_6_175_standard(
-    mock_aioresponse: aioresponses, test_client_session
-):
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test missing serial number in info"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     info = (
@@ -60,8 +61,8 @@ async def test_firmware_no_sn_with_7_6_175_standard(
 
 @pytest.mark.asyncio
 async def test_firmware_no_pn_with_7_6_175_standard(
-    mock_aioresponse: aioresponses, test_client_session
-):
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test missing pb in info"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     info = (
@@ -83,8 +84,8 @@ async def test_firmware_no_pn_with_7_6_175_standard(
 
 @pytest.mark.asyncio
 async def test_firmware_no_fw_with_7_6_175_standard(
-    mock_aioresponse: aioresponses, test_client_session
-):
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test missing fw in info"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     info = (
@@ -106,8 +107,8 @@ async def test_firmware_no_fw_with_7_6_175_standard(
 
 @pytest.mark.asyncio
 async def test_firmware_no_device_with_7_6_175_standard(
-    mock_aioresponse: aioresponses, test_client_session
-):
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test missing device xml segment in info"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     info = "<?xml version='1.0' encoding='UTF-8'?><envoy_info></envoy_info>"
@@ -121,8 +122,8 @@ async def test_firmware_no_device_with_7_6_175_standard(
 
 @pytest.mark.asyncio
 async def test_firmware_no_200__with_7_6_175_standard(
-    mock_aioresponse: aioresponses, test_client_session
-):
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test other status as 200 returned"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     info = "<?xml version='1.0' encoding='UTF-8'?><envoy_info></envoy_info>"
@@ -134,8 +135,8 @@ async def test_firmware_no_200__with_7_6_175_standard(
 
 @pytest.mark.asyncio
 async def test_firmware_metered_with_7_6_175_standard(
-    mock_aioresponse: aioresponses, test_client_session
-):
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test firmware is processed ok."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     info = (
@@ -157,8 +158,8 @@ async def test_firmware_metered_with_7_6_175_standard(
 
 @pytest.mark.asyncio
 async def test_firmware_not_metered_with_7_6_175_standard(
-    mock_aioresponse: aioresponses, test_client_session
-):
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test firmware is processed ok."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     info = (
@@ -180,8 +181,8 @@ async def test_firmware_not_metered_with_7_6_175_standard(
 
 @pytest.mark.asyncio
 async def test_firmware_missing_metered_with_7_6_175_standard(
-    mock_aioresponse: aioresponses, test_client_session
-):
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test firmware is processed ok."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     info = (
