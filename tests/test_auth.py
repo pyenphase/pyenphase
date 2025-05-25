@@ -90,6 +90,22 @@ async def test_with_3_9_36_firmware_bad_auth(
 
     mock_aioresponse.get("https://127.0.0.1/ivp/meters", status=200, payload=[])
 
+    # Add the HTTP version of api/v1/production with 401 as well
+    mock_aioresponse.get(
+        "http://127.0.0.1/api/v1/production",
+        status=401,
+        payload=await load_json_fixture(version, "api_v1_production"),
+    )
+
+    # Add other required endpoints for the probe
+    mock_aioresponse.get("https://127.0.0.1/production.json?details=1", status=404)
+    mock_aioresponse.get("http://127.0.0.1/production.json?details=1", status=404)
+    mock_aioresponse.get(
+        "http://127.0.0.1/production",
+        status=200,
+        body=await load_fixture(version, "production"),
+    )
+
     with pytest.raises(EnvoyAuthenticationRequired):
         await get_mock_envoy(version, test_client_session)
 
@@ -135,6 +151,22 @@ async def test_production_with_3_9_36_firmware_bad_auth(
         mock_aioresponse.get("https://127.0.0.1/admin/lib/tariff", status=401)
 
     mock_aioresponse.get("https://127.0.0.1/ivp/meters", status=200, payload=[])
+
+    # Add the HTTP version of api/v1/production with 401 as well
+    mock_aioresponse.get(
+        "http://127.0.0.1/api/v1/production",
+        status=401,
+        payload=await load_json_fixture(version, "api_v1_production"),
+    )
+
+    # Add other required endpoints for the probe
+    mock_aioresponse.get("https://127.0.0.1/production.json?details=1", status=404)
+    mock_aioresponse.get("http://127.0.0.1/production.json?details=1", status=404)
+    mock_aioresponse.get(
+        "http://127.0.0.1/production",
+        status=200,
+        body=await load_fixture(version, "production"),
+    )
 
     with pytest.raises(EnvoyAuthenticationRequired):
         await get_mock_envoy(version, test_client_session)
