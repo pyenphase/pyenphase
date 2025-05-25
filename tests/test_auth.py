@@ -359,22 +359,17 @@ async def test_no_remote_token_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    mock_aioresponse.post(
-        "https://enlighten.enphaseenergy.com/login/login.json?",
-        status=200,
-        payload={
-            "session_id": "1234567890",
-            "user_id": "1234567890",
-            "user_name": "test",
-            "first_name": "Test",
-            "is_consumer": True,
-            "manager_token": "1234567890",
-        },
+    from .common import override_mock
+
+    # The login endpoint is already mocked with 200 by start_7_firmware_mock
+    # Only override the tokens endpoint to fail
+    override_mock(
+        mock_aioresponse,
+        "post",
+        "https://entrez.enphaseenergy.com/tokens",
+        status=500,
+        body="token",
     )
-    mock_aioresponse.post(
-        "https://entrez.enphaseenergy.com/tokens", status=500, body="token"
-    )
-    mock_aioresponse.get("https://127.0.0.1/auth/check_jwt", status=200, payload={})
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
