@@ -3,8 +3,9 @@
 import logging
 from typing import Any
 
+import aiohttp
 import pytest
-import respx
+from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase.const import PhaseNames
@@ -21,14 +22,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_4_2_27_firmware():
+async def test_with_4_2_27_firmware(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+):
     """Verify with 4.2.27 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.27"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
 
@@ -379,7 +381,6 @@ async def test_with_4_2_27_firmware():
     ],
 )
 @pytest.mark.asyncio
-@respx.mock
 async def test_with_7_x_firmware(
     version: str,
     snapshot: SnapshotAssertion,
@@ -388,15 +389,17 @@ async def test_with_7_x_firmware(
     phase_count: int,
     net_consumption: dict[str, Any],
     net_consumption_phases: dict[str, dict[str, Any]],
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 7.x firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     caplog.set_level(logging.DEBUG)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data
     assert data == snapshot
