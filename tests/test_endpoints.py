@@ -5,11 +5,10 @@ import logging
 from dataclasses import replace
 from typing import Any
 
-import httpx
+import aiohttp
 import orjson
 import pytest
-import respx
-from httpx import Response
+from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase.const import (
@@ -1256,7 +1255,6 @@ LOGGER = logging.getLogger(__name__)
     ],
 )
 @pytest.mark.asyncio
-@respx.mock
 async def test_with_7_x_firmware(
     version: str,
     part_number: str,
@@ -1274,14 +1272,16 @@ async def test_with_7_x_firmware(
     ct_production_phases: dict[str, dict[str, Any]],
     ct_consumption_phases: dict[str, dict[str, Any]],
     ct_storage_phases: dict[str, dict[str, Any]],
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 7.x firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    start_7_firmware_mock()
-    files = await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data == snapshot
 
@@ -1296,47 +1296,72 @@ async def test_with_7_x_firmware(
 
     # test envoy request methods GET, PUT and POST
     test_data = await load_json_fixture(version, "api_v1_production_inverters")
-    respx.post("/api/v1/production/inverters").mock(
-        return_value=Response(200, json=test_data)
+    mock_aioresponse.post(
+        "https://127.0.0.1/api/v1/production/inverters", status=200, payload=test_data
     )
-    respx.put("/api/v1/production/inverters").mock(
-        return_value=Response(200, json=test_data)
+    mock_aioresponse.put(
+        "https://127.0.0.1/api/v1/production/inverters", status=200, payload=test_data
     )
 
     # test request with just an endpoint, should be a GET
     await envoy.request("/api/v1/production/inverters")
-    assert respx.calls.last.request.method == "GET"
+    assert mock_aioresponse.requests[
+        ("GET", "https://127.0.0.1/api/v1/production/inverters")
+    ]
 
     # with data but no method should be post
     await envoy.request("/api/v1/production/inverters", data=test_data)
-    assert respx.calls.last.request.method == "POST"
+    assert mock_aioresponse.requests[
+        ("POST", "https://127.0.0.1/api/v1/production/inverters")
+    ]
 
     # with method should be specified method
     await envoy.request("/api/v1/production/inverters", data=test_data, method="PUT")
-    assert respx.calls.last.request.method == "PUT"
+    assert mock_aioresponse.requests[
+        ("PUT", "https://127.0.0.1/api/v1/production/inverters")
+    ]
     await envoy.request("/api/v1/production/inverters", data=test_data, method="POST")
-    assert respx.calls.last.request.method == "POST"
+    assert mock_aioresponse.requests[
+        ("POST", "https://127.0.0.1/api/v1/production/inverters")
+    ]
 
     if supported_features & supported_features.ENPOWER:
         # switch off debug for one post to improve COV
         logging.getLogger("pyenphase").setLevel(logging.WARN)
-        respx.post(URL_GRID_RELAY).mock(return_value=Response(200, json={}))
+        mock_aioresponse.post(
+            f"https://127.0.0.1{URL_GRID_RELAY}", status=200, payload={}
+        )
         await envoy.go_on_grid()
         logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-        assert respx.calls.last.request.content == orjson.dumps(
-            {"mains_admin_state": "closed"}
-        )
+        # Get the last POST request to grid relay
+        grid_relay_requests = [
+            r
+            for r in mock_aioresponse.requests.keys()
+            if r[0] == "POST" and URL_GRID_RELAY in r[1]
+        ]
+        assert grid_relay_requests
+        last_request = mock_aioresponse.requests[grid_relay_requests[-1]][-1]
+        assert orjson.loads(last_request.kwargs["data"]) == {
+            "mains_admin_state": "closed"
+        }
+
         await envoy.go_off_grid()
-        assert respx.calls.last.request.content == orjson.dumps(
-            {"mains_admin_state": "open"}
-        )
+        grid_relay_requests = [
+            r
+            for r in mock_aioresponse.requests.keys()
+            if r[0] == "POST" and URL_GRID_RELAY in r[1]
+        ]
+        last_request = mock_aioresponse.requests[grid_relay_requests[-1]][-1]
+        assert orjson.loads(last_request.kwargs["data"]) == {
+            "mains_admin_state": "open"
+        }
 
         # Test updating dry contacts
         with pytest.raises(ValueError):
             await envoy.update_dry_contact({"missing": "id"})
 
         with pytest.raises(ValueError):
-            bad_envoy = await get_mock_envoy(False)
+            bad_envoy = await get_mock_envoy(version, test_client_session)
             await bad_envoy.probe()
             await bad_envoy.update_dry_contact({"id": "NC1"})
 
@@ -1345,9 +1370,17 @@ async def test_with_7_x_firmware(
         new_model = replace(dry_contact, **new_data)
 
         await envoy.update_dry_contact(new_data)
-        assert respx.calls.last.request.content == orjson.dumps(
-            {"dry_contacts": new_model.to_api()}
-        )
+        # Get the last POST request to dry contact settings
+        dry_contact_requests = [
+            r
+            for r in mock_aioresponse.requests.keys()
+            if r[0] == "POST" and URL_DRY_CONTACT_SETTINGS in r[1]
+        ]
+        assert dry_contact_requests
+        last_request = mock_aioresponse.requests[dry_contact_requests[-1]][-1]
+        assert orjson.loads(last_request.kwargs["data"]) == {
+            "dry_contacts": new_model.to_api()
+        }
 
         if envoy.data.dry_contact_settings["NC1"].black_start is not None:
             assert (
@@ -1359,49 +1392,71 @@ async def test_with_7_x_firmware(
 
         await envoy.open_dry_contact("NC1")
         assert envoy.data.dry_contact_status["NC1"].status == DryContactStatus.OPEN
-        assert respx.calls.last.request.content == orjson.dumps(
-            {"dry_contacts": {"id": "NC1", "status": "open"}}
-        )
+        # Get the last POST request to dry contact status
+        dry_status_requests = [
+            r
+            for r in mock_aioresponse.requests.keys()
+            if r[0] == "POST" and URL_DRY_CONTACT_STATUS in r[1]
+        ]
+        assert dry_status_requests
+        last_request = mock_aioresponse.requests[dry_status_requests[-1]][-1]
+        assert orjson.loads(last_request.kwargs["data"]) == {
+            "dry_contacts": {"id": "NC1", "status": "open"}
+        }
 
         await envoy.close_dry_contact("NC1")
         assert envoy.data.dry_contact_status["NC1"].status == DryContactStatus.CLOSED
-        assert respx.calls.last.request.content == orjson.dumps(
-            {"dry_contacts": {"id": "NC1", "status": "closed"}}
-        )
+        dry_status_requests = [
+            r
+            for r in mock_aioresponse.requests.keys()
+            if r[0] == "POST" and URL_DRY_CONTACT_STATUS in r[1]
+        ]
+        last_request = mock_aioresponse.requests[dry_status_requests[-1]][-1]
+        assert orjson.loads(last_request.kwargs["data"]) == {
+            "dry_contacts": {"id": "NC1", "status": "closed"}
+        }
 
         assert "Sending POST" in caplog.text
 
         # test error returned by action methods calling _json_request
-        respx.post(URL_GRID_RELAY).mock(return_value=Response(300, json={}))
+        mock_aioresponse.post(
+            f"https://127.0.0.1{URL_GRID_RELAY}", status=300, payload={}
+        )
         with pytest.raises(EnvoyError):
             await envoy.go_on_grid()
         with pytest.raises(EnvoyError):
             await envoy.go_off_grid()
 
-        respx.post(URL_GRID_RELAY).mock(
-            return_value=Response(200, json={})
-        ).side_effect = httpx.ConnectError("Test Connection error")
+        mock_aioresponse.post(
+            f"https://127.0.0.1{URL_GRID_RELAY}",
+            exception=aiohttp.ClientError("Test Connection error"),
+        )
         with pytest.raises(EnvoyError):
             await envoy.go_on_grid()
-        respx.post(URL_GRID_RELAY).mock(
-            return_value=Response(200, json={})
-        ).side_effect = httpx.TimeoutException("Test timeout exception")
+        mock_aioresponse.post(
+            f"https://127.0.0.1{URL_GRID_RELAY}",
+            exception=aiohttp.ClientTimeout("Test timeout exception"),
+        )
         with pytest.raises(EnvoyError):
             await envoy.go_off_grid()
 
-        respx.post(URL_DRY_CONTACT_SETTINGS).mock(return_value=Response(300, json={}))
+        mock_aioresponse.post(
+            f"https://127.0.0.1{URL_DRY_CONTACT_SETTINGS}", status=300, payload={}
+        )
         with pytest.raises(EnvoyError):
             await envoy.update_dry_contact(new_data)
 
-        respx.post(URL_DRY_CONTACT_STATUS).mock(
-            return_value=Response(200, json={})
-        ).side_effect = httpx.ConnectError("Test Connection error")
+        mock_aioresponse.post(
+            f"https://127.0.0.1{URL_DRY_CONTACT_STATUS}",
+            exception=aiohttp.ClientError("Test Connection error"),
+        )
         with pytest.raises(EnvoyError):
             await envoy.close_dry_contact("NC1")
 
-        respx.post(URL_DRY_CONTACT_STATUS).mock(
-            return_value=Response(200, json={})
-        ).side_effect = httpx.TimeoutException("Test timeout exception")
+        mock_aioresponse.post(
+            f"https://127.0.0.1{URL_DRY_CONTACT_STATUS}",
+            exception=aiohttp.ClientTimeout("Test timeout exception"),
+        )
         with pytest.raises(EnvoyError):
             await envoy.open_dry_contact("NC1")
 
@@ -1421,17 +1476,17 @@ async def test_with_7_x_firmware(
 
     if supported_features & SupportedFeatures.GENERATOR:
         # COV ensemble ENDPOINT_PROBE_EXCEPTIONS
-        respx.get("/ivp/ss/gen_config").mock(
-            return_value=Response(
-                500, json=await load_json_fixture(version, "ivp_ss_gen_config")
-            )
+        mock_aioresponse.get(
+            "https://127.0.0.1/ivp/ss/gen_config",
+            status=500,
+            payload=await load_json_fixture(version, "ivp_ss_gen_config"),
         )
         await envoy.probe()
         # restore from prior changes
-        respx.get("/ivp/ss/gen_config").mock(
-            return_value=Response(
-                200, json=await load_json_fixture(version, "ivp_ss_gen_config")
-            )
+        mock_aioresponse.get(
+            "https://127.0.0.1/ivp/ss/gen_config",
+            status=200,
+            payload=await load_json_fixture(version, "ivp_ss_gen_config"),
         )
         await envoy.probe()
 
@@ -1465,50 +1520,98 @@ async def test_with_7_x_firmware(
         # Test setting battery features
         await envoy.enable_charge_from_grid()
         assert envoy.data.tariff.storage_settings.charge_from_grid is True
-        assert respx.calls.last.request.content == orjson.dumps(
-            {"tariff": envoy.data.tariff.to_api()}
-        )
+        tariff_requests = [
+            r
+            for r in mock_aioresponse.requests.keys()
+            if r[0] == "PUT" and URL_TARIFF in r[1]
+        ]
+        last_request = mock_aioresponse.requests[tariff_requests[-1]][-1]
+        assert orjson.loads(last_request.kwargs["data"]) == {
+            "tariff": envoy.data.tariff.to_api()
+        }
 
         await envoy.disable_charge_from_grid()
         assert envoy.data.tariff.storage_settings.charge_from_grid is False
-        assert respx.calls.last.request.content == orjson.dumps(  # type: ignore[unreachable]
-            {"tariff": envoy.data.tariff.to_api()}
-        )
+        tariff_requests = [
+            r
+            for r in mock_aioresponse.requests.keys()
+            if r[0] == "PUT" and URL_TARIFF in r[1]
+        ]
+        last_request = mock_aioresponse.requests[tariff_requests[-1]][-1]
+        assert orjson.loads(last_request.kwargs["data"]) == {
+            "tariff": envoy.data.tariff.to_api()
+        }
 
         await envoy.set_reserve_soc(50)
         assert envoy.data.tariff.storage_settings.reserved_soc == round(float(50), 1)
-        assert respx.calls.last.request.content == orjson.dumps(
-            {"tariff": envoy.data.tariff.to_api()}
-        )
+        tariff_requests = [
+            r
+            for r in mock_aioresponse.requests.keys()
+            if r[0] == "PUT" and URL_TARIFF in r[1]
+        ]
+        last_request = mock_aioresponse.requests[tariff_requests[-1]][-1]
+        assert orjson.loads(last_request.kwargs["data"]) == {
+            "tariff": envoy.data.tariff.to_api()
+        }
 
         await envoy.set_storage_mode(EnvoyStorageMode.SELF_CONSUMPTION)
         assert (
             envoy.data.tariff.storage_settings.mode == EnvoyStorageMode.SELF_CONSUMPTION
         )
-        assert respx.calls.last.request.content == orjson.dumps(
-            {"tariff": envoy.data.tariff.to_api()}
-        )
+        tariff_requests = [
+            r
+            for r in mock_aioresponse.requests.keys()
+            if r[0] == "PUT" and URL_TARIFF in r[1]
+        ]
+        last_request = mock_aioresponse.requests[tariff_requests[-1]][-1]
+        assert orjson.loads(last_request.kwargs["data"]) == {
+            "tariff": envoy.data.tariff.to_api()
+        }
 
         with pytest.raises(TypeError):
             await envoy.set_storage_mode("invalid")
 
         # test error returned by action methods calling _json_request
-        respx.put(URL_TARIFF).mock(return_value=Response(300, json={}))
+        mock_aioresponse.put(f"https://127.0.0.1{URL_TARIFF}", status=300, payload={})
         with pytest.raises(EnvoyError):
             await envoy.enable_charge_from_grid()
-        respx.put(URL_TARIFF).mock(
-            return_value=Response(200, json={})
-        ).side_effect = httpx.TimeoutException("Test timeout exception")
+        mock_aioresponse.put(
+            f"https://127.0.0.1{URL_TARIFF}", exception=aiohttp.ClientTimeout(total=1)
+        )
         with pytest.raises(EnvoyError):
             await envoy.disable_charge_from_grid()
-        respx.put(URL_TARIFF).mock(
-            return_value=Response(200, json={})
-        ).side_effect = httpx.ConnectError("Test Connection error")
+        mock_aioresponse.put(
+            f"https://127.0.0.1{URL_TARIFF}",
+            exception=aiohttp.ClientConnectorError(
+                connection_key=aiohttp.ConnectionKey(
+                    host="127.0.0.1",
+                    port=443,
+                    is_ssl=True,
+                    ssl=None,
+                    proxy=None,
+                    proxy_auth=None,
+                    proxy_headers_hash=None,
+                ),
+                os_error=OSError("Test Connection error"),
+            ),
+        )
         with pytest.raises(EnvoyError):
             await envoy.set_storage_mode(EnvoyStorageMode.SELF_CONSUMPTION)
-        respx.put(URL_TARIFF).mock(
-            return_value=Response(200, json={})
-        ).side_effect = httpx.ConnectError("Test Connection error")
+        mock_aioresponse.put(
+            f"https://127.0.0.1{URL_TARIFF}",
+            exception=aiohttp.ClientConnectorError(
+                connection_key=aiohttp.ConnectionKey(
+                    host="127.0.0.1",
+                    port=443,
+                    is_ssl=True,
+                    ssl=None,
+                    proxy=None,
+                    proxy_auth=None,
+                    proxy_headers_hash=None,
+                ),
+                os_error=OSError("Test Connection error"),
+            ),
+        )
         with pytest.raises(EnvoyError):
             await envoy.set_reserve_soc(50)
 
@@ -1516,15 +1619,21 @@ async def test_with_7_x_firmware(
         # should result no longer throw Valueerror but result in None value
         json_data = await load_json_fixture(version, "admin_lib_tariff")
         json_data["tariff"]["storage_settings"]["mode"] = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        mock_aioresponse.get(
+            "https://127.0.0.1/admin/lib/tariff", status=200, payload=json_data
+        )
         await envoy.update()
         assert envoy.data.tariff.storage_settings.mode is None
 
         # COV test with missing logger
         json_data = await load_json_fixture(version, "admin_lib_tariff")
         del json_data["tariff"]["logger"]
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        mock_aioresponse.get(
+            "https://127.0.0.1/admin/lib/tariff", status=200, payload=json_data
+        )
+        mock_aioresponse.put(
+            "https://127.0.0.1/admin/lib/tariff", status=200, payload=json_data
+        )
         await envoy.update()
         envoy.data.tariff.to_api()
 
@@ -1532,23 +1641,33 @@ async def test_with_7_x_firmware(
         json_data = await load_json_fixture(version, "admin_lib_tariff")
         del json_data["tariff"]["date"]
         del json_data["tariff"]["storage_settings"]["date"]
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        mock_aioresponse.get(
+            "https://127.0.0.1/admin/lib/tariff", status=200, payload=json_data
+        )
+        mock_aioresponse.put(
+            "https://127.0.0.1/admin/lib/tariff", status=200, payload=json_data
+        )
         await envoy.update()
         envoy.data.tariff.to_api()
 
         # COV test with missing storage settings
         json_data = await load_json_fixture(version, "admin_lib_tariff")
         del json_data["tariff"]["storage_settings"]
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        mock_aioresponse.get(
+            "https://127.0.0.1/admin/lib/tariff", status=200, payload=json_data
+        )
+        mock_aioresponse.put(
+            "https://127.0.0.1/admin/lib/tariff", status=200, payload=json_data
+        )
         await envoy.update()
         envoy.data.tariff.to_api()
 
         # COV test with error in result
         json_data = await load_json_fixture(version, "admin_lib_tariff")
         json_data.update({"error": "error"})
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        mock_aioresponse.get(
+            "https://127.0.0.1/admin/lib/tariff", status=200, payload=json_data
+        )
         try:
             await envoy.probe()
         except AttributeError:
@@ -1557,30 +1676,32 @@ async def test_with_7_x_firmware(
         # COV test with no enpower features
         json_data = await load_json_fixture(version, "ivp_ensemble_inventory")
         json_data[0]["type"] = "NOEXCHARGE"
-        respx.get("/ivp/ensemble/inventory").mock(
-            return_value=Response(200, json=json_data)
+        mock_aioresponse.get(
+            "https://127.0.0.1/ivp/ensemble/inventory", status=200, payload=json_data
         )
         await envoy.probe()
         await envoy.update()
 
         # COV ensemble ENDPOINT_PROBE_EXCEPTIONS
-        respx.get("/ivp/ensemble/inventory").mock(
-            return_value=Response(
-                500, json=await load_json_fixture(version, "ivp_ensemble_inventory")
-            )
+        mock_aioresponse.get(
+            "https://127.0.0.1/ivp/ensemble/inventory",
+            status=500,
+            payload=await load_json_fixture(version, "ivp_ensemble_inventory"),
         )
         await envoy.probe()
 
         # restore from prior changes
-        respx.get("/ivp/ensemble/inventory").mock(
-            return_value=Response(
-                200, json=await load_json_fixture(version, "ivp_ensemble_inventory")
-            )
+        mock_aioresponse.get(
+            "https://127.0.0.1/ivp/ensemble/inventory",
+            status=200,
+            payload=await load_json_fixture(version, "ivp_ensemble_inventory"),
         )
         json_data = await load_json_fixture(version, "admin_lib_tariff")
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        mock_aioresponse.get(
+            "https://127.0.0.1/admin/lib/tariff", status=200, payload=json_data
+        )
 
-        bad_envoy = await get_mock_envoy()
+        bad_envoy = await get_mock_envoy(version, test_client_session)
         await bad_envoy.probe()
         with pytest.raises(EnvoyFeatureNotAvailable):
             bad_envoy.data.tariff.storage_settings = None
@@ -1729,9 +1850,11 @@ async def test_with_7_x_firmware(
             json_data = None
         if json_data:
             del json_data["production"]
-        respx.get("/production").mock(return_value=Response(200, json=json_data))
+        mock_aioresponse.get(
+            "https://127.0.0.1/production", status=200, payload=json_data
+        )
     else:
-        respx.get("/production").mock(return_value=Response(404))
+        mock_aioresponse.get("https://127.0.0.1/production", status=404)
     try:
         await envoy.probe()
     except EnvoyProbeFailed:
