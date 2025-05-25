@@ -95,7 +95,9 @@ async def test_full_disconnected_from_start_with_7_6_175_standard(
         repeat=True,
     )
 
-    with pytest.raises(EnvoyFirmwareFatalCheckError):
+    with pytest.raises(
+        EnvoyFirmwareFatalCheckError, match="Unable to connect to Envoy"
+    ):
         await envoy.setup()
 
     # Ensure that there were 3 attempts.
@@ -124,7 +126,9 @@ async def test_2_timeout_from_start_with_7_6_175_standard(
         "http://127.0.0.1/info", exception=asyncio.TimeoutError("Test timeoutexception")
     )
 
-    with pytest.raises(EnvoyFirmwareFatalCheckError):
+    with pytest.raises(
+        EnvoyFirmwareFatalCheckError, match="Timeout connecting to Envoy"
+    ):
         await envoy.setup()
 
     # Ensure that there were retries.
@@ -156,7 +160,7 @@ async def test_httperror_from_start_with_7_6_175_standard(
         body="Server Error",
     )
 
-    with pytest.raises(EnvoyFirmwareCheckError):
+    with pytest.raises(EnvoyFirmwareCheckError, match="500"):
         await envoy.setup()
 
     # Ensure that there were retries.
@@ -331,7 +335,9 @@ async def test_3_network_errors_at_start_with_7_6_175_standard(
         repeat=True,
     )
 
-    with pytest.raises(EnvoyFirmwareCheckError):
+    with pytest.raises(
+        EnvoyFirmwareCheckError, match="Unable to query firmware version"
+    ):
         await envoy.setup()
 
     # Ensure that there were retries.
@@ -438,7 +444,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         exception=asyncio.TimeoutError("Test timeoutexception"),
     )
 
-    with pytest.raises(EnvoyCommunicationError):
+    with pytest.raises(EnvoyCommunicationError, match="Timeout"):
         await envoy.update()
 
     mock_aioresponse.get(
