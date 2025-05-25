@@ -431,10 +431,22 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
 
-    mock_aioresponse.get(
+    from .common import override_mock
+
+    # Clear the existing mocks for both HTTPS and HTTP endpoints
+    override_mock(
+        mock_aioresponse,
+        "get",
         "https://127.0.0.1/api/v1/production",
         exception=asyncio.TimeoutError("Test timeoutexception"),
     )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/api/v1/production",
+        exception=asyncio.TimeoutError("Test timeoutexception"),
+    )
+    # Add additional mocks for retries (these will be consumed in order)
     mock_aioresponse.get(
         "https://127.0.0.1/api/v1/production",
         exception=asyncio.TimeoutError("Test timeoutexception"),
@@ -447,10 +459,14 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     with pytest.raises(EnvoyCommunicationError, match="Timeout"):
         await envoy.update()
 
-    mock_aioresponse.get(
+    # Clear and set up new mocks for ClientConnectorError testing
+    override_mock(
+        mock_aioresponse,
+        "get",
         "https://127.0.0.1/api/v1/production",
         exception=_make_client_connector_error("Test timeoutexception"),
     )
+    # Add additional mocks for retries (these will be consumed in order)
     mock_aioresponse.get(
         "https://127.0.0.1/api/v1/production",
         exception=_make_client_connector_error("Test timeoutexception"),
@@ -601,7 +617,11 @@ async def test_bad_request_status_7_6_175_standard(
 
     # force status 503 on /api/vi/production
     # test status results in EnvoyHTTPStatusError
-    mock_aioresponse.get("https://127.0.0.1/api/v1/production", status=503)
+    from .common import override_mock
+
+    override_mock(
+        mock_aioresponse, "get", "https://127.0.0.1/api/v1/production", status=503
+    )
 
     with pytest.raises(EnvoyHTTPStatusError, match="503"):
         await envoy.update()

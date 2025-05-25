@@ -109,7 +109,11 @@ async def test_interface_settings_with_7_6_175(
     # Change mock to use wlan interface
     home_json["network"]["primary_interface"] = "wlan0"
     # and mock new data
-    mock_aioresponse.get("https://127.0.0.1/home", status=200, payload=home_json)
+    from .common import override_mock
+
+    override_mock(
+        mock_aioresponse, "get", "https://127.0.0.1/home", status=200, payload=home_json
+    )
 
     # get interface data, subsequent call data is returned from cache
     home_data = await envoy.interface_settings()
