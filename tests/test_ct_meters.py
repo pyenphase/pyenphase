@@ -60,15 +60,16 @@ async def test_pr111_with_7_3_466_metered_disabled_cts(
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_pr111_with_7_6_175_with_cts():
+async def test_pr111_with_7_6_175_with_cts(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test envoy metered with ct to report from production eim PR111."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_with_cts"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
 
@@ -103,15 +104,16 @@ async def test_pr111_with_7_6_175_with_cts():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_pr111_with_7_6_175_standard():
+async def test_pr111_with_7_6_175_standard(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test envoy metered with ct to report from production eim PR111."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
 
@@ -135,18 +137,19 @@ async def test_pr111_with_7_6_175_standard():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
+async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test meters model using envoy metered CT with multiple phases"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
 
     # start with regular data first
     version = "7.3.466_with_cts_3phase"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
 
