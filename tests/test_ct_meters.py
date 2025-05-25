@@ -2,9 +2,9 @@
 
 import logging
 
+import aiohttp
 import pytest
-import respx
-from httpx import Response
+from aioresponses import aioresponses
 
 from pyenphase import register_updater
 from pyenphase.envoy import SupportedFeatures
@@ -27,15 +27,16 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_pr111_with_7_3_466_metered_disabled_cts():
+async def test_pr111_with_7_3_466_metered_disabled_cts(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test envoy metered with disabled ct to report from production inverters PR111."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.3.466_metered_disabled_cts"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
 
@@ -231,10 +232,8 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase():
     del meters_readings[0]["channels"]
     del meters_readings[1]["channels"]
 
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=meters_status))
-    respx.get("/ivp/meters/readings").mock(
-        return_value=Response(200, json=meters_readings)
-    )
+    mock_aioresponse.get("https://127.0.0.1/ivp/meters", status=200, payload=meters_status)
+    mock_aioresponse.get("https://127.0.0.1/ivp/meters/readings", status=200, payload=meters_readings)
 
     await envoy.update()
     assert envoy.data.ctmeter_production_phases is None

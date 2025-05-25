@@ -3,9 +3,9 @@
 import logging
 from typing import Any
 
+import aiohttp
 import pytest
-import respx
-from httpx import Response
+from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase.envoy import SupportedFeatures
@@ -22,14 +22,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_4_2_27_firmware():
+async def test_with_4_2_27_firmware(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Verify with 4.2.27 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.27"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
     assert not (envoy._supported_features & SupportedFeatures.ACB)
@@ -273,7 +274,6 @@ async def test_with_4_2_27_firmware():
     ],
 )
 @pytest.mark.asyncio
-@respx.mock
 async def test_with_7_x_firmware(
     version: str,
     snapshot: SnapshotAssertion,
@@ -282,6 +282,8 @@ async def test_with_7_x_firmware(
     acb_count: int,
     battery_aggregate: dict[str, Any],
     acb_power: dict[str, dict[str, Any]],
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
 ) -> None:
     """
     Verify with 7.x firmware.
@@ -290,12 +292,12 @@ async def test_with_7_x_firmware(
 
     """
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     caplog.set_level(logging.DEBUG)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data
     assert data == snapshot
@@ -332,8 +334,10 @@ async def test_with_7_x_firmware(
     # test with missing storage section
     prod_json = await load_json_fixture(version, "production.json")
     del prod_json["storage"]
-    respx.get("/production.json").mock(return_value=Response(200, json=prod_json))
-    envoy = await get_mock_envoy()
+    mock_aioresponse.get(
+        "https://127.0.0.1/production.json?details=1", status=200, payload=prod_json
+    )
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data
     assert envoy.acb_count == 0
