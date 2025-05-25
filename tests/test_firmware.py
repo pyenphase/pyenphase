@@ -17,7 +17,6 @@ async def test_firmware_with_7_6_175_standard(
 ):
     """Test firmware is processed ok."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.6.175_standard"
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         "<envoy_info>"
@@ -42,7 +41,6 @@ async def test_firmware_no_sn_with_7_6_175_standard(
 ):
     """Test missing serial number in info"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.6.175_standard"
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         "<envoy_info>"
@@ -66,7 +64,6 @@ async def test_firmware_no_pn_with_7_6_175_standard(
 ):
     """Test missing pb in info"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.6.175_standard"
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         "<envoy_info>"
@@ -90,7 +87,6 @@ async def test_firmware_no_fw_with_7_6_175_standard(
 ):
     """Test missing fw in info"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.6.175_standard"
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         "<envoy_info>"
@@ -114,7 +110,6 @@ async def test_firmware_no_device_with_7_6_175_standard(
 ):
     """Test missing device xml segment in info"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.6.175_standard"
     info = "<?xml version='1.0' encoding='UTF-8'?><envoy_info></envoy_info>"
     mock_aioresponse.get("https://127.0.0.1/info", status=200, body=info)
     envoy = Envoy("127.0.0.1", client=test_client_session)
@@ -130,7 +125,6 @@ async def test_firmware_no_200__with_7_6_175_standard(
 ):
     """Test other status as 200 returned"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.6.175_standard"
     info = "<?xml version='1.0' encoding='UTF-8'?><envoy_info></envoy_info>"
     mock_aioresponse.get("https://127.0.0.1/info", status=500, body=info)
     envoy = Envoy("127.0.0.1", client=test_client_session)
@@ -144,7 +138,6 @@ async def test_firmware_metered_with_7_6_175_standard(
 ):
     """Test firmware is processed ok."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.6.175_standard"
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         "<envoy_info>"
@@ -168,7 +161,6 @@ async def test_firmware_not_metered_with_7_6_175_standard(
 ):
     """Test firmware is processed ok."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.6.175_standard"
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         "<envoy_info>"
@@ -192,7 +184,6 @@ async def test_firmware_missing_metered_with_7_6_175_standard(
 ):
     """Test firmware is processed ok."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    version = "7.6.175_standard"
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
         "<envoy_info>"
