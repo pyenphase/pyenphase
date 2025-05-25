@@ -2,8 +2,9 @@
 
 import logging
 
+import aiohttp
 import pytest
-import respx
+from aioresponses import aioresponses
 
 from pyenphase.envoy import SupportedFeatures
 
@@ -74,8 +75,9 @@ LOGGER = logging.getLogger(__name__)
     ],
 )
 @pytest.mark.asyncio
-@respx.mock
 async def test_metered_noct(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
     version: str,
     part_number: str,
     updaters: dict[str, SupportedFeatures],
@@ -87,11 +89,11 @@ async def test_metered_noct(
 ) -> None:
     """Verify metered without CT production data with pre and post 8.2.4264 firmware."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
 
