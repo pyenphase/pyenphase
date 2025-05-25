@@ -77,7 +77,9 @@ class EnvoyFirmware:
         self._url = f"https://{self._host}/info"
         _LOGGER.debug("Requesting %s with timeout %s", self._url, LOCAL_TIMEOUT)
         try:
-            async with self._client.get(self._url, timeout=LOCAL_TIMEOUT) as resp:
+            async with self._client.request(
+                "GET", self._url, timeout=LOCAL_TIMEOUT
+            ) as resp:
                 return resp.status, await resp.read()
         except (aiohttp.ClientConnectorError, asyncio.TimeoutError):
             # Firmware < 7.0.0 does not support HTTPS so we need to try HTTP
@@ -85,7 +87,9 @@ class EnvoyFirmware:
             # which is not helpful
             self._url = f"http://{self._host}/info"
             _LOGGER.debug("Retrying to %s with timeout %s", self._url, LOCAL_TIMEOUT)
-            async with self._client.get(self._url, timeout=LOCAL_TIMEOUT) as resp:
+            async with self._client.request(
+                "GET", self._url, timeout=LOCAL_TIMEOUT
+            ) as resp:
                 return resp.status, await resp.read()
 
     async def setup(self) -> None:
