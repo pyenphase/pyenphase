@@ -18,6 +18,7 @@ from .common import (
     load_fixture,
     load_json_fixture,
     load_json_list_fixture,
+    override_mock,
     prep_envoy,
     start_7_firmware_mock,
     updater_features,
@@ -235,11 +236,21 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
     del meters_readings[0]["channels"]
     del meters_readings[1]["channels"]
 
-    mock_aioresponse.get(
-        "https://127.0.0.1/ivp/meters", status=200, payload=meters_status
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters",
+        status=200,
+        payload=meters_status,
+        repeat=True,
     )
-    mock_aioresponse.get(
-        "https://127.0.0.1/ivp/meters/readings", status=200, payload=meters_readings
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters/readings",
+        status=200,
+        payload=meters_readings,
+        repeat=True,
     )
 
     await envoy.update()
@@ -335,20 +346,35 @@ async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase(
     production_json = await load_json_fixture(version, "production.json")
     # remove production data to test COV consumption ct only
     del production_json["production"]
-    mock_aioresponse.get(
-        "https://127.0.0.1/production.json", status=200, payload=production_json
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json",
+        status=200,
+        payload=production_json,
+        repeat=True,
     )
-    mock_aioresponse.get(
+    override_mock(
+        mock_aioresponse,
+        "get",
         "https://127.0.0.1/production.json?details=1",
         status=200,
         payload=production_json,
+        repeat=True,
     )
 
     # Force ct consumption meter to total consumption for COV
     ivp_Meters = (await load_fixture(version, "ivp_meters")).replace(
         CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION
     )
-    mock_aioresponse.get("https://127.0.0.1/ivp/meters", status=200, body=ivp_Meters)
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters",
+        status=200,
+        body=ivp_Meters,
+        repeat=True,
+    )
 
     # details of this test is done elsewhere already, just check data is returned
     envoy = await get_mock_envoy(version, test_client_session)
@@ -423,11 +449,21 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split(
     ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[2], meter_status, 0)
     assert ct_no_phase_data is None
 
-    mock_aioresponse.get(
-        "https://127.0.0.1/ivp/meters", status=200, payload=meters_status
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters",
+        status=200,
+        payload=meters_status,
+        repeat=True,
     )
-    mock_aioresponse.get(
-        "https://127.0.0.1/ivp/meters/readings", status=200, payload=meters_readings
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters/readings",
+        status=200,
+        payload=meters_readings,
+        repeat=True,
     )
 
     await envoy.update()
@@ -450,8 +486,13 @@ async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_ba
     # this caused Indexerror crash. Test if extra data is now handled without crash
     readings_data = await load_json_list_fixture(version, "ivp_meters_readings")
     readings_data.append({"eid": 1023410688, "channels": [{}, {}, {}]})
-    mock_aioresponse.get(
-        "https://127.0.0.1/ivp/meters/readings", status=200, payload=readings_data
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters/readings",
+        status=200,
+        payload=readings_data,
+        repeat=True,
     )
 
     # details of this test is done elsewhere already, just check data is returned
