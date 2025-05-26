@@ -293,7 +293,6 @@ class Envoy:
             (
                 aiohttp.ClientError,
                 asyncio.TimeoutError,
-                orjson.JSONDecodeError,
             )
         ),
         wait=wait_random_exponential(multiplier=2, max=5),
