@@ -556,31 +556,6 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 2
 
-    # test EndOfStream catch should end retries
-    # EndOfStream is httpx-specific, in aiohttp we can use ClientPayloadError
-    envoy._endpoint_cache.clear()
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/api/v1/production",
-        exception=_make_client_connector_error("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=aiohttp.ClientPayloadError("Test EndOfStream"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=_make_client_connector_error("Should not reach this"),
-    )
-
-    with pytest.raises(EnvoyCommunicationError):
-        await envoy.update()
-
-    stats = envoy.request.statistics
-    assert "attempt_number" in stats
-    assert stats["attempt_number"] == 3
-
 
 @pytest.mark.asyncio
 async def test_bad_request_status_7_6_175_standard(

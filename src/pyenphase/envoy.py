@@ -668,7 +668,6 @@ class Envoy:
         An updaters update() method should obtain the data for the specific
         updater scope and save to the Envoy data set.
 
-        :raises EnvoyCommunicationError: when EndOfStream is reported during communication.
         :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: Collected Envoy data
