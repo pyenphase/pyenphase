@@ -1287,6 +1287,7 @@ async def test_with_7_x_firmware(
     caplog.set_level(logging.DEBUG)
 
     envoy = await get_mock_envoy(version, test_client_session)
+    # get http or https paths based on firmware version
     full_host = endpoint_path(version, envoy.host)
     data = envoy.data
     assert data == snapshot
@@ -1329,6 +1330,7 @@ async def test_with_7_x_firmware(
     )
     assert cnt > 0
     assert await myresponse.json() == test_data
+
     # with data but no method should be post
     await envoy.request("/api/v1/production/inverters", data=test_data)
     # Check that at least one POST request was made to this URL
@@ -1381,6 +1383,7 @@ async def test_with_7_x_firmware(
         with pytest.raises(ValueError):
             await envoy.update_dry_contact({"missing": "id"})
 
+        # updating dry contacts before first data update should fail
         with pytest.raises(ValueError):
             bad_envoy = await get_mock_envoy(version, test_client_session, update=False)
             await bad_envoy.probe()
@@ -1504,7 +1507,6 @@ async def test_with_7_x_firmware(
 
     if supported_features & SupportedFeatures.GENERATOR:
         # COV ensemble ENDPOINT_PROBE_EXCEPTIONS
-        # mock_aioresponse.get(
         mock_response(
             mock_aioresponse,
             "get",
@@ -1579,7 +1581,6 @@ async def test_with_7_x_firmware(
             await envoy.set_storage_mode("invalid")
 
         # test error returned by action methods calling _json_request
-        # mock_aioresponse.put(f"https://127.0.0.1{URL_TARIFF}", status=300, payload={})
         mock_response(
             mock_aioresponse,
             "put",
@@ -1641,7 +1642,6 @@ async def test_with_7_x_firmware(
         # should result no longer throw Valueerror but result in None value
         json_data = await load_json_fixture(version, "admin_lib_tariff")
         json_data["tariff"]["storage_settings"]["mode"] = None
-        # mock_aioresponse.get(
         mock_response(
             mock_aioresponse,
             "get",
@@ -1734,7 +1734,6 @@ async def test_with_7_x_firmware(
         # COV test with no enpower features
         json_data = await load_json_fixture(version, "ivp_ensemble_inventory")
         json_data[0]["type"] = "NOEXCHARGE"  # type: ignore[index]
-        # mock_aioresponse.get(
         mock_response(
             mock_aioresponse,
             "get",
@@ -1758,7 +1757,6 @@ async def test_with_7_x_firmware(
         await envoy.probe()
 
         # restore from prior changes
-        # mock_aioresponse.get(
         mock_response(
             mock_aioresponse,
             "get",
