@@ -22,7 +22,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
-async def test_home_from_api_with_7_6_175(mock_aioresponse: aioresponses):
+async def test_home_from_api_with_7_6_175(mock_aioresponse: aioresponses) -> None:
     """Test home data from api"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     # start with regular data first
@@ -76,7 +76,7 @@ async def test_home_from_api_with_7_6_175(mock_aioresponse: aioresponses):
 @pytest.mark.asyncio
 async def test_interface_settings_with_7_6_175(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
-):
+) -> None:
     """Test home interface information data"""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
 
