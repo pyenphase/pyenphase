@@ -9,6 +9,7 @@ from typing import Any
 import aiohttp
 import orjson
 import pytest
+from aiohttp.client_reqrep import ConnectionKey
 from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
 
@@ -1613,7 +1614,7 @@ async def test_with_7_x_firmware(
         mock_aioresponse.put(
             f"https://127.0.0.1{URL_TARIFF}",
             exception=aiohttp.ClientConnectorError(
-                connection_key=aiohttp.ConnectionKey(
+                connection_key=ConnectionKey(
                     host="127.0.0.1",
                     port=443,
                     is_ssl=True,
@@ -1630,7 +1631,7 @@ async def test_with_7_x_firmware(
         mock_aioresponse.put(
             f"https://127.0.0.1{URL_TARIFF}",
             exception=aiohttp.ClientConnectorError(
-                connection_key=aiohttp.ConnectionKey(
+                connection_key=ConnectionKey(
                     host="127.0.0.1",
                     port=443,
                     is_ssl=True,
