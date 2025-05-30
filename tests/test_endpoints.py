@@ -1,5 +1,6 @@
 """Test endpoint for envoy v7 and newer firmware"""
 
+import asyncio
 import json
 import logging
 from dataclasses import replace
@@ -1464,7 +1465,7 @@ async def test_with_7_x_firmware(
             await envoy.go_on_grid()
         mock_aioresponse.post(
             f"https://127.0.0.1{URL_GRID_RELAY}",
-            exception=aiohttp.ClientTimeout("Test timeout exception"),
+            exception=asyncio.TimeoutError("Test timeout exception"),
         )
         with pytest.raises(EnvoyError):
             await envoy.go_off_grid()
@@ -1484,7 +1485,7 @@ async def test_with_7_x_firmware(
 
         mock_aioresponse.post(
             f"https://127.0.0.1{URL_DRY_CONTACT_STATUS}",
-            exception=aiohttp.ClientTimeout("Test timeout exception"),
+            exception=asyncio.TimeoutError("Test timeout exception"),
         )
         with pytest.raises(EnvoyError):
             await envoy.open_dry_contact("NC1")
