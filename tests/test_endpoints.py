@@ -1560,7 +1560,7 @@ async def test_with_7_x_firmware(
         }
 
         await envoy.disable_charge_from_grid()
-        assert envoy.data.tariff.storage_settings.charge_from_grid is False
+        assert not bool(envoy.data.tariff.storage_settings.charge_from_grid)
         tariff_requests = [
             r
             for r in mock_aioresponse.requests.keys()
@@ -1704,7 +1704,7 @@ async def test_with_7_x_firmware(
 
         # COV test with no enpower features
         json_data = await load_json_fixture(version, "ivp_ensemble_inventory")
-        json_data[0]["type"] = "NOEXCHARGE"
+        json_data[0]["type"] = "NOEXCHARGE"  # type: ignore[index]
         mock_aioresponse.get(
             "https://127.0.0.1/ivp/ensemble/inventory", status=200, payload=json_data
         )
@@ -1876,7 +1876,7 @@ async def test_with_7_x_firmware(
         try:
             json_data = await load_json_fixture(version, "production")
         except json.decoder.JSONDecodeError:
-            json_data = None
+            json_data = None  # type: ignore[assignment]
         if json_data:
             del json_data["production"]
         mock_aioresponse.get(
