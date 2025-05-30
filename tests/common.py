@@ -114,6 +114,20 @@ async def get_mock_envoy(version: str, client_session, update: bool = True):  # 
     return envoy
 
 
+def latest_request(
+    mock_aioresponse: aioresponses, method: str, url: str
+) -> tuple[int, bytes]:
+    """Return count of matched request and last request data."""
+    requests = [
+        req
+        for req in mock_aioresponse.requests.keys()
+        if req[0] == method and url in str(req[1])
+    ]
+    if not requests:
+        return 0, b""
+    return len(requests), mock_aioresponse.requests[requests[-1]][-1].kwargs.get("data")
+
+
 def mock_response(  # type: ignore[no-untyped-def]
     mock_aioresponse: aioresponses, method: str, url: str, reset: bool = False, **kwargs
 ):
