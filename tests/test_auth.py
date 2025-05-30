@@ -20,6 +20,7 @@ from .common import (
     get_mock_envoy,
     load_fixture,
     load_json_fixture,
+    mock_response,
     prep_envoy,
     start_7_firmware_mock,
 )
@@ -55,24 +56,40 @@ async def test_with_3_9_36_firmware_bad_auth(
     """Verify with 3.9.36 firmware with incorrect auth."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
-    mock_aioresponse.get(
-        "https://127.0.0.1/info", status=200, body=await load_fixture(version, "info")
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/info",
+        status=200,
+        body=await load_fixture(version, "info"),
     )
-    mock_aioresponse.get("https://127.0.0.1/info.xml", status=200, body="")
-    mock_aioresponse.get("https://127.0.0.1/production", status=404)
-    mock_aioresponse.get("https://127.0.0.1/production.json", status=404)
-    mock_aioresponse.get(
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/info.xml", status=200, body=""
+    )
+    mock_response(mock_aioresponse, "get", "https://127.0.0.1/production", status=404)
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/production.json", status=404
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
         "https://127.0.0.1/api/v1/production",
         status=401,
         payload=await load_json_fixture(version, "api_v1_production"),
     )
-    mock_aioresponse.get(
+    mock_response(
+        mock_aioresponse,
+        "get",
         "https://127.0.0.1/api/v1/production/inverters",
         status=200,
         payload=await load_json_fixture(version, "api_v1_production_inverters"),
     )
-    mock_aioresponse.get(
-        "https://127.0.0.1/ivp/ensemble/inventory", status=200, payload=[]
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/ensemble/inventory",
+        status=200,
+        payload=[],
     )
 
     path = f"tests/fixtures/{version}"
@@ -82,25 +99,47 @@ async def test_with_3_9_36_firmware_bad_auth(
             json_data = await load_json_fixture(version, "admin_lib_tariff")
         except json.decoder.JSONDecodeError:
             json_data = None
-        mock_aioresponse.get(
-            "https://127.0.0.1/admin/lib/tariff", status=200, payload=json_data
+        mock_response(
+            mock_aioresponse,
+            "get",
+            "https://127.0.0.1/admin/lib/tariff",
+            status=200,
+            payload=json_data,
         )
     else:
-        mock_aioresponse.get("https://127.0.0.1/admin/lib/tariff", status=401)
+        mock_response(
+            mock_aioresponse, "get", "https://127.0.0.1/admin/lib/tariff", status=401
+        )
 
-    mock_aioresponse.get("https://127.0.0.1/ivp/meters", status=200, payload=[])
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/ivp/meters", status=200, payload=[]
+    )
 
     # Add the HTTP version of api/v1/production with 401 as well
-    mock_aioresponse.get(
+    mock_response(
+        mock_aioresponse,
+        "get",
         "http://127.0.0.1/api/v1/production",
         status=401,
         payload=await load_json_fixture(version, "api_v1_production"),
     )
 
     # Add other required endpoints for the probe
-    mock_aioresponse.get("https://127.0.0.1/production.json?details=1", status=404)
-    mock_aioresponse.get("http://127.0.0.1/production.json?details=1", status=404)
-    mock_aioresponse.get(
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json?details=1",
+        status=404,
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/production.json?details=1",
+        status=404,
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
         "http://127.0.0.1/production",
         status=200,
         body=await load_fixture(version, "production"),
@@ -117,24 +156,40 @@ async def test_production_with_3_9_36_firmware_bad_auth(
     """Test Authentication failed for http://127.0.0.1/api/v1/production."""
     logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
-    mock_aioresponse.get(
-        "https://127.0.0.1/info", status=200, body=await load_fixture(version, "info")
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/info",
+        status=200,
+        body=await load_fixture(version, "info"),
     )
-    mock_aioresponse.get("https://127.0.0.1/info.xml", status=200, body="")
-    mock_aioresponse.get("https://127.0.0.1/production", status=404)
-    mock_aioresponse.get("https://127.0.0.1/production.json", status=404)
-    mock_aioresponse.get(
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/info.xml", status=200, body=""
+    )
+    mock_response(mock_aioresponse, "get", "https://127.0.0.1/production", status=404)
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/production.json", status=404
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
         "https://127.0.0.1/api/v1/production",
         status=401,
         payload=await load_json_fixture(version, "api_v1_production"),
     )
-    mock_aioresponse.get(
+    mock_response(
+        mock_aioresponse,
+        "get",
         "https://127.0.0.1/api/v1/production/inverters",
         status=200,
         payload=await load_json_fixture(version, "api_v1_production_inverters"),
     )
-    mock_aioresponse.get(
-        "https://127.0.0.1/ivp/ensemble/inventory", status=200, payload=[]
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/ensemble/inventory",
+        status=200,
+        payload=[],
     )
 
     path = f"tests/fixtures/{version}"
@@ -144,25 +199,47 @@ async def test_production_with_3_9_36_firmware_bad_auth(
             json_data = await load_json_fixture(version, "admin_lib_tariff")
         except json.decoder.JSONDecodeError:
             json_data = None
-        mock_aioresponse.get(
-            "https://127.0.0.1/admin/lib/tariff", status=200, payload=json_data
+        mock_response(
+            mock_aioresponse,
+            "get",
+            "https://127.0.0.1/admin/lib/tariff",
+            status=200,
+            payload=json_data,
         )
     else:
-        mock_aioresponse.get("https://127.0.0.1/admin/lib/tariff", status=401)
+        mock_response(
+            mock_aioresponse, "get", "https://127.0.0.1/admin/lib/tariff", status=401
+        )
 
-    mock_aioresponse.get("https://127.0.0.1/ivp/meters", status=200, payload=[])
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/ivp/meters", status=200, payload=[]
+    )
 
     # Add the HTTP version of api/v1/production with 401 as well
-    mock_aioresponse.get(
+    mock_response(
+        mock_aioresponse,
+        "get",
         "http://127.0.0.1/api/v1/production",
         status=401,
         payload=await load_json_fixture(version, "api_v1_production"),
     )
 
     # Add other required endpoints for the probe
-    mock_aioresponse.get("https://127.0.0.1/production.json?details=1", status=404)
-    mock_aioresponse.get("http://127.0.0.1/production.json?details=1", status=404)
-    mock_aioresponse.get(
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json?details=1",
+        status=404,
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/production.json?details=1",
+        status=404,
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
         "http://127.0.0.1/production",
         status=200,
         body=await load_fixture(version, "production"),
@@ -286,12 +363,11 @@ async def test_jwt_failure_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    from .common import override_mock
-
-    override_mock(
+    mock_response(
         mock_aioresponse,
         "get",
         "https://127.0.0.1" + URL_AUTH_CHECK_JWT,
+        reset=True,
         status=404,
         body="no jwt",
     )
@@ -312,12 +388,11 @@ async def test_no_remote_login_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    from .common import override_mock
-
-    override_mock(
+    mock_response(
         mock_aioresponse,
         "post",
         "https://enlighten.enphaseenergy.com/login/login.json?",
+        reset=True,
         status=500,
         payload={
             "session_id": "1234567890",
@@ -328,17 +403,19 @@ async def test_no_remote_login_with_7_6_175_standard(
             "manager_token": "1234567890",
         },
     )
-    override_mock(
+    mock_response(
         mock_aioresponse,
         "post",
         "https://entrez.enphaseenergy.com/tokens",
+        reset=True,
         status=500,
         body="token",
     )
-    override_mock(
+    mock_response(
         mock_aioresponse,
         "get",
         "https://127.0.0.1/auth/check_jwt",
+        reset=True,
         status=200,
         payload={},
     )
@@ -359,14 +436,13 @@ async def test_no_remote_token_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    from .common import override_mock
-
     # The login endpoint is already mocked with 200 by start_7_firmware_mock
     # Only override the tokens endpoint to fail
-    override_mock(
+    mock_response(
         mock_aioresponse,
         "post",
         "https://entrez.enphaseenergy.com/tokens",
+        reset=True,
         status=500,
         body="token",
     )
@@ -391,13 +467,12 @@ async def test_enlighten_json_error_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    from .common import override_mock
-
     # Override the login endpoint to return invalid JSON
-    override_mock(
+    mock_response(
         mock_aioresponse,
         "post",
         "https://enlighten.enphaseenergy.com/login/login.json?",
+        reset=True,
         status=200,
         body="nojson",
     )
