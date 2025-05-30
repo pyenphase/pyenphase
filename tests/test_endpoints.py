@@ -29,6 +29,7 @@ from pyenphase.models.tariff import EnvoyStorageMode
 from .common import (
     endpoint_path,
     get_mock_envoy,
+    latest_request,
     load_json_fixture,
     mock_response,
     prep_envoy,
@@ -1319,37 +1320,41 @@ async def test_with_7_x_firmware(
     )
 
     # test request with just an endpoint, should be a GET
-    await envoy.request("/api/v1/production/inverters")
+    myresponse: aiohttp.ClientResponse = await envoy.request(
+        "/api/v1/production/inverters"
+    )
     # Check that at least one GET request was made to this URL
-    get_requests = [
-        req
-        for req in mock_aioresponse.requests.keys()
-        if req[0] == "GET" and "api/v1/production/inverters" in str(req[1])
-    ]
-    assert len(get_requests) > 0
-
+    cnt, request_data = latest_request(
+        mock_aioresponse, "GET", "/api/v1/production/inverters"
+    )
+    assert cnt > 0
+    assert await myresponse.json() == test_data
     # with data but no method should be post
     await envoy.request("/api/v1/production/inverters", data=test_data)
     # Check that at least one POST request was made to this URL
-    post_requests = [
-        req
-        for req in mock_aioresponse.requests.keys()
-        if req[0] == "POST" and "api/v1/production/inverters" in str(req[1])
-    ]
-    assert len(post_requests) > 0
+    cnt, request_data = latest_request(
+        mock_aioresponse, "POST", "/api/v1/production/inverters"
+    )
+    assert cnt == 1
+    assert orjson.loads(request_data) == test_data
 
     # with method should be specified method
     await envoy.request("/api/v1/production/inverters", data=test_data, method="PUT")
-    # Check that at least one PUT request was made to this URL
-    put_requests = [
-        req
-        for req in mock_aioresponse.requests.keys()
-        if req[0] == "PUT" and "api/v1/production/inverters" in str(req[1])
-    ]
-    assert len(put_requests) > 0
+    cnt, request_data = latest_request(
+        mock_aioresponse, "PUT", "/api/v1/production/inverters"
+    )
+    assert cnt == 1
+    assert orjson.loads(request_data) == test_data
+
+    # change data to recognize this from previous requests
+    test_data.append({"second_post": "test"})  # type: ignore[attr-defined]
     await envoy.request("/api/v1/production/inverters", data=test_data, method="POST")
-    # Check that POST requests were made (should be at least 2 now)
-    assert len(post_requests) >= 1  # Already checked above that at least one exists
+    # Check that POST requests with changed data was made
+    cnt, request_data = latest_request(
+        mock_aioresponse, "POST", "/api/v1/production/inverters"
+    )
+    assert cnt == 1
+    assert orjson.loads(request_data) == test_data
 
     if supported_features & supported_features.ENPOWER:
         # switch off debug for one post to improve COV
@@ -1365,27 +1370,12 @@ async def test_with_7_x_firmware(
         await envoy.go_on_grid()
         logging.getLogger("pyenphase").setLevel(logging.DEBUG)
         # Get the last POST request to grid relay
-        grid_relay_requests = [
-            r
-            for r in mock_aioresponse.requests.keys()
-            if r[0] == "POST" and URL_GRID_RELAY in str(r[1])
-        ]
-        assert grid_relay_requests
-        last_request = mock_aioresponse.requests[grid_relay_requests[-1]][-1]
-        assert orjson.loads(last_request.kwargs["data"]) == {
-            "mains_admin_state": "closed"
-        }
+        cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GRID_RELAY)
+        assert orjson.loads(request_data) == {"mains_admin_state": "closed"}
 
         await envoy.go_off_grid()
-        grid_relay_requests = [
-            r
-            for r in mock_aioresponse.requests.keys()
-            if r[0] == "POST" and URL_GRID_RELAY in str(r[1])
-        ]
-        last_request = mock_aioresponse.requests[grid_relay_requests[-1]][-1]
-        assert orjson.loads(last_request.kwargs["data"]) == {
-            "mains_admin_state": "open"
-        }
+        cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GRID_RELAY)
+        assert orjson.loads(request_data) == {"mains_admin_state": "open"}
 
         # Test updating dry contacts
         with pytest.raises(ValueError):
@@ -1401,17 +1391,10 @@ async def test_with_7_x_firmware(
         new_model = replace(dry_contact, **new_data)
 
         await envoy.update_dry_contact(new_data)
-        # Get the last POST request to dry contact settings
-        dry_contact_requests = [
-            r
-            for r in mock_aioresponse.requests.keys()
-            if r[0] == "POST" and URL_DRY_CONTACT_SETTINGS in str(r[1])
-        ]
-        assert dry_contact_requests
-        last_request = mock_aioresponse.requests[dry_contact_requests[-1]][-1]
-        assert orjson.loads(last_request.kwargs["data"]) == {
-            "dry_contacts": new_model.to_api()
-        }
+        cnt, request_data = latest_request(
+            mock_aioresponse, "POST", URL_DRY_CONTACT_SETTINGS
+        )
+        assert orjson.loads(request_data) == {"dry_contacts": new_model.to_api()}
 
         if envoy.data.dry_contact_settings["NC1"].black_start is not None:
             assert (
@@ -1424,26 +1407,19 @@ async def test_with_7_x_firmware(
         await envoy.open_dry_contact("NC1")
         assert envoy.data.dry_contact_status["NC1"].status == DryContactStatus.OPEN
         # Get the last POST request to dry contact status
-        dry_status_requests = [
-            r
-            for r in mock_aioresponse.requests.keys()
-            if r[0] == "POST" and URL_DRY_CONTACT_STATUS in str(r[1])
-        ]
-        assert dry_status_requests
-        last_request = mock_aioresponse.requests[dry_status_requests[-1]][-1]
-        assert orjson.loads(last_request.kwargs["data"]) == {
+        cnt, request_data = latest_request(
+            mock_aioresponse, "POST", URL_DRY_CONTACT_STATUS
+        )
+        assert orjson.loads(request_data) == {
             "dry_contacts": {"id": "NC1", "status": "open"}
         }
 
         await envoy.close_dry_contact("NC1")
         assert envoy.data.dry_contact_status["NC1"].status == DryContactStatus.CLOSED
-        dry_status_requests = [
-            r
-            for r in mock_aioresponse.requests.keys()
-            if r[0] == "POST" and URL_DRY_CONTACT_STATUS in str(r[1])
-        ]
-        last_request = mock_aioresponse.requests[dry_status_requests[-1]][-1]
-        assert orjson.loads(last_request.kwargs["data"]) == {
+        cnt, request_data = latest_request(
+            mock_aioresponse, "POST", URL_DRY_CONTACT_STATUS
+        )
+        assert orjson.loads(request_data) == {
             "dry_contacts": {"id": "NC1", "status": "closed"}
         }
 
@@ -1579,53 +1555,25 @@ async def test_with_7_x_firmware(
         # Test setting battery features
         await envoy.enable_charge_from_grid()
         assert envoy.data.tariff.storage_settings.charge_from_grid is True
-        tariff_requests = [
-            r
-            for r in mock_aioresponse.requests.keys()
-            if r[0] == "PUT" and URL_TARIFF in str(r[1])
-        ]
-        last_request = mock_aioresponse.requests[tariff_requests[-1]][-1]
-        assert orjson.loads(last_request.kwargs["data"]) == {
-            "tariff": envoy.data.tariff.to_api()
-        }
+        cnt, request_data = latest_request(mock_aioresponse, "PUT", URL_TARIFF)
+        assert orjson.loads(request_data) == {"tariff": envoy.data.tariff.to_api()}
 
         await envoy.disable_charge_from_grid()
         assert not bool(envoy.data.tariff.storage_settings.charge_from_grid)
-        tariff_requests = [
-            r
-            for r in mock_aioresponse.requests.keys()
-            if r[0] == "PUT" and URL_TARIFF in str(r[1])
-        ]
-        last_request = mock_aioresponse.requests[tariff_requests[-1]][-1]
-        assert orjson.loads(last_request.kwargs["data"]) == {
-            "tariff": envoy.data.tariff.to_api()
-        }
+        cnt, request_data = latest_request(mock_aioresponse, "PUT", URL_TARIFF)
+        assert orjson.loads(request_data) == {"tariff": envoy.data.tariff.to_api()}
 
         await envoy.set_reserve_soc(50)
         assert envoy.data.tariff.storage_settings.reserved_soc == round(float(50), 1)
-        tariff_requests = [
-            r
-            for r in mock_aioresponse.requests.keys()
-            if r[0] == "PUT" and URL_TARIFF in str(r[1])
-        ]
-        last_request = mock_aioresponse.requests[tariff_requests[-1]][-1]
-        assert orjson.loads(last_request.kwargs["data"]) == {
-            "tariff": envoy.data.tariff.to_api()
-        }
+        cnt, request_data = latest_request(mock_aioresponse, "PUT", URL_TARIFF)
+        assert orjson.loads(request_data) == {"tariff": envoy.data.tariff.to_api()}
 
         await envoy.set_storage_mode(EnvoyStorageMode.SELF_CONSUMPTION)
         assert (
             envoy.data.tariff.storage_settings.mode == EnvoyStorageMode.SELF_CONSUMPTION
         )
-        tariff_requests = [
-            r
-            for r in mock_aioresponse.requests.keys()
-            if r[0] == "PUT" and URL_TARIFF in str(r[1])
-        ]
-        last_request = mock_aioresponse.requests[tariff_requests[-1]][-1]
-        assert orjson.loads(last_request.kwargs["data"]) == {
-            "tariff": envoy.data.tariff.to_api()
-        }
+        cnt, request_data = latest_request(mock_aioresponse, "PUT", URL_TARIFF)
+        assert orjson.loads(request_data) == {"tariff": envoy.data.tariff.to_api()}
 
         with pytest.raises(TypeError):
             await envoy.set_storage_mode("invalid")
