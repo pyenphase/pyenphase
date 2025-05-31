@@ -14,6 +14,7 @@ from .common import (
     get_mock_envoy,
     load_fixture,
     load_json_fixture,
+    override_mock,
     prep_envoy,
     start_7_firmware_mock,
 )
@@ -109,8 +110,6 @@ async def test_interface_settings_with_7_6_175(
     # Change mock to use wlan interface
     home_json["network"]["primary_interface"] = "wlan0"
     # and mock new data
-    from .common import override_mock
-
     override_mock(
         mock_aioresponse, "get", "https://127.0.0.1/home", status=200, payload=home_json
     )
