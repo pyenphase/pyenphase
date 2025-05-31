@@ -167,7 +167,7 @@ class Envoy:
         self._firmware = EnvoyFirmware(self._client, self._host)
         self._supported_features: SupportedFeatures | None = None
         self._updaters: list[EnvoyUpdater] = []
-        self._endpoint_cache: dict[str, Any] = {}
+        self._endpoint_cache: dict[str, aiohttp.ClientResponse] = {}
         self.data: EnvoyData | None = None
         self._common_properties: CommonProperties = CommonProperties()
         self._interface_settings: EnvoyInterfaceInformation | None = None
