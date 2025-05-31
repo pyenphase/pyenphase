@@ -33,6 +33,7 @@ async def test_with_4_2_27_firmware(
     envoy = await get_mock_envoy(version, test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)

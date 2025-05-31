@@ -35,6 +35,7 @@ async def test_with_4_2_27_firmware(
     envoy = await get_mock_envoy(version, test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
     assert not (envoy._supported_features & SupportedFeatures.ACB)
     assert not (envoy._supported_features & SupportedFeatures.ENCHARGE)
     assert not (envoy._supported_features & SupportedFeatures.ENPOWER)
@@ -321,11 +322,13 @@ async def test_with_7_x_firmware(
 
     # test battery aggregate values
     for key in battery_aggregate:
-        assert battery_aggregate[key] == getattr(envoy.data.battery_aggregate, key)
+        assert data.battery_aggregate is not None
+        assert battery_aggregate[key] == getattr(data.battery_aggregate, key)
 
     # test ACB battery values
     for key in acb_power:
-        assert acb_power[key] == getattr(envoy.data.acb_power, key)
+        assert data.acb_power is not None
+        assert acb_power[key] == getattr(data.acb_power, key)
 
     # test for code coverage if no storage section is available
     # use fixtures with METERING in supported_features:

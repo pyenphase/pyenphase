@@ -1290,6 +1290,7 @@ async def test_with_7_x_firmware(
     # get http or https paths based on firmware version
     full_host = endpoint_path(version, envoy.host)
     data = envoy.data
+    assert data is not None
     assert data == snapshot
 
     assert envoy.firmware == version.split("_")[0]
@@ -1389,7 +1390,8 @@ async def test_with_7_x_firmware(
             await bad_envoy.probe()
             await bad_envoy.update_dry_contact({"id": "NC1"})
 
-        dry_contact = envoy.data.dry_contact_settings["NC1"]
+        assert data.dry_contact_settings is not None
+        dry_contact = data.dry_contact_settings["NC1"]
         new_data: dict[str, Any] = {"id": "NC1", "load_name": "NC1 Test"}
         new_model = replace(dry_contact, **new_data)
 
@@ -1399,16 +1401,17 @@ async def test_with_7_x_firmware(
         )
         assert orjson.loads(request_data) == {"dry_contacts": new_model.to_api()}
 
-        if envoy.data.dry_contact_settings["NC1"].black_start is not None:
+        if data.dry_contact_settings["NC1"].black_start is not None:
             assert (
                 new_model.to_api()["black_s_start"]
-                == envoy.data.dry_contact_settings["NC1"].black_start
+                == data.dry_contact_settings["NC1"].black_start
             )
         else:
             assert "black_s_start" not in new_model.to_api()
 
         await envoy.open_dry_contact("NC1")
-        assert envoy.data.dry_contact_status["NC1"].status == DryContactStatus.OPEN
+        assert data.dry_contact_status is not None
+        assert data.dry_contact_status["NC1"].status == DryContactStatus.OPEN
         # Get the last POST request to dry contact status
         cnt, request_data = latest_request(
             mock_aioresponse, "POST", URL_DRY_CONTACT_STATUS
@@ -1418,7 +1421,7 @@ async def test_with_7_x_firmware(
         }
 
         await envoy.close_dry_contact("NC1")
-        assert envoy.data.dry_contact_status["NC1"].status == DryContactStatus.CLOSED
+        assert data.dry_contact_status["NC1"].status == DryContactStatus.CLOSED
         cnt, request_data = latest_request(
             mock_aioresponse, "POST", URL_DRY_CONTACT_STATUS
         )
@@ -1531,51 +1534,51 @@ async def test_with_7_x_firmware(
         supported_features & SupportedFeatures.TARIFF
     ):
         # Test `savings-mode` is converted to `economy`
-        if (
-            envoy.data.raw[URL_TARIFF]["tariff"]["storage_settings"]["mode"]
-            == "savings-mode"
-        ):
-            assert envoy.data.tariff.storage_settings.mode == EnvoyStorageMode.SAVINGS
+        assert data.raw is not None
+        if data.raw[URL_TARIFF]["tariff"]["storage_settings"]["mode"] == "savings-mode":
+            assert data.tariff is not None
+            assert data.tariff.storage_settings is not None
+            assert data.tariff.storage_settings.mode == EnvoyStorageMode.SAVINGS
 
-        storage_settings = envoy.data.tariff.storage_settings
+        assert data.tariff is not None
+        assert data.tariff.storage_settings is not None
+        storage_settings = data.tariff.storage_settings
         new_data = {"charge_from_grid": True}
         new_model = replace(storage_settings, **new_data)
 
-        if envoy.data.tariff.storage_settings.date is not None:
-            assert new_model.to_api()["date"] == envoy.data.tariff.storage_settings.date
+        if data.tariff.storage_settings.date is not None:
+            assert new_model.to_api()["date"] == data.tariff.storage_settings.date
         else:
             assert "date" not in new_model.to_api()
 
-        if envoy.data.tariff.storage_settings.opt_schedules is not None:
+        if data.tariff.storage_settings.opt_schedules is not None:
             assert (
                 new_model.to_api()["opt_schedules"]
-                == envoy.data.tariff.storage_settings.opt_schedules
+                == data.tariff.storage_settings.opt_schedules
             )
         else:
             assert "opt_schedules" not in new_model.to_api()
 
         # Test setting battery features
         await envoy.enable_charge_from_grid()
-        assert envoy.data.tariff.storage_settings.charge_from_grid is True
+        assert data.tariff.storage_settings.charge_from_grid is True
         cnt, request_data = latest_request(mock_aioresponse, "PUT", URL_TARIFF)
-        assert orjson.loads(request_data) == {"tariff": envoy.data.tariff.to_api()}
+        assert orjson.loads(request_data) == {"tariff": data.tariff.to_api()}
 
         await envoy.disable_charge_from_grid()
-        assert not bool(envoy.data.tariff.storage_settings.charge_from_grid)
+        assert not bool(data.tariff.storage_settings.charge_from_grid)
         cnt, request_data = latest_request(mock_aioresponse, "PUT", URL_TARIFF)
-        assert orjson.loads(request_data) == {"tariff": envoy.data.tariff.to_api()}
+        assert orjson.loads(request_data) == {"tariff": data.tariff.to_api()}
 
         await envoy.set_reserve_soc(50)
-        assert envoy.data.tariff.storage_settings.reserved_soc == round(float(50), 1)
+        assert data.tariff.storage_settings.reserved_soc == round(float(50), 1)
         cnt, request_data = latest_request(mock_aioresponse, "PUT", URL_TARIFF)
-        assert orjson.loads(request_data) == {"tariff": envoy.data.tariff.to_api()}
+        assert orjson.loads(request_data) == {"tariff": data.tariff.to_api()}
 
         await envoy.set_storage_mode(EnvoyStorageMode.SELF_CONSUMPTION)
-        assert (
-            envoy.data.tariff.storage_settings.mode == EnvoyStorageMode.SELF_CONSUMPTION
-        )
+        assert data.tariff.storage_settings.mode == EnvoyStorageMode.SELF_CONSUMPTION
         cnt, request_data = latest_request(mock_aioresponse, "PUT", URL_TARIFF)
-        assert orjson.loads(request_data) == {"tariff": envoy.data.tariff.to_api()}
+        assert orjson.loads(request_data) == {"tariff": data.tariff.to_api()}
 
         with pytest.raises(TypeError):
             await envoy.set_storage_mode("invalid")
@@ -1651,7 +1654,11 @@ async def test_with_7_x_firmware(
             payload=json_data,
         )
         await envoy.update()
-        assert envoy.data.tariff.storage_settings.mode is None
+        data = envoy.data
+        assert data is not None
+        assert data.tariff is not None
+        assert data.tariff.storage_settings is not None
+        assert data.tariff.storage_settings.mode is None
 
         # COV test with missing logger
         json_data = await load_json_fixture(version, "admin_lib_tariff")
@@ -1673,7 +1680,10 @@ async def test_with_7_x_firmware(
             payload=json_data,
         )
         await envoy.update()
-        envoy.data.tariff.to_api()
+        data = envoy.data
+        assert data is not None
+        assert data.tariff is not None
+        data.tariff.to_api()
 
         # COV test with missing date for tariff and storage settings
         json_data = await load_json_fixture(version, "admin_lib_tariff")
@@ -1694,7 +1704,10 @@ async def test_with_7_x_firmware(
             payload=json_data,
         )
         await envoy.update()
-        envoy.data.tariff.to_api()
+        data = envoy.data
+        assert data is not None
+        assert data.tariff is not None
+        data.tariff.to_api()
 
         # COV test with missing storage settings
         json_data = await load_json_fixture(version, "admin_lib_tariff")
@@ -1714,7 +1727,10 @@ async def test_with_7_x_firmware(
             payload=json_data,
         )
         await envoy.update()
-        envoy.data.tariff.to_api()
+        data = envoy.data
+        assert data is not None
+        assert data.tariff is not None
+        data.tariff.to_api()
 
         # COV test with error in result
         json_data = await load_json_fixture(version, "admin_lib_tariff")
@@ -1780,9 +1796,12 @@ async def test_with_7_x_firmware(
         bad_envoy = await get_mock_envoy(version, test_client_session)
         await bad_envoy.probe()
         with pytest.raises(EnvoyFeatureNotAvailable):
+            assert bad_envoy.data is not None
+            assert bad_envoy.data.tariff is not None
             bad_envoy.data.tariff.storage_settings = None
             await bad_envoy.enable_charge_from_grid()
         with pytest.raises(ValueError):
+            assert bad_envoy.data is not None
             bad_envoy.data.tariff = None
             await bad_envoy.enable_charge_from_grid()
         with pytest.raises(ValueError):
@@ -1835,7 +1854,9 @@ async def test_with_7_x_firmware(
 
     # Test each production phase
     for phase in production_phases:
-        proddata = envoy.data.system_production_phases[phase]
+        assert data.system_production_phases is not None
+        proddata = data.system_production_phases[phase]
+        assert proddata is not None
         modeldata = production_phases[phase]
 
         # test each element of the phase data
@@ -1852,7 +1873,9 @@ async def test_with_7_x_firmware(
     )
     # Test each consumption phase
     for phase in consumption_phases:
-        consdata = envoy.data.system_consumption_phases[phase]
+        assert data.system_consumption_phases is not None
+        consdata = data.system_consumption_phases[phase]
+        assert consdata is not None
         modeldata = consumption_phases[phase]
 
         # test each element of the phase data
@@ -1863,7 +1886,8 @@ async def test_with_7_x_firmware(
 
     # test ct production meter values
     for key in ct_production:
-        assert ct_production[key] == getattr(envoy.data.ctmeter_production, key)
+        assert data.ctmeter_production is not None
+        assert ct_production[key] == getattr(data.ctmeter_production, key)
 
     # are all CT production phases reported
     assert (
@@ -1874,7 +1898,8 @@ async def test_with_7_x_firmware(
 
     # Test each ct production phase
     for phase in ct_production_phases:
-        proddata = envoy.data.ctmeter_production_phases[phase]
+        assert data.ctmeter_production_phases is not None
+        proddata = data.ctmeter_production_phases[phase]
         modeldata = ct_production_phases[phase]
         # test each element of the phase data
         for key in modeldata:
@@ -1882,7 +1907,8 @@ async def test_with_7_x_firmware(
 
     # test ct consumption meter values
     for key in ct_consumption:
-        assert ct_consumption[key] == getattr(envoy.data.ctmeter_consumption, key)
+        assert data.ctmeter_consumption is not None
+        assert ct_consumption[key] == getattr(data.ctmeter_consumption, key)
 
     # are all consumption CT phases reported
     assert (
@@ -1893,7 +1919,8 @@ async def test_with_7_x_firmware(
 
     # Test each ct consumption phase
     for phase in ct_consumption_phases:
-        consdata = envoy.data.ctmeter_consumption_phases[phase]
+        assert data.ctmeter_consumption_phases is not None
+        consdata = data.ctmeter_consumption_phases[phase]
         modeldata = ct_consumption_phases[phase]
         # test each element of the phase data
         for key in modeldata:
@@ -1901,7 +1928,8 @@ async def test_with_7_x_firmware(
 
     # test ct storage meter values
     for key in ct_storage:
-        assert ct_storage[key] == getattr(envoy.data.ctmeter_storage, key)
+        assert data.ctmeter_storage is not None
+        assert ct_storage[key] == getattr(data.ctmeter_storage, key)
 
     # test expected vs actual phases reported
     assert (
@@ -1912,7 +1940,8 @@ async def test_with_7_x_firmware(
 
     # Test each ct storage phase
     for phase in ct_storage_phases:
-        storedata = envoy.data.ctmeter_storage_phases[phase]
+        assert data.ctmeter_storage_phases is not None
+        storedata = data.ctmeter_storage_phases[phase]
         modeldata = ct_storage_phases[phase]
         # test each element of the phase data
         for key in modeldata:

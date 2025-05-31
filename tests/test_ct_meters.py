@@ -40,6 +40,7 @@ async def test_pr111_with_7_3_466_metered_disabled_cts(
     envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -54,6 +55,7 @@ async def test_pr111_with_7_3_466_metered_disabled_cts(
     assert envoy.part_number == "800-00654-r08"
 
     assert not data.system_consumption
+    assert data.system_production is not None
     assert data.system_production.watts_now == 751
     assert data.system_production.watt_hours_today == 4425
     assert data.system_production.watt_hours_last_7_days == 111093
@@ -94,6 +96,7 @@ async def test_pr111_with_7_6_175_with_cts(
     assert envoy.part_number == "800-00654-r08"
 
     assert data.system_consumption
+    assert data.system_production is not None
     assert data.system_production.watts_now == 488
     assert data.system_production.watt_hours_today == 4425
     assert data.system_production.watt_hours_last_7_days == 111093
@@ -117,6 +120,7 @@ async def test_pr111_with_7_6_175_standard(
     envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -130,6 +134,7 @@ async def test_pr111_with_7_6_175_standard(
     assert envoy.part_number == "800-00656-r06"
 
     assert not data.system_consumption
+    assert data.system_production is not None
     assert data.system_production.watts_now == 5740
     assert data.system_production.watt_hours_today == 36462
     assert data.system_production.watt_hours_last_7_days == 189712
@@ -256,8 +261,10 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
     )
 
     await envoy.update()
-    assert envoy.data.ctmeter_production_phases is None
-    assert envoy.data.ctmeter_consumption_phases is None
+    data = envoy.data
+    assert data is not None
+    assert data.ctmeter_production_phases is None
+    assert data.ctmeter_consumption_phases is None
 
 
 @pytest.mark.asyncio
@@ -474,7 +481,9 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split(
     )
 
     await envoy.update()
-    assert envoy.data.ctmeter_storage_phases is None
+    data = envoy.data
+    assert data is not None
+    assert data.ctmeter_storage_phases is None
 
 
 @pytest.mark.asyncio
