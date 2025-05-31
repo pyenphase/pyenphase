@@ -1,0 +1,95 @@
+{
+  "inventory": {
+    "serial_nums": {
+      "122446012073": {
+        "admin_state": 24,
+        "admin_state_str": "ENPWR_STATE_OPER_CLOSED",
+        "app_fw_version": "2.7.6360_rel/31.33",
+        "assembly_number": "880-01801-r71",
+        "bmu_fw_version": "",
+        "com_interface_str": "USB",
+        "device_id": "122446012073",
+        "device_type": 17,
+        "ibl_fw_version": "3.1.813-8c003b",
+        "msg_retry_count": 1,
+        "part_number": "860-01801-r70",
+        "submodule_count": 2,
+        "submodules": {
+          "122446001211": {
+            "admin_state": 1,
+            "assembly_number": "880-01323-r04",
+            "device_type": 18,
+            "dmir": {
+              "assembly_number": "01",
+              "part_number": "546-00003-01"
+            },
+            "part_number": "800-01323-r04",
+            "procload": {
+              "assembly_number": "2.7.6360_rel/31.33",
+              "part_number": "522-00003-01"
+            }
+          },
+          "122446003888": {
+            "admin_state": 1,
+            "assembly_number": "880-01616-r07",
+            "device_type": 20,
+            "dmir": {
+              "assembly_number": "01",
+              "part_number": "546-00003-01"
+            },
+            "part_number": "800-01616-r07",
+            "procload": {
+              "assembly_number": "",
+              "part_number": ""
+            }
+          }
+        },
+        "swift_asic_fw_version": ""
+      }
+    }
+  },
+  "relay": {
+    "Enchg_grid_mode": "multimode-ongrid",
+    "Solar_grid_mode": "multimode-ongrid",
+    "der1_state": 1,
+    "der2_state": 1,
+    "der3_state": 1,
+    "mains_admin_state": "closed",
+    "mains_oper_state": "closed",
+    "srt12_state": "open",
+    "srt13_state": "open"
+  },
+  "secctrl": {
+    "ACB_agg_energy": 0,
+    "ACB_agg_soc": 0,
+    "Commission_in_progress": false,
+    "ENC_agg_avail_energy": 0,
+    "ENC_agg_backup_energy": 0,
+    "ENC_agg_soc": 0,
+    "ENC_agg_soh": 0,
+    "ESS_in_progress": false,
+    "Enc_commissioned_capacity": 0,
+    "Enc_max_available_capacity": 0,
+    "Max_energy": 0,
+    "VLS_Limit": 10,
+    "adjusted_backup_soc": 43,
+    "agg_soc": 0,
+    "configured_backup_soc": 43,
+    "freq_bias_hz": 0.0,
+    "freq_bias_hz_phaseb": 0.0,
+    "freq_bias_hz_phasec": 0.0,
+    "freq_bias_hz_q8": 0,
+    "freq_bias_hz_q8_phaseb": 0,
+    "freq_bias_hz_q8_phasec": 0,
+    "shutdown": false,
+    "soc_rec_enabled": true,
+    "soc_recovery_entry": 0,
+    "soc_recovery_exit": 10,
+    "voltage_bias_v": 0.0,
+    "voltage_bias_v_phaseb": 0.0,
+    "voltage_bias_v_phasec": 0.0,
+    "voltage_bias_v_q5": 0,
+    "voltage_bias_v_q5_phaseb": 0,
+    "voltage_bias_v_q5_phasec": 0
+  }
+}
