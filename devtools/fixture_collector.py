@@ -78,6 +78,7 @@ async def main(
         "/ivp/ensemble/generator",
         "/ivp/meters",
         "/ivp/meters/readings",
+        "/ivp/pdm/device_data",
     ]
 
     assert envoy.auth  # nosec

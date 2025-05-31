@@ -255,6 +255,15 @@ async def prep_envoy(
         )
     else:
         respx.get("/home").mock(return_value=Response(404))
+
+    if "ivp_pdm_device_data" in files:
+        respx.get("/ivp/pdm/device_data").mock(
+            return_value=Response(
+                200, json=await load_json_fixture(version, "ivp_pdm_device_data")
+            )
+        )
+    else:
+        respx.get("/ivp/pdm/device_data").mock(return_value=Response(404))
     return files
 
 
