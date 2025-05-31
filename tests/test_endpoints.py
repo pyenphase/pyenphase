@@ -1583,7 +1583,7 @@ async def test_with_7_x_firmware(
         assert orjson.loads(request_data) == {"tariff": data.tariff.to_api()}
 
         with pytest.raises(TypeError):
-            await envoy.set_storage_mode("invalid")
+            await envoy.set_storage_mode("invalid")  # type: ignore[arg-type]
 
         # test error returned by action methods calling _json_request
         mock_response(
@@ -1901,11 +1901,11 @@ async def test_with_7_x_firmware(
     # Test each ct production phase
     for phase in ct_production_phases:
         assert data.ctmeter_production_phases is not None
-        proddata = data.ctmeter_production_phases[phase]
+        ct_proddata = data.ctmeter_production_phases[phase]
         modeldata = ct_production_phases[phase]
         # test each element of the phase data
         for key in modeldata:
-            assert modeldata[key] == getattr(proddata, key)
+            assert modeldata[key] == getattr(ct_proddata, key)
 
     # test ct consumption meter values
     for key in ct_consumption:
@@ -1922,11 +1922,11 @@ async def test_with_7_x_firmware(
     # Test each ct consumption phase
     for phase in ct_consumption_phases:
         assert data.ctmeter_consumption_phases is not None
-        consdata = data.ctmeter_consumption_phases[phase]
+        ct_consdata = data.ctmeter_consumption_phases[phase]
         modeldata = ct_consumption_phases[phase]
         # test each element of the phase data
         for key in modeldata:
-            assert modeldata[key] == getattr(consdata, key)
+            assert modeldata[key] == getattr(ct_consdata, key)
 
     # test ct storage meter values
     for key in ct_storage:

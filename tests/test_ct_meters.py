@@ -75,6 +75,7 @@ async def test_pr111_with_7_6_175_with_cts(
     envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
     assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
