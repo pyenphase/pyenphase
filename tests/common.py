@@ -443,13 +443,13 @@ async def prep_envoy(
 
     if "ivp_pdm_device_data" in files:
         mock_aioresponse.get(
-            url("/ivp_pdm_device_data"),
+            url("/ivp/pdm/device_data"),
             status=200,
             payload=await load_json_fixture(version, "ivp_pdm_device_data"),
             repeat=True,
         )
     else:
-        mock_aioresponse.get(url("/ivp_pdm_device_data"), status=404, repeat=True)
+        mock_aioresponse.get(url("/ivp/pdm/device_data"), status=404, repeat=True)
 
     return files
 
