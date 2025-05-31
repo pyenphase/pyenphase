@@ -17503,3 +17503,2288 @@
     }),
   })
 # ---
+# name: test_with_7_x_firmware[8.2.4345_with_device_data]
+  dict({
+    'acb_power': None,
+    'battery_aggregate': None,
+    'ctmeter_consumption': dict({
+      'active_power': 199.234,
+      'current': 4.066,
+      'eid': 704643584,
+      'energy_delivered': 648203.353,
+      'energy_received': 883899.646,
+      'frequency': 50.062,
+      'measurement_type': 'net-consumption',
+      'metering_status': 'normal',
+      'power_factor': 0.140,
+      'state': 'enabled',
+      'status_flags': list([
+      ]),
+      'timestamp': 1748577049,
+      'voltage': 244.228,
+    }),
+    'ctmeter_consumption_phases': None,
+    'ctmeter_production': dict({
+      'active_power': 807.326,
+      'current': 5.299,
+      'eid': 704643328,
+      'energy_delivered': 1243812.228,
+      'energy_received': 11.6,
+      'frequency': 50.062,
+      'measurement_type': 'production',
+      'metering_status': 'normal',
+      'power_factor': 0.654,
+      'state': 'enabled',
+      'status_flags': list([
+      ]),
+      'timestamp': 1748577049,
+      'voltage': 244.062,
+    }),
+    'ctmeter_production_phases': None,
+    'ctmeter_storage': None,
+    'ctmeter_storage_phases': None,
+    'dry_contact_settings': dict({
+      'NC1': dict({
+        'black_start': 5.0,
+        'essential_end_time': 57600.0,
+        'essential_start_time': 32400.0,
+        'generator_action': <DryContactAction.APPLY: 'apply'>,
+        'grid_action': <DryContactAction.APPLY: 'apply'>,
+        'id': 'NC1',
+        'load_name': '',
+        'manual_override': True,
+        'micro_grid_action': <DryContactAction.APPLY: 'apply'>,
+        'mode': <DryContactMode.MANUAL: 'manual'>,
+        'override': False,
+        'priority': 1.0,
+        'pv_serial_nb': list([
+        ]),
+        'soc_high': 70.0,
+        'soc_low': 30.0,
+        'type': <DryContactType.NONE: 'NONE'>,
+      }),
+      'NC2': dict({
+        'black_start': 5.0,
+        'essential_end_time': 57600.0,
+        'essential_start_time': 32400.0,
+        'generator_action': <DryContactAction.APPLY: 'apply'>,
+        'grid_action': <DryContactAction.APPLY: 'apply'>,
+        'id': 'NC2',
+        'load_name': '',
+        'manual_override': True,
+        'micro_grid_action': <DryContactAction.APPLY: 'apply'>,
+        'mode': <DryContactMode.MANUAL: 'manual'>,
+        'override': False,
+        'priority': 2.0,
+        'pv_serial_nb': list([
+        ]),
+        'soc_high': 70.0,
+        'soc_low': 30.0,
+        'type': <DryContactType.NONE: 'NONE'>,
+      }),
+      'NO1': dict({
+        'black_start': 5.0,
+        'essential_end_time': 82800.0,
+        'essential_start_time': 21600.0,
+        'generator_action': <DryContactAction.SHED: 'shed'>,
+        'grid_action': <DryContactAction.SHED: 'shed'>,
+        'id': 'NO1',
+        'load_name': 'Fridge and Freezer',
+        'manual_override': True,
+        'micro_grid_action': <DryContactAction.SHED: 'shed'>,
+        'mode': <DryContactMode.MANUAL: 'manual'>,
+        'override': True,
+        'priority': 1.0,
+        'pv_serial_nb': list([
+        ]),
+        'soc_high': 70.0,
+        'soc_low': 30.0,
+        'type': <DryContactType.LOAD: 'LOAD'>,
+      }),
+      'NO2': dict({
+        'black_start': 5.0,
+        'essential_end_time': 82800.0,
+        'essential_start_time': 21600.0,
+        'generator_action': <DryContactAction.SHED: 'shed'>,
+        'grid_action': <DryContactAction.SHED: 'shed'>,
+        'id': 'NO2',
+        'load_name': 'HVAC and Furnace',
+        'manual_override': True,
+        'micro_grid_action': <DryContactAction.APPLY: 'apply'>,
+        'mode': <DryContactMode.MANUAL: 'manual'>,
+        'override': True,
+        'priority': 4.0,
+        'pv_serial_nb': list([
+        ]),
+        'soc_high': 70.0,
+        'soc_low': 30.0,
+        'type': <DryContactType.LOAD: 'LOAD'>,
+      }),
+    }),
+    'dry_contact_status': dict({
+      'NC1': dict({
+        'id': 'NC1',
+        'status': <DryContactStatus.CLOSED: 'closed'>,
+      }),
+      'NC2': dict({
+        'id': 'NC2',
+        'status': <DryContactStatus.CLOSED: 'closed'>,
+      }),
+      'NO1': dict({
+        'id': 'NO1',
+        'status': <DryContactStatus.CLOSED: 'closed'>,
+      }),
+      'NO2': dict({
+        'id': 'NO2',
+        'status': <DryContactStatus.CLOSED: 'closed'>,
+      }),
+    }),
+    'encharge_aggregate': dict({
+      'available_energy': 3292,
+      'backup_reserve': 1680,
+      'configured_reserve_state_of_charge': 50,
+      'max_available_capacity': 3360,
+      'reserve_state_of_charge': 50,
+      'state_of_charge': 98,
+    }),
+    'encharge_inventory': dict({
+      '492234001350': dict({
+        'admin_state': 6,
+        'admin_state_str': 'ENCHG_STATE_READY',
+        'bmu_firmware_version': '2.1.34',
+        'comm_level_2_4_ghz': 2,
+        'comm_level_sub_ghz': 2,
+        'communicating': True,
+        'dc_switch_off': False,
+        'encharge_capacity': 3360,
+        'encharge_revision': 2,
+        'firmware_loaded_date': 1718210586,
+        'firmware_version': '2.0.6727_rel/22.15',
+        'installed_date': 1718210586,
+        'last_report_date': 1718213052,
+        'led_status': 12,
+        'max_cell_temp': 27,
+        'operating': None,
+        'part_number': '836-00750-r32',
+        'percent_full': 98,
+        'serial_number': '492234001350',
+        'temperature': 27,
+        'temperature_unit': 'C',
+        'zigbee_dongle_fw_version': None,
+      }),
+    }),
+    'encharge_power': dict({
+      '492234001350': dict({
+        'apparent_power_mva': -1250000,
+        'real_power_mw': -1250000,
+        'soc': 98,
+      }),
+    }),
+    'enpower': dict({
+      'admin_state': 30,
+      'admin_state_str': 'ENPWR_STATE_OPER_GEN_CLOSE',
+      'comm_level_2_4_ghz': 5,
+      'comm_level_sub_ghz': 5,
+      'communicating': True,
+      'firmware_loaded_date': 1718209911,
+      'firmware_version': '2.0.5729_rel/22.15',
+      'grid_mode': 'multimode-ongrid',
+      'installed_date': 1718209911,
+      'last_report_date': 1718213328,
+      'mains_admin_state': 'closed',
+      'mains_oper_state': 'open',
+      'operating': None,
+      'part_number': '860-00376-r37',
+      'serial_number': '122210043898',
+      'temperature': 91,
+      'temperature_unit': 'F',
+      'zigbee_dongle_fw_version': None,
+    }),
+    'inverters': dict({
+      '482218039091': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213113,
+        'last_report_watts': 67,
+        'max_report_watts': 122,
+        'serial_number': '482218039091',
+        'temperature': None,
+      }),
+      '482218039209': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213114,
+        'last_report_watts': 61,
+        'max_report_watts': 115,
+        'serial_number': '482218039209',
+        'temperature': None,
+      }),
+      '482218039304': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213115,
+        'last_report_watts': 69,
+        'max_report_watts': 132,
+        'serial_number': '482218039304',
+        'temperature': None,
+      }),
+      '482218039386': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213116,
+        'last_report_watts': 64,
+        'max_report_watts': 112,
+        'serial_number': '482218039386',
+        'temperature': None,
+      }),
+      '482218039390': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213117,
+        'last_report_watts': 63,
+        'max_report_watts': 123,
+        'serial_number': '482218039390',
+        'temperature': None,
+      }),
+      '482218039529': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213143,
+        'last_report_watts': 75,
+        'max_report_watts': 120,
+        'serial_number': '482218039529',
+        'temperature': None,
+      }),
+      '482218039700': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213203,
+        'last_report_watts': 89,
+        'max_report_watts': 135,
+        'serial_number': '482218039700',
+        'temperature': None,
+      }),
+      '482218039736': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213204,
+        'last_report_watts': 84,
+        'max_report_watts': 118,
+        'serial_number': '482218039736',
+        'temperature': None,
+      }),
+      '482218039788': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213234,
+        'last_report_watts': 95,
+        'max_report_watts': 100,
+        'serial_number': '482218039788',
+        'temperature': None,
+      }),
+      '482218039880': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213235,
+        'last_report_watts': 96,
+        'max_report_watts': 134,
+        'serial_number': '482218039880',
+        'temperature': None,
+      }),
+      '482218039911': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213236,
+        'last_report_watts': 97,
+        'max_report_watts': 133,
+        'serial_number': '482218039911',
+        'temperature': None,
+      }),
+      '482218039918': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213237,
+        'last_report_watts': 99,
+        'max_report_watts': 136,
+        'serial_number': '482218039918',
+        'temperature': None,
+      }),
+      '482218042609': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213237,
+        'last_report_watts': 95,
+        'max_report_watts': 107,
+        'serial_number': '482218042609',
+        'temperature': None,
+      }),
+      '482218042662': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213239,
+        'last_report_watts': 90,
+        'max_report_watts': 116,
+        'serial_number': '482218042662',
+        'temperature': None,
+      }),
+      '482218042737': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213240,
+        'last_report_watts': 96,
+        'max_report_watts': 130,
+        'serial_number': '482218042737',
+        'temperature': None,
+      }),
+      '482218042901': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213242,
+        'last_report_watts': 96,
+        'max_report_watts': 103,
+        'serial_number': '482218042901',
+        'temperature': None,
+      }),
+      '482218043030': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213242,
+        'last_report_watts': 95,
+        'max_report_watts': 102,
+        'serial_number': '482218043030',
+        'temperature': None,
+      }),
+      '482218043257': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213243,
+        'last_report_watts': 98,
+        'max_report_watts': 137,
+        'serial_number': '482218043257',
+        'temperature': None,
+      }),
+      '482218043590': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213245,
+        'last_report_watts': 95,
+        'max_report_watts': 108,
+        'serial_number': '482218043590',
+        'temperature': None,
+      }),
+      '482218043592': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213264,
+        'last_report_watts': 98,
+        'max_report_watts': 106,
+        'serial_number': '482218043592',
+        'temperature': None,
+      }),
+      '482218043652': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213265,
+        'last_report_watts': 101,
+        'max_report_watts': 107,
+        'serial_number': '482218043652',
+        'temperature': None,
+      }),
+      '482218043981': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213266,
+        'last_report_watts': 96,
+        'max_report_watts': 121,
+        'serial_number': '482218043981',
+        'temperature': None,
+      }),
+      '482218047061': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213267,
+        'last_report_watts': 100,
+        'max_report_watts': 125,
+        'serial_number': '482218047061',
+        'temperature': None,
+      }),
+      '482218047087': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213268,
+        'last_report_watts': 101,
+        'max_report_watts': 101,
+        'serial_number': '482218047087',
+        'temperature': None,
+      }),
+      '482218047088': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718213269,
+        'last_report_watts': 98,
+        'max_report_watts': 104,
+        'serial_number': '482218047088',
+        'temperature': None,
+      }),
+      '482218047099': dict({
+        'ac_current': None,
+        'ac_frequency': None,
+        'ac_voltage': None,
+        'dc_current': None,
+        'dc_voltage': None,
+        'last_report_date': 1718212938,
+        'last_report_watts': 74,
+        'max_report_watts': 107,
+        'serial_number': '482218047099',
+        'temperature': None,
+      }),
+    }),
+    'raw': dict({
+      '/admin/lib/tariff': dict({
+        'schedule': dict({
+          'batt_mode': "self-consumption",
+          'battery_mode': "self-consumption",
+          'charge_from_grid': False,
+          'date': "2025-04-16 15:14:25 UTC",
+          'filename': "Tariff",
+          'operation_mode_sub_type': "",
+          'opt_schedules': False,
+          'override': False,
+          'override_backup_soc': 30.0,
+          'override_chg_dischg_rate': 0.0,
+          'override_tou_mode': "StorageTouMode_DEFAULT_TOU_MODE",
+          'reserved_soc': 43.0,
+          'schedule': dict({
+            'Disable': list([
+              dict({
+                'Sun': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Mon': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Tue': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Wed': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Thu': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Fri': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+              dict({
+                'Sat': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ID',
+                    'start': 0,
+                  }),
+                ]),
+              }),
+            ]),
+            'tariff': list([
+              dict({
+                'Fri': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Mon': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Sat': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Sun': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Thu': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Tue': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'Wed': list([
+                  dict({
+                    'duration': 1440,
+                    'setting': 'ZN',
+                    'start': 0,
+                  }),
+                ]),
+                'end': '1/1',
+                'start': '1/1',
+              }),
+            ]),
+          }),
+          'source': 'Tariff',
+          'version': '00.00.02',
+          'very_low_soc': 10,
+        }),
+        'tariff': dict({
+          'currency': dict({
+            'code': 'AUD',
+          }),
+          'date': '1743840002',
+          'logger': 'mylogger',
+          'seasons': list([
+          ]),
+          'seasons_sell': list([
+          ]),
+          'single_rate': dict({
+            'rate': 0.2579500079154968,
+            'sell': 0.07000000029802323
+          }),
+          'storage_settings': dict({
+            'charge_from_grid': False,
+            'date': '1742364587',
+            'mode': 'self-consumption',
+            'operation_mode_sub_type': '',
+            'opt_schedules': False,
+            'reserved_soc': 43.0,
+            'very_low_soc': 10
+          }),
+        }),
+      }),
+      '/api/v1/production/inverters': list([
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576887,
+          'lastReportWatts': 255,
+          'maxReportWatts': 371,
+          'serialNumber': '122344043197'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576917,
+          'lastReportWatts': 78,
+          'maxReportWatts': 309,
+          'serialNumber': '122344044368'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576977,
+          'lastReportWatts': 255,
+          'maxReportWatts': 370,
+          'serialNumber': '122344044385'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748577008,
+          'lastReportWatts': 239,
+          'maxReportWatts': 367,
+          'serialNumber': '122344044392'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748577037,
+          'lastReportWatts': 130,
+          'maxReportWatts': 341,
+          'serialNumber': '122344044656'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748577038,
+          'lastReportWatts': 227,
+          'maxReportWatts': 349,
+          'serialNumber': '122344046030'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576165,
+          'lastReportWatts': 85,
+          'maxReportWatts': 308,
+          'serialNumber': '122344046450'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576166,
+          'lastReportWatts': 34,
+          'maxReportWatts': 362,
+          'serialNumber': '122344046574'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576194,
+          'lastReportWatts': 64,
+          'maxReportWatts': 299,
+          'serialNumber': '122344047608'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576196,
+          'lastReportWatts': 232,
+          'maxReportWatts': 364,
+          'serialNumber': '122344047620'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576197,
+          'lastReportWatts': 236,
+          'maxReportWatts': 365,
+          'serialNumber': '122344047645'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576224,
+          'lastReportWatts': 227,
+          'maxReportWatts': 365,
+          'serialNumber': '122344047687'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576226,
+          'lastReportWatts': 232,
+          'maxReportWatts': 365,
+          'serialNumber': '122344047713'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576255,
+          'lastReportWatts': 216,
+          'maxReportWatts': 338,
+          'serialNumber': '122344047722'
+        }),
+        dict({
+          'devType': 1,
+          'lastReportDate': 1748576256,
+          'lastReportWatts': 84,
+          'maxReportWatts': 324,
+          'serialNumber': '122344048305'
+        }),
+      ]),
+      '/ivp/ensemble/dry_contacts': dict({
+        'dry_contacts': list([
+          dict({
+            'id': 'NC1',
+            'status': 'open',
+          }),
+          dict({
+            'id': 'NC2',
+            'status': 'open',
+          }),
+          dict({
+            'id': 'NO1',
+            'status': 'open',
+          }),
+          dict({
+            'id': 'NO2',
+            'status': 'open',
+          }),
+        ]),
+      }),
+      '/ivp/ensemble/inventory': list([
+        dict({
+          'devices': list([
+          ]),
+          'type': 'ENCHARGE',
+        }),
+        dict({
+          'devices': list([
+            dict({
+              'Enchg_grid_mode': 'multimode-ongrid',
+              'Enpwr_curr_state_id': 16,
+              'Enpwr_grid_mode': 'grid-tied',
+              'Enpwr_relay_state_bm': 975,
+              'admin_state': 24,
+              'admin_state_str': 'ENPWR_STATE_OPER_CLOSED',
+              'comm_level_2_4_ghz': 0,
+              'comm_level_sub_ghz': 0,
+              'communicating': True,
+              'created_date': 1744816473,
+              'device_status': list([
+                'envoy.global.ok',
+                'prop.done',
+              ]),
+              'img_load_date': 1744816473,
+              'img_pnum_running': '2.7.6360_rel/31.33',
+              'installed': 1744816473,
+              'last_rpt_date': 1748577041,
+              'mains_admin_state': "closed",
+              'mains_oper_state': "open",
+              'part_num': '860-01801-r70',
+              'serial_num': '122446012073',
+              'temperature': 76,
+            }),
+          ]),
+          'type': 'ENPOWER',
+        }),
+      ]),
+      '/ivp/ensemble/power': dict({
+        'devices:': list([
+        ]),
+      }),
+      '/ivp/ensemble/secctrl': dict({
+        'ACB_agg_energy': 0,
+        'ACB_agg_soc': 0,
+        'Commission_in_progress': False,
+        'ENC_agg_avail_energy': 0,
+        'ENC_agg_backup_energy': 0,
+        'ENC_agg_soc': 0,
+        'ENC_agg_soh': 0,
+        'ESS_in_progress': False,
+        'Enc_commissioned_capacity': 0,
+        'Enc_max_available_capacity': 0,
+        'Max_energy': 0,
+        'VLS_Limit': 10,
+        'adjusted_backup_soc': 43,
+        'agg_soc': 0,
+        'configured_backup_soc': 43,
+        'freq_bias_hz': 0.0,
+        'freq_bias_hz_phaseb': 0.0,
+        'freq_bias_hz_phasec': 0.0,
+        'freq_bias_hz_q8': 0,
+        'freq_bias_hz_q8_phaseb': 0,
+        'freq_bias_hz_q8_phasec': 0,
+        'shutdown': False,
+        'soc_rec_enabled': True,
+        'soc_recovery_entry': 0,
+        'soc_recovery_exit': 10,
+        'voltage_bias_v': 0.0,
+        'voltage_bias_v_phaseb': 0.0,
+        'voltage_bias_v_phasec': 0.0,
+        'voltage_bias_v_q5': 0,
+        'voltage_bias_v_q5_phaseb': 0,
+        'voltage_bias_v_q5_phasec': 0,
+      }),
+      '/ivp/meters': list([
+        dict({
+          'eid': 704643328,
+          'measurementType': 'production',
+          'meteringStatus': 'normal',
+          'phaseCount': 1,
+          'phaseMode': 'three',
+          'state': 'enabled',
+          'statusFlags': []
+        }),
+        dict({
+          'eid': 704643584,
+          'measurementType': 'net-consumption',
+          'meteringStatus': 'normal',
+          'phaseCount': 1,
+          'phaseMode': 'three',
+          'state': 'enabled',
+          'statusFlags': []
+        }),
+      ]),
+      '/ivp/meters/readings': list([
+        dict({
+          'actEnergyDlvd': 1243812.228,
+          'actEnergyRcvd': 11.600,
+          'activePower': 807.326,
+          'apparentEnergy': 1776752.059,
+          'apparentPower': 1282.057,
+          'channels': list([
+            dict({
+              'actEnergyDlvd': 1243812.228,
+              'actEnergyRcvd': 11.600,
+              'activePower': 807.326,
+              'apparentEnergy': 1776752.059,
+              'apparentPower': 1282.057,
+              'current': 5.299,
+              'eid': 1778385169,
+              'freq': 50.062,
+              'instantaneousDemand': 807.326,
+              'pwrFactor': 0.654,
+              'reactEnergyLagg': 255919.503,
+              'reactEnergyLead': 573233.207,
+              'reactivePower': -886.389,
+              'timestamp': 1748577049,
+              'voltage': 244.062
+            }),
+            dict({
+              'actEnergyDlvd': 0.000,
+              'actEnergyRcvd': 1054.214,
+              'activePower': -0.039,
+              'apparentEnergy': 663.506,
+              'apparentPower': 0.388,
+              'current': 0.182,
+              'eid': 1778385170,
+              'freq': 50.062,
+              'instantaneousDemand': -0.039,
+              'pwrFactor': 0.000,
+              'reactEnergyLagg': 127.361,
+              'reactEnergyLead': 0.000,
+              'reactivePower': 0.000,
+              'timestamp': 1748577049,
+              'voltage': 2.124
+            }),
+            dict({
+              'actEnergyDlvd': 0.000,
+              'actEnergyRcvd': 2598.312,
+              'activePower': -0.000,
+              'apparentEnergy': 49.729,
+              'apparentPower': 0.000,
+              'current': -0.000,
+              'eid': 1778385171,
+              'freq': 50.062,
+              'instantaneousDemand': -0.000,
+              'pwrFactor': 0.000,
+              'reactEnergyLagg': 127.222,
+              'reactEnergyLead': 0.015,
+              'reactivePower': 0.000,
+              'timestamp': 1748577049,
+              'voltage': 3.045
+            }),
+          ]),
+          'current': 5.299,
+          'eid': 704643328,
+          'freq': 50.062,
+          'instantaneousDemand': 807.326,
+          'pwrFactor': 0.654,
+          'reactEnergyLagg': 255919.503,
+          'reactEnergyLead': 573233.207,
+          'reactivePower': -886.389,
+          'timestamp': 1748577049,
+          'voltage': 244.062
+        }),
+        dict({
+          'actEnergyDlvd': 648203.353,
+          'actEnergyRcvd': 883899.646,
+          'activePower': 199.234,
+          'apparentEnergy': 2017963.730,
+          'apparentPower': 993.877,
+          'channels': list([
+            dict({
+              'actEnergyDlvd': 648203.353,
+              'actEnergyRcvd': 883899.646,
+              'activePower': 199.234,
+              'apparentEnergy': 2017963.730,
+              'apparentPower': 993.877,
+              'current': 4.066,
+              'eid': 1778385425,
+              'freq': 50.062,
+              'instantaneousDemand': 199.234,
+              'pwrFactor': 0.140,
+              'reactEnergyLagg': 430154.145,
+              'reactEnergyLead': 463468.848,
+              'reactivePower': 906.056,
+              'timestamp': 1748577049,
+              'voltage': 244.228
+            }),
+            dict({
+              'actEnergyDlvd': 0.000,
+              'actEnergyRcvd': 2171.834,
+              'activePower': -0.236,
+              'apparentEnergy': 1754.876,
+              'apparentPower': 1.010,
+              'current': 0.166,
+              'eid': 1778385426,
+              'freq': 50.062,
+              'instantaneousDemand': -0.236,
+              'pwrFactor': 0.000,
+              'reactEnergyLagg': 122.318,
+              'reactEnergyLead': 0.000,
+              'reactivePower': 0.000,
+              'timestamp': 1748577049,
+              'voltage': 6.082
+            }),
+            dict({
+              'actEnergyDlvd': 0.000,
+              'actEnergyRcvd': 3397.655,
+              'activePower': 0.000,
+              'apparentEnergy': 60.378,
+              'apparentPower': 0.000,
+              'current': -0.000,
+              'eid': 1778385427,
+              'freq': 50.062,
+              'instantaneousDemand': 0.000,
+              'pwrFactor': 0.000,
+              'reactEnergyLagg': 121.108,
+              'reactEnergyLead': 0.038,
+              'reactivePower': 0.000,
+              'timestamp': 1748577049,
+              'voltage': 5.672
+            }),
+          ]),
+          'current': 4.066,
+          'eid': 704643584,
+          'freq': 50.062,
+          'instantaneousDemand': 199.234,
+          'pwrFactor': 0.140,
+          'reactEnergyLagg': 430154.145,
+          'reactEnergyLead': 463468.848,
+          'reactivePower': 906.056,
+          'timestamp': 1748577049,
+          'voltage': 244.228
+        }),
+      ]),
+      '/ivp/pdm/device_data': dict({
+        '553648384': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627390225,
+              'created': 1748576887,
+              'lastReading': dict({
+                'acCurrentInmA': 1049,
+                'acFrequencyINmHz': 50013,
+                'acVoltageINmV': 248156,
+                'channelTemp': 38,
+                'dcCurrentINmA': 8078,
+                'dcVoltageINmV': 32363,
+                'duration': 903,
+                'eid': 1627390225,
+                'endDate': 1748576887,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 68,
+                'joulesProduced': 230400,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 38,
+                'leadingVArs': 0,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834453,
+                'duration': 6124463,
+                'joulesProduced': 354281850
+              }),
+              'wattHours': dict({
+                'today': 1239,
+                'week': 7466,
+                'yesterday': 455
+              }),
+              'watts': dict({
+                'max': 371,
+                'now': 255,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344043197'
+        }),
+        '553648640': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627390481,
+              'created': 1748576917,
+              'lastReading': dict({
+                'acCurrentInmA': 435,
+                'acFrequencyINmHz': 50019,
+                'acVoltageINmV': 246188,
+                'channelTemp': 30,
+                'dcCurrentINmA': 2324,
+                'dcVoltageINmV': 31684,
+                'duration': 903,
+                'eid': 1627390481,
+                'endDate': 1748576917,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 70,
+                'joulesProduced': 70425,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 39,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834377,
+                'duration': 6125538,
+                'joulesProduced': 259647525
+              }),
+              'wattHours': dict({
+                'today': 773,
+                'week': 5129,
+                'yesterday': 447
+              }),
+              'watts': dict({
+                'max': 309,
+                'now': 78,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344044368'
+        }),
+        '553648896': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627390737,
+              'created': 1748576977,
+              'lastReading': dict({
+                'acCurrentInmA': 424,
+                'acFrequencyINmHz': 50016,
+                'acVoltageINmV': 245906,
+                'channelTemp': 41,
+                'dcCurrentINmA': 2598,
+                'dcVoltageINmV': 31117,
+                'duration': 903,
+                'eid': 1627390737,
+                'endDate': 1748576977,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 76,
+                'joulesProduced': 230625,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 38,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834457,
+                'duration': 6124361,
+                'joulesProduced': 359500950
+              }),
+              'wattHours': dict({
+                'today': 1245,
+                'week': 7778,
+                'yesterday': 459
+              }),
+              'watts': dict({
+                'max': 370,
+                'now': 255,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344044385'
+        }),
+        '553649152': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627390993,
+              'created': 1748577008,
+              'lastReading': dict({
+                'acCurrentInmA': 331,
+                'acFrequencyINmHz': 50026,
+                'acVoltageINmV': 245188,
+                'channelTemp': 36,
+                'dcCurrentINmA': 1469,
+                'dcVoltageINmV': 31477,
+                'duration': 904,
+                'eid': 1627390993,
+                'endDate': 1748577008,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 70,
+                'joulesProduced': 216000,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 37,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834459,
+                'duration': 6124386,
+                'joulesProduced': 332167725
+              }),
+              'wattHours': dict({
+                'today': 992,
+                'week': 6099,
+                'yesterday': 435
+              }),
+              'watts': dict({
+                'max': 367,
+                'now': 239,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344044392'
+        }),
+        '553649408': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627391249,
+              'created': 1748577037,
+              'lastReading': dict({
+                'acCurrentInmA': 334,
+                'acFrequencyINmHz': 50023,
+                'acVoltageINmV': 245563,
+                'channelTemp': 35,
+                'dcCurrentINmA': 1488,
+                'dcVoltageINmV': 31441,
+                'duration': 903,
+                'eid': 1627391249,
+                'endDate': 1748577037,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 72,
+                'joulesProduced': 117225,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 39,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834609,
+                'duration': 6124491,
+                'joulesProduced': 260339400
+              }),
+              'wattHours': dict({
+                'today': 467,
+                'week': 3714,
+                'yesterday': 405
+              }),
+              'watts': dict({
+                'max': 341,
+                'now': 130,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344044656'
+        }),
+        '553649664': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627391505,
+              'created': 1748577038,
+              'lastReading': dict({
+                'acCurrentInmA': 379,
+                'acFrequencyINmHz': 50026,
+                'acVoltageINmV': 245563,
+                'channelTemp': 41,
+                'dcCurrentINmA': 1949,
+                'dcVoltageINmV': 30504,
+                'duration': 903,
+                'eid': 1627391505,
+                'endDate': 1748577038,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 70,
+                'joulesProduced': 205200,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 40,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834598,
+                'duration': 6124485,
+                'joulesProduced': 283035600
+              }),
+              'wattHours': dict({
+                'today': 815,
+                'week': 5251,
+                'yesterday': 416
+              }),
+              'watts': dict({
+                'max': 349,
+                'now': 227,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344046030'
+        }),
+        '553649920': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627391761,
+              'created': 1748576165,
+              'lastReading': dict({
+                'acCurrentInmA': 415,
+                'acFrequencyINmHz': 49988,
+                'acVoltageINmV': 245625,
+                'channelTemp': 30,
+                'dcCurrentINmA': 2637,
+                'dcVoltageINmV': 31656,
+                'duration': 904,
+                'eid': 1627391761,
+                'endDate': 1748576165,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 74,
+                'joulesProduced': 76725,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 39,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834388,
+                'duration': 6124702,
+                'joulesProduced': 260345025
+              }),
+              'wattHours': dict({
+                'today': 751,
+                'week': 5036,
+                'yesterday': 444
+              }),
+              'watts': dict({
+                'max': 308,
+                'now': 85,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344046450'
+        }),
+        '553650176': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627392017,
+              'created': 1748576166,
+              'lastReading': dict({
+                'acCurrentInmA': 315,
+                'acFrequencyINmHz': 49985,
+                'acVoltageINmV': 246188,
+                'channelTemp': 27,
+                'dcCurrentINmA': 789,
+                'dcVoltageINmV': 33156,
+                'duration': 904,
+                'eid': 1627392017,
+                'endDate': 1748576166,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 70,
+                'joulesProduced': 31050,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 39,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834506,
+                'duration': 6123681,
+                'joulesProduced': 216194625
+              }),
+              'wattHours': dict({
+                'today': 207,
+                'week': 2283,
+                'yesterday': 380
+              }),
+              'watts': dict({
+                'max': 362,
+                'now': 34,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344046574'
+        }),
+        '553650432': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627392273,
+              'created': 1748576194,
+              'lastReading': dict({
+                'acCurrentInmA': 358,
+                'acFrequencyINmHz': 49978,
+                'acVoltageINmV': 245750,
+                'channelTemp': 32,
+                'dcCurrentINmA': 1879,
+                'dcVoltageINmV': 31922,
+                'duration': 903,
+                'eid': 1627392273,
+                'endDate': 1748576194,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 78,
+                'joulesProduced': 57375,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 39,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834414,
+                'duration': 6123760,
+                'joulesProduced': 262778625
+              }),
+              'wattHours': dict({
+                'today': 769,
+                'week': 5048,
+                'yesterday': 443
+              }),
+              'watts': dict({
+                'max': 299,
+                'now': 64,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344047608'
+        }),
+        '553650688': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627392529,
+              'created': 1748576196,
+              'lastReading': dict({
+                'acCurrentInmA': 1073,
+                'acFrequencyINmHz': 49977,
+                'acVoltageINmV': 247063,
+                'channelTemp': 36,
+                'dcCurrentINmA': 8320,
+                'dcVoltageINmV': 32398,
+                'duration': 904,
+                'eid': 1627392529,
+                'endDate': 1748576196,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 70,
+                'joulesProduced': 209700,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 38,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834482,
+                'duration': 6123650,
+                'joulesProduced': 342205650
+              }),
+              'wattHours': dict({
+                'today': 979,
+                'week': 6393,
+                'yesterday': 438
+              }),
+              'watts': dict({
+                'max': 364,
+                'now': 232,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344047620'
+        }),
+        '553650944': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627392785,
+              'created': 1748576197,
+              'lastReading': dict({
+                'acCurrentInmA': 1088,
+                'acFrequencyINmHz': 49978,
+                'acVoltageINmV': 246500,
+                'channelTemp': 41,
+                'dcCurrentINmA': 8527,
+                'dcVoltageINmV': 32012,
+                'duration': 905,
+                'eid': 1627392785,
+                'endDate': 1748576197,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 74,
+                'joulesProduced': 213300,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 38,
+                'leadingVArs': 0,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834445,
+                'duration': 6123908,
+                'joulesProduced': 360257400
+              }),
+              'wattHours': dict({
+                'today': 1209,
+                'week': 7838,
+                'yesterday': 467
+              }),
+              'watts': dict({
+                'max': 365,
+                'now': 236,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344047645'
+        }),
+        '553651200': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627393041,
+              'created': 1748576224,
+              'lastReading': dict({
+                'acCurrentInmA': 1060,
+                'acFrequencyINmHz': 49977,
+                'acVoltageINmV': 246281,
+                'channelTemp': 36,
+                'dcCurrentINmA': 8102,
+                'dcVoltageINmV': 32316,
+                'duration': 903,
+                'eid': 1627393041,
+                'endDate': 1748576224,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 74,
+                'joulesProduced': 204975,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 39,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834485,
+                'duration': 6123654,
+                'joulesProduced': 348953175
+              }),
+              'wattHours': dict({
+                'today': 1120,
+                'week': 7235,
+                'yesterday': 447
+              }),
+              'watts': dict({
+                'max': 365,
+                'now': 227,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344047687'
+        }),
+        '553651456': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627393297,
+              'created': 1748576226,
+              'lastReading': dict({
+                'acCurrentInmA': 1068,
+                'acFrequencyINmHz': 49969,
+                'acVoltageINmV': 247094,
+                'channelTemp': 40,
+                'dcCurrentINmA': 8383,
+                'dcVoltageINmV': 32133,
+                'duration': 904,
+                'eid': 1627393297,
+                'endDate': 1748576226,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 70,
+                'joulesProduced': 209925,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 38,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834446,
+                'duration': 6123674,
+                'joulesProduced': 358057125
+              }),
+              'wattHours': dict({
+                'today': 1199,
+                'week': 7769,
+                'yesterday': 462
+              }),
+              'watts': dict({
+                'max': 365,
+                'now': 232,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344047713'
+        }),
+        '553651712': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627393553,
+              'created': 1748576255,
+              'lastReading': dict({
+                'acCurrentInmA': 1028,
+                'acFrequencyINmHz': 49984,
+                'acVoltageINmV': 245344,
+                'channelTemp': 39,
+                'dcCurrentINmA': 7902,
+                'dcVoltageINmV': 32043,
+                'duration': 904,
+                'eid': 1627393553,
+                'endDate': 1748576255,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 74,
+                'joulesProduced': 195525,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 39,
+                'leadingVArs': 1,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834580,
+                'duration': 6123492,
+                'joulesProduced': 286893675
+              }),
+              'wattHours': dict({
+                'today': 780,
+                'week': 5471,
+                'yesterday': 426
+              }),
+              'watts': dict({
+                'max': 338,
+                'now': 216,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344047722'
+        }),
+        '553651968': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1627393809,
+              'created': 1748576256,
+              'lastReading': dict({
+                'acCurrentInmA': 417,
+                'acFrequencyINmHz': 49984,
+                'acVoltageINmV': 245500,
+                'channelTemp': 29,
+                'dcCurrentINmA': 2637,
+                'dcVoltageINmV': 31953,
+                'duration': 904,
+                'eid': 1627393809,
+                'endDate': 1748576256,
+                'flags': 0,
+                'flags_hex': '0x0000000000000000',
+                'interval_type': 0,
+                'issi': 70,
+                'joulesProduced': 75600,
+                'joulesUsed': 0,
+                'l1NAcVoltageInmV': 0,
+                'l2NAcVoltageInmV': 0,
+                'l3NAcVoltageInmV': 0,
+                'laggingVArs': 39,
+                'leadingVArs': 0,
+                'pwrConvErrSecs': 0,
+                'pwrConvMaxErrCycles': 0,
+                'rssi': 110
+              }),
+              'lifetime': dict({
+                'createdTime': 1744834361,
+                'duration': 6124139,
+                'joulesProduced': 266390550
+              }),
+              'wattHours': dict({
+                'today': 777,
+                'week': 5130,
+                'yesterday': 453
+              }),
+              'watts': dict({
+                'max': 324,
+                'now': 84,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'pcu',
+          'modGone': False,
+          'sn': '122344048305'
+        }),
+        '704643328': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1778385169,
+              'created': 1748576700,
+              'lastReading': dict({
+                'curr_w': 2675,
+                'duration': 900,
+                'eid': 1778385169,
+                'endDate': 1748576700,
+                'freq_mhz': 50000,
+                'interval_type': 0,
+                'rms_mamp': 12045,
+                'rms_mvolt': 246790,
+                'vah_cum': 1776512,
+                'varh_lag_cum': 255919,
+                'varh_lead_cum': 573128,
+                'wh_dlvd_cum': 1243605,
+                'wh_neg': 11,
+                'wh_pos': 1243605
+              }),
+              'lifetime': dict({
+                'createdTime': 1744817400,
+                'duration': 6212100,
+                'vah_cum': 1776512,
+                'varh_lag_cum': 255919,
+                'varh_lead_cum': 573128,
+                'wh_dlvd_cum': 1243605
+              }),
+              'wattHours': dict({
+                'today': 13233,
+                'week': 86068,
+                'yesterday': 6432
+              }),
+              'watts': dict({
+                'max': 5171,
+                'now': 2675,
+                'nowUsed': 0
+              }),
+            }),
+            dict({
+              'chanEid': 1778385170,
+              'created': 0,
+              'lastReading': dict({
+	      }),
+              'lifetime': dict({
+	      }),
+              'wattHours': dict({
+                'today': 0,
+                'week': 0,
+                'yesterday': 0
+              }),
+              'watts': dict({
+                'max': 0,
+                'now': 0,
+                'nowUsed': 0
+              }),
+            }),
+            dict({
+              'chanEid': 1778385171,
+              'created': 0,
+              'lastReading': dict({
+	      }),
+              'lifetime': dict({
+	      }),
+              'wattHours': dict({
+                'today': 0,
+                'week': 0,
+                'yesterday': 0
+              }),
+              'watts': dict({
+                'max': 0,
+                'now': 0,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'eim',
+          'modGone': True,
+          'sn': '122446001637EIM1'
+        }),
+        '704643584': dict({
+          'active': True,
+          'channels': list([
+            dict({
+              'chanEid': 1778385425,
+              'created': 1748576700,
+              'lastReading': dict({
+                'curr_w': 419,
+                'duration': 900,
+                'eid': 1778385425,
+                'endDate': 1748576700,
+                'freq_mhz': 50062,
+                'interval_type': 0,
+                'rms_mamp': 1974,
+                'rms_mvolt': 246944,
+                'vah_cum': 2017794,
+                'varh_lag_cum': 174130,
+                'varh_lead_cum': -109660,
+                'wh_dlvd_cum': 1007981,
+                'wh_neg': 883785,
+                'wh_pos': 648196
+              }),
+              'lifetime': dict({
+                'createdTime': 1744817400,
+                'duration': 6211500,
+                'vah_cum': 2017794,
+                'varh_lag_cum': 174130,
+                'varh_lead_cum': -109660,
+                'wh_dlvd_cum': 1007981
+              }),
+              'wattHours': dict({
+                'today': 14467,
+                'week': 136796,
+                'yesterday': 25760
+              }),
+              'watts': dict({
+                'max': 5726,
+                'now': 419,
+                'nowUsed': 0
+              }),
+            }),
+            dict({
+              'chanEid': 1778385426,
+              'created': 0,
+              'lastReading': dict({
+	      }),
+              'lifetime': dict({
+	      }),
+              'wattHours': dict({
+                'today': 0,
+                'week': 0,
+                'yesterday': 0
+              }),
+              'watts': dict({
+                'max': 0,
+                'now': 0,
+                'nowUsed': 0
+              }),
+            }),
+            dict({
+              'chanEid': 1778385427,
+              'created': 0,
+              'lastReading': dict({
+	      }),
+              'lifetime': dict({
+	      }),
+              'wattHours': dict({
+                'today': 0,
+                'week': 0,
+                'yesterday': 0
+              }),
+              'watts': dict({
+                'max': 0,
+                'now': 0,
+                'nowUsed': 0
+              }),
+            }),
+          ]),
+          'devName': 'eim',
+          'modGone': True,
+          'sn': '122446001637EIM2'
+        }),
+        'deviceCount': 17,
+        'deviceDataLimit': 50
+      }),
+      '/ivp/ss/dry_contact_settings': dict({
+        'dry_contacts': list([
+          dict({
+            'black_s_start': 5.0,
+            'essential_end_time': 57600.0,
+            'essential_start_time': 32400.0,
+            'gen_action': 'none',
+            'grid_action': 'none',
+            'id': 'NC1',
+            'load_name': '',
+            'manual_override': 'true',
+            'micro_grid_action': 'none',
+            'mode': 'manual',
+            'override': 'false',
+            'priority': 1.0,
+            'pv_serial_nb': list([
+	    ]),
+            'soc_high': 40.0,
+            'soc_low': 30.0,
+            'type': 'NONE'
+          }),
+          dict({
+            'black_s_start': 5.0,
+            'essential_end_time': 57600.0,
+            'essential_start_time': 32400.0,
+            'gen_action': 'none',
+            'grid_action': 'none',
+            'id': 'NC2',
+            'load_name': '',
+            'manual_override': 'true',
+            'micro_grid_action': 'none',
+            'mode': 'manual',
+            'override': 'false',
+            'priority': 2.0,
+            'pv_serial_nb': list([
+	    ]),
+            'soc_high': 40.0,
+            'soc_low': 30.0,
+            'type': 'NONE'
+          }),
+          dict({
+            'black_s_start': 5.0,
+            'essential_end_time': 57600.0,
+            'essential_start_time': 32400.0,
+            'gen_action': 'none',
+            'grid_action': 'none',
+            'id': 'NO1',
+            'load_name': '',
+            'manual_override': 'true',
+            'micro_grid_action': 'none',
+            'mode': 'manual',
+            'override': 'false',
+            'priority': 3.0,
+            'pv_serial_nb': list([
+	    ]),
+            'soc_high': 40.0,
+            'soc_low': 30.0,
+            'type': 'NONE'
+          }),
+          dict({
+            'black_s_start': 5.0,
+            'essential_end_time': 57600.0,
+            'essential_start_time': 32400.0,
+            'gen_action': 'none',
+            'grid_action': 'none',
+            'id': 'NO2',
+            'load_name': '',
+            'manual_override': 'true',
+            'micro_grid_action': 'none',
+            'mode': 'manual',
+            'override': 'false',
+            'priority': 4.0,
+            'pv_serial_nb': list([
+	    ]),
+            'soc_high': 40.0,
+            'soc_low': 30.0,
+            'type': 'NONE'
+          }),
+        ]),
+      }),
+      '/ivp/ss/gen_config': dict({
+      }),
+      '/production.json?details=1': dict({
+          'consumption': list([
+            dict({
+              'activeCount': 1,
+              'apprntPwr': 2211.492,
+              'lines': list([
+                dict({
+                  'apprntPwr': 2211.492,
+                  'pwrFactor': 0.46,
+                  'reactPwr': 12.5,
+                  'rmsCurrent': 9.066,
+                  'rmsVoltage': 243.936,
+                  'vahLifetime': 2017962.849,
+                  'vahToday': 16553.849,
+                  'varhLagLifetime': 174233.838,
+                  'varhLagToday': 669.838,
+                  'varhLeadLifetime': -109763.575,
+                  'varhLeadToday': 0.0,
+                  'wNow': 1014.016,
+                  'whLastSevenDays': 136895.311,
+                  'whLifetime': 1008080.311,
+                  'whToday': 14566.311
+                }),
+              ]),
+              'measurementType': 'total-consumption',
+              'pwrFactor': 0.46,
+              'reactPwr': 12.5,
+              'readingTime': 1748577046,
+              'rmsCurrent': 9.066,
+              'rmsVoltage': 243.936,
+              'type': 'eim',
+              'vahLifetime': 2017962.849,
+              'vahToday': 16553.849,
+              'varhLagLifetime': 174233.838,
+              'varhLagToday': 669.838,
+              'varhLeadLifetime': -109763.575,
+              'varhLeadToday': 0.0,
+              'wNow': 1014.016,
+              'whLastSevenDays': 136895.311,
+              'whLifetime': 1008080.311,
+              'whToday': 14566.311
+            }),),
+            dict({
+              'activeCount': 1,
+              'apprntPwr': 984.004,
+              'lines': list([
+                dict({
+                  'apprntPwr': 984.004,
+                  'pwrFactor': 0.28,
+                  'reactPwr': 899.461,
+                  'rmsCurrent': 4.034,
+                  'rmsVoltage': 243.936,
+                  'vahLifetime': 2017962.849,
+                  'vahToday': 0,
+                  'varhLagLifetime': 430153.341,
+                  'varhLagToday': 0,
+                  'varhLeadLifetime': 463468.848,
+                  'varhLeadToday': 0,
+                  'wNow': 279.186,
+                  'whLastSevenDays': 0,
+                  'whLifetime': -235661.732,
+                  'whToday': 0
+                }),
+              ]),
+              'measurementType': 'net-consumption',
+              'pwrFactor': 0.28,
+              'reactPwr': 899.461,
+              'readingTime': 1748577046,
+              'rmsCurrent': 4.034,
+              'rmsVoltage': 243.936,
+              'type': 'eim',
+              'vahLifetime': 2017962.849,
+              'vahToday': 0,
+              'varhLagLifetime': 430153.341,
+              'varhLagToday': 0,
+              'varhLeadLifetime': 463468.848,
+              'varhLeadToday': 0,
+              'wNow': 279.186,
+              'whLastSevenDays': 0,
+              'whLifetime': -235661.732,
+              'whToday': 0
+            }),
+          ]),
+          'production': list([
+            dict({
+              'activeCount': 15,
+              'readingTime': 1748577038,
+              'type': 'inverters',
+              'wNow': 2594,
+              'whLifetime': 1264180
+            }),),
+            dict({
+              'activeCount': 1,
+              'apprntPwr': 1242.277,
+              'lines': list([
+                dict({
+                  'apprntPwr': 1242.277,
+                  'pwrFactor': 0.61,
+                  'reactPwr': -886.961,
+                  'rmsCurrent': 5.032,
+                  'rmsVoltage': 243.655,
+                  'vahLifetime': 1776750.926,
+                  'vahToday': 16483.926,
+                  'varhLagLifetime': 255919.503,
+                  'varhLagToday': 1824.503,
+                  'varhLeadLifetime': 573232.424,
+                  'varhLeadToday': 3458.424,
+                  'wNow': 734.83,
+                  'whLastSevenDays': 86274.514,
+                  'whLifetime': 1243811.514,
+                  'whToday': 13439.514
+                }),
+              ]),
+              'measurementType': 'production',
+              'pwrFactor': 0.61,
+              'reactPwr': -886.961,
+              'readingTime': 1748577046,
+              'rmsCurrent': 5.032,
+              'rmsVoltage': 243.655,
+              'type': 'eim',
+              'vahLifetime': 1776750.926,
+              'vahToday': 16483.926,
+              'varhLagLifetime': 255919.503,
+              'varhLagToday': 1824.503,
+              'varhLeadLifetime': 573232.424,
+              'varhLeadToday': 3458.424,
+              'wNow': 734.83,
+              'whLastSevenDays': 86274.514,
+              'whLifetime': 1243811.514,
+              'whToday': 13439.514
+            }),
+          ]),
+          'storage': list([
+            dict({
+              'activeCount': 0,
+              'readingTime': 0,
+              'state': 'idle',
+              'type': 'acb',
+              'wNow': 0,
+              'whNow': 0
+            }),
+          ]),
+      }),
+    }),
+    'system_consumption': dict({
+      'watt_hours_last_7_days': 882,
+      'watt_hours_lifetime': 22392008,
+      'watt_hours_today': 3333,
+      'watts_now': 2670,
+    }),
+    'system_consumption_phases': None,
+    'system_net_consumption': dict({
+      'watt_hours_last_7_days': 0,
+      'watt_hours_lifetime': 7298714,
+      'watt_hours_today': 0,
+      'watts_now': 240,
+    }),
+    'system_net_consumption_phases': None,
+    'system_production': dict({
+      'watt_hours_last_7_days': 360056,
+      'watt_hours_lifetime': 15097303,
+      'watt_hours_today': 2645,
+      'watts_now': 2430,
+    }),
+    'system_production_phases': None,
+    'tariff': dict({
+      'currency': dict({
+        'code': 'USD',
+      }),
+      'date': '1716803909',
+      'logger': 'mylogger',
+      'seasons': list([
+        dict({
+          'days': list([
+            dict({
+              'days': 'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+              'enable_discharge_to_grid': False,
+              'id': 'all_days',
+              'must_charge_duration': 0,
+              'must_charge_mode': 'CP',
+              'must_charge_start': 0,
+              'peak_rule': 'DL',
+              'periods': list([
+                dict({
+                  'id': 'period_1',
+                  'rate': 0,
+                  'start': 0,
+                }),
+              ]),
+            }),
+          ]),
+          'id': 'all_year_long',
+          'start': '1/1',
+          'tiers': list([
+          ]),
+        }),
+      ]),
+      'seasons_sell': list([
+      ]),
+      'single_rate': dict({
+        'rate': 0,
+        'sell': 0.03999900072813034,
+      }),
+      'storage_settings': dict({
+        'charge_from_grid': False,
+        'date': '1716803909',
+        'mode': <EnvoyStorageMode.SELF_CONSUMPTION: 'self-consumption'>,
+        'operation_mode_sub_type': '',
+        'opt_schedules': None,
+        'reserved_soc': 50,
+        'very_low_soc': 10,
+      }),
+    }),
+  })
+# ---

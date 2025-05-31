@@ -357,6 +357,22 @@ async def test_with_4_2_27_firmware(
             },
             {},
         ),
+        (
+            "8.2.4345_with_device_data",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.ENPOWER
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.DUALPHASE
+            | SupportedFeatures.CTMETERS,
+            2,
+            {},
+            {},
+        ),
     ],
     ids=[
         "5.0.62",
@@ -378,6 +394,7 @@ async def test_with_4_2_27_firmware(
         "8.1.41",
         "8.2.127_with_3cts_and_battery_split",
         "8.2.127_with_generator_running",
+        "8.2.4345_with_device_data",
     ],
 )
 @pytest.mark.asyncio
