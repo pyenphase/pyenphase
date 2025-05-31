@@ -46,6 +46,7 @@ async def test_with_4_2_27_firmware(
     envoy = await get_mock_envoy(version, test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.METERING)
     assert not (envoy._supported_features & SupportedFeatures.INVERTERS)
@@ -92,6 +93,7 @@ async def test_with_4_2_33_firmware_no_cons_ct(
     envoy = await get_mock_envoy(version, test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert envoy._supported_features & SupportedFeatures.METERING
     assert envoy._supported_features & SupportedFeatures.INVERTERS
@@ -155,6 +157,7 @@ async def test_with_5_0_49_firmware(
     envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -505,6 +508,7 @@ async def test_with_3_7_0_firmware(
         envoy = await get_mock_envoy(version, test_client_session)
         data = envoy.data
         assert data is not None
+        assert envoy._supported_features is not None
 
         assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
         assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -600,6 +604,7 @@ async def test_with_3_9_36_firmware_no_inverters(
     envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
