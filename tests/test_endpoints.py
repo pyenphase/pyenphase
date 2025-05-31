@@ -1286,7 +1286,7 @@ async def test_with_7_x_firmware(
     files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     # get http or https paths based on firmware version
     full_host = endpoint_path(version, envoy.host)
     data = envoy.data
@@ -1386,7 +1386,7 @@ async def test_with_7_x_firmware(
 
         # updating dry contacts before first data update should fail
         with pytest.raises(ValueError):
-            bad_envoy = await get_mock_envoy(version, test_client_session, update=False)
+            bad_envoy = await get_mock_envoy(test_client_session, update=False)
             await bad_envoy.probe()
             await bad_envoy.update_dry_contact({"id": "NC1"})
 
@@ -1795,7 +1795,7 @@ async def test_with_7_x_firmware(
             repeat=True,
         )
 
-        bad_envoy = await get_mock_envoy(version, test_client_session)
+        bad_envoy = await get_mock_envoy(test_client_session)
         await bad_envoy.probe()
         with pytest.raises(EnvoyFeatureNotAvailable):
             assert bad_envoy.data is not None

@@ -32,7 +32,7 @@ async def test_with_4_2_27_firmware(
     version = "4.2.27"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
@@ -300,7 +300,7 @@ async def test_with_7_x_firmware(
 
     caplog.set_level(logging.DEBUG)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     full_host = endpoint_path(version, envoy.host)
     data = envoy.data
     assert data
@@ -348,7 +348,7 @@ async def test_with_7_x_firmware(
         payload=prod_json,
         repeat=True,
     )
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data
     assert envoy.acb_count == 0

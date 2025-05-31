@@ -104,7 +104,7 @@ def start_7_firmware_mock(mock_aioresponse: aioresponses) -> None:
 
 
 async def get_mock_envoy(
-    version: str, client_session: aiohttp.ClientSession, update: bool = True
+    client_session: aiohttp.ClientSession, update: bool = True
 ) -> Envoy:
     """Return a mock Envoy."""
     host = "127.0.0.1"

@@ -89,7 +89,7 @@ async def test_interface_settings_with_7_6_175(
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # Create envoy using get_mock_envoy which handles all the setup
-    envoy = await get_mock_envoy(version, test_client_session, update=False)
+    envoy = await get_mock_envoy(test_client_session, update=False)
 
     # test interface_settings method
     home_data: EnvoyInterfaceInformation | None = await envoy.interface_settings()

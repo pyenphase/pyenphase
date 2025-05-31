@@ -93,7 +93,7 @@ async def test_metered_noct(
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
 

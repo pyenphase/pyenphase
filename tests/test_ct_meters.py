@@ -37,7 +37,7 @@ async def test_pr111_with_7_3_466_metered_disabled_cts(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
@@ -72,7 +72,7 @@ async def test_pr111_with_7_6_175_with_cts(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
@@ -118,7 +118,7 @@ async def test_pr111_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
@@ -156,7 +156,7 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
 
@@ -281,7 +281,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
 
@@ -390,7 +390,7 @@ async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase(
     )
 
     # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
 
@@ -413,7 +413,7 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split(
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
 
@@ -514,6 +514,6 @@ async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_ba
     )
 
     # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None

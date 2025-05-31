@@ -146,7 +146,7 @@ async def test_with_3_9_36_firmware_bad_auth(
     )
 
     with pytest.raises(EnvoyAuthenticationRequired):
-        await get_mock_envoy(version, test_client_session)
+        await get_mock_envoy(test_client_session)
 
 
 @pytest.mark.asyncio
@@ -246,7 +246,7 @@ async def test_production_with_3_9_36_firmware_bad_auth(
     )
 
     with pytest.raises(EnvoyAuthenticationRequired):
-        await get_mock_envoy(version, test_client_session)
+        await get_mock_envoy(test_client_session)
 
 
 @pytest.mark.parametrize(

@@ -43,7 +43,7 @@ async def test_with_4_2_27_firmware(
     version = "4.2.27"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
@@ -90,7 +90,7 @@ async def test_with_4_2_33_firmware_no_cons_ct(
     version = "4.2.33"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
@@ -154,7 +154,7 @@ async def test_with_5_0_49_firmware(
     version = "5.0.49"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
@@ -438,7 +438,7 @@ async def test_with_3_7_0_firmware(
 
     # Verify the library does not support scraping to comply with ADR004
     with pytest.raises(EnvoyProbeFailed):
-        await get_mock_envoy(version, test_client_session)
+        await get_mock_envoy(test_client_session)
 
     # Test the register interface by registering a legacy production scraper
     #
@@ -506,7 +506,7 @@ async def test_with_3_7_0_firmware(
     remove = register_updater(LegacyProductionScraper)
     assert LegacyProductionScraper in get_updaters()
     try:
-        envoy = await get_mock_envoy(version, test_client_session)
+        envoy = await get_mock_envoy(test_client_session)
         data = envoy.data
         assert data is not None
         assert envoy._supported_features is not None
@@ -564,7 +564,7 @@ async def test_with_3_9_36_firmware_bad_auth(
     )
 
     with pytest.raises(EnvoyAuthenticationRequired):
-        await get_mock_envoy(version, test_client_session)
+        await get_mock_envoy(test_client_session)
 
 
 @pytest.mark.asyncio
@@ -584,7 +584,7 @@ async def test_with_3_9_36_firmware_no_inverters(
         repeat=True,
     )
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
@@ -622,7 +622,7 @@ async def test_with_3_9_36_firmware(
         repeat=True,
     )
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
@@ -737,7 +737,7 @@ async def test_with_3_9_36_firmware_with_production_401(
     # force 401 on production
     mock_aioresponse.get("http://127.0.0.1/production", status=401, repeat=True)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
@@ -796,7 +796,7 @@ async def test_with_3_9_36_firmware_with_production_and_production_json_401(
     )
 
     with pytest.raises(EnvoyAuthenticationRequired):
-        await get_mock_envoy(version, test_client_session)
+        await get_mock_envoy(test_client_session)
 
 
 @pytest.mark.asyncio
@@ -813,7 +813,7 @@ async def test_with_3_8_10_firmware_with_meters_401(
         mock_aioresponse, "get", "http://127.0.0.1/ivp/meters", status=401, repeat=True
     )
     caplog.set_level(logging.DEBUG)
-    await get_mock_envoy(version, test_client_session)
+    await get_mock_envoy(test_client_session)
     assert "Skipping meters endpoint as user does not have access to" in caplog.text
 
 
@@ -827,7 +827,7 @@ async def test_with_3_17_3_firmware(
     version = "3.17.3"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy(version, test_client_session)
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
@@ -1114,7 +1114,7 @@ async def test_with_3_17_3_firmware_zero_production(
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # Get envoy and let it probe with good data
-    envoy = await get_mock_envoy(version, test_client_session, update=True)
+    envoy = await get_mock_envoy(test_client_session, update=True)
 
     # Now override the production endpoint to return zeros for the next update
     override_mock(
