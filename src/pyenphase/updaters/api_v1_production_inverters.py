@@ -1,7 +1,8 @@
 import logging
-from typing import Any
+from typing import Any, cast
 
-from ..const import URL_DEVICE_DATA, URL_PRODUCTION_INVERTERS, SupportedFeatures
+from ..const import (URL_DEVICE_DATA, URL_PRODUCTION_INVERTERS,
+                     SupportedFeatures)
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.inverter import EnvoyInverter
@@ -38,21 +39,26 @@ class EnvoyApiV1ProductionInvertersUpdater(EnvoyUpdater):
                     e,
                 )
 
+        _LOGGER.debug(
+            "Disabling inverters production endpoint as no valid endpoints found"
+        )
+        return None
+
     async def update(self, envoy_data: EnvoyData) -> None:
         """Update the Envoy for this updater."""
-        inverters_data: list[dict[str, Any]] | dict[str, Any] = (
-            await self._json_request(self._preferred_endpoint)
-        )
+        inverters_data: (
+            list[dict[str, Any]] | dict[str, Any]
+        ) = await self._json_request(self._preferred_endpoint)
         envoy_data.raw[self._preferred_endpoint] = inverters_data
         if self._preferred_endpoint == URL_PRODUCTION_INVERTERS:
             envoy_data.inverters = {
                 inverter["serialNumber"]: EnvoyInverter.from_v1_api(inverter)
-                for inverter in inverters_data
+                for inverter in cast(list[dict[str, Any]], inverters_data)
             }
         if self._preferred_endpoint == URL_DEVICE_DATA:
             envoy_data.inverters = {
                 inverter["sn"]: EnvoyInverter.from_device_data(inverter)
-                for id, inverter in inverters_data.items()
+                for id, inverter in cast(dict[str, Any], inverters_data).items()
                 if id not in ("deviceCount", "deviceDataLimit")
                 and inverter["devName"] == "pcu"
             }

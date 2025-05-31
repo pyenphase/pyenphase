@@ -11,11 +11,7 @@ from pyenphase.const import PhaseNames
 from pyenphase.envoy import SupportedFeatures
 from pyenphase.models.envoy import EnvoyData
 
-from .common import (
-    get_mock_envoy,
-    prep_envoy,
-    start_7_firmware_mock,
-)
+from .common import get_mock_envoy, prep_envoy, start_7_firmware_mock
 
 LOGGER = logging.getLogger(__name__)
 
