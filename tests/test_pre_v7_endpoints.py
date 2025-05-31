@@ -779,6 +779,7 @@ async def test_with_3_9_36_firmware_with_production_401(
     assert envoy.part_number == "800-00069-r05"
 
     assert not data.system_consumption
+    assert data.system_production is not None
     assert data.system_production.watts_now == 1271
     assert data.system_production.watt_hours_today == 1460
     assert data.system_production.watt_hours_last_7_days == 130349
@@ -894,6 +895,7 @@ async def test_with_3_17_3_firmware(
     assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
+    assert data.system_production is not None
     assert data.system_production.watts_now == 5463
     assert data.system_production.watt_hours_today == 5481
     assert data.system_production.watt_hours_last_7_days == 389581
