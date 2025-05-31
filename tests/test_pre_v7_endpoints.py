@@ -176,6 +176,7 @@ async def test_with_5_0_49_firmware(
     assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
+    assert data.system_production is not None
     assert data.system_production.watts_now == 4859
     assert data.system_production.watt_hours_today == 5046
     assert data.system_production.watt_hours_last_7_days == 445686
@@ -519,6 +520,7 @@ async def test_with_3_7_0_firmware(
         assert envoy.part_number == "800-00069-r05"
 
         assert not data.system_consumption
+        assert data.system_production is not None
         assert data.system_production.watts_now == 6630
         assert data.system_production.watt_hours_today == 53600
         assert data.system_production.watt_hours_last_7_days == 405000
@@ -649,6 +651,7 @@ async def test_with_3_9_36_firmware(
     envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -666,6 +669,7 @@ async def test_with_3_9_36_firmware(
     assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
+    assert data.system_production is not None
     assert data.system_production.watts_now == 1271
     assert data.system_production.watt_hours_today == 1460
     assert data.system_production.watt_hours_last_7_days == 130349
@@ -763,6 +767,7 @@ async def test_with_3_9_36_firmware_with_production_401(
     envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -871,6 +876,7 @@ async def test_with_3_17_3_firmware(
     envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
