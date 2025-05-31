@@ -34,14 +34,14 @@ class EnvoyUpdater:
         response = await self._request(end_point)
         if not (200 <= response.status < 300):
             raise EnvoyHTTPStatusError(response.status, str(response.url))
-        return json_loads(end_point, response._content)
+        return json_loads(end_point, await response.read())
 
     async def _json_probe_request(self, end_point: str) -> Any:
         """Make a probe request to the Envoy and return the JSON response."""
         response = await self._probe_request(end_point)
         if not (200 <= response.status < 300):
             raise EnvoyHTTPStatusError(response.status, str(response.url))
-        return json_loads(end_point, response._content)
+        return json_loads(end_point, await response.read())
 
     @abstractmethod
     async def probe(

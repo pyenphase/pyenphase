@@ -7,6 +7,7 @@ from os.path import isfile, join
 from pathlib import Path
 from typing import Any
 
+import aiohttp
 import orjson
 from aioresponses import aioresponses
 from awesomeversion import AwesomeVersion
@@ -102,7 +103,9 @@ def start_7_firmware_mock(mock_aioresponse: aioresponses) -> None:
     mock_aioresponse.get("https://127.0.0.1/auth/check_jwt", status=200, repeat=True)
 
 
-async def get_mock_envoy(version: str, client_session, update: bool = True):  # type: ignore[no-untyped-def]
+async def get_mock_envoy(
+    version: str, client_session: aiohttp.ClientSession, update: bool = True
+) -> Envoy:
     """Return a mock Envoy."""
     host = "127.0.0.1"
     envoy = Envoy(host, client=client_session)
@@ -128,9 +131,13 @@ def latest_request(
     return len(requests), mock_aioresponse.requests[requests[-1]][-1].kwargs.get("data")
 
 
-def mock_response(  # type: ignore[no-untyped-def]
-    mock_aioresponse: aioresponses, method: str, url: str, reset: bool = False, **kwargs
-):
+def mock_response(
+    mock_aioresponse: aioresponses,
+    method: str,
+    url: str,
+    reset: bool = False,
+    **kwargs: Any,
+) -> None:
     """Mock aiohttp response and first reset existing if specified."""
     if reset:
         return override_mock(
@@ -142,7 +149,9 @@ def mock_response(  # type: ignore[no-untyped-def]
     getattr(mock_aioresponse, method.lower())(url, **kwargs)
 
 
-def override_mock(mock_aioresponse: aioresponses, method: str, url: str, **kwargs):  # type: ignore[no-untyped-def]
+def override_mock(
+    mock_aioresponse: aioresponses, method: str, url: str, **kwargs: Any
+) -> None:
     """Override an existing mock by removing it first and adding a new one."""
     from yarl import URL
 
@@ -155,7 +164,7 @@ def override_mock(mock_aioresponse: aioresponses, method: str, url: str, **kwarg
         url_matches = False
         if hasattr(matcher.url_or_pattern, "match"):
             # It's a regex pattern
-            url_matches = matcher.url_or_pattern.match(str(url_obj))
+            url_matches = bool(matcher.url_or_pattern.match(str(url_obj)))
         else:
             # It's a URL
             url_matches = str(matcher.url_or_pattern).rstrip("/") == str(
