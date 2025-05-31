@@ -369,7 +369,7 @@ async def test_with_4_2_27_firmware(
             | SupportedFeatures.TARIFF
             | SupportedFeatures.DUALPHASE
             | SupportedFeatures.CTMETERS,
-            2,
+            1,
             {},
             {},
         ),
