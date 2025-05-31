@@ -1544,20 +1544,22 @@ async def test_with_7_x_firmware(
         assert data.tariff.storage_settings is not None
         storage_settings = data.tariff.storage_settings
         new_data = {"charge_from_grid": True}
-        new_model = replace(storage_settings, **new_data)
+        new_storage_model = replace(storage_settings, **new_data)
 
         if data.tariff.storage_settings.date is not None:
-            assert new_model.to_api()["date"] == data.tariff.storage_settings.date
+            assert (
+                new_storage_model.to_api()["date"] == data.tariff.storage_settings.date
+            )
         else:
-            assert "date" not in new_model.to_api()
+            assert "date" not in new_storage_model.to_api()
 
         if data.tariff.storage_settings.opt_schedules is not None:
             assert (
-                new_model.to_api()["opt_schedules"]
+                new_storage_model.to_api()["opt_schedules"]
                 == data.tariff.storage_settings.opt_schedules
             )
         else:
-            assert "opt_schedules" not in new_model.to_api()
+            assert "opt_schedules" not in new_storage_model.to_api()
 
         # Test setting battery features
         await envoy.enable_charge_from_grid()
