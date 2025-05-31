@@ -396,9 +396,6 @@ class Envoy:
 
         # Read the content to cache it
         content = await response.read()
-        # Store the content on the response object for later use
-        response._content = content
-
         # show all responses centrally when in debug
         if debugon:
             request_end = time.monotonic()
@@ -718,7 +715,7 @@ class Envoy:
         if not (200 <= response.status < 300):
             raise EnvoyHTTPStatusError(response.status, str(response.url))
 
-        return json_loads(end_point, response._content)
+        return json_loads(end_point, await response.read())
 
     async def go_on_grid(self) -> dict[str, Any]:
         """
