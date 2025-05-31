@@ -12,8 +12,10 @@ from pyenphase.envoy import SupportedFeatures
 from pyenphase.models.envoy import EnvoyData
 
 from .common import (
+    endpoint_path,
     get_mock_envoy,
     load_json_fixture,
+    override_mock,
     prep_envoy,
     start_7_firmware_mock,
 )
@@ -298,6 +300,7 @@ async def test_with_7_x_firmware(
     caplog.set_level(logging.DEBUG)
 
     envoy = await get_mock_envoy(version, test_client_session)
+    full_host = endpoint_path(version, envoy.host)
     data = envoy.data
     assert data
     assert data == snapshot
@@ -334,8 +337,13 @@ async def test_with_7_x_firmware(
     # test with missing storage section
     prod_json = await load_json_fixture(version, "production.json")
     del prod_json["storage"]
-    mock_aioresponse.get(
-        "https://127.0.0.1/production.json?details=1", status=200, payload=prod_json
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/production.json?details=1",
+        status=200,
+        payload=prod_json,
+        repeat=True,
     )
     envoy = await get_mock_envoy(version, test_client_session)
     data = envoy.data

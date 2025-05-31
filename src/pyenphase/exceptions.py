@@ -94,7 +94,6 @@ class EnvoyCommunicationError(EnvoyError):
     """
     Exception raised when the Envoy communication fails.
 
-    - EndOfStream is reported during communication.
     - aiohttp.ClientError error occurs.
     - asyncio.TimeoutError error occurs
     """

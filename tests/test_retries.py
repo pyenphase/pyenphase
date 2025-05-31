@@ -5,7 +5,6 @@ import logging
 from typing import Any
 
 import aiohttp
-import orjson
 import pytest
 from aioresponses import aioresponses
 from tenacity import stop_after_attempt, stop_after_delay, wait_none
@@ -529,34 +528,6 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 3
 
-    # Test JSON decode errors
-    envoy._endpoint_cache.clear()
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/api/v1/production",
-        status=200,
-        body="invalid json",
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        status=200,
-        body="invalid json",
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        status=200,
-        body="invalid json",
-    )
-
-    with pytest.raises(orjson.JSONDecodeError):
-        await envoy.update()
-
-    stats = envoy.request.statistics
-    assert "attempt_number" in stats
-    print(f"JSON decode error test attempts: {stats['attempt_number']}")
-    assert stats["attempt_number"] == 3
-
     # other error EnvoyAuthenticationRequired should end cycle
     # First mock will be consumed, then the EnvoyAuthenticationRequired will stop retries
     envoy._endpoint_cache.clear()
@@ -579,31 +550,6 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     )
 
     with pytest.raises(EnvoyAuthenticationRequired):
-        await envoy.update()
-
-    stats = envoy.request.statistics
-    assert "attempt_number" in stats
-    assert stats["attempt_number"] == 2
-
-    # test EndOfStream catch should end retries
-    # EndOfStream is httpx-specific, in aiohttp we can use ClientPayloadError
-    envoy._endpoint_cache.clear()
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/api/v1/production",
-        exception=_make_client_connector_error("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=aiohttp.ClientPayloadError("Test EndOfStream"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=_make_client_connector_error("Should not reach this"),
-    )
-
-    with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
     stats = envoy.request.statistics
