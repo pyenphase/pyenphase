@@ -41,7 +41,7 @@ async def test_firmware_no_sn_with_7_6_175_standard(
 ) -> None:
     """
     Tests that the Envoy correctly handles missing serial number information in the device info XML.
-    
+
     Verifies that the firmware and part number are set, while the serial number is None when the serial number tag is absent from the response.
     """
     info = (
@@ -67,7 +67,7 @@ async def test_firmware_no_pn_with_7_6_175_standard(
 ) -> None:
     """
     Verifies that the Envoy correctly handles missing part number information in the device info XML.
-    
+
     This test mocks the `/info` endpoint to return XML without a part number, then asserts that the firmware and serial number are set while the part number is `None`.
     """
     info = (
@@ -93,7 +93,7 @@ async def test_firmware_no_fw_with_7_6_175_standard(
 ) -> None:
     """
     Tests that the Envoy instance handles missing firmware version in device info XML.
-    
+
     Verifies that when the firmware version is absent from the response, the `firmware`
     property is empty or falsey, while `serial_number` and `part_number` are correctly set.
     """
@@ -120,7 +120,7 @@ async def test_firmware_no_device_with_7_6_175_standard(
 ) -> None:
     """
     Tests Envoy firmware parsing when the device XML segment is missing.
-    
+
     Verifies that when the `<device>` segment is absent from the `/info` XML response, the Envoy instance sets `firmware` to a falsey value and both `serial_number` and `part_number` to `None`.
     """
     info = "<?xml version='1.0' encoding='UTF-8'?><envoy_info></envoy_info>"

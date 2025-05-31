@@ -42,9 +42,10 @@ NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 def create_default_ssl_context() -> ssl.SSLContext:
     """
     Creates a default SSL context for use with aiohttp clients.
-    
+
     Returns:
         An SSLContext instance that performs standard certificate verification.
+
     """
     return ssl.create_default_context()
 

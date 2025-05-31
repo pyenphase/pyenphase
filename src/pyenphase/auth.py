@@ -19,16 +19,17 @@ class EnvoyAuth:
     def __init__(self, host: str) -> None:
         """
         Initializes the base class for local Envoy authentication.
-        
+
         Args:
             host: The DNS name or IP address of the local Envoy device.
+
         """
 
     @abstractmethod
     async def setup(self, client: aiohttp.ClientSession) -> None:
         """
         Performs token-based authentication setup with a local Envoy device.
-        
+
         Obtains and validates a JWT token for Envoy firmware version 7.0 or newer using the provided aiohttp client session. Raises EnvoyAuthenticationError if authentication fails.
         """
 
@@ -36,16 +37,17 @@ class EnvoyAuth:
     def cookies(self) -> dict[str, str]:
         """
         Returns the cookies used for authentication with the Envoy device.
-        
+
         Returns:
             A dictionary of cookie names and values.
+
         """
 
     @abstractproperty
     def auth(self) -> aiohttp.DigestAuthMiddleware | None:
         """
         Returns the Digest authentication middleware for Envoy devices using firmware earlier than 7.0.
-        
+
         If username or password is missing, returns None.
         """
 
@@ -82,15 +84,16 @@ class EnvoyTokenAuth(EnvoyAuth):
     ) -> None:
         """
         Initializes EnvoyTokenAuth for token-based authentication with an Envoy device.
-        
+
         Args:
             host: The local Envoy DNS name or IP address.
             cloud_username: Enlighten Cloud username, required to obtain a new token if not provided.
             cloud_password: Enlighten Cloud password, required to obtain a new token if not provided.
             envoy_serial: Envoy serial number, required to obtain a new token if not provided.
             token: Optional JWT token for authentication. If not provided, a token will be obtained from the Enlighten Cloud using the provided credentials.
-        
+
         Use this class for Envoy firmware version 7.x and newer.
+
         """
         self.host = host
         self.cloud_username = cloud_username
@@ -104,14 +107,15 @@ class EnvoyTokenAuth(EnvoyAuth):
     async def setup(self, client: aiohttp.ClientSession) -> None:
         """
         Initializes token-based authentication with a local Envoy device.
-        
+
         If a token is not already provided, obtains one from the Enlighten Cloud using the configured credentials and Envoy serial number. Validates the token with the local Envoy device. The acquired token is available via the `token` property but is not persisted; callers should store it if needed across restarts.
-        
+
         Args:
             client: An aiohttp ClientSession used for communication with the local Envoy.
-        
+
         Raises:
             EnvoyAuthenticationError: If authentication fails or a token cannot be obtained.
+
         """
         if not self._token:
             self._token = await self._obtain_token()
@@ -131,7 +135,7 @@ class EnvoyTokenAuth(EnvoyAuth):
     async def _check_jwt(self, client: aiohttp.ClientSession) -> None:
         """
         Validates the current JWT token with the local Envoy device.
-        
+
         Sends a request to the Envoy's authentication endpoint using the provided client session and stores cookies if the token is valid. Raises EnvoyAuthenticationError if verification fails.
         """
         async with client.get(
@@ -150,12 +154,13 @@ class EnvoyTokenAuth(EnvoyAuth):
     async def _obtain_token(self) -> str:
         """
         Obtains a JWT token for Envoy authentication using Enlighten cloud credentials.
-        
+
         Raises:
             EnvoyAuthenticationError: If cloud credentials or Envoy serial are missing, login fails, token retrieval fails, or response decoding fails.
-        
+
         Returns:
             The JWT token as a string.
+
         """
         # Raise if we don't have cloud credentials
         if not self.cloud_username or not self.cloud_password:
@@ -224,7 +229,7 @@ class EnvoyTokenAuth(EnvoyAuth):
     async def refresh(self) -> None:
         """
         Obtains a new authentication token from the Enlighten cloud and updates the current token.
-        
+
         Call this method to renew the Envoy JWT token using the configured cloud credentials and Envoy serial number. The refreshed token is available via the `token` property. The token is not persisted; callers should store it externally if needed across restarts.
         """
         self._token = await self._obtain_token()
@@ -246,14 +251,15 @@ class EnvoyTokenAuth(EnvoyAuth):
     def token_type(self) -> str:
         """
         Returns the Enphase user type associated with the current JWT token.
-        
+
         The user type is typically 'owner' or 'installer', indicating the level of access granted by the token.
-        
+
         Raises:
             EnvoyAuthenticationRequired: If authentication has not been performed and no token is available.
-        
+
         Returns:
             The user type string, either 'owner' or 'installer'.
+
         """
         if not self._token:
             raise EnvoyAuthenticationRequired(
@@ -275,16 +281,17 @@ class EnvoyTokenAuth(EnvoyAuth):
     ) -> aiohttp.ClientResponse:
         """
         Sends a POST request to the specified URL using the provided cloud client session.
-        
+
         Either JSON or form data can be sent in the request body, depending on the arguments provided.
-        
+
         Args:
             url: The target URL for the POST request.
             data: Optional form data to include in the request body.
             json: Optional JSON data to include in the request body.
-        
+
         Returns:
             The aiohttp.ClientResponse object resulting from the POST request.
+
         """
         return await cloud_client.post(url, json=json, data=data)
 
@@ -390,11 +397,12 @@ class EnvoyLegacyAuth(EnvoyAuth):
     def __init__(self, host: str, username: str, password: str) -> None:
         """
         Initializes legacy digest authentication for Envoy devices running firmware before 7.0.
-        
+
         Args:
             host: The local Envoy DNS name or IP address.
             username: Username for Envoy access.
             password: Password for Envoy access.
+
         """
         self.host = host
         self.local_username = username
@@ -405,7 +413,7 @@ class EnvoyLegacyAuth(EnvoyAuth):
     def auth(self) -> aiohttp.DigestAuthMiddleware | None:
         """
         Returns a DigestAuthMiddleware instance for local Envoy digest authentication.
-        
+
         If the username or password is missing, returns None.
         """
         if not self.local_username or not self.local_password:
@@ -419,7 +427,7 @@ class EnvoyLegacyAuth(EnvoyAuth):
     async def setup(self, client: aiohttp.ClientSession) -> None:
         """
         No-op setup for legacy digest authentication.
-        
+
         This method is required by the EnvoyAuth interface but performs no action, as digest authentication does not require setup.
         """
         # No setup required for legacy authentication

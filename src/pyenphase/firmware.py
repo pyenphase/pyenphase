@@ -41,10 +41,11 @@ class EnvoyFirmware:
     ) -> None:
         """
         Initializes an EnvoyFirmware instance for querying firmware and device information.
-        
+
         Args:
             _client: An aiohttp ClientSession for making HTTP requests.
             host: The DNS name or IP address of the Envoy device.
+
         """
         self._client = _client
         self._host = host
@@ -64,11 +65,12 @@ class EnvoyFirmware:
     async def _get_info(self) -> tuple[int, bytes]:
         """
         Fetches the Envoy device's /info endpoint over HTTPS, falling back to HTTP if needed.
-        
+
         Attempts to retrieve device information by sending a GET request to the /info endpoint using HTTPS. If a connection error or timeout occurs, retries the request using HTTP. Retries are performed on network or protocol errors, up to 4 times or 50 seconds total. The HTTP status code is not validated.
-        
+
         Returns:
             A tuple containing the HTTP status code and the response content as bytes.
+
         """
         self._url = f"https://{self._host}/info"
         _LOGGER.debug("Requesting %s with timeout %s", self._url, LOCAL_TIMEOUT)
@@ -87,12 +89,13 @@ class EnvoyFirmware:
     async def setup(self) -> None:
         """
         Fetches and stores the firmware version, serial number, part number, and metered flag from the Envoy device.
-        
+
         Attempts to retrieve and parse the `/info` endpoint over HTTPS, falling back to HTTP if necessary. Extracts device information from the XML response and updates internal properties. Retries on network errors up to four times or 50 seconds total.
-        
+
         Raises:
             EnvoyFirmwareFatalCheckError: If a connection or timeout failure occurs.
             EnvoyFirmwareCheckError: If an HTTP error occurs or the response status is not 200.
+
         """
         # <envoy>/info will return XML with the firmware version
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
@@ -144,9 +147,10 @@ class EnvoyFirmware:
     def version(self) -> AwesomeVersion:
         """
         Returns the firmware version retrieved from the Envoy device.
-        
+
         Returns:
             The firmware version as an AwesomeVersion object, or None if not yet set by calling setup().
+
         """
         return self._firmware_version
 

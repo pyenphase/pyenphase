@@ -89,7 +89,7 @@ async def test_metered_noct(
 ) -> None:
     """
     Tests Envoy metered production data without CTs across firmware versions.
-    
+
     This asynchronous test verifies that Envoy devices without current transformers (CTs) report correct production metrics and feature support for various firmware and hardware configurations. It mocks HTTP responses, prepares the Envoy environment, and asserts that production data and updater features match expected values for each parameterized scenario.
     """
     start_7_firmware_mock(mock_aioresponse)

@@ -56,7 +56,7 @@ async def test_with_3_9_36_firmware_bad_auth(
 ) -> None:
     """
     Tests that attempting to authenticate with incorrect credentials on Envoy firmware version 3.9.36 results in an EnvoyAuthenticationRequired exception.
-    
+
     This test mocks various HTTP endpoints to simulate failed authentication and verifies that creating a mock Envoy instance raises the expected authentication exception.
     """
     version = "3.9.36_bad_auth"
@@ -159,7 +159,7 @@ async def test_production_with_3_9_36_firmware_bad_auth(
 ) -> None:
     """
     Tests that authentication fails with a 401 Unauthorized error on the /api/v1/production endpoint for Envoy firmware version 3.9.36 with bad credentials.
-    
+
     Mocks relevant HTTP endpoints to simulate failed authentication and verifies that attempting to create a mock Envoy instance raises EnvoyAuthenticationRequired.
     """
     version = "3.9.36_bad_auth"
@@ -275,7 +275,7 @@ async def test_known_users_with_3_9_36_firmware(
 ) -> None:
     """
     Tests successful authentication with known usernames on Envoy firmware version 3.9.36.
-    
+
     Verifies that authentication succeeds with provided credentials, no cookies are used,
     the returned authentication object is an instance of EnvoyLegacyAuth, and that forced
     failure of Digest authentication results in the expected state.
@@ -337,7 +337,7 @@ async def test_blank_passwords_with_7_6_175_standard(
 ) -> None:
     """
     Tests that authentication with blank passwords fails on Envoy firmware version 7.6.175_standard.
-    
+
     Verifies that attempting to authenticate with a blank password for any username raises EnvoyAuthenticationRequired.
     """
     version = "7.6.175_standard"
@@ -358,7 +358,7 @@ async def test_no_token_obtained_with_7_6_175_standard(
 ) -> None:
     """
     Tests that authentication fails with Envoy firmware 7.6.175_standard when no token can be obtained.
-    
+
     Simulates a failure in the token retrieval process and asserts that attempting to authenticate raises an EnvoyAuthenticationError.
     """
     version = "7.6.175_standard"
@@ -404,7 +404,7 @@ async def test_no_remote_login_with_7_6_175_standard(
 ) -> None:
     """
     Tests that authentication fails with Envoy firmware 7.6.175_standard when remote Enlighten login and token endpoints return server errors.
-    
+
     Asserts that attempting to authenticate raises EnvoyAuthenticationError when both the Enlighten login and token endpoints respond with HTTP 500 errors.
     """
     version = "7.6.175_standard"
@@ -455,7 +455,7 @@ async def test_no_remote_token_with_7_6_175_standard(
 ) -> None:
     """
     Tests that authentication fails with Envoy firmware 7.6.175_standard when the remote token endpoint returns an error.
-    
+
     Simulates a scenario where the Enlighten login endpoint succeeds but the token endpoint returns an HTTP 500 error, causing authentication to raise `EnvoyAuthenticationError`. Also verifies that the resulting auth object is `EnvoyTokenAuth` and that accessing its `token_type` property raises `EnvoyAuthenticationRequired`.
     """
     version = "7.6.175_standard"
@@ -516,7 +516,7 @@ async def test_token_with_7_6_175_standard(
 ) -> None:
     """
     Tests token-based authentication on Envoy firmware version 7.6.175_standard.
-    
+
     Verifies that authentication with a manually created JWT token results in an `EnvoyTokenAuth` object with correct attributes, and that token refresh handles missing serial number or cloud credentials by raising `EnvoyAuthenticationError`.
     """
     version = "7.6.175_standard"

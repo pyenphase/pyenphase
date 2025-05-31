@@ -24,12 +24,13 @@ class EnvoyUpdater:
     ) -> None:
         """
         Initializes the EnvoyUpdater with version information, request callables, and common properties.
-        
+
         Args:
-        	envoy_version: The version of the Envoy device.
-        	probe_request: Asynchronous callable for sending probe requests to the Envoy.
-        	request: Asynchronous callable for sending general requests to the Envoy.
-        	common_properties: Shared properties relevant to the Envoy device.
+                envoy_version: The version of the Envoy device.
+                probe_request: Asynchronous callable for sending probe requests to the Envoy.
+                request: Asynchronous callable for sending general requests to the Envoy.
+                common_properties: Shared properties relevant to the Envoy device.
+
         """
         self._envoy_version = envoy_version
         self._probe_request = probe_request
@@ -40,9 +41,10 @@ class EnvoyUpdater:
     async def _json_request(self, end_point: str) -> Any:
         """
         Sends an asynchronous request to the Envoy device and returns the parsed JSON response.
-        
+
         Raises:
             EnvoyHTTPStatusError: If the HTTP response status is not in the 200–299 range.
+
         """
         response = await self._request(end_point)
         if not (200 <= response.status < 300):
@@ -52,12 +54,13 @@ class EnvoyUpdater:
     async def _json_probe_request(self, end_point: str) -> Any:
         """
         Sends a probe request to the Envoy device and returns the parsed JSON response.
-        
+
         Raises:
             EnvoyHTTPStatusError: If the HTTP response status is not in the 200–299 range.
-        
+
         Returns:
             The parsed JSON content from the Envoy device's response.
+
         """
         response = await self._probe_request(end_point)
         if not (200 <= response.status < 300):
@@ -68,13 +71,15 @@ class EnvoyUpdater:
     async def probe(
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
-        """Probes the Envoy device to determine supported features for this updater.
-        
+        """
+        Probes the Envoy device to determine supported features for this updater.
+
         Args:
             discovered_features: Features already identified on the Envoy device.
-        
+
         Returns:
             An updated SupportedFeatures object if new features are detected, or None if no changes are found.
+
         """
 
     @abstractmethod

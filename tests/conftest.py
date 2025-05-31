@@ -15,7 +15,7 @@ from tests.syrupy import EnphaseSnapshotExtension
 def mock_aioresponse():
     """
     Provides an aioresponses context manager for mocking aiohttp HTTP requests in tests.
-    
+
     All aiohttp ClientSession requests are mocked except those to "http://127.0.0.1:8123". Yields the mock object for use within the test.
     """
     # Note: aioresponses will mock all ClientSession instances by default
@@ -27,9 +27,10 @@ def mock_aioresponse():
 async def test_client_session():
     """
     Provides an aiohttp ClientSession with short timeouts and disabled SSL verification for testing.
-    
+
     Yields:
         An aiohttp ClientSession instance configured for fast test execution.
+
     """
     timeout = aiohttp.ClientTimeout(total=5.0, connect=1.0, sock_read=1.0)
     connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
@@ -42,12 +43,13 @@ async def test_client_session():
 def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
     """
     Returns a snapshot assertion fixture enhanced with the EnphaseSnapshotExtension.
-    
+
     Args:
         snapshot: The base snapshot assertion fixture.
-    
+
     Returns:
         The snapshot assertion fixture with the Enphase extension applied.
+
     """
     return snapshot.use_extension(EnphaseSnapshotExtension)
 
@@ -56,7 +58,7 @@ def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
 def fast_tenacity():
     """
     Speeds up tenacity retries in tests by patching sleep functions to return immediately.
-    
+
     This fixture automatically mocks `tenacity.nap.time` and `asyncio.sleep` so that retry delays do not slow down test execution.
     """
     with patch("tenacity.nap.time"), patch("asyncio.sleep", return_value=None):

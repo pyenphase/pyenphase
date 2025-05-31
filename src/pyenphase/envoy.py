@@ -134,13 +134,14 @@ class Envoy:
     ) -> None:
         """
         Initializes an Envoy communication instance for interacting with an Enphase Envoy device.
-        
+
         Sets up asynchronous HTTP communication, disables SSL verification for self-signed certificates, and prepares internal state for authentication, firmware handling, feature detection, and data collection. Supports both legacy and modern Envoy firmware versions.
-        
+
         Args:
             host: DNS name or IP address of the Envoy device.
             client: Optional aiohttp ClientSession with SSL verification disabled. If not provided, a new session is created.
             timeout: Optional aiohttp ClientTimeout or float for request timeouts. Defaults to 10 seconds connect and 45 seconds read timeout.
+
         """
         # We use our own aiohttp client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._timeout = timeout or LOCAL_TIMEOUT
@@ -258,14 +259,15 @@ class Envoy:
     async def probe_request(self, endpoint: str) -> aiohttp.ClientResponse:
         """
         Sends a single GET request to the specified Envoy endpoint for feature probing.
-        
+
         Intended for initial feature discovery by updaters; does not retry on network errors or timeouts. Raises EnvoyAuthenticationRequired if authentication is missing or if the response status is 401 or 404.
-        
+
         Args:
             endpoint: The Envoy API endpoint to probe, starting with a leading slash.
-        
+
         Returns:
             The aiohttp.ClientResponse object from the Envoy.
+
         """
         return await self._request(endpoint)
 
@@ -289,20 +291,21 @@ class Envoy:
     ) -> aiohttp.ClientResponse:
         """
         Sends a GET or POST request to the Envoy device and returns the HTTP response.
-        
+
         Retries on network errors, timeouts, protocol errors, or invalid JSON responses, up to 4 attempts or 50 seconds total. Raises an authentication error if authentication is missing or the device returns HTTP 401 or 404.
-        
+
         Args:
             endpoint: The Envoy endpoint path, starting with a leading slash.
             data: Optional dictionary to send as the request body. If provided, a POST request is made unless a different method is specified.
             method: Optional HTTP method to use. Defaults to GET if no data is provided, or POST if data is present.
-        
+
         Returns:
             The aiohttp.ClientResponse object from the Envoy device.
-        
+
         Raises:
             EnvoyAuthenticationRequired: If authentication is missing or the device returns HTTP 401 or 404.
             Exception: If all retry attempts fail due to communication errors.
+
         """
         return await self._request(endpoint, data, method)
 
@@ -314,19 +317,20 @@ class Envoy:
     ) -> aiohttp.ClientResponse:
         """
         Performs an authenticated HTTP request to the Envoy device and returns the response.
-        
+
         If data is provided, sends a POST (or specified method) request with the data as a JSON payload; otherwise, sends a GET request. Raises an exception if authentication is missing or fails.
-        
+
         Args:
             endpoint: The Envoy API endpoint to access, starting with a leading slash.
             data: Optional dictionary to send as a JSON payload.
             method: Optional HTTP method to use when sending data; defaults to POST.
-        
+
         Raises:
             EnvoyAuthenticationRequired: If authentication has not been performed or if the Envoy returns a 401 or 403 status.
-        
+
         Returns:
             The aiohttp.ClientResponse object from the Envoy.
+
         """
         if self.auth is None:
             raise EnvoyAuthenticationRequired(
@@ -504,7 +508,7 @@ class Envoy:
     def envoy_model(self) -> str:
         """
         Returns a string describing the Envoy model and its detected features.
-        
+
         The description includes the number of phases, phase mode, and the presence and types of consumption, production, and storage CT meters, if available.
         """
         model = "Envoy"
@@ -540,13 +544,14 @@ class Envoy:
     ) -> aiohttp.ClientResponse:
         """
         Returns a cached response for the specified endpoint if available; otherwise, performs the request using the provided function, caches the response if successful, and returns it.
-        
+
         Args:
             request_func: An asynchronous function that performs the request for the given endpoint.
             endpoint: The endpoint string to request and cache.
-        
+
         Returns:
             The aiohttp.ClientResponse object for the requested endpoint, either from cache or from a new request.
+
         """
         if cached_response := self._endpoint_cache.get(endpoint):
             return cached_response
@@ -632,15 +637,16 @@ class Envoy:
     async def update(self) -> EnvoyData:
         """
         Collects and returns current data from the Envoy device using all active updaters.
-        
+
         If probing for supported features has not been performed, it is executed first. Each updater gathers data for its scope and updates the Envoy data set. Endpoint responses are cached during the update cycle to avoid duplicate requests.
-        
+
         Raises:
             EnvoyCommunicationError: If a network or communication error occurs.
             EnvoyHTTPStatusError: If the HTTP response status is not 2xx.
-        
+
         Returns:
             EnvoyData: The collected data from the Envoy device.
+
         """
         # Some of the updaters user the same endpoint
         # so we cache the 200 responses for each update
@@ -667,18 +673,19 @@ class Envoy:
     ) -> Any:
         """
         Sends a request to the Envoy device and returns the parsed JSON response.
-        
+
         Args:
             end_point: The Envoy endpoint to access, starting with a leading slash.
             data: Optional dictionary to send as the request body.
             method: HTTP method to use; defaults to POST if data is provided.
-        
+
         Raises:
             EnvoyCommunicationError: If a network or communication error occurs.
             EnvoyHTTPStatusError: If the HTTP response status is not 2xx.
-        
+
         Returns:
             The response content parsed as JSON.
+
         """
         try:
             response = await self._request(end_point, data, method)
@@ -694,14 +701,15 @@ class Envoy:
     async def go_on_grid(self) -> dict[str, Any]:
         """
         Sends a command to the Envoy to connect to the electrical grid.
-        
+
         Raises:
             EnvoyFeatureNotAvailable: If the ENPOWER feature is not supported by the Envoy.
             EnvoyCommunicationError: If a network or communication error occurs.
             EnvoyHTTPStatusError: If the HTTP response status is not successful.
-        
+
         Returns:
             The JSON response from the Envoy after attempting to close the grid relay.
+
         """
         if not self.supported_features & SupportedFeatures.ENPOWER:
             raise EnvoyFeatureNotAvailable(
@@ -712,16 +720,17 @@ class Envoy:
     async def go_off_grid(self) -> dict[str, Any]:
         """
         Requests the Envoy device to disconnect from the electrical grid.
-        
+
         Sends a POST request to the grid relay endpoint to open the mains relay, requiring the ENPOWER feature.
-        
+
         Raises:
             EnvoyFeatureNotAvailable: If the ENPOWER feature is not supported by the Envoy.
             EnvoyCommunicationError: If a network or communication error occurs.
             EnvoyHTTPStatusError: If the HTTP response status is not successful.
-        
+
         Returns:
             The JSON response from the Envoy device.
+
         """
         if not self.supported_features & SupportedFeatures.ENPOWER:
             raise EnvoyFeatureNotAvailable(
@@ -732,20 +741,21 @@ class Envoy:
     async def update_dry_contact(self, new_data: dict[str, Any]) -> dict[str, Any]:
         """
         Updates the settings for a specified Enpower dry contact relay.
-        
+
         Merges the provided settings with the current relay configuration and sends the complete configuration to the Envoy device. The `new_data` dictionary must include the relay's "id" key to identify which relay to update. Only the specified settings are changed; all other settings remain as previously configured.
-        
+
         Args:
             new_data: Dictionary containing the settings to update for the dry contact relay. Must include the "id" key.
-        
+
         Raises:
             EnvoyFeatureNotAvailable: If the ENPOWER feature is not supported by the Envoy.
             EnvoyCommunicationError: If a network or communication error occurs.
             EnvoyHTTPStatusError: If the HTTP response status is not successful.
             ValueError: If called before any data has been retrieved from the Envoy, or if "id" is missing from `new_data`.
-        
+
         Returns:
             The updated dry contact settings as returned by the Envoy.
+
         """
         # All settings for the relay must be sent in the POST or it may crash the Envoy
 
@@ -771,19 +781,20 @@ class Envoy:
     async def open_dry_contact(self, id: str) -> dict[str, Any]:
         """
         Opens the specified dry contact relay on the Envoy device.
-        
+
         Sends a request to open the dry contact relay with the given ID and updates the internal status to reflect the change before the device reports it.
-        
+
         Args:
             id: The identifier of the dry contact relay to open.
-        
+
         Raises:
             EnvoyFeatureNotAvailable: If the Envoy does not support the ENPOWER feature.
             EnvoyCommunicationError: If a network or communication error occurs.
             EnvoyHTTPStatusError: If the HTTP response status is not successful.
-        
+
         Returns:
             The JSON response from the Envoy device.
+
         """
         if not self.supported_features & SupportedFeatures.ENPOWER:
             raise EnvoyFeatureNotAvailable(
@@ -803,19 +814,20 @@ class Envoy:
     async def close_dry_contact(self, id: str) -> dict[str, Any]:
         """
         Closes the specified dry contact relay on the Envoy device.
-        
+
         Sends a POST request to set the dry contact relay with the given ID to "closed" status. Updates the internal dry contact status immediately after the request.
-        
+
         Args:
             id: The relay ID of the dry contact to close.
-        
+
         Raises:
             EnvoyFeatureNotAvailable: If the ENPOWER feature is not supported by the Envoy.
             EnvoyCommunicationError: If a network or communication error occurs.
             EnvoyHTTPStatusError: If the HTTP response status is not successful.
-        
+
         Returns:
             The JSON response from the Envoy device.
+
         """
         if not self.supported_features & SupportedFeatures.ENPOWER:
             raise EnvoyFeatureNotAvailable(
@@ -835,15 +847,16 @@ class Envoy:
     async def enable_charge_from_grid(self) -> dict[str, Any]:
         """
         Enables charging from the grid for Encharge batteries by updating the tariff settings.
-        
+
         Raises:
             EnvoyFeatureNotAvailable: If Encharge/IQ batteries or tariff data are not available.
             EnvoyCommunicationError: If a network or communication error occurs.
             EnvoyHTTPStatusError: If the HTTP response status is not 2xx.
             ValueError: If called before any data has been retrieved from the Envoy.
-        
+
         Returns:
             The JSON response from the Envoy after updating the tariff settings.
+
         """
         self._verify_tariff_storage_or_raise()
         if TYPE_CHECKING:
@@ -858,15 +871,16 @@ class Envoy:
     async def disable_charge_from_grid(self) -> dict[str, Any]:
         """
         Disables charging from the grid for Encharge batteries by updating the tariff storage settings.
-        
+
         Raises:
             EnvoyFeatureNotAvailable: If Encharge/IQ batteries or tariff data are not available.
             EnvoyCommunicationError: If a network or communication error occurs.
             EnvoyHTTPStatusError: If the HTTP response status is not 2xx.
             ValueError: If called before any data has been retrieved from the Envoy.
-        
+
         Returns:
             The JSON response from the Envoy after updating the tariff settings.
+
         """
         self._verify_tariff_storage_or_raise()
         if TYPE_CHECKING:
@@ -881,21 +895,22 @@ class Envoy:
     async def set_storage_mode(self, mode: EnvoyStorageMode) -> dict[str, Any]:
         """
         Sets the storage mode for Encharge batteries on the Envoy device.
-        
+
         Updates the internal tariff data with the specified storage mode and sends the new configuration to the Envoy. Requires Encharge or IQ batteries and tariff data to be available.
-        
+
         Args:
             mode: The desired storage mode as an EnvoyStorageMode.
-        
+
         Returns:
             The JSON response from the Envoy after updating the storage mode.
-        
+
         Raises:
             EnvoyFeatureNotAvailable: If Encharge/IQ batteries or tariff data are not available.
             EnvoyCommunicationError: If a network or communication error occurs.
             EnvoyHTTPStatusError: If the HTTP response status is not 2xx.
             ValueError: If called before any data has been requested from the Envoy.
             TypeError: If the mode is not of type EnvoyStorageMode.
+
         """
         self._verify_tariff_storage_or_raise()
         if TYPE_CHECKING:
@@ -912,20 +927,21 @@ class Envoy:
     async def set_reserve_soc(self, value: int) -> dict[str, Any]:
         """
         Sets the reserve state of charge (SOC) for Encharge batteries.
-        
+
         Updates the reserved SOC value in the internal tariff data and sends the updated configuration to the Envoy device.
-        
+
         Args:
             value: The desired reserve SOC percentage to set.
-        
+
         Raises:
             EnvoyFeatureNotAvailable: If Encharge/IQ batteries or tariff data are not available.
             EnvoyCommunicationError: If a network or communication error occurs.
             EnvoyHTTPStatusError: If the Envoy returns a non-2xx HTTP status.
             ValueError: If called before tariff data has been retrieved.
-        
+
         Returns:
             The JSON response from the Envoy after updating the reserve SOC.
+
         """
         self._verify_tariff_storage_or_raise()
         if TYPE_CHECKING:

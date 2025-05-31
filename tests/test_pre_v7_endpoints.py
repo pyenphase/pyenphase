@@ -40,7 +40,7 @@ async def test_with_4_2_27_firmware(
 ) -> None:
     """
     Tests Envoy behavior with firmware version 4.2.27 using mocked HTTP responses.
-    
+
     Verifies that only the production feature is supported, checks correct parsing of system production data, confirms absence of metering, inverters, and consumption features, and asserts that Ensemble commands raise EnvoyFeatureNotAvailable.
     """
     version = "4.2.27"
@@ -90,7 +90,7 @@ async def test_with_4_2_33_firmware_no_cons_ct(
 ) -> None:
     """
     Tests Envoy behavior with firmware version 4.2.33, verifying feature support, data accuracy, and error handling.
-    
+
     This test ensures that with firmware 4.2.33, the Envoy supports metering and inverters but not total or net consumption. It checks correct updater registration, validates system production and inverter data, confirms CT meter and split phase configuration, and asserts that Ensemble commands are unavailable. Also verifies that the Envoy can be updated without error.
     """
     version = "4.2.33"
@@ -157,7 +157,7 @@ async def test_with_5_0_49_firmware(
 ) -> None:
     """
     Tests Envoy interface behavior with firmware version 5.0.49.
-    
+
     Verifies that only inverter and production features are supported, checks correct updater registration, validates part number and phase count, confirms absence of consumption and CT meters, and asserts accurate system production and inverter data.
     """
     version = "5.0.49"
@@ -442,7 +442,7 @@ async def test_with_3_7_0_firmware(
 ) -> None:
     """
     Tests Envoy behavior with firmware version 3.7.0, including legacy HTML production scraping.
-    
+
     This test verifies that the library raises `EnvoyProbeFailed` for unsupported scraping per ADR004, then registers a custom legacy production scraper to enable data extraction from HTML endpoints. It asserts correct feature detection, data parsing, and Envoy attributes, and ensures proper registration and cleanup of the custom updater.
     """
     version = "3.7.0"
@@ -493,7 +493,7 @@ async def test_with_3_7_0_firmware(
         ) -> SupportedFeatures | None:
             """
             Probes the Envoy device for legacy production data support.
-            
+
             Checks if the legacy production endpoint is accessible and contains expected content. Returns updated supported features if production data is available; otherwise, returns None.
             """
             if SupportedFeatures.PRODUCTION in discovered_features:
@@ -513,7 +513,7 @@ async def test_with_3_7_0_firmware(
         async def update(self, envoy_data: EnvoyData) -> None:
             """
             Fetches and parses legacy production data from the Envoy device.
-            
+
             Retrieves production data from the legacy endpoint, stores the raw response, and updates the EnvoyData object with parsed system production values.
             """
             response = await self._request(URL_PRODUCTION)
@@ -595,7 +595,7 @@ async def test_with_3_9_36_firmware_no_inverters(
 ) -> None:
     """
     Tests Envoy firmware version 3.9.36 behavior when authentication fails for the inverters endpoint.
-    
+
     Simulates a 401 Unauthorized response for the inverters API, verifies that the Envoy instance does not report inverters, total consumption, or net consumption features, and checks that only the production feature is supported. Also asserts correct part number, meter count, phase count, and absence of consumption and production phase data.
     """
     version = "3.9.36_bad_auth"
@@ -635,7 +635,7 @@ async def test_with_3_9_36_firmware(
 ) -> None:
     """
     Tests Envoy behavior with firmware version 3.9.36 and restricted tariff endpoint access.
-    
+
     This test prepares a mock Envoy with firmware 3.9.36, simulates a 401 Unauthorized response for the tariff endpoint, and verifies that only inverters and production features are supported. It asserts correct updater registration, part number, absence of consumption and meter data, single-phase configuration, and validates the parsed system production and inverter data.
     """
     version = "3.9.36"
@@ -759,7 +759,7 @@ async def test_with_3_9_36_firmware_with_production_401(
 ) -> None:
     """
     Tests Envoy firmware version 3.9.36 behavior when the /production endpoint returns HTTP 401.
-    
+
     Verifies that production and inverter features are available despite authentication failure on /production, and asserts correct parsing of system production data, absence of consumption features, and expected updater registrations.
     """
     version = "3.9.36"
@@ -838,7 +838,7 @@ async def test_with_3_8_10_firmware_with_meters_401(
 ) -> None:
     """
     Tests Envoy firmware 3.8.10 behavior when the /ivp/meters endpoint returns a 401 Unauthorized.
-    
+
     Ensures that the system logs a debug message indicating the meters endpoint is skipped due to lack of access.
     """
     version = "3.8.10"
@@ -858,7 +858,7 @@ async def test_with_3_17_3_firmware(
 ) -> None:
     """
     Tests Envoy data parsing and feature detection for firmware version 3.17.3.
-    
+
     Verifies that only inverter and production features are supported, checks correct updater registration, validates part number and phase configuration, and asserts accurate parsing of system production and inverter data for the given firmware version.
     """
     version = "3.17.3"

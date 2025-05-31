@@ -57,10 +57,10 @@ def _fixture_files(path: str) -> list[str]:
 async def fixture_files(version: str) -> list[str]:
     """
     Asynchronously retrieves the list of fixture filenames for a given version.
-    
+
     Args:
         version: The version subdirectory to search for fixture files.
-    
+
     Returns:
         A list of fixture filenames found in the specified version directory.
     """
@@ -74,7 +74,7 @@ async def fixture_files(version: str) -> list[str]:
 def start_7_firmware_mock(mock_aioresponse: aioresponses) -> None:
     """
     Sets up repeated mock HTTP responses for Enlighten login, token, and Envoy JWT check endpoints.
-    
+
     This function configures the provided `aioresponses` mock object to simulate successful authentication and token retrieval for firmware version 7 test scenarios. It mocks POST requests to Enlighten login endpoints (with and without a trailing '?'), the token endpoint, and a GET request to the Envoy JWT check endpoint, all with repeated responses.
     """
     # Use repeat=True since auth might create its own session
@@ -120,13 +120,13 @@ async def get_mock_envoy(
 ) -> Envoy:
     """
     Creates and returns a mock Envoy instance using the provided aiohttp client session.
-    
+
     The Envoy is initialized, set up, authenticated with test credentials, and optionally updated twice to simulate repeated data refreshes.
-    
+
     Args:
         client_session: The aiohttp client session to use for HTTP requests.
         update: If True, performs two consecutive update calls on the Envoy.
-    
+
     Returns:
         A mock Envoy instance ready for testing.
     """
@@ -145,11 +145,11 @@ def latest_request(
 ) -> tuple[int, bytes]:
     """
     Returns the number of matched requests and the data payload of the last request for a given HTTP method and URL from the aioresponses mock.
-    
+
     Args:
         method: The HTTP method to match (e.g., "GET", "POST").
         url: The URL substring to match against recorded requests.
-    
+
     Returns:
         A tuple containing the count of matched requests and the data payload of the last matched request as bytes. If no requests match, returns (0, b"").
     """
@@ -172,7 +172,7 @@ def mock_response(
 ) -> None:
     """
     Adds a mock HTTP response for the specified method and URL using aioresponses.
-    
+
     If reset is True, existing mocks for the given method and URL are removed before adding the new mock.
     """
     if reset:
@@ -190,7 +190,7 @@ def override_mock(
 ) -> None:
     """
     Removes existing mocks for the specified HTTP method and URL from the aioresponses mock, then adds a new mock with the provided parameters.
-    
+
     This ensures that only the latest mock for the given method and URL is active, replacing any previous mocks.
     """
     from yarl import URL
@@ -225,11 +225,11 @@ def override_mock(
 def endpoint_path(version: str, host: str) -> str:
     """
     Constructs the base URL for a given firmware version and host, using HTTPS if the version meets or exceeds the minimum required for token authentication.
-    
+
     Args:
         version: The firmware version string, possibly with suffixes.
         host: The hostname or IP address of the Envoy device.
-    
+
     Returns:
         The base URL as a string, prefixed with "http://" or "https://".
     """
@@ -243,14 +243,14 @@ async def prep_envoy(
 ) -> list[str]:
     """
     Sets up mocked HTTP responses for Envoy device endpoints using available fixture files.
-    
+
     This function configures the provided `aioresponses` mock object to simulate Envoy API responses for a specific host and firmware version. It loads fixture files for the given version and mocks GET, POST, and PUT requests to various endpoints, returning appropriate payloads, bodies, or status codes based on the presence and content of each fixture. Endpoints include `/info`, `/ivp/meters`, `/production`, `/api/v1/production`, `/ivp/ensemble/inventory`, `/admin/lib/tariff`, and others. If a fixture is missing or contains invalid JSON, fallback responses such as 404 or empty payloads are used.
-    
+
     Args:
         mock_aioresponse: The `aioresponses` mock object to configure.
         host: The hostname of the Envoy device.
         version: The firmware version directory to load fixtures from.
-    
+
     Returns:
         A list of fixture filenames found for the specified version.
     """
@@ -262,10 +262,10 @@ async def prep_envoy(
     def url(path: str) -> str:
         """
         Constructs a full URL by appending the given path to the base host URL.
-        
+
         Args:
             path: The URL path to append.
-        
+
         Returns:
             The complete URL as a string.
         """
@@ -273,10 +273,10 @@ async def prep_envoy(
 
     def url_https(path: str) -> str:
         Constructs a full HTTPS URL by concatenating the host and the given path.
-        
+
         Args:
             path: The URL path to append to the host.
-        
+
         Returns:
             The complete HTTPS URL as a string.
         return f"https://{host}{path}"
@@ -284,10 +284,10 @@ async def prep_envoy(
     def url_http(path: str) -> str:
         """
         Constructs an HTTP URL by concatenating the host and the given path.
-        
+
         Args:
             path: The URL path to append to the host.
-        
+
         Returns:
             The full HTTP URL as a string.
         """
