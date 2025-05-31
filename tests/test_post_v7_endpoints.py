@@ -107,6 +107,7 @@ async def test_metered_noct(
     assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
+    assert data.system_production is not None
     assert data.system_production.watts_now == watts_now
     assert data.system_production.watt_hours_today == watt_hours_today
     assert data.system_production.watt_hours_last_7_days == watt_hours_last_7_days
