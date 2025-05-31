@@ -576,8 +576,6 @@ async def test_bad_request_status_7_6_175_standard(
 
     # force status 503 on /api/vi/production
     # test status results in EnvoyHTTPStatusError
-    from .common import override_mock
-
     override_mock(
         mock_aioresponse, "get", "https://127.0.0.1/api/v1/production", status=503
     )
