@@ -13,23 +13,22 @@ _LOGGER = logging.getLogger(__name__)
 class EnvoyApiV1ProductionInvertersUpdater(EnvoyUpdater):
     """Class to handle updates for inverter production data."""
 
+    _preferred_endpoint: str = (
+        URL_PRODUCTION_INVERTERS  #: preferred endpoint to use for inverters data
+    )
+
     async def probe(
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
         """Probe the Envoy for this updater and return SupportedFeatures."""
-        for endpoint in (
-            URL_PRODUCTION_INVERTERS,
-            URL_DEVICE_DATA,
-        ):
+        for endpoint in (URL_DEVICE_DATA, URL_PRODUCTION_INVERTERS):
             try:
                 await self._json_probe_request(endpoint)
                 self._preferred_endpoint = endpoint
                 self._supported_features |= SupportedFeatures.INVERTERS
                 return self._supported_features
             except ENDPOINT_PROBE_EXCEPTIONS as e:
-                _LOGGER.debug(
-                    "Production endpoint not found at %s: %s", endpoint, e
-                )
+                _LOGGER.debug("Production endpoint not found at %s: %s", endpoint, e)
             except EnvoyAuthenticationRequired as e:
                 _LOGGER.debug(
                     "Disabling inverters production endpoint as user does"
