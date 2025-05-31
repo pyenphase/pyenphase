@@ -20,6 +20,9 @@ def json_loads(end_point: str, json_source: bytes | str) -> Any:
         return orjson.loads(json_source)
     except orjson.JSONDecodeError as e:
         _LOGGER.debug(
-            "Unable to decode response from Envoy endpoint %s: %s", end_point, e
+            "Unable to decode response from Envoy endpoint %s: %s\nResponse content: %s",
+            end_point,
+            e,
+            json_source[:500] if isinstance(json_source, (bytes, str)) else json_source,
         )
         raise
