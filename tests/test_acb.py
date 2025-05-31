@@ -28,7 +28,6 @@ async def test_with_4_2_27_firmware(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
     """Verify with 4.2.27 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.27"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
@@ -294,7 +293,6 @@ async def test_with_7_x_firmware(
     Test with fixture that have SupportedFeatures.METERING
 
     """
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 

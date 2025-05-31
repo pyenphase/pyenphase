@@ -1281,7 +1281,6 @@ async def test_with_7_x_firmware(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 7.x firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     start_7_firmware_mock(mock_aioresponse)
     files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
@@ -1361,7 +1360,6 @@ async def test_with_7_x_firmware(
 
     if supported_features & supported_features.ENPOWER:
         # switch off debug for one post to improve COV
-        logging.getLogger("pyenphase").setLevel(logging.WARN)
         mock_response(
             mock_aioresponse,
             "POST",
@@ -1371,7 +1369,6 @@ async def test_with_7_x_firmware(
             repeat=True,
         )
         await envoy.go_on_grid()
-        logging.getLogger("pyenphase").setLevel(logging.DEBUG)
         # Get the last POST request to grid relay
         cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GRID_RELAY)
         assert orjson.loads(request_data) == {"mains_admin_state": "closed"}

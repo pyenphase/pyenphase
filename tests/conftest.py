@@ -1,3 +1,4 @@
+import logging
 from unittest.mock import patch
 
 import aiohttp
@@ -39,3 +40,9 @@ def fast_tenacity():
     """Make tenacity retries fast by mocking time.sleep."""
     with patch("tenacity.nap.time"), patch("asyncio.sleep", return_value=None):
         yield
+
+
+@pytest.fixture(autouse=True)
+def setup_logging():
+    """Set up logging for all tests."""
+    logging.getLogger("pyenphase").setLevel(logging.DEBUG)

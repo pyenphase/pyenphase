@@ -88,7 +88,6 @@ async def test_metered_noct(
     watt_hours_lifetime: int,
 ) -> None:
     """Verify metered without CT production data with pre and post 8.2.4264 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)

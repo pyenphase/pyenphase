@@ -39,7 +39,6 @@ async def test_with_4_2_27_firmware(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 4.2.27 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.27"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
@@ -86,7 +85,6 @@ async def test_with_4_2_33_firmware_no_cons_ct(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 4.2.33 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.33"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
@@ -150,7 +148,6 @@ async def test_with_5_0_49_firmware(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 5.0.49 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "5.0.49"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
@@ -432,7 +429,6 @@ async def test_with_3_7_0_firmware(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 3.7.0 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.7.0"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
@@ -544,7 +540,6 @@ async def test_with_3_9_36_firmware_bad_auth(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 3.9.36 firmware with incorrect auth."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
@@ -573,7 +568,6 @@ async def test_with_3_9_36_firmware_no_inverters(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 3.9.36 firmware with auth that does not allow inverters."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     # force auth failure on inverters
@@ -610,7 +604,6 @@ async def test_with_3_9_36_firmware(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 3.9.36 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     # no access to tariff
@@ -731,7 +724,6 @@ async def test_with_3_9_36_firmware_with_production_401(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 3.9.36 firmware when /production throws a 401."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     # force 401 on production
@@ -772,7 +764,6 @@ async def test_with_3_9_36_firmware_with_production_and_production_json_401(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 3.9.36 firmware when /production and /production.json throws a 401."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     # force 401 on production
@@ -806,7 +797,6 @@ async def test_with_3_8_10_firmware_with_meters_401(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Verify with 3.8.10 firmware when /ivp/meters throws a 401."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.8.10"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     override_mock(
@@ -823,7 +813,6 @@ async def test_with_3_17_3_firmware(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 3.17.3 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.17.3"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
@@ -1109,7 +1098,6 @@ async def test_with_3_17_3_firmware_zero_production(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Verify with 3.17.3 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.17.3"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 

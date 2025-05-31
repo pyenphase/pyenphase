@@ -32,7 +32,6 @@ async def test_pr111_with_7_3_466_metered_disabled_cts(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
     """Test envoy metered with disabled ct to report from production inverters PR111."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.3.466_metered_disabled_cts"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -67,7 +66,6 @@ async def test_pr111_with_7_6_175_with_cts(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
     """Test envoy metered with ct to report from production eim PR111."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_with_cts"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -113,7 +111,6 @@ async def test_pr111_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
     """Test envoy metered with ct to report from production eim PR111."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -148,8 +145,6 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
     """Test meters model using envoy metered CT with multiple phases"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-
     # start with regular data first
     version = "7.3.466_with_cts_3phase"
     start_7_firmware_mock(mock_aioresponse)
@@ -273,8 +268,6 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
     """Test meters model using envoy metered CT with multiple phases"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-
     # start with regular data first
     version = "7.6.175_with_cts_3phase"
     start_7_firmware_mock(mock_aioresponse)
@@ -347,8 +340,6 @@ async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
     """Test meters model using envoy metered without production CT and total-consumption CT with multiple phases"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-
     # start with regular data first
     version = "7.6.175_with_cts_3phase"
     start_7_firmware_mock(mock_aioresponse)
@@ -405,8 +396,6 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
     """Test meters model using envoy metered CT with multiple phases"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-
     # start with regular data first
     version = "8.2.127_with_3cts_and_battery_split"
     start_7_firmware_mock(mock_aioresponse)
@@ -492,8 +481,6 @@ async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_ba
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
     """Test meters model with additional meter readings entry not in meters config"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-
     # start with regular data first we use this fixture to test issue reported in 8.3.5025
     version = "8.2.127_with_3cts_and_battery_split"
     start_7_firmware_mock(mock_aioresponse)
