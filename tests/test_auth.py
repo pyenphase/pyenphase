@@ -6,10 +6,10 @@ from os import listdir
 from os.path import isfile, join
 from unittest.mock import patch
 
+import aiohttp
 import jwt
 import pytest
-import respx
-from httpx import Response
+from aioresponses import aioresponses
 
 from pyenphase import Envoy, EnvoyTokenAuth
 from pyenphase.auth import EnvoyLegacyAuth
@@ -20,6 +20,7 @@ from .common import (
     get_mock_envoy,
     load_fixture,
     load_json_fixture,
+    mock_response,
     prep_envoy,
     start_7_firmware_mock,
 )
@@ -28,14 +29,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_wrong_auth_order_with_7_6_175_standard():
+async def test_wrong_auth_order_with_7_6_175_standard(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test data collected fails before auth is done"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
-    start_7_firmware_mock()
-    await prep_envoy(version)
-    envoy = Envoy("127.0.0.1")
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
 
     with pytest.raises(EnvoyAuthenticationRequired):
@@ -48,28 +49,46 @@ async def test_wrong_auth_order_with_7_6_175_standard():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware_bad_auth():
+async def test_with_3_9_36_firmware_bad_auth(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Verify with 3.9.36 firmware with incorrect auth."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
-    respx.get("/info").mock(
-        return_value=Response(200, text=await load_fixture(version, "info"))
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/info",
+        status=200,
+        body=await load_fixture(version, "info"),
     )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(404))
-    respx.get("/production.json").mock(return_value=Response(404))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            401, json=await load_json_fixture(version, "api_v1_production")
-        )
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/info.xml", status=200, body=""
     )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=await load_json_fixture(version, "api_v1_production_inverters")
-        )
+    mock_response(mock_aioresponse, "get", "https://127.0.0.1/production", status=404)
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/production.json", status=404
     )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/api/v1/production",
+        status=401,
+        payload=await load_json_fixture(version, "api_v1_production"),
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/api/v1/production/inverters",
+        status=200,
+        payload=await load_json_fixture(version, "api_v1_production_inverters"),
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/ensemble/inventory",
+        status=200,
+        payload=[],
+    )
 
     path = f"tests/fixtures/{version}"
     files = [f for f in listdir(path) if isfile(join(path, f))]
@@ -78,39 +97,97 @@ async def test_with_3_9_36_firmware_bad_auth():
             json_data = await load_json_fixture(version, "admin_lib_tariff")
         except json.decoder.JSONDecodeError:
             json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        mock_response(
+            mock_aioresponse,
+            "get",
+            "https://127.0.0.1/admin/lib/tariff",
+            status=200,
+            payload=json_data,
+        )
     else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(401))
+        mock_response(
+            mock_aioresponse, "get", "https://127.0.0.1/admin/lib/tariff", status=401
+        )
 
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/ivp/meters", status=200, payload=[]
+    )
+
+    # Add the HTTP version of api/v1/production with 401 as well
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/api/v1/production",
+        status=401,
+        payload=await load_json_fixture(version, "api_v1_production"),
+    )
+
+    # Add other required endpoints for the probe
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json?details=1",
+        status=404,
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/production.json?details=1",
+        status=404,
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/production",
+        status=200,
+        body=await load_fixture(version, "production"),
+    )
 
     with pytest.raises(EnvoyAuthenticationRequired):
-        await get_mock_envoy()
+        await get_mock_envoy(test_client_session)
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_production_with_3_9_36_firmware_bad_auth():
+async def test_production_with_3_9_36_firmware_bad_auth(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test Authentication failed for http://127.0.0.1/api/v1/production."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
-    respx.get("/info").mock(
-        return_value=Response(200, text=await load_fixture(version, "info"))
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/info",
+        status=200,
+        body=await load_fixture(version, "info"),
     )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
-    respx.get("/production").mock(return_value=Response(404))
-    respx.get("/production.json").mock(return_value=Response(404))
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            401, json=await load_json_fixture(version, "api_v1_production")
-        )
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/info.xml", status=200, body=""
     )
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            200, json=await load_json_fixture(version, "api_v1_production_inverters")
-        )
+    mock_response(mock_aioresponse, "get", "https://127.0.0.1/production", status=404)
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/production.json", status=404
     )
-    respx.get("/ivp/ensemble/inventory").mock(return_value=Response(200, json=[]))
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/api/v1/production",
+        status=401,
+        payload=await load_json_fixture(version, "api_v1_production"),
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/api/v1/production/inverters",
+        status=200,
+        payload=await load_json_fixture(version, "api_v1_production_inverters"),
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/ensemble/inventory",
+        status=200,
+        payload=[],
+    )
 
     path = f"tests/fixtures/{version}"
     files = [f for f in listdir(path) if isfile(join(path, f))]
@@ -119,14 +196,54 @@ async def test_production_with_3_9_36_firmware_bad_auth():
             json_data = await load_json_fixture(version, "admin_lib_tariff")
         except json.decoder.JSONDecodeError:
             json_data = None
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        mock_response(
+            mock_aioresponse,
+            "get",
+            "https://127.0.0.1/admin/lib/tariff",
+            status=200,
+            payload=json_data,
+        )
     else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(401))
+        mock_response(
+            mock_aioresponse, "get", "https://127.0.0.1/admin/lib/tariff", status=401
+        )
 
-    respx.get("/ivp/meters").mock(return_value=Response(200, json=[]))
+    mock_response(
+        mock_aioresponse, "get", "https://127.0.0.1/ivp/meters", status=200, payload=[]
+    )
+
+    # Add the HTTP version of api/v1/production with 401 as well
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/api/v1/production",
+        status=401,
+        payload=await load_json_fixture(version, "api_v1_production"),
+    )
+
+    # Add other required endpoints for the probe
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json?details=1",
+        status=404,
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/production.json?details=1",
+        status=404,
+    )
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/production",
+        status=200,
+        body=await load_fixture(version, "production"),
+    )
 
     with pytest.raises(EnvoyAuthenticationRequired):
-        await get_mock_envoy()
+        await get_mock_envoy(test_client_session)
 
 
 @pytest.mark.parametrize(
@@ -140,14 +257,17 @@ async def test_production_with_3_9_36_firmware_bad_auth():
     ],
 )
 @pytest.mark.asyncio
-@respx.mock
-async def test_known_users_with_3_9_36_firmware(username: str, password: str) -> None:
+async def test_known_users_with_3_9_36_firmware(
+    username: str,
+    password: str,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Test successful login with known usernames."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = Envoy("127.0.0.1")
+    envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
     await envoy.authenticate(username, password)
 
@@ -166,14 +286,14 @@ async def test_known_users_with_3_9_36_firmware(username: str, password: str) ->
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_unknown_user_with_3_9_36_firmware():
+async def test_unknown_user_with_3_9_36_firmware(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test Could not setup authentication object with 3.9.x"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = Envoy("127.0.0.1")
+    envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
     with pytest.raises(EnvoyAuthenticationRequired):
         await envoy.authenticate("unknown", None)
@@ -191,17 +311,18 @@ async def test_unknown_user_with_3_9_36_firmware():
     ],
 )
 @pytest.mark.asyncio
-@respx.mock
 async def test_blank_passwords_with_7_6_175_standard(
-    username: str, password: str
+    username: str,
+    password: str,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Test Could not setup authentication object with 7.6.x"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = Envoy("127.0.0.1")
+    envoy = Envoy("127.0.0.1", client=test_client_session)
 
     await envoy.setup()
 
@@ -210,99 +331,113 @@ async def test_blank_passwords_with_7_6_175_standard(
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_no_token_obtained_with_7_6_175_standard() -> None:
+async def test_no_token_obtained_with_7_6_175_standard(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test Unable to obtain token for Envoy authentication"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     with patch("pyenphase.EnvoyTokenAuth._obtain_token", return_value=None):
-        envoy = Envoy("127.0.0.1")
+        envoy = Envoy("127.0.0.1", client=test_client_session)
         await envoy.setup()
         with pytest.raises(EnvoyAuthenticationError):
             await envoy.authenticate("username", "password")
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_jwt_failure_with_7_6_175_standard() -> None:
+async def test_jwt_failure_with_7_6_175_standard(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test Unable to verify token for Envoy authentication"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    respx.get(URL_AUTH_CHECK_JWT).mock(return_value=Response(404, text="no jwt"))
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1" + URL_AUTH_CHECK_JWT,
+        reset=True,
+        status=404,
+        body="no jwt",
+    )
 
-    envoy = Envoy("127.0.0.1")
+    envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
     with pytest.raises(EnvoyAuthenticationError):
         await envoy.authenticate("username", "password")
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_no_remote_login_with_7_6_175_standard() -> None:
+async def test_no_remote_login_with_7_6_175_standard(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test Unable to login to Enlighten to obtain session ID from https://enlighten.enphaseenergy.com/login/login.json?"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
-        return_value=Response(
-            500,
-            json={
-                "session_id": "1234567890",
-                "user_id": "1234567890",
-                "user_name": "test",
-                "first_name": "Test",
-                "is_consumer": True,
-                "manager_token": "1234567890",
-            },
-        )
+    mock_response(
+        mock_aioresponse,
+        "post",
+        "https://enlighten.enphaseenergy.com/login/login.json?",
+        reset=True,
+        status=500,
+        payload={
+            "session_id": "1234567890",
+            "user_id": "1234567890",
+            "user_name": "test",
+            "first_name": "Test",
+            "is_consumer": True,
+            "manager_token": "1234567890",
+        },
     )
-    respx.post("https://entrez.enphaseenergy.com/tokens").mock(
-        return_value=Response(500, text="token")
+    mock_response(
+        mock_aioresponse,
+        "post",
+        "https://entrez.enphaseenergy.com/tokens",
+        reset=True,
+        status=500,
+        body="token",
     )
-    respx.get("/auth/check_jwt").mock(return_value=Response(200, json={}))
+    mock_response(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/auth/check_jwt",
+        reset=True,
+        status=200,
+        payload={},
+    )
 
-    envoy = Envoy("127.0.0.1")
+    envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
     with pytest.raises(EnvoyAuthenticationError):
         await envoy.authenticate("username", "password")
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_no_remote_token_with_7_6_175_standard() -> None:
+async def test_no_remote_token_with_7_6_175_standard(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test Unable to obtain token for Envoy authentication from https://entrez.enphaseenergy.com/tokens"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
-        return_value=Response(
-            200,
-            json={
-                "session_id": "1234567890",
-                "user_id": "1234567890",
-                "user_name": "test",
-                "first_name": "Test",
-                "is_consumer": True,
-                "manager_token": "1234567890",
-            },
-        )
+    # The login endpoint is already mocked with 200 by start_7_firmware_mock
+    # Only override the tokens endpoint to fail
+    mock_response(
+        mock_aioresponse,
+        "post",
+        "https://entrez.enphaseenergy.com/tokens",
+        reset=True,
+        status=500,
+        body="token",
     )
-    respx.post("https://entrez.enphaseenergy.com/tokens").mock(
-        return_value=Response(500, text="token")
-    )
-    respx.get("/auth/check_jwt").mock(return_value=Response(200, json={}))
 
-    envoy = Envoy("127.0.0.1")
+    envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
     with pytest.raises(EnvoyAuthenticationError):
         await envoy.authenticate("username", "password")
@@ -313,41 +448,40 @@ async def test_no_remote_token_with_7_6_175_standard() -> None:
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_enlighten_json_error_with_7_6_175_standard() -> None:
+async def test_enlighten_json_error_with_7_6_175_standard(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test Unable to decode response from Enlighten"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
-        return_value=Response(
-            200,
-            text="nojson",
-        )
+    # Override the login endpoint to return invalid JSON
+    mock_response(
+        mock_aioresponse,
+        "post",
+        "https://enlighten.enphaseenergy.com/login/login.json?",
+        reset=True,
+        status=200,
+        body="nojson",
     )
-    respx.post("https://entrez.enphaseenergy.com/tokens").mock(
-        return_value=Response(200, text="token")
-    )
-    respx.get("/auth/check_jwt").mock(return_value=Response(200, json={}))
 
-    envoy = Envoy("127.0.0.1")
+    envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
     with pytest.raises(EnvoyAuthenticationError):
         await envoy.authenticate("username", "password")
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_token_with_7_6_175_standard() -> None:
+async def test_token_with_7_6_175_standard(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test auth using token"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = Envoy("127.0.0.1")
+    envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
 
     token = jwt.encode(
@@ -386,15 +520,15 @@ async def test_token_with_7_6_175_standard() -> None:
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_remote_login_response_with_7_6_175_standard() -> None:
+async def test_remote_login_response_with_7_6_175_standard(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test enlighten login response for is_consumer and manager_token"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "7.6.175_standard"
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = Envoy("127.0.0.1")
+    envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
 
     await envoy.authenticate("username", "password")

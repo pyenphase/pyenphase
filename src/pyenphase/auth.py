@@ -3,7 +3,7 @@
 from abc import abstractmethod, abstractproperty
 from typing import Any, cast
 
-import httpx
+import aiohttp
 import jwt
 import orjson
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
@@ -25,13 +25,13 @@ class EnvoyAuth:
         """
 
     @abstractmethod
-    async def setup(self, client: httpx.AsyncClient) -> None:
+    async def setup(self, client: aiohttp.ClientSession) -> None:
         """
         Setup token based authentication with the local Envoy.
 
         Required for Envoy firmware >= 7.0
 
-        :param client: a httpx Async client to communicate with the local Envoy,
+        :param client: an aiohttp ClientSession to communicate with the local Envoy,
 
         """
 
@@ -40,7 +40,7 @@ class EnvoyAuth:
         """Return the Envoy cookie."""
 
     @abstractproperty
-    def auth(self) -> httpx.DigestAuth | None:
+    def auth(self) -> aiohttp.DigestAuthMiddleware | None:
         """
         Setup Digest authentication for local Envoy.
 
@@ -105,7 +105,7 @@ class EnvoyTokenAuth(EnvoyAuth):
         self._manager_token: str = ""
         self._cookies: dict[str, str] = {}
 
-    async def setup(self, client: httpx.AsyncClient) -> None:
+    async def setup(self, client: aiohttp.ClientSession) -> None:
         """
         Setup token based authentication with the local Envoy
 
@@ -115,7 +115,7 @@ class EnvoyTokenAuth(EnvoyAuth):
         can be accessed using the token property. Token is not stored persistent,
         caller should store and specify token over restarts.
 
-        :param client: a httpx Async client to communicate with the local Envoy,
+        :param client: an aiohttp ClientSession to communicate with the local Envoy,
         :raises EnvoyAuthenticationError: Authentication failed with the local Envoy
             or no token could be obtained from Enlighten cloud due to error or
             missing parameters,
@@ -133,19 +133,19 @@ class EnvoyTokenAuth(EnvoyAuth):
         await self._check_jwt(client)
 
     @retry(
-        retry=retry_if_exception_type(httpx.HTTPError),
+        retry=retry_if_exception_type(aiohttp.ClientError),
         wait=wait_random_exponential(multiplier=2, max=3),
     )
-    async def _check_jwt(self, client: httpx.AsyncClient) -> None:
+    async def _check_jwt(self, client: aiohttp.ClientSession) -> None:
         """Check the JWT token for Envoy authentication."""
-        req = await client.get(
+        async with client.get(
             f"https://{self.host}{URL_AUTH_CHECK_JWT}",
             headers={"Authorization": f"Bearer {self.token}"},
             timeout=LOCAL_TIMEOUT,
-        )
-        if req.status_code == 200:
-            self._cookies = req.cookies
-            return
+        ) as resp:
+            if resp.status == 200:
+                self._cookies = {k: v.value for k, v in resp.cookies.items()}
+                return
 
         raise EnvoyAuthenticationError(
             "Unable to verify token for Envoy authentication."
@@ -166,8 +166,9 @@ class EnvoyTokenAuth(EnvoyAuth):
                 "but no envoy serial number was provided to obtain the token."
             )
         # We require a new client that checks SSL certs
-        async with httpx.AsyncClient(
-            verify=SSL_CONTEXT, timeout=10, follow_redirects=True
+        timeout = aiohttp.ClientTimeout(total=10)
+        async with aiohttp.ClientSession(
+            connector=aiohttp.TCPConnector(ssl=SSL_CONTEXT), timeout=timeout
         ) as cloud_client:
             # Login to Enlighten to obtain a session ID
             response = await self._post_json_with_cloud_client(
@@ -178,40 +179,43 @@ class EnvoyTokenAuth(EnvoyAuth):
                     "user[password]": self.cloud_password,
                 },
             )
-            if response.status_code != 200:
+            if response.status != 200:
+                text = await response.text()
                 raise EnvoyAuthenticationError(
                     "Unable to login to Enlighten to obtain session ID from "
                     f"{self.JSON_LOGIN_URL}: "
-                    f"{response.status_code}: {response.text}"
+                    f"{response.status}: {text}"
                 )
             try:
-                response = orjson.loads(response.text)
+                response_json = orjson.loads(await response.text())
             except orjson.JSONDecodeError as err:
+                text = await response.text()
                 raise EnvoyAuthenticationError(
                     "Unable to decode response from Enlighten: "
-                    f"{response.status_code}: {response.text}"
+                    f"{response.status}: {text}"
                 ) from err
 
-            self._is_consumer = response["is_consumer"]
-            self._manager_token = response["manager_token"]
+            self._is_consumer = response_json["is_consumer"]
+            self._manager_token = response_json["manager_token"]
 
             # Obtain the token
             response = await self._post_json_with_cloud_client(
                 cloud_client,
                 self.TOKEN_URL,
                 json={
-                    "session_id": response["session_id"],
+                    "session_id": response_json["session_id"],
                     "serial_num": self.envoy_serial,
                     "username": self.cloud_username,
                 },
             )
-            if response.status_code != 200:
+            if response.status != 200:
+                text = await response.text()
                 raise EnvoyAuthenticationError(
                     "Unable to obtain token for Envoy authentication from "
                     f"{self.TOKEN_URL}: "
-                    f"{response.status_code}: {response.text}"
+                    f"{response.status}: {text}"
                 )
-            return response.text
+            return await response.text()
 
     async def refresh(self) -> None:
         """
@@ -260,18 +264,16 @@ class EnvoyTokenAuth(EnvoyAuth):
         return jwt_payload["enphaseUser"]
 
     @retry(
-        retry=retry_if_exception_type(
-            (httpx.NetworkError, httpx.TimeoutException, httpx.RemoteProtocolError)
-        ),
+        retry=retry_if_exception_type(aiohttp.ClientError),
         wait=wait_random_exponential(multiplier=2, max=3),
     )
     async def _post_json_with_cloud_client(
         self,
-        cloud_client: httpx.AsyncClient,
+        cloud_client: aiohttp.ClientSession,
         url: str,
         data: dict[str, Any] | None = None,
         json: dict[str, Any] | None = None,
-    ) -> httpx.Response:
+    ) -> aiohttp.ClientResponse:
         """Post to the Envoy API with the cloud client."""
         return await cloud_client.post(url, json=json, data=data)
 
@@ -387,29 +389,34 @@ class EnvoyLegacyAuth(EnvoyAuth):
         self.host = host
         self.local_username = username
         self.local_password = password
+        self._auth_middleware: aiohttp.DigestAuthMiddleware | None = None
 
     @property
-    def auth(self) -> httpx.DigestAuth:
+    def auth(self) -> aiohttp.DigestAuthMiddleware | None:
         """
         Digest authentication for local Envoy.
 
-        Creates DigestAuth based on username and password.
+        Creates DigestAuthMiddleware based on username and password.
 
-        :return: DigestAuthentication for local Envoy or None
+        :return: DigestAuthMiddleware for local Envoy or None
             if username and/or password are not specified
         """
         if not self.local_username or not self.local_password:
             return None
-        return httpx.DigestAuth(self.local_username, self.local_password)
+        if self._auth_middleware is None:
+            self._auth_middleware = aiohttp.DigestAuthMiddleware(
+                self.local_username, self.local_password
+            )
+        return self._auth_middleware
 
-    async def setup(self, client: httpx.AsyncClient) -> None:
+    async def setup(self, client: aiohttp.ClientSession) -> None:
         """
         Setup authentication with the local Envoy
 
         DigestAuth does not use additional setup,
         placeholder for EnvoyAuth abstractpropery.
 
-        :param client: Client to communicate with local Envoy
+        :param client: ClientSession to communicate with local Envoy
         """
         # No setup required for legacy authentication
 

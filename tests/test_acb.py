@@ -3,17 +3,19 @@
 import logging
 from typing import Any
 
+import aiohttp
 import pytest
-import respx
-from httpx import Response
+from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase.envoy import SupportedFeatures
 from pyenphase.models.envoy import EnvoyData
 
 from .common import (
+    endpoint_path,
     get_mock_envoy,
     load_json_fixture,
+    override_mock,
     prep_envoy,
     start_7_firmware_mock,
 )
@@ -22,16 +24,17 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_4_2_27_firmware():
+async def test_with_4_2_27_firmware(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Verify with 4.2.27 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.27"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
     assert not (envoy._supported_features & SupportedFeatures.ACB)
     assert not (envoy._supported_features & SupportedFeatures.ENCHARGE)
     assert not (envoy._supported_features & SupportedFeatures.ENPOWER)
@@ -273,7 +276,6 @@ async def test_with_4_2_27_firmware():
     ],
 )
 @pytest.mark.asyncio
-@respx.mock
 async def test_with_7_x_firmware(
     version: str,
     snapshot: SnapshotAssertion,
@@ -282,6 +284,8 @@ async def test_with_7_x_firmware(
     acb_count: int,
     battery_aggregate: dict[str, Any],
     acb_power: dict[str, dict[str, Any]],
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
 ) -> None:
     """
     Verify with 7.x firmware.
@@ -289,13 +293,13 @@ async def test_with_7_x_firmware(
     Test with fixture that have SupportedFeatures.METERING
 
     """
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     caplog.set_level(logging.DEBUG)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(test_client_session)
+    full_host = endpoint_path(version, envoy.host)
     data = envoy.data
     assert data
     assert data == snapshot
@@ -311,16 +315,18 @@ async def test_with_7_x_firmware(
     assert not (acb_power != {}) ^ (SupportedFeatures.ACB in envoy.supported_features)
 
     # verify both are empty/None or both have values
-    assert not (acb_power != {}) ^ (envoy.data.acb_power is not None)
-    assert not (battery_aggregate != {}) ^ (envoy.data.battery_aggregate is not None)
+    assert not (acb_power != {}) ^ (data.acb_power is not None)
+    assert not (battery_aggregate != {}) ^ (data.battery_aggregate is not None)
 
     # test battery aggregate values
     for key in battery_aggregate:
-        assert battery_aggregate[key] == getattr(envoy.data.battery_aggregate, key)
+        assert data.battery_aggregate is not None
+        assert battery_aggregate[key] == getattr(data.battery_aggregate, key)
 
     # test ACB battery values
     for key in acb_power:
-        assert acb_power[key] == getattr(envoy.data.acb_power, key)
+        assert data.acb_power is not None
+        assert acb_power[key] == getattr(data.acb_power, key)
 
     # test for code coverage if no storage section is available
     # use fixtures with METERING in supported_features:
@@ -332,8 +338,15 @@ async def test_with_7_x_firmware(
     # test with missing storage section
     prod_json = await load_json_fixture(version, "production.json")
     del prod_json["storage"]
-    respx.get("/production.json").mock(return_value=Response(200, json=prod_json))
-    envoy = await get_mock_envoy()
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/production.json?details=1",
+        status=200,
+        payload=prod_json,
+        repeat=True,
+    )
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data
     assert envoy.acb_count == 0

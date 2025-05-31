@@ -31,15 +31,16 @@ def create_no_verify_ssl_context() -> ssl.SSLContext:
 #:
 #: .. code-block:: python
 #:
-#:     import httpx
+#:     import aiohttp
 #:     from pyenphase.ssl import NO_VERIFY_SSL_CONTEXT
 #:
-#:     client = httpx.AsyncClient(verify=NO_VERIFY_SSL_CONTEXT)
+#:     connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
+#:     client = aiohttp.ClientSession(connector=connector)
 NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 
 
 def create_default_ssl_context() -> ssl.SSLContext:
-    """Create httpx client with default SSL context."""
+    """Create aiohttp client with default SSL context."""
     return ssl.create_default_context()
 
 
@@ -47,10 +48,11 @@ def create_default_ssl_context() -> ssl.SSLContext:
 #:
 #: .. code-block:: python
 #:
-#:    import httpx
+#:    import aiohttp
 #:    from pyenphase.ssl import SSL_CONTEXT
 #:
-#:    async with httpx.AsyncClient(verify=SSL_CONTEXT) as client:
+#:    connector = aiohttp.TCPConnector(ssl=SSL_CONTEXT)
+#:    async with aiohttp.ClientSession(connector=connector) as client:
 #:        response = await client.post(url, json=json, data=data)
 #:
 SSL_CONTEXT = create_default_ssl_context()

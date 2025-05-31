@@ -28,13 +28,13 @@ To add links to other modules from the docstring, use ":class:`path_to_some_clas
 ```python
     def __init__(
         self,
-        _client: httpx.AsyncClient,
+        _client: aiohttp.ClientSession,
         host: str,
     ) -> None:
         """
         Class for querying and determining the Envoy firmware version.
 
-        :param client: httpx AsyncClient not verifying SSL
+        :param client: aiohttp ClientSession not verifying SSL
             certificates, see :class:`pyenphase.ssl`.
         :param host: Envoy DNS name or IP address
         """
@@ -76,10 +76,10 @@ These can also be placed on the line before the attribute and consist of multipl
 #:
 #: .. code-block:: python
 #:
-#:     import httpx
+#:     import aiohttp
 #:     from pyenphase.ssl import NO_VERIFY_SSL_CONTEXT
 #:
-#:     client = httpx.AsyncClient(verify=NO_VERIFY_SSL_CONTEXT)
+#:     client = aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT))
 #:
 NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 ```

@@ -2,7 +2,7 @@ from abc import abstractmethod
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-import httpx
+import aiohttp
 from awesomeversion import AwesomeVersion
 
 from ..const import SupportedFeatures
@@ -18,8 +18,8 @@ class EnvoyUpdater:
     def __init__(
         self,
         envoy_version: AwesomeVersion,
-        probe_request: Callable[[str], Awaitable[httpx.Response]],
-        request: Callable[[str], Awaitable[httpx.Response]],
+        probe_request: Callable[[str], Awaitable[aiohttp.ClientResponse]],
+        request: Callable[[str], Awaitable[aiohttp.ClientResponse]],
         common_properties: CommonProperties,
     ) -> None:
         """Initialize the Envoy endpoint."""
@@ -32,16 +32,16 @@ class EnvoyUpdater:
     async def _json_request(self, end_point: str) -> Any:
         """Make a request to the Envoy and return the JSON response."""
         response = await self._request(end_point)
-        if not (200 <= response.status_code < 300):
-            raise EnvoyHTTPStatusError(response.status_code, response.url)
-        return json_loads(end_point, response.content)
+        if not (200 <= response.status < 300):
+            raise EnvoyHTTPStatusError(response.status, str(response.url))
+        return json_loads(end_point, await response.read())
 
     async def _json_probe_request(self, end_point: str) -> Any:
         """Make a probe request to the Envoy and return the JSON response."""
         response = await self._probe_request(end_point)
-        if not (200 <= response.status_code < 300):
-            raise EnvoyHTTPStatusError(response.status_code, response.url)
-        return json_loads(end_point, response.content)
+        if not (200 <= response.status < 300):
+            raise EnvoyHTTPStatusError(response.status, str(response.url))
+        return json_loads(end_point, await response.read())
 
     @abstractmethod
     async def probe(
