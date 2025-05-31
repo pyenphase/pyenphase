@@ -15,6 +15,6 @@ If the `/ivp/pdm/device_data` endpoint is supported then extra data is available
 ```python
 for inverter in data.inverters:
     print (f'{inverter} panel output: {data.inverters[inverter].dc_voltage}V @ {data.inverters[inverter].dc_current}A')
-    print (f'{inverter} output: {data.inverters[inverter].ac_voltage}V @ {data.inverters[inverter].ac_current}A {data.inverters[inverter].ac_frequncy}Hz')
+    print (f'{inverter} output: {data.inverters[inverter].ac_voltage}V @ {data.inverters[inverter].ac_current}A {data.inverters[inverter].ac_frequency}Hz')
     print (f'{inverter} temperature: {data.inverters[inverter].temperature}°C')
 ```
