@@ -10,7 +10,11 @@ for inverter in data.inverters:
     print (f'{inverter} last report: {data.inverters[inverter].last_report_date}')
 ```
 
-If the `/ivp/pdm/device_data` endpoint is supported then extra data is available per inverter
+If the `/ivp/pdm/device_data` endpoint is supported, then extra data is available per inverter
+
+::: note
+  The fields (`dc_voltage`, `dc_current`, `ac_voltage`, `ac_current`, `ac_frequency`, `temperature`) will be `None` if the endpoint is not supported.
+:::
 
 ```python
 for inverter in data.inverters:
