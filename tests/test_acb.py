@@ -317,8 +317,8 @@ async def test_with_7_x_firmware(
     assert not (acb_power != {}) ^ (SupportedFeatures.ACB in envoy.supported_features)
 
     # verify both are empty/None or both have values
-    assert not (acb_power != {}) ^ (envoy.data.acb_power is not None)
-    assert not (battery_aggregate != {}) ^ (envoy.data.battery_aggregate is not None)
+    assert not (acb_power != {}) ^ (data.acb_power is not None)
+    assert not (battery_aggregate != {}) ^ (data.battery_aggregate is not None)
 
     # test battery aggregate values
     for key in battery_aggregate:
