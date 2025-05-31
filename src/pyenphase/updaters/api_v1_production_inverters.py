@@ -1,8 +1,7 @@
 import logging
 from typing import Any, cast
 
-from ..const import (URL_DEVICE_DATA, URL_PRODUCTION_INVERTERS,
-                     SupportedFeatures)
+from ..const import URL_DEVICE_DATA, URL_PRODUCTION_INVERTERS, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.inverter import EnvoyInverter
