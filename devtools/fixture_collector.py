@@ -78,6 +78,7 @@ async def main(
         "/ivp/ensemble/generator",
         "/ivp/meters",
         "/ivp/meters/readings",
+        "/ivp/pdm/device_data",
     ]
 
     assert envoy.auth  # nosec
@@ -162,12 +163,10 @@ def _read_ha_config(file_path: str) -> dict[str, list[str | None]]:
 
 
 if __name__ == "__main__":
-    description = (
-        "Scan Enphase Envoy for endpoint list usable for pyenphase test fixtures. \
+    description = "Scan Enphase Envoy for endpoint list usable for pyenphase test fixtures. \
         Creates output folder envoy_<firmware>[label] with results of scan.\
         Zips content of created folder into envoy_<firmware>[label].zip.\
         "
-    )
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "-d", "--debug", help="Enable debug logging", action="store_true"

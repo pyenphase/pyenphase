@@ -1,0 +1,940 @@
+{
+  "553648384": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627390225,
+        "created": 1748576887,
+        "lastReading": {
+          "acCurrentInmA": 1049,
+          "acFrequencyINmHz": 50013,
+          "acVoltageINmV": 248156,
+          "channelTemp": 38,
+          "dcCurrentINmA": 8078,
+          "dcVoltageINmV": 32363,
+          "duration": 903,
+          "eid": 1627390225,
+          "endDate": 1748576887,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 68,
+          "joulesProduced": 230400,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 38,
+          "leadingVArs": 0,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834453,
+          "duration": 6124463,
+          "joulesProduced": 354281850
+        },
+        "wattHours": {
+          "today": 1239,
+          "week": 7466,
+          "yesterday": 455
+        },
+        "watts": {
+          "max": 371,
+          "now": 255,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344043197"
+  },
+  "553648640": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627390481,
+        "created": 1748576917,
+        "lastReading": {
+          "acCurrentInmA": 435,
+          "acFrequencyINmHz": 50019,
+          "acVoltageINmV": 246188,
+          "channelTemp": 30,
+          "dcCurrentINmA": 2324,
+          "dcVoltageINmV": 31684,
+          "duration": 903,
+          "eid": 1627390481,
+          "endDate": 1748576917,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 70,
+          "joulesProduced": 70425,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 39,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834377,
+          "duration": 6125538,
+          "joulesProduced": 259647525
+        },
+        "wattHours": {
+          "today": 773,
+          "week": 5129,
+          "yesterday": 447
+        },
+        "watts": {
+          "max": 309,
+          "now": 78,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344044368"
+  },
+  "553648896": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627390737,
+        "created": 1748576977,
+        "lastReading": {
+          "acCurrentInmA": 424,
+          "acFrequencyINmHz": 50016,
+          "acVoltageINmV": 245906,
+          "channelTemp": 41,
+          "dcCurrentINmA": 2598,
+          "dcVoltageINmV": 31117,
+          "duration": 903,
+          "eid": 1627390737,
+          "endDate": 1748576977,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 76,
+          "joulesProduced": 230625,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 38,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834457,
+          "duration": 6124361,
+          "joulesProduced": 359500950
+        },
+        "wattHours": {
+          "today": 1245,
+          "week": 7778,
+          "yesterday": 459
+        },
+        "watts": {
+          "max": 370,
+          "now": 255,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344044385"
+  },
+  "553649152": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627390993,
+        "created": 1748577008,
+        "lastReading": {
+          "acCurrentInmA": 331,
+          "acFrequencyINmHz": 50026,
+          "acVoltageINmV": 245188,
+          "channelTemp": 36,
+          "dcCurrentINmA": 1469,
+          "dcVoltageINmV": 31477,
+          "duration": 904,
+          "eid": 1627390993,
+          "endDate": 1748577008,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 70,
+          "joulesProduced": 216000,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 37,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834459,
+          "duration": 6124386,
+          "joulesProduced": 332167725
+        },
+        "wattHours": {
+          "today": 992,
+          "week": 6099,
+          "yesterday": 435
+        },
+        "watts": {
+          "max": 367,
+          "now": 239,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344044392"
+  },
+  "553649408": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627391249,
+        "created": 1748577037,
+        "lastReading": {
+          "acCurrentInmA": 334,
+          "acFrequencyINmHz": 50023,
+          "acVoltageINmV": 245563,
+          "channelTemp": 35,
+          "dcCurrentINmA": 1488,
+          "dcVoltageINmV": 31441,
+          "duration": 903,
+          "eid": 1627391249,
+          "endDate": 1748577037,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 72,
+          "joulesProduced": 117225,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 39,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834609,
+          "duration": 6124491,
+          "joulesProduced": 260339400
+        },
+        "wattHours": {
+          "today": 467,
+          "week": 3714,
+          "yesterday": 405
+        },
+        "watts": {
+          "max": 341,
+          "now": 130,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344044656"
+  },
+  "553649664": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627391505,
+        "created": 1748577038,
+        "lastReading": {
+          "acCurrentInmA": 379,
+          "acFrequencyINmHz": 50026,
+          "acVoltageINmV": 245563,
+          "channelTemp": 41,
+          "dcCurrentINmA": 1949,
+          "dcVoltageINmV": 30504,
+          "duration": 903,
+          "eid": 1627391505,
+          "endDate": 1748577038,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 70,
+          "joulesProduced": 205200,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 40,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834598,
+          "duration": 6124485,
+          "joulesProduced": 283035600
+        },
+        "wattHours": {
+          "today": 815,
+          "week": 5251,
+          "yesterday": 416
+        },
+        "watts": {
+          "max": 349,
+          "now": 227,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344046030"
+  },
+  "553649920": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627391761,
+        "created": 1748576165,
+        "lastReading": {
+          "acCurrentInmA": 415,
+          "acFrequencyINmHz": 49988,
+          "acVoltageINmV": 245625,
+          "channelTemp": 30,
+          "dcCurrentINmA": 2637,
+          "dcVoltageINmV": 31656,
+          "duration": 904,
+          "eid": 1627391761,
+          "endDate": 1748576165,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 74,
+          "joulesProduced": 76725,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 39,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834388,
+          "duration": 6124702,
+          "joulesProduced": 260345025
+        },
+        "wattHours": {
+          "today": 751,
+          "week": 5036,
+          "yesterday": 444
+        },
+        "watts": {
+          "max": 308,
+          "now": 85,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344046450"
+  },
+  "553650176": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627392017,
+        "created": 1748576166,
+        "lastReading": {
+          "acCurrentInmA": 315,
+          "acFrequencyINmHz": 49985,
+          "acVoltageINmV": 246188,
+          "channelTemp": 27,
+          "dcCurrentINmA": 789,
+          "dcVoltageINmV": 33156,
+          "duration": 904,
+          "eid": 1627392017,
+          "endDate": 1748576166,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 70,
+          "joulesProduced": 31050,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 39,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834506,
+          "duration": 6123681,
+          "joulesProduced": 216194625
+        },
+        "wattHours": {
+          "today": 207,
+          "week": 2283,
+          "yesterday": 380
+        },
+        "watts": {
+          "max": 362,
+          "now": 34,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344046574"
+  },
+  "553650432": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627392273,
+        "created": 1748576194,
+        "lastReading": {
+          "acCurrentInmA": 358,
+          "acFrequencyINmHz": 49978,
+          "acVoltageINmV": 245750,
+          "channelTemp": 32,
+          "dcCurrentINmA": 1879,
+          "dcVoltageINmV": 31922,
+          "duration": 903,
+          "eid": 1627392273,
+          "endDate": 1748576194,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 78,
+          "joulesProduced": 57375,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 39,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834414,
+          "duration": 6123760,
+          "joulesProduced": 262778625
+        },
+        "wattHours": {
+          "today": 769,
+          "week": 5048,
+          "yesterday": 443
+        },
+        "watts": {
+          "max": 299,
+          "now": 64,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344047608"
+  },
+  "553650688": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627392529,
+        "created": 1748576196,
+        "lastReading": {
+          "acCurrentInmA": 1073,
+          "acFrequencyINmHz": 49977,
+          "acVoltageINmV": 247063,
+          "channelTemp": 36,
+          "dcCurrentINmA": 8320,
+          "dcVoltageINmV": 32398,
+          "duration": 904,
+          "eid": 1627392529,
+          "endDate": 1748576196,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 70,
+          "joulesProduced": 209700,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 38,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834482,
+          "duration": 6123650,
+          "joulesProduced": 342205650
+        },
+        "wattHours": {
+          "today": 979,
+          "week": 6393,
+          "yesterday": 438
+        },
+        "watts": {
+          "max": 364,
+          "now": 232,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344047620"
+  },
+  "553650944": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627392785,
+        "created": 1748576197,
+        "lastReading": {
+          "acCurrentInmA": 1088,
+          "acFrequencyINmHz": 49978,
+          "acVoltageINmV": 246500,
+          "channelTemp": 41,
+          "dcCurrentINmA": 8527,
+          "dcVoltageINmV": 32012,
+          "duration": 905,
+          "eid": 1627392785,
+          "endDate": 1748576197,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 74,
+          "joulesProduced": 213300,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 38,
+          "leadingVArs": 0,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834445,
+          "duration": 6123908,
+          "joulesProduced": 360257400
+        },
+        "wattHours": {
+          "today": 1209,
+          "week": 7838,
+          "yesterday": 467
+        },
+        "watts": {
+          "max": 365,
+          "now": 236,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344047645"
+  },
+  "553651200": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627393041,
+        "created": 1748576224,
+        "lastReading": {
+          "acCurrentInmA": 1060,
+          "acFrequencyINmHz": 49977,
+          "acVoltageINmV": 246281,
+          "channelTemp": 36,
+          "dcCurrentINmA": 8102,
+          "dcVoltageINmV": 32316,
+          "duration": 903,
+          "eid": 1627393041,
+          "endDate": 1748576224,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 74,
+          "joulesProduced": 204975,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 39,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834485,
+          "duration": 6123654,
+          "joulesProduced": 348953175
+        },
+        "wattHours": {
+          "today": 1120,
+          "week": 7235,
+          "yesterday": 447
+        },
+        "watts": {
+          "max": 365,
+          "now": 227,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344047687"
+  },
+  "553651456": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627393297,
+        "created": 1748576226,
+        "lastReading": {
+          "acCurrentInmA": 1068,
+          "acFrequencyINmHz": 49969,
+          "acVoltageINmV": 247094,
+          "channelTemp": 40,
+          "dcCurrentINmA": 8383,
+          "dcVoltageINmV": 32133,
+          "duration": 904,
+          "eid": 1627393297,
+          "endDate": 1748576226,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 70,
+          "joulesProduced": 209925,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 38,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834446,
+          "duration": 6123674,
+          "joulesProduced": 358057125
+        },
+        "wattHours": {
+          "today": 1199,
+          "week": 7769,
+          "yesterday": 462
+        },
+        "watts": {
+          "max": 365,
+          "now": 232,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344047713"
+  },
+  "553651712": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627393553,
+        "created": 1748576255,
+        "lastReading": {
+          "acCurrentInmA": 1028,
+          "acFrequencyINmHz": 49984,
+          "acVoltageINmV": 245344,
+          "channelTemp": 39,
+          "dcCurrentINmA": 7902,
+          "dcVoltageINmV": 32043,
+          "duration": 904,
+          "eid": 1627393553,
+          "endDate": 1748576255,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 74,
+          "joulesProduced": 195525,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 39,
+          "leadingVArs": 1,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834580,
+          "duration": 6123492,
+          "joulesProduced": 286893675
+        },
+        "wattHours": {
+          "today": 780,
+          "week": 5471,
+          "yesterday": 426
+        },
+        "watts": {
+          "max": 338,
+          "now": 216,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344047722"
+  },
+  "553651968": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1627393809,
+        "created": 1748576256,
+        "lastReading": {
+          "acCurrentInmA": 417,
+          "acFrequencyINmHz": 49984,
+          "acVoltageINmV": 245500,
+          "channelTemp": 29,
+          "dcCurrentINmA": 2637,
+          "dcVoltageINmV": 31953,
+          "duration": 904,
+          "eid": 1627393809,
+          "endDate": 1748576256,
+          "flags": 0,
+          "flags_hex": "0x0000000000000000",
+          "interval_type": 0,
+          "issi": 70,
+          "joulesProduced": 75600,
+          "joulesUsed": 0,
+          "l1NAcVoltageInmV": 0,
+          "l2NAcVoltageInmV": 0,
+          "l3NAcVoltageInmV": 0,
+          "laggingVArs": 39,
+          "leadingVArs": 0,
+          "pwrConvErrSecs": 0,
+          "pwrConvMaxErrCycles": 0,
+          "rssi": 110
+        },
+        "lifetime": {
+          "createdTime": 1744834361,
+          "duration": 6124139,
+          "joulesProduced": 266390550
+        },
+        "wattHours": {
+          "today": 777,
+          "week": 5130,
+          "yesterday": 453
+        },
+        "watts": {
+          "max": 324,
+          "now": 84,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "pcu",
+    "modGone": false,
+    "sn": "122344048305"
+  },
+  "704643328": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1778385169,
+        "created": 1748576700,
+        "lastReading": {
+          "curr_w": 2675,
+          "duration": 900,
+          "eid": 1778385169,
+          "endDate": 1748576700,
+          "freq_mhz": 50000,
+          "interval_type": 0,
+          "rms_mamp": 12045,
+          "rms_mvolt": 246790,
+          "vah_cum": 1776512,
+          "varh_lag_cum": 255919,
+          "varh_lead_cum": 573128,
+          "wh_dlvd_cum": 1243605,
+          "wh_neg": 11,
+          "wh_pos": 1243605
+        },
+        "lifetime": {
+          "createdTime": 1744817400,
+          "duration": 6212100,
+          "vah_cum": 1776512,
+          "varh_lag_cum": 255919,
+          "varh_lead_cum": 573128,
+          "wh_dlvd_cum": 1243605
+        },
+        "wattHours": {
+          "today": 13233,
+          "week": 86068,
+          "yesterday": 6432
+        },
+        "watts": {
+          "max": 5171,
+          "now": 2675,
+          "nowUsed": 0
+        }
+      },
+      {
+        "chanEid": 1778385170,
+        "created": 0,
+        "lastReading": {},
+        "lifetime": {},
+        "wattHours": {
+          "today": 0,
+          "week": 0,
+          "yesterday": 0
+        },
+        "watts": {
+          "max": 0,
+          "now": 0,
+          "nowUsed": 0
+        }
+      },
+      {
+        "chanEid": 1778385171,
+        "created": 0,
+        "lastReading": {},
+        "lifetime": {},
+        "wattHours": {
+          "today": 0,
+          "week": 0,
+          "yesterday": 0
+        },
+        "watts": {
+          "max": 0,
+          "now": 0,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "eim",
+    "modGone": true,
+    "sn": "122446001637EIM1"
+  },
+  "704643584": {
+    "active": true,
+    "channels": [
+      {
+        "chanEid": 1778385425,
+        "created": 1748576700,
+        "lastReading": {
+          "curr_w": 419,
+          "duration": 900,
+          "eid": 1778385425,
+          "endDate": 1748576700,
+          "freq_mhz": 50062,
+          "interval_type": 0,
+          "rms_mamp": 1974,
+          "rms_mvolt": 246944,
+          "vah_cum": 2017794,
+          "varh_lag_cum": 174130,
+          "varh_lead_cum": -109660,
+          "wh_dlvd_cum": 1007981,
+          "wh_neg": 883785,
+          "wh_pos": 648196
+        },
+        "lifetime": {
+          "createdTime": 1744817400,
+          "duration": 6211500,
+          "vah_cum": 2017794,
+          "varh_lag_cum": 174130,
+          "varh_lead_cum": -109660,
+          "wh_dlvd_cum": 1007981
+        },
+        "wattHours": {
+          "today": 14467,
+          "week": 136796,
+          "yesterday": 25760
+        },
+        "watts": {
+          "max": 5726,
+          "now": 419,
+          "nowUsed": 0
+        }
+      },
+      {
+        "chanEid": 1778385426,
+        "created": 0,
+        "lastReading": {},
+        "lifetime": {},
+        "wattHours": {
+          "today": 0,
+          "week": 0,
+          "yesterday": 0
+        },
+        "watts": {
+          "max": 0,
+          "now": 0,
+          "nowUsed": 0
+        }
+      },
+      {
+        "chanEid": 1778385427,
+        "created": 0,
+        "lastReading": {},
+        "lifetime": {},
+        "wattHours": {
+          "today": 0,
+          "week": 0,
+          "yesterday": 0
+        },
+        "watts": {
+          "max": 0,
+          "now": 0,
+          "nowUsed": 0
+        }
+      }
+    ],
+    "devName": "eim",
+    "modGone": true,
+    "sn": "122446001637EIM2"
+  },
+  "deviceCount": 17,
+  "deviceDataLimit": 50
+}
