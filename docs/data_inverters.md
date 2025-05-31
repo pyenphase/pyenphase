@@ -13,7 +13,7 @@ for inverter in data.inverters:
 If the `/ivp/pdm/device_data` endpoint is supported, then extra data is available per inverter
 
 ::: note
-  The fields (`dc_voltage`, `dc_current`, `ac_voltage`, `ac_current`, `ac_frequency`, `temperature`) will be `None` if the endpoint is not supported.
+The fields (`dc_voltage`, `dc_current`, `ac_voltage`, `ac_current`, `ac_frequency`, `temperature`) will be `None` if the endpoint is not supported.
 :::
 
 ```python
