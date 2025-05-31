@@ -23,7 +23,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
-async def test_home_from_api_with_7_6_175(mock_aioresponse: aioresponses) -> None:
+async def test_home_from_api_with_7_6_175() -> None:
     """Test home data from api"""
     # start with regular data first
     version = "7.6.175"
