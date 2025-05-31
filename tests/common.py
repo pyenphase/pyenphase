@@ -55,7 +55,15 @@ def _fixture_files(path: str) -> list[str]:
 
 
 async def fixture_files(version: str) -> list[str]:
-    """Get fixture files list in executor"""
+    """
+    Asynchronously retrieves the list of fixture filenames for a given version.
+    
+    Args:
+        version: The version subdirectory to search for fixture files.
+    
+    Returns:
+        A list of fixture filenames found in the specified version directory.
+    """
     path: str = f"{_fixtures_dir()}/{version}"
     files: list[str] = await asyncio.get_running_loop().run_in_executor(
         None, _fixture_files, path
@@ -64,7 +72,11 @@ async def fixture_files(version: str) -> list[str]:
 
 
 def start_7_firmware_mock(mock_aioresponse: aioresponses) -> None:
-    """Setup response mocks for Enlighten and Envoy token requests."""
+    """
+    Sets up repeated mock HTTP responses for Enlighten login, token, and Envoy JWT check endpoints.
+    
+    This function configures the provided `aioresponses` mock object to simulate successful authentication and token retrieval for firmware version 7 test scenarios. It mocks POST requests to Enlighten login endpoints (with and without a trailing '?'), the token endpoint, and a GET request to the Envoy JWT check endpoint, all with repeated responses.
+    """
     # Use repeat=True since auth might create its own session
     # Mock both with and without the trailing ?
     mock_aioresponse.post(
@@ -106,7 +118,18 @@ def start_7_firmware_mock(mock_aioresponse: aioresponses) -> None:
 async def get_mock_envoy(
     client_session: aiohttp.ClientSession, update: bool = True
 ) -> Envoy:
-    """Return a mock Envoy."""
+    """
+    Creates and returns a mock Envoy instance using the provided aiohttp client session.
+    
+    The Envoy is initialized, set up, authenticated with test credentials, and optionally updated twice to simulate repeated data refreshes.
+    
+    Args:
+        client_session: The aiohttp client session to use for HTTP requests.
+        update: If True, performs two consecutive update calls on the Envoy.
+    
+    Returns:
+        A mock Envoy instance ready for testing.
+    """
     host = "127.0.0.1"
     envoy = Envoy(host, client=client_session)
     await envoy.setup()
@@ -120,7 +143,16 @@ async def get_mock_envoy(
 def latest_request(
     mock_aioresponse: aioresponses, method: str, url: str
 ) -> tuple[int, bytes]:
-    """Return count of matched request and last request data."""
+    """
+    Returns the number of matched requests and the data payload of the last request for a given HTTP method and URL from the aioresponses mock.
+    
+    Args:
+        method: The HTTP method to match (e.g., "GET", "POST").
+        url: The URL substring to match against recorded requests.
+    
+    Returns:
+        A tuple containing the count of matched requests and the data payload of the last matched request as bytes. If no requests match, returns (0, b"").
+    """
     requests = [
         req
         for req in mock_aioresponse.requests.keys()
@@ -138,7 +170,11 @@ def mock_response(
     reset: bool = False,
     **kwargs: Any,
 ) -> None:
-    """Mock aiohttp response and first reset existing if specified."""
+    """
+    Adds a mock HTTP response for the specified method and URL using aioresponses.
+    
+    If reset is True, existing mocks for the given method and URL are removed before adding the new mock.
+    """
     if reset:
         return override_mock(
             mock_aioresponse,
@@ -152,7 +188,11 @@ def mock_response(
 def override_mock(
     mock_aioresponse: aioresponses, method: str, url: str, **kwargs: Any
 ) -> None:
-    """Override an existing mock by removing it first and adding a new one."""
+    """
+    Removes existing mocks for the specified HTTP method and URL from the aioresponses mock, then adds a new mock with the provided parameters.
+    
+    This ensures that only the latest mock for the given method and URL is active, replacing any previous mocks.
+    """
     from yarl import URL
 
     url_obj = URL(url)
@@ -183,6 +223,16 @@ def override_mock(
 
 
 def endpoint_path(version: str, host: str) -> str:
+    """
+    Constructs the base URL for a given firmware version and host, using HTTPS if the version meets or exceeds the minimum required for token authentication.
+    
+    Args:
+        version: The firmware version string, possibly with suffixes.
+        host: The hostname or IP address of the Envoy device.
+    
+    Returns:
+        The base URL as a string, prefixed with "http://" or "https://".
+    """
     return f"http{'s' if AwesomeVersion(version.split('_')[0]) >= AUTH_TOKEN_MIN_VERSION else ''}://{host}"
 
 
@@ -191,19 +241,56 @@ async def prep_envoy(
     host: str,
     version: str,  #: name of version folder to read fixtures from
 ) -> list[str]:
-    """Setup response mocks for envoy requests and return list of found mock files."""
+    """
+    Sets up mocked HTTP responses for Envoy device endpoints using available fixture files.
+    
+    This function configures the provided `aioresponses` mock object to simulate Envoy API responses for a specific host and firmware version. It loads fixture files for the given version and mocks GET, POST, and PUT requests to various endpoints, returning appropriate payloads, bodies, or status codes based on the presence and content of each fixture. Endpoints include `/info`, `/ivp/meters`, `/production`, `/api/v1/production`, `/ivp/ensemble/inventory`, `/admin/lib/tariff`, and others. If a fixture is missing or contains invalid JSON, fallback responses such as 404 or empty payloads are used.
+    
+    Args:
+        mock_aioresponse: The `aioresponses` mock object to configure.
+        host: The hostname of the Envoy device.
+        version: The firmware version directory to load fixtures from.
+    
+    Returns:
+        A list of fixture filenames found for the specified version.
+    """
     files: list[str] = await fixture_files(version)
 
     # Helper to create full URLs
     full_host = endpoint_path(version, host)
 
     def url(path: str) -> str:
+        """
+        Constructs a full URL by appending the given path to the base host URL.
+        
+        Args:
+            path: The URL path to append.
+        
+        Returns:
+            The complete URL as a string.
+        """
         return f"{full_host}{path}"
 
     def url_https(path: str) -> str:
+        Constructs a full HTTPS URL by concatenating the host and the given path.
+        
+        Args:
+            path: The URL path to append to the host.
+        
+        Returns:
+            The complete HTTPS URL as a string.
         return f"https://{host}{path}"
 
     def url_http(path: str) -> str:
+        """
+        Constructs an HTTP URL by concatenating the host and the given path.
+        
+        Args:
+            path: The URL path to append to the host.
+        
+        Returns:
+            The full HTTP URL as a string.
+        """
         return f"http://{host}{path}"
 
     mock_aioresponse.get(

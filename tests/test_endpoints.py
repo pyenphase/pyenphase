@@ -1280,7 +1280,11 @@ async def test_with_7_x_firmware(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Verify with 7.x firmware."""
+    """
+    Comprehensively tests Envoy device behavior and API interactions across 7.x firmware versions.
+    
+    This asynchronous pytest test validates Envoy device properties, supported features, updater mappings, phase and meter data, and API request handling for multiple firmware versions using mocked aiohttp responses. It verifies correct parsing of production, consumption, and storage data, feature-specific actions (such as grid relay, dry contact, generator, and battery/tariff controls), and robust error handling for various edge cases and HTTP failures. The test ensures that the Envoy interface behaves as expected under a wide range of configurations and error conditions.
+    """
     start_7_firmware_mock(mock_aioresponse)
     files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)

@@ -24,7 +24,11 @@ LOGGER = logging.getLogger(__name__)
 
 @pytest.mark.asyncio
 async def test_home_from_api_with_7_6_175() -> None:
-    """Test home data from api"""
+    """
+    Tests the EnvoyInterfaceInformation.from_api method with various home endpoint data.
+    
+    Verifies correct parsing of interface information for different primary interfaces, and checks behavior when required keys are missing from the API response.
+    """
     # start with regular data first
     version = "7.6.175"
 
@@ -77,7 +81,11 @@ async def test_home_from_api_with_7_6_175() -> None:
 async def test_interface_settings_with_7_6_175(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test home interface information data"""
+    """
+    Tests the Envoy client's interface_settings method for correct parsing, caching, and cache invalidation of interface information from the home endpoint for firmware version 7.6.175.
+    
+    Verifies that interface data is initially parsed correctly, remains cached on repeated calls, and updates after cache invalidation via setup().
+    """
     # start with regular data first
     version = "7.6.175"
 
@@ -137,7 +145,11 @@ async def test_home_endpoint_errors_with_7_6_175(
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test home interface information data"""
+    """
+    Tests that the Envoy client correctly handles and logs errors when retrieving interface information from the /home endpoint.
+    
+    Simulates various HTTP errors and network exceptions using mocked responses, and verifies that failures are logged without raising exceptions.
+    """
     caplog.set_level(logging.DEBUG)
 
     # start with regular data first

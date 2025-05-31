@@ -32,7 +32,9 @@ LOGGER = logging.getLogger(__name__)
 async def test_wrong_auth_order_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test data collected fails before auth is done"""
+    """
+    Verifies that calling update before authentication on firmware 7.6.175_standard raises EnvoyAuthenticationRequired, and that update succeeds after proper authentication.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -52,7 +54,11 @@ async def test_wrong_auth_order_with_7_6_175_standard(
 async def test_with_3_9_36_firmware_bad_auth(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Verify with 3.9.36 firmware with incorrect auth."""
+    """
+    Tests that attempting to authenticate with incorrect credentials on Envoy firmware version 3.9.36 results in an EnvoyAuthenticationRequired exception.
+    
+    This test mocks various HTTP endpoints to simulate failed authentication and verifies that creating a mock Envoy instance raises the expected authentication exception.
+    """
     version = "3.9.36_bad_auth"
     mock_response(
         mock_aioresponse,
@@ -151,7 +157,11 @@ async def test_with_3_9_36_firmware_bad_auth(
 async def test_production_with_3_9_36_firmware_bad_auth(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test Authentication failed for http://127.0.0.1/api/v1/production."""
+    """
+    Tests that authentication fails with a 401 Unauthorized error on the /api/v1/production endpoint for Envoy firmware version 3.9.36 with bad credentials.
+    
+    Mocks relevant HTTP endpoints to simulate failed authentication and verifies that attempting to create a mock Envoy instance raises EnvoyAuthenticationRequired.
+    """
     version = "3.9.36_bad_auth"
     mock_response(
         mock_aioresponse,
@@ -263,7 +273,13 @@ async def test_known_users_with_3_9_36_firmware(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test successful login with known usernames."""
+    """
+    Tests successful authentication with known usernames on Envoy firmware version 3.9.36.
+    
+    Verifies that authentication succeeds with provided credentials, no cookies are used,
+    the returned authentication object is an instance of EnvoyLegacyAuth, and that forced
+    failure of Digest authentication results in the expected state.
+    """
     version = "3.9.36"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
@@ -289,7 +305,9 @@ async def test_known_users_with_3_9_36_firmware(
 async def test_unknown_user_with_3_9_36_firmware(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test Could not setup authentication object with 3.9.x"""
+    """
+    Tests that authentication with an unknown username on Envoy firmware version 3.9.36 raises EnvoyAuthenticationRequired.
+    """
     version = "3.9.36"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
@@ -317,7 +335,11 @@ async def test_blank_passwords_with_7_6_175_standard(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test Could not setup authentication object with 7.6.x"""
+    """
+    Tests that authentication with blank passwords fails on Envoy firmware version 7.6.175_standard.
+    
+    Verifies that attempting to authenticate with a blank password for any username raises EnvoyAuthenticationRequired.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -334,7 +356,11 @@ async def test_blank_passwords_with_7_6_175_standard(
 async def test_no_token_obtained_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test Unable to obtain token for Envoy authentication"""
+    """
+    Tests that authentication fails with Envoy firmware 7.6.175_standard when no token can be obtained.
+    
+    Simulates a failure in the token retrieval process and asserts that attempting to authenticate raises an EnvoyAuthenticationError.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -350,7 +376,9 @@ async def test_no_token_obtained_with_7_6_175_standard(
 async def test_jwt_failure_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test Unable to verify token for Envoy authentication"""
+    """
+    Tests that authentication fails with Envoy firmware 7.6.175_standard when the JWT verification endpoint returns a 404 error, resulting in an EnvoyAuthenticationError.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -374,7 +402,11 @@ async def test_jwt_failure_with_7_6_175_standard(
 async def test_no_remote_login_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test Unable to login to Enlighten to obtain session ID from https://enlighten.enphaseenergy.com/login/login.json?"""
+    """
+    Tests that authentication fails with Envoy firmware 7.6.175_standard when remote Enlighten login and token endpoints return server errors.
+    
+    Asserts that attempting to authenticate raises EnvoyAuthenticationError when both the Enlighten login and token endpoints respond with HTTP 500 errors.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -421,7 +453,11 @@ async def test_no_remote_login_with_7_6_175_standard(
 async def test_no_remote_token_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test Unable to obtain token for Envoy authentication from https://entrez.enphaseenergy.com/tokens"""
+    """
+    Tests that authentication fails with Envoy firmware 7.6.175_standard when the remote token endpoint returns an error.
+    
+    Simulates a scenario where the Enlighten login endpoint succeeds but the token endpoint returns an HTTP 500 error, causing authentication to raise `EnvoyAuthenticationError`. Also verifies that the resulting auth object is `EnvoyTokenAuth` and that accessing its `token_type` property raises `EnvoyAuthenticationRequired`.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -451,7 +487,9 @@ async def test_no_remote_token_with_7_6_175_standard(
 async def test_enlighten_json_error_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test Unable to decode response from Enlighten"""
+    """
+    Tests that authentication fails with Envoy firmware 7.6.175_standard when the Enlighten login endpoint returns invalid JSON, raising EnvoyAuthenticationError.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -476,7 +514,11 @@ async def test_enlighten_json_error_with_7_6_175_standard(
 async def test_token_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test auth using token"""
+    """
+    Tests token-based authentication on Envoy firmware version 7.6.175_standard.
+    
+    Verifies that authentication with a manually created JWT token results in an `EnvoyTokenAuth` object with correct attributes, and that token refresh handles missing serial number or cloud credentials by raising `EnvoyAuthenticationError`.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -523,7 +565,9 @@ async def test_token_with_7_6_175_standard(
 async def test_remote_login_response_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test enlighten login response for is_consumer and manager_token"""
+    """
+    Tests that authentication on firmware version 7.6.175_standard correctly processes the Enlighten login response, verifying that the resulting EnvoyTokenAuth object contains the expected manager_token and is_consumer attributes.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)

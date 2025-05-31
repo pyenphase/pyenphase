@@ -31,7 +31,9 @@ LOGGER = logging.getLogger(__name__)
 async def test_pr111_with_7_3_466_metered_disabled_cts(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test envoy metered with disabled ct to report from production inverters PR111."""
+    """
+    Tests Envoy firmware 7.3.466 with metered disabled CTs, verifying that only production and inverter features are supported and that system consumption data is absent while production data is present and correct.
+    """
     version = "7.3.466_metered_disabled_cts"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -65,7 +67,11 @@ async def test_pr111_with_7_3_466_metered_disabled_cts(
 async def test_pr111_with_7_6_175_with_cts(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test envoy metered with ct to report from production eim PR111."""
+    """
+    Validates Envoy firmware 7.6.175 with CT meters enabled for correct feature support and data reporting.
+    
+    This test asserts that the Envoy instance supports total and net consumption, production, inverters, metering, and CT meter features. It verifies correct updater registration, part number, and ensures that system consumption and production data are present and accurate. The Envoy model string is also checked for expected configuration details.
+    """
     version = "7.6.175_with_cts"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -110,7 +116,11 @@ async def test_pr111_with_7_6_175_with_cts(
 async def test_pr111_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test envoy metered with ct to report from production eim PR111."""
+    """
+    Validates Envoy firmware 7.6.175 standard (without CTs) for correct feature support and production data.
+    
+    This test ensures that total and net consumption features are not supported, while production and inverters features are present. It verifies updater registrations, part number, absence of system consumption data, correctness of system production values, and the Envoy model string.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -144,7 +154,11 @@ async def test_pr111_with_7_6_175_standard(
 async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test meters model using envoy metered CT with multiple phases"""
+    """
+    Tests CT meter data structures and exception handling for Envoy firmware 7.3.466 with CTs and three phases.
+    
+    This test verifies correct parsing and construction of CT meter data from API responses, including handling of multiple phases, missing phase data, and invalid phase indices. It asserts the integrity of EnvoyMeterData and EnvoySystemProduction/Consumption objects, and ensures that missing or malformed phase data is handled gracefully without causing crashes.
+    """
     # start with regular data first
     version = "7.3.466_with_cts_3phase"
     start_7_firmware_mock(mock_aioresponse)
@@ -267,7 +281,11 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
 async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test meters model using envoy metered CT with multiple phases"""
+    """
+    Tests Envoy firmware 7.6.175 with CT meters and three phases, verifying correct parsing and handling of CT meter data structures, including multi-phase support and error handling for missing or invalid phase data.
+    
+    This test loads mock meter status and readings, constructs meter data objects using from_api and from_phase methods, and asserts their properties. It also checks that the Envoy model string is correct and verifies that appropriate exceptions or None values are returned when phase data is missing or invalid.
+    """
     # start with regular data first
     version = "7.6.175_with_cts_3phase"
     start_7_firmware_mock(mock_aioresponse)
@@ -339,7 +357,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
 async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test meters model using envoy metered without production CT and total-consumption CT with multiple phases"""
+    """
+    Tests Envoy firmware 7.6.175 with three-phase CTs, simulating absence of production CT and presence of total-consumption CT.
+    
+    Removes production data from the fixture and modifies the CT meter type to total consumption, then verifies that Envoy data is returned and the model string reflects the correct CT configuration.
+    """
     # start with regular data first
     version = "7.6.175_with_cts_3phase"
     start_7_firmware_mock(mock_aioresponse)
@@ -395,7 +417,11 @@ async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase(
 async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test meters model using envoy metered CT with multiple phases"""
+    """
+    Tests Envoy firmware 8.2.127 with three CTs and battery split configuration, verifying correct handling of storage CT meter data across multiple phases.
+    
+    This test loads meter status and readings fixtures, constructs CT meter data using both the full API and individual phase methods, and asserts their properties. It checks for correct Envoy model identification, validates exception handling for invalid or missing phase data, and ensures that after updating with incomplete readings, the storage CT meter phases are set to None.
+    """
     # start with regular data first
     version = "8.2.127_with_3cts_and_battery_split"
     start_7_firmware_mock(mock_aioresponse)
@@ -480,7 +506,11 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split(
 async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_battery_split(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test meters model with additional meter readings entry not in meters config"""
+    """
+    Verifies that Envoy firmware 8.2.127 with 3 CTs and battery split handles extra meter readings entries not present in the meters configuration without crashing.
+    
+    This test simulates a firmware issue where an additional meter reading entry is returned by the API, ensuring that the Envoy data remains accessible and no IndexError occurs.
+    """
     # start with regular data first we use this fixture to test issue reported in 8.3.5025
     version = "8.2.127_with_3cts_and_battery_split"
     start_7_firmware_mock(mock_aioresponse)

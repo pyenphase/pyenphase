@@ -40,11 +40,11 @@ class EnvoyFirmware:
         host: str,
     ) -> None:
         """
-        Class for querying and determining the Envoy firmware version.
-
-        :param client: aiohttp ClientSession not verifying SSL
-            certificates, see :class:`pyenphase.ssl`.
-        :param host: Envoy DNS name or IP address
+        Initializes an EnvoyFirmware instance for querying firmware and device information.
+        
+        Args:
+            _client: An aiohttp ClientSession for making HTTP requests.
+            host: The DNS name or IP address of the Envoy device.
         """
         self._client = _client
         self._host = host
@@ -63,16 +63,12 @@ class EnvoyFirmware:
     )
     async def _get_info(self) -> tuple[int, bytes]:
         """
-        Perform GET request to /info endpoint on envoy.
-
-        Try GET request to https://<host>/info to read info endpoint.
-        If connection error or timeout, retry on http://<host>/info.
-
-        Will retry up to 4 times or 50 sec elapsed at next try, which
-        ever comes first on network or remote protocol errors.
-        HTTP status is not verified.
-
-        :return: tuple of (status_code, content)
+        Fetches the Envoy device's /info endpoint over HTTPS, falling back to HTTP if needed.
+        
+        Attempts to retrieve device information by sending a GET request to the /info endpoint using HTTPS. If a connection error or timeout occurs, retries the request using HTTP. Retries are performed on network or protocol errors, up to 4 times or 50 seconds total. The HTTP status code is not validated.
+        
+        Returns:
+            A tuple containing the HTTP status code and the response content as bytes.
         """
         self._url = f"https://{self._host}/info"
         _LOGGER.debug("Requesting %s with timeout %s", self._url, LOCAL_TIMEOUT)
@@ -90,28 +86,13 @@ class EnvoyFirmware:
 
     async def setup(self) -> None:
         """
-        Obtain the firmware version, serial-number and part-number from Envoy.
-
-        Read /info on Envoy, accessible without authentication.
-        Store firmware version, serial-number and part-number properties
-        from xml response.
-
-        Reads first on HTTPS, if that fails on HTTP for firmware < 7.
-        Will retry up to 4 times or 50 sec elapsed at next try, which
-        ever comes first.
-
-        .. code-block:: python
-
-            connector = aiohttp.TCPConnector(ssl=create_no_verify_ssl_context())
-            client = aiohttp.ClientSession(connector=connector)
-            firmware = EnvoyFirmware(client,host)
-            await firmware.setup()
-            print(firmware.version)
-
-        :raises EnvoyFirmwareFatalCheckError: if connection or timeout
-            failure occurs
-        :raises EnvoyFirmwareCheckError: on http errors or any HTTP
-            status other then 200
+        Fetches and stores the firmware version, serial number, part number, and metered flag from the Envoy device.
+        
+        Attempts to retrieve and parse the `/info` endpoint over HTTPS, falling back to HTTP if necessary. Extracts device information from the XML response and updates internal properties. Retries on network errors up to four times or 50 seconds total.
+        
+        Raises:
+            EnvoyFirmwareFatalCheckError: If a connection or timeout failure occurs.
+            EnvoyFirmwareCheckError: If an HTTP error occurs or the response status is not 200.
         """
         # <envoy>/info will return XML with the firmware version
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
@@ -162,10 +143,10 @@ class EnvoyFirmware:
     @property
     def version(self) -> AwesomeVersion:
         """
-        Return firmware version as read from Envoy.
-
-        :return: Envoy firmware version or None if
-            :class:`pyenphase.firmware.EnvoyFirmware.setup` was not used
+        Returns the firmware version retrieved from the Envoy device.
+        
+        Returns:
+            The firmware version as an AwesomeVersion object, or None if not yet set by calling setup().
         """
         return self._firmware_version
 

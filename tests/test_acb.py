@@ -27,7 +27,11 @@ LOGGER = logging.getLogger(__name__)
 async def test_with_4_2_27_firmware(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Verify with 4.2.27 firmware."""
+    """
+    Tests that Envoy data for firmware version 4.2.27 does not report ACB, Encharge, or Enpower features and has zero ACB batteries.
+    
+    Verifies that the Envoy data model correctly identifies the absence of advanced battery features in this firmware version.
+    """
     version = "4.2.27"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
@@ -288,10 +292,9 @@ async def test_with_7_x_firmware(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """
-    Verify with 7.x firmware.
-
-    Test with fixture that have SupportedFeatures.METERING
-
+    Tests Envoy data model behavior for 7.x and 8.x firmware versions with various ACB and battery configurations.
+    
+    Verifies that the Envoy correctly reports supported features, ACB battery counts, battery aggregate data, and ACB power data for each firmware version. Ensures consistency between feature flags and data presence, validates data against expected values, and checks correct handling when the storage section is missing from the production data.
     """
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)

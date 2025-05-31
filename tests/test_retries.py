@@ -23,7 +23,15 @@ from .common import load_fixture, override_mock, prep_envoy, start_7_firmware_mo
 
 # Helper function to create ClientConnectorError
 def _make_client_connector_error(msg="Test error"):
-    """Create a ClientConnectorError that can be converted to string."""
+    """
+    Creates a mock aiohttp.ClientConnectorError with a specified error message.
+    
+    Args:
+        msg: The error message to include in the OSError.
+    
+    Returns:
+        An aiohttp.ClientConnectorError instance with mock connection details.
+    """
 
     # Create a simple mock object with the minimal attributes needed
     class MockConnKey:
@@ -43,7 +51,11 @@ LOGGER = logging.getLogger(__name__)
 async def test_full_connected_from_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test envoy connected and replying from start"""
+    """
+    Tests successful connection and response from an Envoy device running firmware version 7.6.175.
+    
+    Simulates a scenario where the Envoy device is reachable from the start, verifies that only one connection attempt is made, and asserts correct firmware and part number retrieval. Also checks that the update operation returns data.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -72,7 +84,11 @@ async def test_full_connected_from_start_with_7_6_175_standard(
 async def test_full_disconnected_from_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test envoy disconnect at start, should return EnvoyFirmwareFatalCheckError."""
+    """
+    Tests that the Envoy client raises EnvoyFirmwareFatalCheckError after failing to connect to the device on both HTTPS and HTTP endpoints for all retry attempts.
+    
+    Simulates persistent connection errors at startup, verifies the correct exception is raised after 3 attempts, and asserts the retry count.
+    """
     start_7_firmware_mock(mock_aioresponse)
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
@@ -106,7 +122,9 @@ async def test_full_disconnected_from_start_with_7_6_175_standard(
 async def test_2_timeout_from_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test envoy timeout at start, timeout is not in retry loop."""
+    """
+    Tests that timeouts on both HTTPS and HTTP info endpoints at startup cause immediate failure with EnvoyFirmwareFatalCheckError, confirming that timeouts are not retried and only one attempt is made.
+    """
     start_7_firmware_mock(mock_aioresponse)
     envoy = Envoy("127.0.0.1", client=test_client_session)
     envoy._firmware._get_info.retry.wait = wait_none()
@@ -136,7 +154,9 @@ async def test_2_timeout_from_start_with_7_6_175_standard(
 async def test_httperror_from_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test envoy httperror at start, is not in retry loop."""
+    """
+    Tests that an HTTP 500 error on the Envoy firmware info endpoint causes setup to fail immediately with EnvoyFirmwareCheckError, without triggering retries.
+    """
     start_7_firmware_mock(mock_aioresponse)
     # Don't call prep_envoy because we want to control the /info response
 
@@ -166,7 +186,9 @@ async def test_httperror_from_start_with_7_6_175_standard(
 async def test_1_timeout_from_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test envoy timeout at start, timeout is not in retry loop but tries http after https."""
+    """
+    Tests that a timeout on the HTTPS info endpoint causes the Envoy client to fall back to HTTP, allowing setup and authentication to succeed with a single attempt. Verifies correct firmware and part number are set, and that update returns data.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -203,7 +225,11 @@ async def test_1_timeout_from_start_with_7_6_175_standard(
 async def test_5_not_connected_at_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test 5 connection failures at start and last one works"""
+    """
+    Tests Envoy client retry behavior when initial connection attempts fail, succeeding on the third attempt.
+    
+    Simulates two full connection failures (both HTTPS and HTTP) followed by a successful HTTP response on the third attempt for the firmware info endpoint. Verifies that the Envoy client retries as configured, correctly sets firmware and part number, and successfully retrieves update data after setup and authentication.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     # Don't call prep_envoy because we want to control the /info response
@@ -263,7 +289,11 @@ async def test_5_not_connected_at_start_with_7_6_175_standard(
 async def test_2_network_errors_at_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test 2 network error failures at start and 3th works"""
+    """
+    Tests that the Envoy client retries after two consecutive network errors on the firmware info endpoint and succeeds on the third attempt.
+    
+    Simulates two different network exceptions on the `/info` endpoint, followed by a successful response. Verifies that three attempts are made, the correct firmware and part number are set, and that the update call returns data.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     # Don't call prep_envoy because we want to control the /info response
@@ -307,7 +337,11 @@ async def test_2_network_errors_at_start_with_7_6_175_standard(
 async def test_3_network_errors_at_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test 3 network error failures at start"""
+    """
+    Tests that three consecutive network errors during Envoy firmware info retrieval cause setup to fail with EnvoyFirmwareCheckError after three retry attempts.
+    
+    Simulates repeated network failures on both HTTPS and HTTP endpoints, verifies that retries are attempted, and asserts that the correct exception is raised after the maximum number of attempts.
+    """
     start_7_firmware_mock(mock_aioresponse)
     # Don't call prep_envoy because we want to control the /info response
 
@@ -338,7 +372,11 @@ async def test_3_network_errors_at_start_with_7_6_175_standard(
 async def test_noconnection_at_probe_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test 3 network error failures at start"""
+    """
+    Tests that the Envoy client retries probe requests up to three times when consecutive network errors occur, and successfully completes the probe and update after retries.
+    
+    Simulates three different network errors on the probe endpoint, verifies retry statistics, and asserts that the client can recover and retrieve data after failures.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -393,7 +431,11 @@ async def test_noconnection_at_probe_with_7_6_175_standard(
 async def test_noconnection_at_update_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test 3 network error failures at start"""
+    """
+    Tests the Envoy client's retry and error handling behavior during update operations with firmware version 7.6.175_standard.
+    
+    Simulates various network failure scenarios—including timeouts, connection errors, general client errors, and authentication failures—by mocking HTTP responses and exceptions. Verifies that the Envoy client raises the appropriate exceptions, respects retry limits, and updates retry statistics accordingly.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -549,7 +591,11 @@ async def test_noconnection_at_update_with_7_6_175_standard(
 async def test_bad_request_status_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test request status not between 200-300."""
+    """
+    Tests that a non-2xx HTTP status (503) on the production API endpoint causes EnvoyHTTPStatusError without retries.
+    
+    Verifies that after a successful setup and authentication, forcing a 503 status on the `/api/v1/production` endpoint results in a single request attempt and raises the expected exception.
+    """
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)

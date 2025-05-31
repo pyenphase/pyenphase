@@ -25,7 +25,11 @@ LOGGER = logging.getLogger(__name__)
 async def test_with_4_2_27_firmware(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Verify with 4.2.27 firmware."""
+    """
+    Tests Envoy integration with firmware version 4.2.27 to ensure net and total consumption features are not reported.
+    
+    Verifies that the Envoy instance does not support total or net consumption features and that system net consumption data is absent.
+    """
     version = "4.2.27"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
@@ -392,7 +396,11 @@ async def test_with_7_x_firmware(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Verify with 7.x firmware."""
+    """
+    Tests Envoy integration with 7.x and newer firmware versions for correct net consumption reporting.
+    
+    Verifies that the Envoy instance correctly reports supported features, phase count, and net consumption data—including per-phase metrics—according to the provided firmware version and expected values. Asserts that the retrieved data matches the expected snapshot and that all net consumption phases are accurately reported.
+    """
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
