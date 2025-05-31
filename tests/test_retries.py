@@ -18,7 +18,7 @@ from pyenphase.exceptions import (
     EnvoyHTTPStatusError,
 )
 
-from .common import load_fixture, prep_envoy, start_7_firmware_mock
+from .common import load_fixture, override_mock, prep_envoy, start_7_firmware_mock
 
 
 # Helper function to create ClientConnectorError
@@ -426,8 +426,6 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     stats = envoy.probe_request.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
-
-    from .common import override_mock
 
     # Test timeout exceptions - need to override existing mock first, then add additional ones
     override_mock(
