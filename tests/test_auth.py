@@ -23,6 +23,7 @@ from .common import (
     mock_response,
     prep_envoy,
     start_7_firmware_mock,
+    temporary_log_level,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -528,10 +529,12 @@ async def test_remote_login_response_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = Envoy("127.0.0.1", client=test_client_session)
-    await envoy.setup()
+    # set log level to info 1 time for GET and 1 time for POST to improve COV
+    with temporary_log_level("pyenphase", logging.INFO):
+        envoy = Envoy("127.0.0.1", client=test_client_session)
+        await envoy.setup()
+        await envoy.authenticate("username", "password")
 
-    await envoy.authenticate("username", "password")
     assert isinstance(envoy.auth, EnvoyTokenAuth)
     assert envoy.auth.manager_token == "1234567890"
     assert envoy.auth.is_consumer
