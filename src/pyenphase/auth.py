@@ -6,7 +6,7 @@ from typing import Any, cast
 import aiohttp
 import jwt
 import orjson
-from aiohttp import ClientMiddlewareType
+from aiohttp import ClientHandlerType, ClientMiddlewareType
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .const import LOCAL_TIMEOUT, URL_AUTH_CHECK_JWT
@@ -20,7 +20,7 @@ class CloseConnectionOnAuthRequiredMiddleware:
     async def __call__(
         self,
         request: aiohttp.ClientRequest,
-        handler: aiohttp.Callable,
+        handler: ClientHandlerType,
     ) -> aiohttp.ClientResponse:
         """Process the request, closing connection on 401 response."""
         response = await handler(request)
