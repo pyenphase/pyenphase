@@ -539,6 +539,9 @@ async def test_remote_login_response_with_7_6_175_standard(
     assert envoy.auth.manager_token == "1234567890"
     assert envoy.auth.is_consumer
 
+    # read unused auth from EnvoyTokenAuth to improve COV
+    assert envoy.auth.auth is None
+
 
 @pytest.mark.asyncio
 async def test_close_connection_not_ok_middleware_non_200() -> None:
