@@ -380,6 +380,7 @@ class Envoy:
                 timeout=self._timeout,
                 data=orjson.dumps(data),
                 middlewares=middlewares,
+                allow_redirects=False,
             )
         else:
             _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
@@ -388,6 +389,7 @@ class Envoy:
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
                 timeout=self._timeout,
                 middlewares=middlewares,
+                allow_redirects=False,
             )
 
         status_code = response.status
