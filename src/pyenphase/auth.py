@@ -26,10 +26,10 @@ class CloseConnectionNotOKMiddleware:
         response = await handler(request)
 
         # If we get a 401, make sure to close the connection
-        if response.status == 401:
+        if response.status == 401 and response.connection:
             # Close the connection by closing the response
             # This ensures the connection is not reused
-            response.close()
+            response.connection.close()
 
         return response
 
