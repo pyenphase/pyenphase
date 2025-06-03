@@ -34,6 +34,7 @@ from .common import (
     mock_response,
     prep_envoy,
     start_7_firmware_mock,
+    temporary_log_level,
     updater_features,
 )
 
@@ -1324,12 +1325,15 @@ async def test_with_7_x_firmware(
     myresponse: aiohttp.ClientResponse = await envoy.request(
         "/api/v1/production/inverters"
     )
-    # Check that at least one GET request was made to this URL
-    cnt, request_data = latest_request(
-        mock_aioresponse, "GET", "/api/v1/production/inverters"
-    )
-    assert cnt > 0
-    assert await myresponse.json() == test_data
+    # set log level to info 1 time to improve COV
+    with temporary_log_level("pyenphase", logging.INFO):
+        # with data but no method should be post
+        # Check that at least one GET request was made to this URL
+        cnt, request_data = latest_request(
+            mock_aioresponse, "GET", "/api/v1/production/inverters"
+        )
+        assert cnt > 0
+        assert await myresponse.json() == test_data
 
     # with data but no method should be post
     await envoy.request("/api/v1/production/inverters", data=test_data)

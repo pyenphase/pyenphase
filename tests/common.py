@@ -2,6 +2,9 @@
 
 import asyncio
 import json
+import logging
+from collections.abc import Generator
+from contextlib import contextmanager
 from os import listdir
 from os.path import isfile, join
 from pathlib import Path
@@ -15,6 +18,18 @@ from awesomeversion import AwesomeVersion
 from pyenphase import AUTH_TOKEN_MIN_VERSION, Envoy
 from pyenphase.envoy import SupportedFeatures
 from pyenphase.updaters.base import EnvoyUpdater
+
+
+@contextmanager
+def temporary_log_level(logger_name: str, level: int) -> Generator[None, None, None]:
+    """Temporarily change the log level of a logger."""
+    logger = logging.getLogger(logger_name)
+    original_level = logger.level
+    logger.setLevel(level)
+    try:
+        yield
+    finally:
+        logger.setLevel(original_level)
 
 
 def _fixtures_dir() -> Path:
