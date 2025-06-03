@@ -26,6 +26,7 @@ class CloseConnectionNotOKMiddleware:
         response = await handler(request)
 
         # If we get anything other than 200, close the connection
+        if response.status != 200:
             # Close the connection by closing the response
             # This ensures the connection is not reused
             response.close()
