@@ -318,6 +318,16 @@ class Envoy:
         path in the Envoy, HTTP type and Envoy address is prepended
         to form full URL based on authentication method.
 
+        Request retries on client connection issues or timeouts.
+        Will retry up to 4 times or 50 sec elapsed at next try, which
+        ever comes first.
+
+
+        Send GET or POST request to Envoy. Defaults to GET, specify
+        data dictionary to perform a POST. Only specify the endpoint
+        path in the Envoy, HTTP type and Envoy address is prepended
+        to form full URL based on authentication method.
+
         Request retries on bad JSON responses which the Envoy sometimes
         returns, on network errors, timeouts and remote protocol errors.
         Will retry up to 4 times or 50 sec elapsed at next try, which
