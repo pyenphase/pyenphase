@@ -1321,12 +1321,12 @@ async def test_with_7_x_firmware(
         repeat=True,
     )
 
-    # test request with just an endpoint, should be a GET
-    myresponse: aiohttp.ClientResponse = await envoy.request(
-        "/api/v1/production/inverters"
-    )
-    # set log level to info 1 time to improve COV
+    # set log level to info 1 time for GET and 1 time for POST to improve COV
     with temporary_log_level("pyenphase", logging.INFO):
+        # test request with just an endpoint, should be a GET
+        myresponse: aiohttp.ClientResponse = await envoy.request(
+            "/api/v1/production/inverters"
+        )
         # with data but no method should be post
         # Check that at least one GET request was made to this URL
         cnt, request_data = latest_request(
@@ -1335,14 +1335,14 @@ async def test_with_7_x_firmware(
         assert cnt > 0
         assert await myresponse.json() == test_data
 
-    # with data but no method should be post
-    await envoy.request("/api/v1/production/inverters", data=test_data)
-    # Check that at least one POST request was made to this URL
-    cnt, request_data = latest_request(
-        mock_aioresponse, "POST", "/api/v1/production/inverters"
-    )
-    assert cnt == 1
-    assert orjson.loads(request_data) == test_data
+        # with data but no method should be post
+        await envoy.request("/api/v1/production/inverters", data=test_data)
+        # Check that at least one POST request was made to this URL
+        cnt, request_data = latest_request(
+            mock_aioresponse, "POST", "/api/v1/production/inverters"
+        )
+        assert cnt == 1
+        assert orjson.loads(request_data) == test_data
 
     # with method should be specified method
     await envoy.request("/api/v1/production/inverters", data=test_data, method="PUT")
