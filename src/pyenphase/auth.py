@@ -15,18 +15,18 @@ from .ssl import SSL_CONTEXT
 
 
 class CloseConnectionNotOKMiddleware:
-    """Middleware that closes connection when response is not OK (200)."""
+    """Middleware that closes connection on 401 response."""
 
     async def __call__(
         self,
         request: aiohttp.ClientRequest,
         handler: ClientHandlerType,
     ) -> aiohttp.ClientResponse:
-        """Process the request, closing connection on non-200 response."""
+        """Process the request, closing connection on 401 response."""
         response = await handler(request)
 
-        # If we get anything other than 200, close the connection
-        if response.status != 200:
+        # If we get a 401, make sure to close the connection
+        if response.status == 401:
             # Close the connection by closing the response
             # This ensures the connection is not reused
             response.close()
