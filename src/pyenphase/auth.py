@@ -7,7 +7,9 @@ from typing import Any, cast
 import aiohttp
 import jwt
 import orjson
-from aiohttp import ClientMiddlewareType
+from aiohttp import (
+    ClientMiddlewareType,
+)
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .const import LOCAL_TIMEOUT, URL_AUTH_CHECK_JWT
@@ -68,17 +70,6 @@ class EnvoyAuth:
     def middlewares(self) -> tuple[ClientMiddlewareType, ...] | None:
         """Return the middleware chain for requests."""
         return None
-
-    @cached_property
-    def close_connection(self) -> bool:
-        """
-        Return whether to close the connection after the request.
-
-        For Legacy Envoy authentication, this is always True
-
-        :return: True if the connection should be closed, False otherwise
-        """
-        return False
 
 
 class EnvoyTokenAuth(EnvoyAuth):
@@ -483,15 +474,3 @@ class EnvoyLegacyAuth(EnvoyAuth):
         :return: middleware chain or None if no auth configured
         """
         return (self.auth,) if self.auth else None
-
-    @cached_property
-    def close_connection(self) -> bool:
-        """
-        Return whether to close the connection after the request.
-
-        For legacy Envoy authentication, this is always True
-        as it does not use token based authentication.
-
-        :return: True if the connection should be closed, False otherwise
-        """
-        return True

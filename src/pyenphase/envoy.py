@@ -407,13 +407,6 @@ class Envoy:
                 await response.read(),  # Use the actual content bytes
             )
 
-        if self.auth.close_connection:
-            # For LegacyAuth, the older Envoy firmware have trouble
-            # with connection reuse, so we close it after each request
-
-            await response.read()  # read the response before closing
-            response.close()
-
         return response
 
     async def interface_settings(self) -> EnvoyInterfaceInformation | None:
