@@ -501,6 +501,4 @@ class EnvoyLegacyAuth(EnvoyAuth):
 
         :return: middleware chain or None if no auth configured
         """
-        if self.auth:
-            return (self._close_conn_middleware, self.auth)
-        return None
+        return (self._close_conn_middleware, self.auth) if self.auth else None
