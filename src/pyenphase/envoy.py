@@ -408,8 +408,6 @@ class Envoy:
                 "please check your username/password or token."
             )
 
-        # Read the content to cache it
-        content = await response.read()
         # show all responses centrally when in debug
         if debugon:
             request_end = time.monotonic()
@@ -420,7 +418,7 @@ class Envoy:
                 url,
                 status_code,
                 content_type,
-                content,  # Use the actual content bytes
+                await response.read(),  # Use the actual content bytes
             )
 
         return response
