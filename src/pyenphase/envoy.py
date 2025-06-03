@@ -365,9 +365,6 @@ class Envoy:
         if debugon:
             request_start = time.monotonic()
 
-        # Set up middleware from auth
-        middlewares = self.auth.middlewares
-
         if data:
             if debugon:
                 _LOGGER.debug(
@@ -379,7 +376,7 @@ class Envoy:
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
                 timeout=self._timeout,
                 data=orjson.dumps(data),
-                middlewares=middlewares,
+                middlewares=self.auth.middlewares,
             )
         else:
             _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
@@ -387,7 +384,7 @@ class Envoy:
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
                 timeout=self._timeout,
-                middlewares=middlewares,
+                middlewares=self.auth.middlewares,
             )
 
         status_code = response.status
@@ -409,6 +406,13 @@ class Envoy:
                 content_type,
                 await response.read(),  # Use the actual content bytes
             )
+
+        if self.auth.close_connection:
+            # For LegacyAuth, the older Envoy firmware have trouble
+            # with connection reuse, so we close it after each request
+
+            await response.read()  # read the response before closing
+            response.close()
 
         return response
 

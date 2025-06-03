@@ -4,7 +4,7 @@ import json
 import logging
 from os import listdir
 from os.path import isfile, join
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import aiohttp
 import jwt
@@ -12,7 +12,7 @@ import pytest
 from aioresponses import aioresponses
 
 from pyenphase import Envoy, EnvoyTokenAuth
-from pyenphase.auth import CloseConnectionMiddleware, EnvoyLegacyAuth
+from pyenphase.auth import EnvoyLegacyAuth
 from pyenphase.const import URL_AUTH_CHECK_JWT
 from pyenphase.exceptions import EnvoyAuthenticationError, EnvoyAuthenticationRequired
 
@@ -544,81 +544,6 @@ async def test_remote_login_response_with_7_6_175_standard(
 
 
 @pytest.mark.asyncio
-async def test_close_connection_not_ok_middleware_non_200() -> None:
-    """Test CloseConnectionMiddleware closes connection on non-200 status."""
-    middleware = CloseConnectionMiddleware()
-
-    # Test with 401 response - should close the connection
-    mock_response_401 = MagicMock(spec=aiohttp.ClientResponse)
-    mock_response_401.status = 401
-    mock_response_401.close = MagicMock()
-
-    mock_request = MagicMock(spec=aiohttp.ClientRequest)
-    mock_handler = AsyncMock(return_value=mock_response_401)
-
-    response = await middleware(mock_request, mock_handler)
-
-    assert response == mock_response_401
-    mock_handler.assert_called_once_with(mock_request)
-    mock_response_401.close.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_close_connection_not_ok_middleware_200() -> None:
-    """Test CloseConnectionMiddleware doesn't close on 200 status."""
-    middleware = CloseConnectionMiddleware()
-
-    # Test with 200 response - should NOT close the connection
-    mock_response_200 = MagicMock(spec=aiohttp.ClientResponse)
-    mock_response_200.status = 200
-    mock_response_200.close = MagicMock()
-
-    mock_request = MagicMock(spec=aiohttp.ClientRequest)
-    mock_handler = AsyncMock(return_value=mock_response_200)
-
-    response = await middleware(mock_request, mock_handler)
-
-    assert response == mock_response_200
-    mock_handler.assert_called_once_with(mock_request)
-    mock_response_200.close.assert_not_called()
-
-
-@pytest.mark.asyncio
-async def test_close_connection_not_ok_middleware_various_statuses() -> None:
-    """Test CloseConnectionMiddleware with various HTTP status codes."""
-    middleware = CloseConnectionMiddleware()
-
-    # Test various status codes
-    test_cases = [
-        (200, False),  # OK - should not close
-        (201, True),  # Created - should close
-        (204, True),  # No Content - should close
-        (401, True),  # Unauthorized - should close
-        (403, True),  # Forbidden - should close
-        (404, True),  # Not Found - should close
-        (500, True),  # Internal Server Error - should close
-    ]
-
-    for status_code, should_close in test_cases:
-        mock_response = MagicMock(spec=aiohttp.ClientResponse)
-        mock_response.status = status_code
-        mock_response.close = MagicMock()
-
-        mock_request = MagicMock(spec=aiohttp.ClientRequest)
-        mock_handler = AsyncMock(return_value=mock_response)
-
-        response = await middleware(mock_request, mock_handler)
-
-        assert response == mock_response
-        mock_handler.assert_called_once_with(mock_request)
-
-        if should_close:
-            mock_response.close.assert_called_once()
-        else:
-            mock_response.close.assert_not_called()
-
-
-@pytest.mark.asyncio
 async def test_legacy_auth_middleware_chain() -> None:
     """Test that EnvoyLegacyAuth properly sets up the middleware chain."""
     legacy_auth = EnvoyLegacyAuth("127.0.0.1", "envoy", "password")
@@ -626,9 +551,8 @@ async def test_legacy_auth_middleware_chain() -> None:
     # Test that middlewares property returns the correct chain
     middlewares = legacy_auth.middlewares
     assert middlewares is not None
-    assert len(middlewares) == 2
-    assert isinstance(middlewares[0], CloseConnectionMiddleware)
-    assert isinstance(middlewares[1], aiohttp.DigestAuthMiddleware)
+    assert len(middlewares) == 1
+    assert isinstance(middlewares[0], aiohttp.DigestAuthMiddleware)
 
 
 @pytest.mark.asyncio

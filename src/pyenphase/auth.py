@@ -1,31 +1,18 @@
 """Envoy authentication methods."""
 
 from abc import abstractmethod, abstractproperty
+from functools import cached_property
 from typing import Any, cast
 
 import aiohttp
 import jwt
 import orjson
-from aiohttp import ClientHandlerType, ClientMiddlewareType
+from aiohttp import ClientMiddlewareType
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .const import LOCAL_TIMEOUT, URL_AUTH_CHECK_JWT
 from .exceptions import EnvoyAuthenticationError, EnvoyAuthenticationRequired
 from .ssl import SSL_CONTEXT
-
-
-class CloseConnectionMiddleware:
-    """Middleware that closes connection when response is not OK (200)."""
-
-    async def __call__(
-        self,
-        request: aiohttp.ClientRequest,
-        handler: ClientHandlerType,
-    ) -> aiohttp.ClientResponse:
-        """Process the request, closing connection on non-200 response."""
-        response = await handler(request)
-        response.close()
-        return response
 
 
 class EnvoyAuth:
@@ -77,9 +64,21 @@ class EnvoyAuth:
         :return: formatted full URL string
         """
 
-    @abstractproperty
+    @cached_property
     def middlewares(self) -> tuple[ClientMiddlewareType, ...] | None:
         """Return the middleware chain for requests."""
+        return None
+
+    @cached_property
+    def close_connection(self) -> bool:
+        """
+        Return whether to close the connection after the request.
+
+        For Legacy Envoy authentication, this is always True
+
+        :return: True if the connection should be closed, False otherwise
+        """
+        return False
 
 
 class EnvoyTokenAuth(EnvoyAuth):
@@ -391,17 +390,6 @@ class EnvoyTokenAuth(EnvoyAuth):
         """
         return f"https://{self.host}{endpoint}"
 
-    @property
-    def middlewares(self) -> None:
-        """
-        Return the middleware chain for requests.
-
-        Token auth doesn't use middleware.
-
-        :return: None
-        """
-        return None
-
 
 class EnvoyLegacyAuth(EnvoyAuth):
     """Class to authenticate with legacy Envoy using digest."""
@@ -420,7 +408,6 @@ class EnvoyLegacyAuth(EnvoyAuth):
         self.local_username = username
         self.local_password = password
         self._auth_middleware: aiohttp.DigestAuthMiddleware | None = None
-        self._close_conn_middleware = CloseConnectionMiddleware()
 
     @property
     def auth(self) -> aiohttp.DigestAuthMiddleware | None:
@@ -485,7 +472,7 @@ class EnvoyLegacyAuth(EnvoyAuth):
         """
         return {}
 
-    @property
+    @cached_property
     def middlewares(self) -> tuple[ClientMiddlewareType, ...] | None:
         """
         Return the middleware chain for requests.
@@ -495,4 +482,16 @@ class EnvoyLegacyAuth(EnvoyAuth):
 
         :return: middleware chain or None if no auth configured
         """
-        return (self._close_conn_middleware, self.auth) if self.auth else None
+        return (self.auth,) if self.auth else None
+
+    @cached_property
+    def close_connection(self) -> bool:
+        """
+        Return whether to close the connection after the request.
+
+        For legacy Envoy authentication, this is always True
+        as it does not use token based authentication.
+
+        :return: True if the connection should be closed, False otherwise
+        """
+        return True
