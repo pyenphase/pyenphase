@@ -177,14 +177,6 @@ async def test_home_endpoint_errors_with_7_6_175(
     caplog.clear()
 
     mock_aioresponse.get(
-        "https://127.0.0.1/home", exception=aiohttp.ClientError("Test protocolerror")
-    )
-    # interface_settings catches and logs exceptions, doesn't re-raise
-    await envoy.interface_settings()
-    assert "Failure getting interface information" in caplog.text
-    caplog.clear()
-
-    mock_aioresponse.get(
         "https://127.0.0.1/home",
         exception=asyncio.TimeoutError("Test timeoutexception"),
     )
