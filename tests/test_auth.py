@@ -12,7 +12,7 @@ import pytest
 from aioresponses import aioresponses
 
 from pyenphase import Envoy, EnvoyTokenAuth
-from pyenphase.auth import CloseConnectionMiddleware, EnvoyLegacyAuth
+from pyenphase.auth import CloseConnectionNotOKMiddleware, EnvoyLegacyAuth
 from pyenphase.const import URL_AUTH_CHECK_JWT
 from pyenphase.exceptions import EnvoyAuthenticationError, EnvoyAuthenticationRequired
 
@@ -545,8 +545,8 @@ async def test_remote_login_response_with_7_6_175_standard(
 
 @pytest.mark.asyncio
 async def test_close_connection_not_ok_middleware_non_200() -> None:
-    """Test CloseConnectionMiddleware closes connection on non-200 status."""
-    middleware = CloseConnectionMiddleware()
+    """Test CloseConnectionNotOKMiddleware closes connection on non-200 status."""
+    middleware = CloseConnectionNotOKMiddleware()
 
     # Test with 401 response - should close the connection
     mock_response_401 = MagicMock(spec=aiohttp.ClientResponse)
@@ -565,8 +565,8 @@ async def test_close_connection_not_ok_middleware_non_200() -> None:
 
 @pytest.mark.asyncio
 async def test_close_connection_not_ok_middleware_200() -> None:
-    """Test CloseConnectionMiddleware doesn't close on 200 status."""
-    middleware = CloseConnectionMiddleware()
+    """Test CloseConnectionNotOKMiddleware doesn't close on 200 status."""
+    middleware = CloseConnectionNotOKMiddleware()
 
     # Test with 200 response - should NOT close the connection
     mock_response_200 = MagicMock(spec=aiohttp.ClientResponse)
@@ -585,8 +585,8 @@ async def test_close_connection_not_ok_middleware_200() -> None:
 
 @pytest.mark.asyncio
 async def test_close_connection_not_ok_middleware_various_statuses() -> None:
-    """Test CloseConnectionMiddleware with various HTTP status codes."""
-    middleware = CloseConnectionMiddleware()
+    """Test CloseConnectionNotOKMiddleware with various HTTP status codes."""
+    middleware = CloseConnectionNotOKMiddleware()
 
     # Test various status codes
     test_cases = [
@@ -627,7 +627,7 @@ async def test_legacy_auth_middleware_chain() -> None:
     middlewares = legacy_auth.middlewares
     assert middlewares is not None
     assert len(middlewares) == 2
-    assert isinstance(middlewares[0], CloseConnectionMiddleware)
+    assert isinstance(middlewares[0], CloseConnectionNotOKMiddleware)
     assert isinstance(middlewares[1], aiohttp.DigestAuthMiddleware)
 
 
