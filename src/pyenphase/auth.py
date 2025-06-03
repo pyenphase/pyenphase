@@ -14,19 +14,19 @@ from .exceptions import EnvoyAuthenticationError, EnvoyAuthenticationRequired
 from .ssl import SSL_CONTEXT
 
 
-class CloseConnectionOnAuthRequiredMiddleware:
-    """Middleware that closes connection when authentication is required."""
+class CloseConnectionNotOKMiddleware:
+    """Middleware that closes connection when response is not OK (200)."""
 
     async def __call__(
         self,
         request: aiohttp.ClientRequest,
         handler: ClientHandlerType,
     ) -> aiohttp.ClientResponse:
-        """Process the request, closing connection on 401 response."""
+        """Process the request, closing connection on non-200 response."""
         response = await handler(request)
 
-        # If we get a 401, close the connection
-        if response.status == 401:
+        # If we get anything other than 200, close the connection
+        if response.status != 200:
             # Close the connection by closing the response
             # This ensures the connection is not reused
             response.close()
@@ -426,7 +426,7 @@ class EnvoyLegacyAuth(EnvoyAuth):
         self.local_username = username
         self.local_password = password
         self._auth_middleware: aiohttp.DigestAuthMiddleware | None = None
-        self._close_conn_middleware = CloseConnectionOnAuthRequiredMiddleware()
+        self._close_conn_middleware = CloseConnectionNotOKMiddleware()
 
     @property
     def auth(self) -> aiohttp.DigestAuthMiddleware | None:
