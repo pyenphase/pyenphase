@@ -6,11 +6,32 @@ from typing import Any, cast
 import aiohttp
 import jwt
 import orjson
+from aiohttp import ClientMiddlewareType
 from tenacity import retry, retry_if_exception_type, wait_random_exponential
 
 from .const import LOCAL_TIMEOUT, URL_AUTH_CHECK_JWT
 from .exceptions import EnvoyAuthenticationError, EnvoyAuthenticationRequired
 from .ssl import SSL_CONTEXT
+
+
+class CloseConnectionOnAuthRequiredMiddleware:
+    """Middleware that closes connection when authentication is required."""
+
+    async def __call__(
+        self,
+        request: aiohttp.ClientRequest,
+        handler: aiohttp.Callable,
+    ) -> aiohttp.ClientResponse:
+        """Process the request, closing connection on 401 response."""
+        response = await handler(request)
+
+        # If we get a 401, close the connection
+        if response.status == 401:
+            # Close the connection by closing the response
+            # This ensures the connection is not reused
+            response.close()
+
+        return response
 
 
 class EnvoyAuth:
@@ -61,6 +82,10 @@ class EnvoyAuth:
 
         :return: formatted full URL string
         """
+
+    @abstractproperty
+    def middlewares(self) -> tuple[ClientMiddlewareType, ...] | None:
+        """Return the middleware chain for requests."""
 
 
 class EnvoyTokenAuth(EnvoyAuth):
@@ -372,6 +397,17 @@ class EnvoyTokenAuth(EnvoyAuth):
         """
         return f"https://{self.host}{endpoint}"
 
+    @property
+    def middlewares(self) -> None:
+        """
+        Return the middleware chain for requests.
+
+        Token auth doesn't use middleware.
+
+        :return: None
+        """
+        return None
+
 
 class EnvoyLegacyAuth(EnvoyAuth):
     """Class to authenticate with legacy Envoy using digest."""
@@ -390,6 +426,7 @@ class EnvoyLegacyAuth(EnvoyAuth):
         self.local_username = username
         self.local_password = password
         self._auth_middleware: aiohttp.DigestAuthMiddleware | None = None
+        self._close_conn_middleware = CloseConnectionOnAuthRequiredMiddleware()
 
     @property
     def auth(self) -> aiohttp.DigestAuthMiddleware | None:
@@ -453,3 +490,17 @@ class EnvoyLegacyAuth(EnvoyAuth):
         :return: empty dict
         """
         return {}
+
+    @property
+    def middlewares(self) -> tuple[ClientMiddlewareType, ...] | None:
+        """
+        Return the middleware chain for requests.
+
+        For digest auth, returns a tuple with close connection middleware
+        followed by digest auth middleware.
+
+        :return: middleware chain or None if no auth configured
+        """
+        if self.auth:
+            return (self._close_conn_middleware, self.auth)
+        return None

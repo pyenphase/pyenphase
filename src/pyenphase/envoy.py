@@ -24,7 +24,11 @@ from tenacity import (
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.home import EnvoyInterfaceInformation
 
-from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
+from .auth import (
+    EnvoyAuth,
+    EnvoyLegacyAuth,
+    EnvoyTokenAuth,
+)
 from .const import (
     AUTH_TOKEN_MIN_VERSION,
     ENDPOINT_URL_HOME,
@@ -362,8 +366,8 @@ class Envoy:
         if debugon:
             request_start = time.monotonic()
 
-        # Set up middleware if we have digest auth
-        middlewares = (self.auth.auth,) if self.auth.auth else None
+        # Set up middleware from auth
+        middlewares = self.auth.middlewares
 
         if data:
             if debugon:
