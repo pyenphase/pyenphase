@@ -14,7 +14,7 @@ from .exceptions import EnvoyAuthenticationError, EnvoyAuthenticationRequired
 from .ssl import SSL_CONTEXT
 
 
-class CloseConnectionNotOKMiddleware:
+class CloseConnectionMiddleware:
     """Middleware that closes connection when response is not OK (200)."""
 
     async def __call__(
@@ -24,10 +24,7 @@ class CloseConnectionNotOKMiddleware:
     ) -> aiohttp.ClientResponse:
         """Process the request, closing connection on non-200 response."""
         response = await handler(request)
-
-        # If we get anything other than 200, close the connection
         response.close()
-
         return response
 
 
@@ -423,7 +420,7 @@ class EnvoyLegacyAuth(EnvoyAuth):
         self.local_username = username
         self.local_password = password
         self._auth_middleware: aiohttp.DigestAuthMiddleware | None = None
-        self._close_conn_middleware = CloseConnectionNotOKMiddleware()
+        self._close_conn_middleware = CloseConnectionMiddleware()
 
     @property
     def auth(self) -> aiohttp.DigestAuthMiddleware | None:
