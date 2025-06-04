@@ -366,7 +366,7 @@ class Envoy:
             request_start = time.monotonic()
 
         # Set up middleware from auth
-        middlewares = self.auth.middlewares
+        middlewares = self.auth.auth
 
         if data:
             if debugon:
