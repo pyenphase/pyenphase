@@ -146,24 +146,6 @@ def latest_request(
     return len(requests), mock_aioresponse.requests[requests[-1]][-1].kwargs.get("data")
 
 
-def mock_response(
-    mock_aioresponse: aioresponses,
-    method: str,
-    url: str,
-    reset: bool = False,
-    **kwargs: Any,
-) -> None:
-    """Mock aiohttp response and first reset existing if specified."""
-    if reset:
-        return override_mock(
-            mock_aioresponse,
-            method,
-            url,
-            **kwargs,
-        )
-    getattr(mock_aioresponse, method.lower())(url, **kwargs)
-
-
 def override_mock(
     mock_aioresponse: aioresponses, method: str, url: str, **kwargs: Any
 ) -> None:
