@@ -31,7 +31,7 @@ from .common import (
     get_mock_envoy,
     latest_request,
     load_json_fixture,
-    mock_response,
+    override_mock,
     prep_envoy,
     start_7_firmware_mock,
     temporary_log_level,
@@ -1304,17 +1304,13 @@ async def test_with_7_x_firmware(
 
     # test envoy request methods GET, PUT and POST
     test_data = await load_json_fixture(version, "api_v1_production_inverters")
-    mock_response(
-        mock_aioresponse,
-        "post",
+    mock_aioresponse.post(
         f"{full_host}/api/v1/production/inverters",
         status=200,
         payload=test_data,
         repeat=True,
     )
-    mock_response(
-        mock_aioresponse,
-        "put",
+    mock_aioresponse.put(
         f"{full_host}/api/v1/production/inverters",
         status=200,
         payload=test_data,
@@ -1364,13 +1360,8 @@ async def test_with_7_x_firmware(
 
     if supported_features & supported_features.ENPOWER:
         # switch off debug for one post to improve COV
-        mock_response(
-            mock_aioresponse,
-            "POST",
-            f"{full_host}{URL_GRID_RELAY}",
-            status=200,
-            payload={},
-            repeat=True,
+        mock_aioresponse.post(
+            f"{full_host}{URL_GRID_RELAY}", status=200, payload={}, repeat=True
         )
         await envoy.go_on_grid()
         # Get the last POST request to grid relay
@@ -1433,11 +1424,10 @@ async def test_with_7_x_firmware(
         assert "Sending POST" in caplog.text
 
         # test error returned by action methods calling _json_request
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "post",
             f"{full_host}{URL_GRID_RELAY}",
-            reset=True,
             status=300,
             payload={},
             repeat=2,
@@ -1447,48 +1437,41 @@ async def test_with_7_x_firmware(
         with pytest.raises(EnvoyError):
             await envoy.go_off_grid()
 
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "post",
             f"{full_host}{URL_GRID_RELAY}",
-            reset=True,
             exception=aiohttp.ClientError("Test Connection error"),
         )
         with pytest.raises(EnvoyError):
             await envoy.go_on_grid()
-        mock_response(
-            mock_aioresponse,
-            "post",
+        mock_aioresponse.post(
             f"{full_host}{URL_GRID_RELAY}",
             exception=asyncio.TimeoutError("Test timeout exception"),
         )
         with pytest.raises(EnvoyError):
             await envoy.go_off_grid()
 
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "post",
             f"{full_host}{URL_DRY_CONTACT_SETTINGS}",
-            reset=True,
             status=300,
             payload={},
         )
         with pytest.raises(EnvoyError):
             await envoy.update_dry_contact(new_data)
 
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "post",
             f"{full_host}{URL_DRY_CONTACT_STATUS}",
-            reset=True,
             exception=aiohttp.ClientError("Test Connection error"),
         )
         with pytest.raises(EnvoyError):
             await envoy.close_dry_contact("NC1")
 
-        mock_response(
-            mock_aioresponse,
-            "post",
+        mock_aioresponse.post(
             f"{full_host}{URL_DRY_CONTACT_STATUS}",
             exception=asyncio.TimeoutError("Test timeout exception"),
         )
@@ -1511,20 +1494,17 @@ async def test_with_7_x_firmware(
 
     if supported_features & SupportedFeatures.GENERATOR:
         # COV ensemble ENDPOINT_PROBE_EXCEPTIONS
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "get",
             f"{full_host}/ivp/ss/gen_config",
-            reset=True,
             status=500,
             payload=await load_json_fixture(version, "ivp_ss_gen_config"),
         )
         await envoy.probe()
         # restore from prior changes
-        mock_response(
-            mock_aioresponse,
-            "get",
-            f"{full_host}ivp/ss/gen_config",
+        mock_aioresponse.get(
+            f"{full_host}/ivp/ss/gen_config",
             status=200,
             payload=await load_json_fixture(version, "ivp_ss_gen_config"),
             repeat=True,
@@ -1587,27 +1567,22 @@ async def test_with_7_x_firmware(
             await envoy.set_storage_mode("invalid")  # type: ignore[arg-type]
 
         # test error returned by action methods calling _json_request
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "put",
             f"{full_host}{URL_TARIFF}",
-            reset=True,
             status=300,
             payload={},
         )
         with pytest.raises(EnvoyError):
             await envoy.enable_charge_from_grid()
-        mock_response(
-            mock_aioresponse,
-            "put",
+        mock_aioresponse.put(
             f"{full_host}{URL_TARIFF}",
             exception=asyncio.TimeoutError("Test timeout exception"),
         )
         with pytest.raises(EnvoyError):
             await envoy.disable_charge_from_grid()
-        mock_response(
-            mock_aioresponse,
-            "put",
+        mock_aioresponse.put(
             f"{full_host}{URL_TARIFF}",
             exception=aiohttp.ClientConnectorError(
                 connection_key=ConnectionKey(
@@ -1624,9 +1599,7 @@ async def test_with_7_x_firmware(
         )
         with pytest.raises(EnvoyError):
             await envoy.set_storage_mode(EnvoyStorageMode.SELF_CONSUMPTION)
-        mock_response(
-            mock_aioresponse,
-            "put",
+        mock_aioresponse.put(
             f"{full_host}{URL_TARIFF}",
             exception=aiohttp.ClientConnectorError(
                 connection_key=ConnectionKey(
@@ -1648,11 +1621,10 @@ async def test_with_7_x_firmware(
         # should result no longer throw Valueerror but result in None value
         json_data = await load_json_fixture(version, "admin_lib_tariff")
         json_data["tariff"]["storage_settings"]["mode"] = None
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "get",
             f"{full_host}/admin/lib/tariff",
-            reset=True,
             status=200,
             payload=json_data,
         )
@@ -1666,19 +1638,17 @@ async def test_with_7_x_firmware(
         # COV test with missing logger
         json_data = await load_json_fixture(version, "admin_lib_tariff")
         del json_data["tariff"]["logger"]
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "get",
             f"{full_host}/admin/lib/tariff",
-            reset=True,
             status=200,
             payload=json_data,
         )
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "put",
             f"{full_host}/admin/lib/tariff",
-            reset=True,
             status=200,
             payload=json_data,
         )
@@ -1692,19 +1662,11 @@ async def test_with_7_x_firmware(
         json_data = await load_json_fixture(version, "admin_lib_tariff")
         del json_data["tariff"]["date"]
         del json_data["tariff"]["storage_settings"]["date"]
-        mock_response(
-            mock_aioresponse,
-            "get",
-            f"{full_host}/admin/lib/tariff",
-            status=200,
-            payload=json_data,
+        mock_aioresponse.get(
+            f"{full_host}/admin/lib/tariff", status=200, payload=json_data
         )
-        mock_response(
-            mock_aioresponse,
-            "put",
-            f"{full_host}/admin/lib/tariff",
-            status=200,
-            payload=json_data,
+        mock_aioresponse.put(
+            f"{full_host}/admin/lib/tariff", status=200, payload=json_data
         )
         await envoy.update()
         data = envoy.data
@@ -1715,19 +1677,11 @@ async def test_with_7_x_firmware(
         # COV test with missing storage settings
         json_data = await load_json_fixture(version, "admin_lib_tariff")
         del json_data["tariff"]["storage_settings"]
-        mock_response(
-            mock_aioresponse,
-            "get",
-            f"{full_host}/admin/lib/tariff",
-            status=200,
-            payload=json_data,
+        mock_aioresponse.get(
+            f"{full_host}/admin/lib/tariff", status=200, payload=json_data
         )
-        mock_response(
-            mock_aioresponse,
-            "put",
-            f"{full_host}/admin/lib/tariff",
-            status=200,
-            payload=json_data,
+        mock_aioresponse.put(
+            f"{full_host}/admin/lib/tariff", status=200, payload=json_data
         )
         await envoy.update()
         data = envoy.data
@@ -1738,12 +1692,8 @@ async def test_with_7_x_firmware(
         # COV test with error in result
         json_data = await load_json_fixture(version, "admin_lib_tariff")
         json_data.update({"error": "error"})
-        mock_response(
-            mock_aioresponse,
-            "get",
-            f"{full_host}/admin/lib/tariff",
-            status=200,
-            payload=json_data,
+        mock_aioresponse.get(
+            f"{full_host}/admin/lib/tariff", status=200, payload=json_data
         )
         try:
             await envoy.probe()
@@ -1753,11 +1703,10 @@ async def test_with_7_x_firmware(
         # COV test with no enpower features
         json_data = await load_json_fixture(version, "ivp_ensemble_inventory")
         json_data[0]["type"] = "NOEXCHARGE"  # type: ignore[index]
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "get",
             f"{full_host}/ivp/ensemble/inventory",
-            reset=True,
             status=200,
             payload=json_data,
             repeat=2,
@@ -1766,9 +1715,7 @@ async def test_with_7_x_firmware(
         await envoy.update()
 
         # COV ensemble ENDPOINT_PROBE_EXCEPTIONS
-        mock_response(
-            mock_aioresponse,
-            "get",
+        mock_aioresponse.get(
             f"{full_host}/ivp/ensemble/inventory",
             status=500,
             payload=await load_json_fixture(version, "ivp_ensemble_inventory"),
@@ -1776,21 +1723,19 @@ async def test_with_7_x_firmware(
         await envoy.probe()
 
         # restore from prior changes
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "get",
             f"{full_host}/ivp/ensemble/inventory",
-            reset=True,
             status=200,
             payload=await load_json_fixture(version, "ivp_ensemble_inventory"),
             repeat=True,
         )
         json_data = await load_json_fixture(version, "admin_lib_tariff")
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "get",
             f"{full_host}/admin/lib/tariff",
-            reset=True,
             status=200,
             payload=json_data,
             repeat=True,
@@ -1958,18 +1903,15 @@ async def test_with_7_x_firmware(
             json_data = None  # type: ignore[assignment]
         if json_data:
             del json_data["production"]
-        mock_response(
+        override_mock(
             mock_aioresponse,
             "get",
             f"{full_host}/production",
-            reset=True,
             status=200,
             payload=json_data,
         )
     else:
-        mock_response(
-            mock_aioresponse, "get", f"{full_host}/production", reset=True, status=404
-        )
+        override_mock(mock_aioresponse, "get", f"{full_host}/production", status=404)
     try:
         await envoy.probe()
     except EnvoyProbeFailed:
