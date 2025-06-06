@@ -1,6 +1,63 @@
 # CHANGELOG
 
 
+## v2.0.0 (2025-06-06)
+
+### Chores
+
+- **deps**: Bump awesomeversion from 24.6.0 to 25.5.0
+  ([#283](https://github.com/pyenphase/pyenphase/pull/283),
+  [`1f02a1f`](https://github.com/pyenphase/pyenphase/commit/1f02a1fd18193bd931aa771926b23c0f10791560))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#276](https://github.com/pyenphase/pyenphase/pull/276),
+  [`76ba3a6`](https://github.com/pyenphase/pyenphase/commit/76ba3a6676632008a81b38185792f97048f6dbb1))
+
+updates: - [github.com/astral-sh/ruff-pre-commit: v0.11.8 →
+  v0.11.10](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.8...v0.11.10)
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#278](https://github.com/pyenphase/pyenphase/pull/278),
+  [`d0581b8`](https://github.com/pyenphase/pyenphase/commit/d0581b89821fa67aaf4509d0e9e46b86799bf5d9))
+
+updates: - [github.com/asottile/pyupgrade: v3.19.1 →
+  v3.20.0](https://github.com/asottile/pyupgrade/compare/v3.19.1...v3.20.0) -
+  [github.com/astral-sh/ruff-pre-commit: v0.11.10 →
+  v0.11.11](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.10...v0.11.11)
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#284](https://github.com/pyenphase/pyenphase/pull/284),
+  [`9632e90`](https://github.com/pyenphase/pyenphase/commit/9632e9047614dbc0bea13f820ed23be1734d6cd1))
+
+### Features
+
+- Migrate to aiohttp ([#277](https://github.com/pyenphase/pyenphase/pull/277),
+  [`ebcc2c3`](https://github.com/pyenphase/pyenphase/commit/ebcc2c307bcbdabc01a46ae9d7964ff04cea0ea7))
+
+Migrate all HTTP client usage from httpx to aiohttp, including error handling, authentication,
+  firmware, updater modules, and SSL context handling.
+
+## Breaking changes
+
+- all (optional) clients are now of type `aiohttp.ClientSession | None = None`. See see [aiohttp
+  ClientSession](https://docs.aiohttp.org/en/stable/client_reference.html) ```py import aiohttp
+  import from pyenphase.ssl NO_VERIFY_SSL_CONTEXT connector =
+  aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT) client =
+  aiohttp.ClientSession(connector=connector) ``` - all (optional) timeouts are now of type: `float |
+  aiohttp.ClientTimeout | None = None`. See [aiohttp
+  ClientTimeout](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientTimeout)
+
+- All request responses are now of type: `aiohttp.ClientResponse`. See [aiohttp
+  ClientResponse](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse).
+
+---------
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+Co-authored-by: Arie Catsman <120491684+catsmanac@users.noreply.github.com>
+
+
 ## v1.26.1 (2025-05-10)
 
 ### Bug Fixes
