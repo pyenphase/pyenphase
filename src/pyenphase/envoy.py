@@ -368,6 +368,8 @@ class Envoy:
         # Set up middleware from auth
         middlewares = self.auth.auth
 
+        # not using redirects to avoid following 301s to error pages on missing
+        # end points and lots of extra requests
         if data:
             if debugon:
                 _LOGGER.debug(
