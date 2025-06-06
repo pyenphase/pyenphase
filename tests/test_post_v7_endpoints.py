@@ -2,8 +2,9 @@
 
 import logging
 
+import aiohttp
 import pytest
-import respx
+from aioresponses import aioresponses
 
 from pyenphase.envoy import SupportedFeatures
 
@@ -74,8 +75,9 @@ LOGGER = logging.getLogger(__name__)
     ],
 )
 @pytest.mark.asyncio
-@respx.mock
 async def test_metered_noct(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
     version: str,
     part_number: str,
     updaters: dict[str, SupportedFeatures],
@@ -86,12 +88,11 @@ async def test_metered_noct(
     watt_hours_lifetime: int,
 ) -> None:
     """Verify metered without CT production data with pre and post 8.2.4264 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-    start_7_firmware_mock()
-    await prep_envoy(version)
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
 
@@ -105,6 +106,7 @@ async def test_metered_noct(
     assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
+    assert data.system_production is not None
     assert data.system_production.watts_now == watts_now
     assert data.system_production.watt_hours_today == watt_hours_today
     assert data.system_production.watt_hours_last_7_days == watt_hours_last_7_days

@@ -1,5 +1,6 @@
 """Enphase Envoy class"""
 
+import asyncio
 import logging
 import time
 from collections.abc import Awaitable, Callable
@@ -8,9 +9,8 @@ from functools import cached_property, partial
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
-import httpx
+import aiohttp
 import orjson
-from anyio import EndOfStream
 from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import (
@@ -24,7 +24,11 @@ from tenacity import (
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.home import EnvoyInterfaceInformation
 
-from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
+from .auth import (
+    EnvoyAuth,
+    EnvoyLegacyAuth,
+    EnvoyTokenAuth,
+)
 from .const import (
     AUTH_TOKEN_MIN_VERSION,
     ENDPOINT_URL_HOME,
@@ -129,8 +133,8 @@ class Envoy:
     def __init__(
         self,
         host: str,
-        client: httpx.AsyncClient | None = None,
-        timeout: float | httpx.Timeout | None = None,
+        client: aiohttp.ClientSession | None = None,
+        timeout: float | aiohttp.ClientTimeout | None = None,
     ) -> None:
         """
         Class for communicating with an envoy.
@@ -153,20 +157,21 @@ class Envoy:
             await envoy.update()
 
         :param host: Envoy DNS name or IP address
-        :param client: httpx Asyncclient not verifying SSL
+        :param client: aiohttp ClientSession not verifying SSL
             certificates, if not specified one will be created.
-        :param timeout: httpx Timeout to use, if not specified
+        :param timeout: aiohttp ClientTimeout to use, if not specified
             10 sec connection and 45 sec read timeouts will be used.
         """
-        # We use our own httpx client session so we can disable SSL verification (Envoys use self-signed SSL certs)
+        # We use our own aiohttp client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._timeout = timeout or LOCAL_TIMEOUT
-        self._client = client or httpx.AsyncClient(verify=NO_VERIFY_SSL_CONTEXT)  # nosec
+        connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
+        self._client = client or aiohttp.ClientSession(connector=connector)  # nosec
         self.auth: EnvoyAuth | None = None
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
         self._supported_features: SupportedFeatures | None = None
         self._updaters: list[EnvoyUpdater] = []
-        self._endpoint_cache: dict[str, httpx.Response] = {}
+        self._endpoint_cache: dict[str, aiohttp.ClientResponse] = {}
         self.data: EnvoyData | None = None
         self._common_properties: CommonProperties = CommonProperties()
         self._interface_settings: EnvoyInterfaceInformation | None = None
@@ -261,9 +266,8 @@ class Envoy:
     @retry(
         retry=retry_if_exception_type(
             (
-                httpx.NetworkError,
-                httpx.TimeoutException,
-                httpx.RemoteProtocolError,
+                aiohttp.ClientError,
+                asyncio.TimeoutError,
             )
         ),
         wait=wait_random_exponential(multiplier=2, max=5),
@@ -271,7 +275,7 @@ class Envoy:
         | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
         reraise=True,
     )
-    async def probe_request(self, endpoint: str) -> httpx.Response:
+    async def probe_request(self, endpoint: str) -> aiohttp.ClientResponse:
         """
         Make a probe request to the Envoy.
 
@@ -291,10 +295,8 @@ class Envoy:
     @retry(
         retry=retry_if_exception_type(
             (
-                httpx.NetworkError,
-                httpx.TimeoutException,
-                httpx.RemoteProtocolError,
-                orjson.JSONDecodeError,
+                aiohttp.ClientError,
+                asyncio.TimeoutError,
             )
         ),
         wait=wait_random_exponential(multiplier=2, max=5),
@@ -307,7 +309,7 @@ class Envoy:
         endpoint: str,
         data: dict[str, Any] | None = None,
         method: str | None = None,
-    ) -> httpx.Response:
+    ) -> aiohttp.ClientResponse:
         """
         Make a request to the Envoy.
 
@@ -316,8 +318,7 @@ class Envoy:
         path in the Envoy, HTTP type and Envoy address is prepended
         to form full URL based on authentication method.
 
-        Request retries on bad JSON responses which the Envoy sometimes
-        returns, on network errors, timeouts and remote protocol errors.
+        Request retries on client connection issues or timeouts.
         Will retry up to 4 times or 50 sec elapsed at next try, which
         ever comes first.
 
@@ -338,7 +339,7 @@ class Envoy:
         endpoint: str,
         data: dict[str, Any] | None = None,
         method: str | None = None,
-    ) -> httpx.Response:
+    ) -> aiohttp.ClientResponse:
         """
         Make a request to the Envoy.
 
@@ -364,6 +365,11 @@ class Envoy:
         if debugon:
             request_start = time.monotonic()
 
+        # Set up middleware from auth
+        middlewares = self.auth.auth
+
+        # not using redirects to avoid following 301s to error pages on missing
+        # end points and lots of extra requests
         if data:
             if debugon:
                 _LOGGER.debug(
@@ -373,39 +379,39 @@ class Envoy:
                 method if method else "POST",
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
-                follow_redirects=True,
-                auth=self.auth.auth,
                 timeout=self._timeout,
-                content=orjson.dumps(data),
+                data=orjson.dumps(data),
+                middlewares=middlewares,
+                allow_redirects=False,
             )
         else:
             _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
             response = await self._client.get(
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
-                follow_redirects=True,
-                auth=self.auth.auth,
                 timeout=self._timeout,
+                middlewares=middlewares,
+                allow_redirects=False,
             )
 
-        status_code = response.status_code
+        status_code = response.status
         if status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
             raise EnvoyAuthenticationRequired(
                 f"Authentication failed for {url} with status {status_code}, "
                 "please check your username/password or token."
             )
+
         # show all responses centrally when in debug
         if debugon:
             request_end = time.monotonic()
             content_type = response.headers.get("content-type")
-            content = response.content
             _LOGGER.debug(
                 "Request reply in %s sec from %s status %s: %s %s",
                 round(request_end - request_start, 1),
                 url,
                 status_code,
                 content_type,
-                content,
+                await response.read(),  # Use the actual content bytes
             )
 
         return response
@@ -567,13 +573,15 @@ class Envoy:
         return model
 
     async def _make_cached_request(
-        self, request_func: Callable[[str], Awaitable[httpx.Response]], endpoint: str
-    ) -> httpx.Response:
+        self,
+        request_func: Callable[[str], Awaitable[aiohttp.ClientResponse]],
+        endpoint: str,
+    ) -> aiohttp.ClientResponse:
         """Make a cached request."""
         if cached_response := self._endpoint_cache.get(endpoint):
             return cached_response
         response = await request_func(endpoint)
-        if response.status_code == 200:
+        if response.status == 200:
             self._endpoint_cache[endpoint] = response
         return response
 
@@ -662,8 +670,7 @@ class Envoy:
         An updaters update() method should obtain the data for the specific
         updater scope and save to the Envoy data set.
 
-        :raises EnvoyCommunicationError: when EndOfStream is reported during communication.
-        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: Collected Envoy data
         """
@@ -678,12 +685,10 @@ class Envoy:
         for updater in self._updaters:
             try:
                 await updater.update(data)
-            except EndOfStream as err:
-                raise EnvoyCommunicationError("EndOfStream at update") from err
-            except httpx.NetworkError as err:
-                raise EnvoyCommunicationError(f"HTTPX NetworkError {err!s}") from err
-            except httpx.TimeoutException as err:
-                raise EnvoyCommunicationError(f"HTTPX Timeout {err!s}") from err
+            except aiohttp.ClientError as err:
+                raise EnvoyCommunicationError(f"aiohttp ClientError {err!s}") from err
+            except asyncio.TimeoutError as err:
+                raise EnvoyCommunicationError(f"Timeout {err!s}") from err
 
         self._validate_update(data)
         self.data = data
@@ -702,20 +707,20 @@ class Envoy:
         :param data: data dictionary to send to the Envoy, defaults to None
         :param method: method to use to send data dictionary,
             POST if none, only used for data send
-        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: response content as JSON
         """
         try:
             response = await self._request(end_point, data, method)
-        except httpx.NetworkError as err:
-            raise EnvoyCommunicationError(f"HTTPX NetworkError {err!s}") from err
-        except httpx.TimeoutException as err:
-            raise EnvoyCommunicationError(f"HTTPX Timeout {err!s}") from err
-        if not (200 <= response.status_code < 300):
-            raise EnvoyHTTPStatusError(response.status_code, response.url)
+        except aiohttp.ClientError as err:
+            raise EnvoyCommunicationError(f"aiohttp ClientError {err!s}") from err
+        except asyncio.TimeoutError as err:
+            raise EnvoyCommunicationError(f"Timeout {err!s}") from err
+        if not (200 <= response.status < 300):
+            raise EnvoyHTTPStatusError(response.status, str(response.url))
 
-        return json_loads(end_point, response.content)
+        return json_loads(end_point, await response.read())
 
     async def go_on_grid(self) -> dict[str, Any]:
         """
@@ -725,7 +730,7 @@ class Envoy:
         to connect to the grid. Requires ENPOWER installed.
 
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
-        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: JSON returned by Envoy
         """
@@ -743,7 +748,7 @@ class Envoy:
         to disconnect from the grid. Requires ENPOWER installed.
 
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
-        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: JSON returned by Envoy
         """
@@ -782,7 +787,7 @@ class Envoy:
 
         :param new_data: dict of settings to change, "id" key/value required
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
-        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :raises ValueError: If no "id" key is present in data dict to send.
@@ -820,7 +825,7 @@ class Envoy:
 
         :param id: relay id of dry contact relay to open
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
-        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: JSON response of Envoy
         """
@@ -850,7 +855,7 @@ class Envoy:
 
         :param id: relay id of dry contact relay to open
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
-        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: JSON response of Envoy
         """
@@ -880,7 +885,7 @@ class Envoy:
 
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
-        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy
@@ -906,7 +911,7 @@ class Envoy:
 
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
-        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy
@@ -933,7 +938,7 @@ class Envoy:
         :param mode: storage mode to set
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
-        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy
@@ -962,7 +967,7 @@ class Envoy:
         :param value: reserve soc to set
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
-        :raises EnvoyCommunicationError: when httpx network or communication error occurs.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy

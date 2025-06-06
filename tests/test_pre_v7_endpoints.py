@@ -3,9 +3,9 @@
 import logging
 import re
 
+import aiohttp
 import pytest
-import respx
-from httpx import Response
+from aioresponses import aioresponses
 
 from pyenphase import EnvoyInverter, register_updater
 from pyenphase.const import URL_PRODUCTION
@@ -25,6 +25,7 @@ from pyenphase.updaters.base import EnvoyUpdater
 from .common import (
     get_mock_envoy,
     load_json_fixture,
+    override_mock,
     prep_envoy,
     updater_features,
 )
@@ -33,16 +34,18 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_4_2_27_firmware():
+async def test_with_4_2_27_firmware(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Verify with 4.2.27 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.27"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.METERING)
     assert not (envoy._supported_features & SupportedFeatures.INVERTERS)
@@ -77,16 +80,18 @@ async def test_with_4_2_27_firmware():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_4_2_33_firmware_no_cons_ct():
+async def test_with_4_2_33_firmware_no_cons_ct(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Verify with 4.2.33 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "4.2.33"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(test_client_session)
     data: EnvoyData | None = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert envoy._supported_features & SupportedFeatures.METERING
     assert envoy._supported_features & SupportedFeatures.INVERTERS
@@ -138,16 +143,18 @@ async def test_with_4_2_33_firmware_no_cons_ct():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_5_0_49_firmware():
+async def test_with_5_0_49_firmware(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Verify with 5.0.49 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "5.0.49"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -166,6 +173,7 @@ async def test_with_5_0_49_firmware():
     assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
+    assert data.system_production is not None
     assert data.system_production.watts_now == 4859
     assert data.system_production.watt_hours_today == 5046
     assert data.system_production.watt_hours_last_7_days == 445686
@@ -416,16 +424,17 @@ async def test_with_5_0_49_firmware():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_3_7_0_firmware():
+async def test_with_3_7_0_firmware(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Verify with 3.7.0 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.7.0"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # Verify the library does not support scraping to comply with ADR004
     with pytest.raises(EnvoyProbeFailed):
-        await get_mock_envoy()
+        await get_mock_envoy(test_client_session)
 
     # Test the register interface by registering a legacy production scraper
     #
@@ -473,7 +482,7 @@ async def test_with_3_7_0_firmware():
 
             try:
                 response = await self._probe_request(URL_PRODUCTION)
-                data = response.text
+                data = await response.text()
             except ENDPOINT_PROBE_EXCEPTIONS:
                 return None
             if "Since Installation" not in data:
@@ -484,7 +493,7 @@ async def test_with_3_7_0_firmware():
         async def update(self, envoy_data: EnvoyData) -> None:
             """Update the Envoy for this updater."""
             response = await self._request(URL_PRODUCTION)
-            production_data = response.text
+            production_data = await response.text()
             envoy_data.raw[URL_PRODUCTION] = production_data
             envoy_data.system_production = (
                 LegacyEnvoySystemProduction.from_production_legacy(production_data)
@@ -493,9 +502,10 @@ async def test_with_3_7_0_firmware():
     remove = register_updater(LegacyProductionScraper)
     assert LegacyProductionScraper in get_updaters()
     try:
-        envoy = await get_mock_envoy()
+        envoy = await get_mock_envoy(test_client_session)
         data = envoy.data
         assert data is not None
+        assert envoy._supported_features is not None
 
         assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
         assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -506,6 +516,7 @@ async def test_with_3_7_0_firmware():
         assert envoy.part_number == "800-00069-r05"
 
         assert not data.system_consumption
+        assert data.system_production is not None
         assert data.system_production.watts_now == 6630
         assert data.system_production.watt_hours_today == 53600
         assert data.system_production.watt_hours_last_7_days == 405000
@@ -524,40 +535,53 @@ async def test_with_3_7_0_firmware():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware_bad_auth():
+async def test_with_3_9_36_firmware_bad_auth(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Verify with 3.9.36 firmware with incorrect auth."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
-    await prep_envoy(version)
-    # for auth failure
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            401, json=await load_json_fixture(version, "api_v1_production")
-        )
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    # Override production endpoints to return 401
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/api/v1/production",
+        status=401,
+        payload={
+            "status": 401,
+            "error": "",
+            "info": "Authentication required",
+            "moreInfo": "",
+        },
+        repeat=True,
     )
 
     with pytest.raises(EnvoyAuthenticationRequired):
-        await get_mock_envoy()
+        await get_mock_envoy(test_client_session)
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware_no_inverters():
+async def test_with_3_9_36_firmware_no_inverters(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Verify with 3.9.36 firmware with auth that does not allow inverters."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36_bad_auth"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     # force auth failure on inverters
-    respx.get("/api/v1/production/inverters").mock(
-        return_value=Response(
-            401, json=await load_json_fixture(version, "api_v1_production_inverters")
-        )
+    mock_aioresponse.get(
+        "http://127.0.0.1/api/v1/production/inverters",
+        status=401,
+        payload=await load_json_fixture(version, "api_v1_production_inverters"),
+        repeat=True,
     )
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -575,18 +599,26 @@ async def test_with_3_9_36_firmware_no_inverters():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware():
+async def test_with_3_9_36_firmware(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Verify with 3.9.36 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     # no access to tariff
-    respx.get("/admin/lib/tariff").mock(return_value=Response(401))
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/admin/lib/tariff",
+        status=401,
+        repeat=True,
+    )
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -604,6 +636,7 @@ async def test_with_3_9_36_firmware():
     assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
+    assert data.system_production is not None
     assert data.system_production.watts_now == 1271
     assert data.system_production.watt_hours_today == 1460
     assert data.system_production.watt_hours_last_7_days == 130349
@@ -686,18 +719,20 @@ async def test_with_3_9_36_firmware():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware_with_production_401():
+async def test_with_3_9_36_firmware_with_production_401(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Verify with 3.9.36 firmware when /production throws a 401."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     # force 401 on production
-    respx.get("/production").mock(return_value=Response(401))
+    mock_aioresponse.get("http://127.0.0.1/production", status=401, repeat=True)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -709,6 +744,7 @@ async def test_with_3_9_36_firmware_with_production_401():
     assert envoy.part_number == "800-00069-r05"
 
     assert not data.system_consumption
+    assert data.system_production is not None
     assert data.system_production.watts_now == 1271
     assert data.system_production.watt_hours_today == 1460
     assert data.system_production.watt_hours_last_7_days == 130349
@@ -723,46 +759,67 @@ async def test_with_3_9_36_firmware_with_production_401():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_3_9_36_firmware_with_production_and_production_json_401():
+async def test_with_3_9_36_firmware_with_production_and_production_json_401(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Verify with 3.9.36 firmware when /production and /production.json throws a 401."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.9.36"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     # force 401 on production
-    respx.get("/production").mock(return_value=Response(401))
-    respx.get("/production.json").mock(return_value=Response(401))
+    override_mock(
+        mock_aioresponse, "get", "http://127.0.0.1/production", status=401, repeat=True
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/production.json",
+        status=401,
+        repeat=True,
+    )
+    # Also need to override the API v1 endpoint
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/api/v1/production",
+        status=401,
+        repeat=True,
+    )
 
     with pytest.raises(EnvoyAuthenticationRequired):
-        await get_mock_envoy()
+        await get_mock_envoy(test_client_session)
 
 
 @pytest.mark.asyncio
-@respx.mock
 async def test_with_3_8_10_firmware_with_meters_401(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Verify with 3.8.10 firmware when /ivp/meters throws a 401."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.8.10"
-    await prep_envoy(version)
-    respx.get("/ivp/meters").mock(return_value=Response(401))
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    override_mock(
+        mock_aioresponse, "get", "http://127.0.0.1/ivp/meters", status=401, repeat=True
+    )
     caplog.set_level(logging.DEBUG)
-    await get_mock_envoy()
+    await get_mock_envoy(test_client_session)
     assert "Skipping meters endpoint as user does not have access to" in caplog.text
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_3_17_3_firmware():
+async def test_with_3_17_3_firmware(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Verify with 3.17.3 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.17.3"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy()
+    envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
+    assert envoy._supported_features is not None
 
     assert not (envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION)
     assert not (envoy._supported_features & SupportedFeatures.NET_CONSUMPTION)
@@ -780,6 +837,7 @@ async def test_with_3_17_3_firmware():
     assert envoy.consumption_meter_type is None
     assert not data.system_consumption_phases
     assert not data.system_production_phases
+    assert data.system_production is not None
     assert data.system_production.watts_now == 5463
     assert data.system_production.watt_hours_today == 5481
     assert data.system_production.watt_hours_last_7_days == 389581
@@ -1035,26 +1093,32 @@ async def test_with_3_17_3_firmware():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_with_3_17_3_firmware_zero_production():
+async def test_with_3_17_3_firmware_zero_production(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
     """Verify with 3.17.3 firmware."""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     version = "3.17.3"
-    await prep_envoy(version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy()
+    # Get envoy and let it probe with good data
+    envoy = await get_mock_envoy(test_client_session, update=True)
 
-    respx.get("/api/v1/production").mock(
-        return_value=Response(
-            status_code=200,
-            json={
-                "wattHoursToday": 0,
-                "wattHoursSevenDays": 0,
-                "wattHoursLifetime": 0,
-                "wattsNow": 0,
-            },
-        )
+    # Now override the production endpoint to return zeros for the next update
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/api/v1/production",
+        status=200,
+        payload={
+            "wattHoursToday": 0,
+            "wattHoursSevenDays": 0,
+            "wattHoursLifetime": 0,
+            "wattsNow": 0,
+        },
+        repeat=True,
     )
 
+    # Now update should fail with poor data quality
     with pytest.raises(EnvoyPoorDataQuality):
         await envoy.update()

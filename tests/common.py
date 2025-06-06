@@ -2,18 +2,34 @@
 
 import asyncio
 import json
+import logging
+from collections.abc import Generator
+from contextlib import contextmanager
 from os import listdir
 from os.path import isfile, join
 from pathlib import Path
 from typing import Any
 
+import aiohttp
 import orjson
-import respx
-from httpx import Response
+from aioresponses import aioresponses
+from awesomeversion import AwesomeVersion
 
-from pyenphase import Envoy
+from pyenphase import AUTH_TOKEN_MIN_VERSION, Envoy
 from pyenphase.envoy import SupportedFeatures
 from pyenphase.updaters.base import EnvoyUpdater
+
+
+@contextmanager
+def temporary_log_level(logger_name: str, level: int) -> Generator[None, None, None]:
+    """Temporarily change the log level of a logger."""
+    logger = logging.getLogger(logger_name)
+    original_level = logger.level
+    logger.setLevel(level)
+    try:
+        yield
+    finally:
+        logger.setLevel(original_level)
 
 
 def _fixtures_dir() -> Path:
@@ -62,30 +78,52 @@ async def fixture_files(version: str) -> list[str]:
     return files
 
 
-def start_7_firmware_mock() -> None:
+def start_7_firmware_mock(mock_aioresponse: aioresponses) -> None:
     """Setup response mocks for Enlighten and Envoy token requests."""
-    respx.post("https://enlighten.enphaseenergy.com/login/login.json?").mock(
-        return_value=Response(
-            200,
-            json={
-                "session_id": "1234567890",
-                "user_id": "1234567890",
-                "user_name": "test",
-                "first_name": "Test",
-                "is_consumer": True,
-                "manager_token": "1234567890",
-            },
-        )
+    # Use repeat=True since auth might create its own session
+    # Mock both with and without the trailing ?
+    mock_aioresponse.post(
+        "https://enlighten.enphaseenergy.com/login/login.json?",
+        status=200,
+        payload={
+            "session_id": "1234567890",
+            "user_id": "1234567890",
+            "user_name": "test",
+            "first_name": "Test",
+            "is_consumer": True,
+            "manager_token": "1234567890",
+        },
+        repeat=True,
     )
-    respx.post("https://entrez.enphaseenergy.com/tokens").mock(
-        return_value=Response(200, text="token")
+    mock_aioresponse.post(
+        "https://enlighten.enphaseenergy.com/login/login.json",
+        status=200,
+        payload={
+            "session_id": "1234567890",
+            "user_id": "1234567890",
+            "user_name": "test",
+            "first_name": "Test",
+            "is_consumer": True,
+            "manager_token": "1234567890",
+        },
+        repeat=True,
     )
-    respx.get("/auth/check_jwt").mock(return_value=Response(200, json={}))
+    mock_aioresponse.post(
+        "https://entrez.enphaseenergy.com/tokens",
+        status=200,
+        body="token",
+        repeat=True,
+    )
+    # Mock the JWT check endpoint on the Envoy
+    mock_aioresponse.get("https://127.0.0.1/auth/check_jwt", status=200, repeat=True)
 
 
-async def get_mock_envoy(update: bool = True):  # type: ignore[no-untyped-def]
+async def get_mock_envoy(
+    client_session: aiohttp.ClientSession, update: bool = True
+) -> Envoy:
     """Return a mock Envoy."""
-    envoy = Envoy("127.0.0.1")
+    host = "127.0.0.1"
+    envoy = Envoy(host, client=client_session)
     await envoy.setup()
     await envoy.authenticate("username", "password")
     if update:
@@ -94,110 +132,234 @@ async def get_mock_envoy(update: bool = True):  # type: ignore[no-untyped-def]
     return envoy
 
 
+def latest_request(
+    mock_aioresponse: aioresponses, method: str, url: str
+) -> tuple[int, bytes]:
+    """Return count of matched request and last request data."""
+    requests = [
+        req
+        for req in mock_aioresponse.requests.keys()
+        if req[0] == method and url in str(req[1])
+    ]
+    if not requests:
+        return 0, b""
+    return len(requests), mock_aioresponse.requests[requests[-1]][-1].kwargs.get("data")
+
+
+def override_mock(
+    mock_aioresponse: aioresponses, method: str, url: str, **kwargs: Any
+) -> None:
+    """Override an existing mock by removing it first and adding a new one."""
+    from yarl import URL
+
+    url_obj = URL(url)
+
+    # Remove existing mocks for this URL and method from _matches
+    keys_to_remove = []
+    for key, matcher in mock_aioresponse._matches.items():
+        # Check if this matches our URL and method
+        url_matches = False
+        if hasattr(matcher.url_or_pattern, "match"):
+            # It's a regex pattern
+            url_matches = bool(matcher.url_or_pattern.match(str(url_obj)))
+        else:
+            # It's a URL
+            url_matches = str(matcher.url_or_pattern).rstrip("/") == str(
+                url_obj
+            ).rstrip("/")
+
+        if url_matches and matcher.method.lower() == method.lower():
+            keys_to_remove.append(key)
+
+    # Remove the matching mocks
+    for key in keys_to_remove:
+        del mock_aioresponse._matches[key]
+
+    # Add the new mock
+    getattr(mock_aioresponse, method.lower())(url, **kwargs)
+
+
+def endpoint_path(version: str, host: str) -> str:
+    return f"http{'s' if AwesomeVersion(version.split('_')[0]) >= AUTH_TOKEN_MIN_VERSION else ''}://{host}"
+
+
 async def prep_envoy(
+    mock_aioresponse: aioresponses,
+    host: str,
     version: str,  #: name of version folder to read fixtures from
 ) -> list[str]:
     """Setup response mocks for envoy requests and return list of found mock files."""
     files: list[str] = await fixture_files(version)
 
-    respx.get("/info").mock(
-        return_value=Response(200, text=await load_fixture(version, "info"))
+    # Helper to create full URLs
+    full_host = endpoint_path(version, host)
+
+    def url(path: str) -> str:
+        return f"{full_host}{path}"
+
+    def url_https(path: str) -> str:
+        return f"https://{host}{path}"
+
+    def url_http(path: str) -> str:
+        return f"http://{host}{path}"
+
+    mock_aioresponse.get(
+        url_http("/info"),
+        status=200,
+        body=await load_fixture(version, "info"),
+        repeat=True,
     )
-    respx.get("/info.xml").mock(return_value=Response(200, text=""))
+    mock_aioresponse.get(
+        url_https("/info"),
+        status=200,
+        body=await load_fixture(version, "info"),
+        repeat=True,
+    )
+    mock_aioresponse.get(url("/info.xml"), status=200, body="", repeat=True)
 
     if "ivp_meters" in files:
         try:
-            respx.get("/ivp/meters").mock(
-                return_value=Response(
-                    200, json=(await load_json_fixture(version, "ivp_meters"))
-                )
+            mock_aioresponse.get(
+                url("/ivp/meters"),
+                status=200,
+                payload=(await load_json_fixture(version, "ivp_meters")),
+                repeat=True,
             )
         except json.decoder.JSONDecodeError:
             # v3 fw with html return 401
-            respx.get("ivp_meters").mock(return_value=Response(401))
+            mock_aioresponse.get(url("/ivp/meters"), status=401, repeat=True)
+            # mock_aioresponse.get(url_http("/ivp/meters"), status=401, repeat=True)
     else:
-        respx.get("/ivp/meters").mock(return_value=Response(404))
+        mock_aioresponse.get(url("/ivp/meters"), status=404, repeat=True)
+        # mock_aioresponse.get(url_http("/ivp/meters"), status=404, repeat=True)
 
     if "ivp_meters_readings" in files:
-        respx.get("/ivp/meters/readings").mock(
-            return_value=Response(
-                200, json=await load_json_fixture(version, "ivp_meters_readings")
-            )
+        mock_aioresponse.get(
+            url("/ivp/meters/readings"),
+            status=200,
+            payload=await load_json_fixture(version, "ivp_meters_readings"),
+            repeat=True,
         )
     else:
-        respx.get("/ivp/meters/readings").mock(return_value=Response(404))
+        mock_aioresponse.get(url("/ivp/meters/readings"), status=404, repeat=True)
+        # mock_aioresponse.get(url_http("/ivp/meters/readings"), status=404, repeat=True)
 
     if "production" in files:
         try:
             json_data = await load_json_fixture(version, "production")
-            respx.get("/production").mock(return_value=Response(200, json=json_data))
+            mock_aioresponse.get(
+                url("/production"), status=200, payload=json_data, repeat=True
+            )
         except json.decoder.JSONDecodeError:
             # v3 fw reports production in html format
-            respx.get("/production").mock(
-                return_value=Response(
-                    200, text=await load_fixture(version, "production")
-                )
+            mock_aioresponse.get(
+                url("/production"),
+                status=200,
+                body=await load_fixture(version, "production"),
+                repeat=True,
             )
     else:
-        respx.get("/production").mock(return_value=Response(404))
+        mock_aioresponse.get(url("/production"), status=404, repeat=True)
+        # mock_aioresponse.get(url_http("/production"), status=404, repeat=True)
 
     if "production.json" in files:
         try:
-            respx.get("/production.json").mock(
-                return_value=Response(
-                    200, json=await load_json_fixture(version, "production.json")
-                )
+            json_data = await load_json_fixture(version, "production.json")
+            mock_aioresponse.get(
+                url("/production.json"), status=200, payload=json_data, repeat=True
             )
-            respx.get("/production.json?details=1").mock(
-                return_value=Response(
-                    200, json=await load_json_fixture(version, "production.json")
-                )
+            mock_aioresponse.get(
+                url("/production.json?details=1"),
+                status=200,
+                payload=json_data,
+                repeat=True,
             )
         except json.decoder.JSONDecodeError:
-            respx.get("/production.json").mock(return_value=Response(404))
-            respx.get("/production.json?details=1").mock(return_value=Response(404))
+            mock_aioresponse.get(url("/production.json"), status=404, repeat=True)
+            # mock_aioresponse.get(url_http("/production.json"), status=404, repeat=True)
+            mock_aioresponse.get(
+                url("/production.json?details=1"), status=404, repeat=True
+            )
     else:
-        respx.get("/production.json").mock(return_value=Response(404))
-        respx.get("/production.json?details=1").mock(return_value=Response(404))
+        mock_aioresponse.get(url("/production.json"), status=404, repeat=True)
 
     if "api_v1_production" in files:
-        respx.get("/api/v1/production").mock(
-            return_value=Response(
-                200, json=await load_json_fixture(version, "api_v1_production")
-            )
+        # Check if this is a bad_auth version by looking at the fixture content
+        api_v1_prod_data = await load_json_fixture(version, "api_v1_production")
+        status = (
+            401
+            if "status" in api_v1_prod_data and api_v1_prod_data["status"] == 401
+            else 200
+        )
+
+        mock_aioresponse.get(
+            url("/api/v1/production"),
+            status=status,
+            payload=api_v1_prod_data,
+            repeat=True,
         )
     else:
-        respx.get("/api/v1/production").mock(return_value=Response(404))
+        mock_aioresponse.get(url("/api/v1/production"), status=404, repeat=True)
 
     if "api_v1_production_inverters" in files:
-        respx.get("/api/v1/production/inverters").mock(
-            return_value=Response(
-                200,
-                json=await load_json_fixture(version, "api_v1_production_inverters"),
-            )
+        # Check if this is a bad_auth version by looking at the fixture content
+        api_v1_inv_data = await load_json_fixture(
+            version, "api_v1_production_inverters"
+        )
+        status = (
+            401
+            if isinstance(api_v1_inv_data, dict)
+            and "status" in api_v1_inv_data
+            and api_v1_inv_data["status"] == 401
+            else 200
+        )
+
+        mock_aioresponse.get(
+            url("/api/v1/production/inverters"),
+            status=status,
+            payload=api_v1_inv_data,
+            repeat=True,
         )
     else:
-        respx.get("/api/v1/production/inverters").mock(return_value=Response(404))
+        mock_aioresponse.get(
+            url("/api/v1/production/inverters"), status=404, repeat=True
+        )
 
     if "ivp_ensemble_inventory" in files:
-        respx.get("/ivp/ensemble/inventory").mock(
-            return_value=Response(
-                200, json=await load_json_fixture(version, "ivp_ensemble_inventory")
-            )
+        mock_aioresponse.get(
+            url("/ivp/ensemble/inventory"),
+            status=200,
+            payload=await load_json_fixture(version, "ivp_ensemble_inventory"),
+            repeat=True,
+        )
+        mock_aioresponse.get(
+            url_http("/ivp/ensemble/inventory"),
+            status=200,
+            payload=await load_json_fixture(version, "ivp_ensemble_inventory"),
+            repeat=True,
         )
     else:
-        respx.get("/ivp/ensemble/inventory").mock(return_value=Response(404))
+        mock_aioresponse.get(url("/ivp/ensemble/inventory"), status=404, repeat=True)
+        mock_aioresponse.get(
+            url_http("/ivp/ensemble/inventory"), status=404, repeat=True
+        )
 
     if "ivp_ensemble_dry_contacts" in files:
         try:
             json_data = await load_json_fixture(version, "ivp_ensemble_dry_contacts")
         except json.decoder.JSONDecodeError:
             json_data = {}
-        respx.get("/ivp/ensemble/dry_contacts").mock(
-            return_value=Response(200, json=json_data)
+        mock_aioresponse.get(
+            url("/ivp/ensemble/dry_contacts"),
+            status=200,
+            payload=json_data,
+            repeat=True,
         )
-        respx.post("/ivp/ensemble/dry_contacts").mock(
-            return_value=Response(200, json=json_data)
+        mock_aioresponse.post(
+            url("/ivp/ensemble/dry_contacts"),
+            status=200,
+            payload=json_data,
+            repeat=True,
         )
 
     if "ivp_ss_dry_contact_settings" in files:
@@ -205,11 +367,17 @@ async def prep_envoy(
             json_data = await load_json_fixture(version, "ivp_ss_dry_contact_settings")
         except json.decoder.JSONDecodeError:
             json_data = {}
-        respx.get("/ivp/ss/dry_contact_settings").mock(
-            return_value=Response(200, json=json_data)
+        mock_aioresponse.get(
+            url("/ivp/ss/dry_contact_settings"),
+            status=200,
+            payload=json_data,
+            repeat=True,
         )
-        respx.post("/ivp/ss/dry_contact_settings").mock(
-            return_value=Response(200, json=json_data)
+        mock_aioresponse.post(
+            url("/ivp/ss/dry_contact_settings"),
+            status=200,
+            payload=json_data,
+            repeat=True,
         )
 
     if "ivp_ensemble_power" in files:
@@ -217,8 +385,8 @@ async def prep_envoy(
             json_data = await load_json_fixture(version, "ivp_ensemble_power")
         except json.decoder.JSONDecodeError:
             json_data = {}
-        respx.get("/ivp/ensemble/power").mock(
-            return_value=Response(200, json=json_data)
+        mock_aioresponse.get(
+            url("/ivp/ensemble/power"), status=200, payload=json_data, repeat=True
         )
 
     if "ivp_ensemble_secctrl" in files:
@@ -226,8 +394,8 @@ async def prep_envoy(
             json_data = await load_json_fixture(version, "ivp_ensemble_secctrl")
         except json.decoder.JSONDecodeError:
             json_data = {}
-        respx.get("/ivp/ensemble/secctrl").mock(
-            return_value=Response(200, json=json_data)
+        mock_aioresponse.get(
+            url("/ivp/ensemble/secctrl"), status=200, payload=json_data, repeat=True
         )
 
     if "admin_lib_tariff" in files:
@@ -235,26 +403,40 @@ async def prep_envoy(
             json_data = await load_json_fixture(version, "admin_lib_tariff")
         except json.decoder.JSONDecodeError:
             json_data = {}
-        respx.get("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
-        respx.put("/admin/lib/tariff").mock(return_value=Response(200, json=json_data))
+        mock_aioresponse.get(
+            url("/admin/lib/tariff"), status=200, payload=json_data, repeat=True
+        )
+        mock_aioresponse.get(
+            url_http("/admin/lib/tariff"), status=200, payload=json_data, repeat=True
+        )
+        mock_aioresponse.put(
+            url("/admin/lib/tariff"), status=200, payload=json_data, repeat=True
+        )
     else:
-        respx.get("/admin/lib/tariff").mock(return_value=Response(404))
+        mock_aioresponse.get(url("/admin/lib/tariff"), status=404, repeat=True)
 
     if "ivp_ss_gen_config" in files:
         try:
             json_data = await load_json_fixture(version, "ivp_ss_gen_config")
         except json.decoder.JSONDecodeError:
             json_data = {}
-        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json=json_data))
-    else:
-        respx.get("/ivp/ss/gen_config").mock(return_value=Response(200, json={}))
-
-    if "home" in files:
-        respx.get("/home").mock(
-            return_value=Response(200, json=await load_json_fixture(version, "home"))
+        mock_aioresponse.get(
+            url("/ivp/ss/gen_config"), status=200, payload=json_data, repeat=True
         )
     else:
-        respx.get("/home").mock(return_value=Response(404))
+        mock_aioresponse.get(
+            url("/ivp/ss/gen_config"), status=200, payload={}, repeat=True
+        )
+
+    if "home" in files:
+        mock_aioresponse.get(
+            url("/home"),
+            status=200,
+            payload=await load_json_fixture(version, "home"),
+            repeat=True,
+        )
+    else:
+        mock_aioresponse.get(url("/home"), status=404, repeat=True)
     return files
 
 

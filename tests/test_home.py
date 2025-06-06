@@ -1,17 +1,20 @@
 """Test envoy home endpoint"""
 
+import asyncio
 import logging
 
-import httpx
+import aiohttp
 import pytest
-import respx
-from httpx import Response
+from aioresponses import aioresponses
 
+from pyenphase import Envoy
 from pyenphase.models.home import EnvoyInterfaceInformation
 
 from .common import (
     get_mock_envoy,
+    load_fixture,
     load_json_fixture,
+    override_mock,
     prep_envoy,
     start_7_firmware_mock,
 )
@@ -20,20 +23,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_home_from_api_with_7_6_175():
+async def test_home_from_api_with_7_6_175() -> None:
     """Test home data from api"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-
     # start with regular data first
     version = "7.6.175"
-    start_7_firmware_mock()
-    await prep_envoy(version)
-
-    # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy()
-    data = envoy.data
-    assert data is not None
 
     # load mock data for home endpoint
     home_json = await load_json_fixture(version, "home")
@@ -81,20 +74,19 @@ async def test_home_from_api_with_7_6_175():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_interface_settings_with_7_6_175():
+async def test_interface_settings_with_7_6_175(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
     """Test home interface information data"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
-
     # start with regular data first
     version = "7.6.175"
-    start_7_firmware_mock()
-    await prep_envoy(version)
 
-    # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy()
-    data = envoy.data
-    assert data is not None
+    # Use prep_envoy to set up all required mocks
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    # Create envoy using get_mock_envoy which handles all the setup
+    envoy = await get_mock_envoy(test_client_session, update=False)
 
     # test interface_settings method
     home_data: EnvoyInterfaceInformation | None = await envoy.interface_settings()
@@ -115,7 +107,9 @@ async def test_interface_settings_with_7_6_175():
     # Change mock to use wlan interface
     home_json["network"]["primary_interface"] = "wlan0"
     # and mock new data
-    respx.get("/home").mock(return_value=Response(200, json=home_json))
+    override_mock(
+        mock_aioresponse, "get", "https://127.0.0.1/home", status=200, payload=home_json
+    )
 
     # get interface data, subsequent call data is returned from cache
     home_data = await envoy.interface_settings()
@@ -138,51 +132,53 @@ async def test_interface_settings_with_7_6_175():
 
 
 @pytest.mark.asyncio
-@respx.mock
 async def test_home_endpoint_errors_with_7_6_175(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test home interface information data"""
-    logging.getLogger("pyenphase").setLevel(logging.DEBUG)
     caplog.set_level(logging.DEBUG)
 
     # start with regular data first
     version = "7.6.175"
-    start_7_firmware_mock()
-    await prep_envoy(version)
 
-    # details of this test is done elsewhere already, just check data is returned
-    envoy = await get_mock_envoy()
-    data = envoy.data
-    assert data is not None
+    # Set up auth mocks
+    start_7_firmware_mock(mock_aioresponse)
+
+    # Set up info endpoint for setup
+    info_data = await load_fixture(version, "info")
+    mock_aioresponse.get(
+        "https://127.0.0.1/info", status=200, body=info_data, repeat=True
+    )
+
+    # Create and setup envoy
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+    await envoy.setup()
+    await envoy.authenticate("username", "password")
 
     # test not-found error
-    respx.get("/home").mock(return_value=Response(404))
+    mock_aioresponse.get("https://127.0.0.1/home", status=404)
     await envoy.interface_settings()
     assert "Failure getting interface information" in caplog.text
     caplog.clear()
 
     # test server error
-    respx.get("/home").mock(return_value=Response(500))
+    mock_aioresponse.get("https://127.0.0.1/home", status=500)
     await envoy.interface_settings()
     assert "Failure getting interface information" in caplog.text
     caplog.clear()
 
-    respx.get("/home").mock(return_value=Response(200, text="")).side_effect = [
-        httpx.NetworkError("Test Networkerror"),
-    ]
+    mock_aioresponse.get(
+        "https://127.0.0.1/home", exception=aiohttp.ClientError("Test Networkerror")
+    )
     await envoy.interface_settings()
     assert "Failure getting interface information" in caplog.text
     caplog.clear()
 
-    respx.get("/home").mock(return_value=Response(200, text="")).side_effect = [
-        httpx.RemoteProtocolError("Test protocolerror"),
-    ]
-    with pytest.raises(httpx.RemoteProtocolError):
-        await envoy.interface_settings()
-
-    respx.get("/home").mock(return_value=Response(200, text="")).side_effect = [
-        httpx.TimeoutException("Test timeoutexception"),
-    ]
+    mock_aioresponse.get(
+        "https://127.0.0.1/home",
+        exception=asyncio.TimeoutError("Test timeoutexception"),
+    )
     await envoy.interface_settings()
     assert "Failure getting interface information" in caplog.text
