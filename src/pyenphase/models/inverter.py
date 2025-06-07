@@ -37,21 +37,25 @@ class EnvoyInverter:
     @classmethod
     def from_device_data(cls, data: dict[str, Any]) -> EnvoyInverter:
         """Initialize from device data."""
+        if "channels" not in data or len(data["channels"]) == 0:
+            raise ValueError(f"Device {data['sn']} has no channel data")
+
+        channel = data["channels"][0]
+        last_reading = channel["lastReading"]
         return cls(
             serial_number=data["sn"],
-            last_report_date=data["channels"][0]["lastReading"]["endDate"],
-            last_report_watts=data["channels"][0]["watts"]["now"],
-            max_report_watts=data["channels"][0]["watts"]["max"],
-            dc_voltage=data["channels"][0]["lastReading"]["dcVoltageINmV"] / 1000.0,
-            dc_current=data["channels"][0]["lastReading"]["dcCurrentINmA"] / 1000.0,
-            ac_voltage=data["channels"][0]["lastReading"]["acVoltageINmV"] / 1000.0,
-            ac_current=data["channels"][0]["lastReading"]["acCurrentInmA"] / 1000.0,
-            ac_frequency=data["channels"][0]["lastReading"]["acFrequencyINmHz"]
-            / 1000.0,
-            temperature=data["channels"][0]["lastReading"]["channelTemp"],
-            lifetime_energy=data["channels"][0]["lifetime"]["joulesProduced"] / 3600.0,
-            energy_produced=data["channels"][0]["lastReading"]["joulesProduced"]
-            / data["channels"][0]["lastReading"]["duration"]
+            last_report_date=last_reading["endDate"],
+            last_report_watts=channel["watts"]["now"],
+            max_report_watts=channel["watts"]["max"],
+            dc_voltage=last_reading["dcVoltageINmV"] / 1000.0,
+            dc_current=last_reading["dcCurrentINmA"] / 1000.0,
+            ac_voltage=last_reading["acVoltageINmV"] / 1000.0,
+            ac_current=last_reading["acCurrentInmA"] / 1000.0,
+            ac_frequency=last_reading["acFrequencyINmHz"] / 1000.0,
+            temperature=last_reading["channelTemp"],
+            lifetime_energy=channel["lifetime"]["joulesProduced"] / 3600.0,
+            energy_produced=last_reading["joulesProduced"]
+            / last_reading["duration"]
             / 3600.0,
-            energy_today=data["channels"][0]["wattHours"]["today"],
+            energy_today=channel["wattHours"]["today"],
         )
