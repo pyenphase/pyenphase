@@ -1,6 +1,6 @@
 [project]
 name = "pyenphase"
-version = "1.26.1"
+version = "2.0.0"
 description = "Library to control enphase envoy"
 authors = [{ name = "pyenphase", email = "cgarwood@gmail.com" }]
 license = "MIT"
@@ -10,7 +10,7 @@ dynamic = ["classifiers", "dependencies"]
 
 [tool.poetry]
 name = "pyenphase"
-version = "1.26.1"
+version = "2.0.0"
 description = "Library to control enphase envoy"
 authors = ["pyenphase <cgarwood@gmail.com>"]
 classifiers = [
@@ -33,7 +33,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-aiohttp = ">=3.12.0"
+aiohttp = ">=3.12.8"
 lxml = ">=4.9.2"
 pyjwt = ">=2.7.0"
 awesomeversion = ">=22.9.0"

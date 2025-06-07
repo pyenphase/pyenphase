@@ -136,10 +136,11 @@ class EnvoyFirmware:
             if debugon:
                 request_end = time.monotonic()
                 _LOGGER.debug(
-                    "Request reply in %s sec from %s status %s",
+                    "Request reply in %s sec from %s status %s: %s",
                     round(request_end - request_start, 1),
                     self._url,
                     status_code,
+                    content,
                 )
             xml = etree.fromstring(content)  # nosec  # noqa: S320
             if (device_tag := xml.find("device")) is not None:

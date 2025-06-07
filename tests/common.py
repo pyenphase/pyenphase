@@ -2,6 +2,9 @@
 
 import asyncio
 import json
+import logging
+from collections.abc import Generator
+from contextlib import contextmanager
 from os import listdir
 from os.path import isfile, join
 from pathlib import Path
@@ -15,6 +18,18 @@ from awesomeversion import AwesomeVersion
 from pyenphase import AUTH_TOKEN_MIN_VERSION, Envoy
 from pyenphase.envoy import SupportedFeatures
 from pyenphase.updaters.base import EnvoyUpdater
+
+
+@contextmanager
+def temporary_log_level(logger_name: str, level: int) -> Generator[None, None, None]:
+    """Temporarily change the log level of a logger."""
+    logger = logging.getLogger(logger_name)
+    original_level = logger.level
+    logger.setLevel(level)
+    try:
+        yield
+    finally:
+        logger.setLevel(original_level)
 
 
 def _fixtures_dir() -> Path:
@@ -129,24 +144,6 @@ def latest_request(
     if not requests:
         return 0, b""
     return len(requests), mock_aioresponse.requests[requests[-1]][-1].kwargs.get("data")
-
-
-def mock_response(
-    mock_aioresponse: aioresponses,
-    method: str,
-    url: str,
-    reset: bool = False,
-    **kwargs: Any,
-) -> None:
-    """Mock aiohttp response and first reset existing if specified."""
-    if reset:
-        return override_mock(
-            mock_aioresponse,
-            method,
-            url,
-            **kwargs,
-        )
-    getattr(mock_aioresponse, method.lower())(url, **kwargs)
 
 
 def override_mock(

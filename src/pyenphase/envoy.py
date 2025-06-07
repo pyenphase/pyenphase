@@ -24,7 +24,11 @@ from tenacity import (
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.home import EnvoyInterfaceInformation
 
-from .auth import EnvoyAuth, EnvoyLegacyAuth, EnvoyTokenAuth
+from .auth import (
+    EnvoyAuth,
+    EnvoyLegacyAuth,
+    EnvoyTokenAuth,
+)
 from .const import (
     AUTH_TOKEN_MIN_VERSION,
     ENDPOINT_URL_HOME,
@@ -314,8 +318,7 @@ class Envoy:
         path in the Envoy, HTTP type and Envoy address is prepended
         to form full URL based on authentication method.
 
-        Request retries on bad JSON responses which the Envoy sometimes
-        returns, on network errors, timeouts and remote protocol errors.
+        Request retries on client connection issues or timeouts.
         Will retry up to 4 times or 50 sec elapsed at next try, which
         ever comes first.
 
@@ -362,9 +365,11 @@ class Envoy:
         if debugon:
             request_start = time.monotonic()
 
-        # Set up middleware if we have digest auth
-        middlewares = (self.auth.auth,) if self.auth.auth else None
+        # Set up middleware from auth
+        middlewares = self.auth.auth
 
+        # not using redirects to avoid following 301s to error pages on missing
+        # end points and lots of extra requests
         if data:
             if debugon:
                 _LOGGER.debug(
@@ -377,6 +382,7 @@ class Envoy:
                 timeout=self._timeout,
                 data=orjson.dumps(data),
                 middlewares=middlewares,
+                allow_redirects=False,
             )
         else:
             _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
@@ -385,6 +391,7 @@ class Envoy:
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
                 timeout=self._timeout,
                 middlewares=middlewares,
+                allow_redirects=False,
             )
 
         status_code = response.status
@@ -394,8 +401,6 @@ class Envoy:
                 "please check your username/password or token."
             )
 
-        # Read the content to cache it
-        content = await response.read()
         # show all responses centrally when in debug
         if debugon:
             request_end = time.monotonic()
@@ -406,7 +411,7 @@ class Envoy:
                 url,
                 status_code,
                 content_type,
-                content,  # Use the actual content bytes
+                await response.read(),  # Use the actual content bytes
             )
 
         return response
