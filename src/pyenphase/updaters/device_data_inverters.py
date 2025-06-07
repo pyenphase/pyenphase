@@ -17,7 +17,6 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
         """Probe the Envoy for this updater and return SupportedFeatures."""
-
         if SupportedFeatures.INVERTERS in discovered_features:
             # Already discovered from another updater
             return None
