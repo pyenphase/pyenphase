@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from ..const import URL_PRODUCTION_INVERTERS, SupportedFeatures
+from ..const import URL_DEVICE_DATA, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.inverter import EnvoyInverter
@@ -10,8 +10,8 @@ from .base import EnvoyUpdater
 _LOGGER = logging.getLogger(__name__)
 
 
-class EnvoyApiV1ProductionInvertersUpdater(EnvoyUpdater):
-    """Class to handle updates for inverter production data."""
+class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
+    """Class to handle updates for inverter device data."""
 
     async def probe(
         self, discovered_features: SupportedFeatures
@@ -22,17 +22,17 @@ class EnvoyApiV1ProductionInvertersUpdater(EnvoyUpdater):
 
         """Probe the Envoy for this updater and return SupportedFeatures."""
         try:
-            await self._json_probe_request(URL_PRODUCTION_INVERTERS)
+            await self._json_probe_request(URL_DEVICE_DATA)
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug(
-                "Production endpoint not found at %s: %s", URL_PRODUCTION_INVERTERS, e
+                "Device data endpoint not found at %s: %s", URL_DEVICE_DATA, e
             )
             return None
         except EnvoyAuthenticationRequired as e:
             _LOGGER.debug(
-                "Disabling inverters production endpoint as user does"
+                "Disabling inverters device data endpoint as user does"
                 " not have access to %s: %s",
-                URL_PRODUCTION_INVERTERS,
+                URL_DEVICE_DATA,
                 e,
             )
             return None
@@ -42,11 +42,11 @@ class EnvoyApiV1ProductionInvertersUpdater(EnvoyUpdater):
 
     async def update(self, envoy_data: EnvoyData) -> None:
         """Update the Envoy for this updater."""
-        inverters_data: list[dict[str, Any]] = await self._json_request(
-            URL_PRODUCTION_INVERTERS
-        )
-        envoy_data.raw[URL_PRODUCTION_INVERTERS] = inverters_data
+        inverters_data: dict[str, Any] = await self._json_request(URL_DEVICE_DATA)
+        envoy_data.raw[URL_DEVICE_DATA] = inverters_data
         envoy_data.inverters = {
-            inverter["serialNumber"]: EnvoyInverter.from_v1_api(inverter)
-            for inverter in inverters_data
+            inverter["sn"]: EnvoyInverter.from_device_data(inverter)
+            for id, inverter in inverters_data.items()
+            if id not in ("deviceCount", "deviceDataLimit")
+            and inverter["devName"] == "pcu"
         }
