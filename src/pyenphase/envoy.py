@@ -366,7 +366,7 @@ class Envoy:
             request_start = time.monotonic()
 
         # Set up middleware from auth
-        middlewares = self.auth.auth
+        middlewares = (self.auth.auth,) if self.auth.auth else None
 
         # not using redirects to avoid following 301s to error pages on missing
         # end points and lots of extra requests
