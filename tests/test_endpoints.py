@@ -1235,6 +1235,47 @@ LOGGER = logging.getLogger(__name__)
             {},
             {},
         ),
+        (
+            "8.2.4345_with_device_data",
+            "800-00649-r01",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.ENPOWER
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS,
+            {
+                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
+                | SupportedFeatures.ENPOWER,
+                "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+            },
+            1,
+            {
+                "ctMeters": 2,
+                "phaseCount": 1,
+                "phaseMode": EnvoyPhaseMode.THREE,
+                "consumptionMeter": CtType.NET_CONSUMPTION,
+                "productionMeter": CtType.PRODUCTION,
+                "storageMeter": None,
+            },
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+        ),
     ],
     ids=[
         "5.0.62",
@@ -1258,6 +1299,7 @@ LOGGER = logging.getLogger(__name__)
         "8.2.127_with_generator_running",
         "8.2.4286_with_3cts_and_battery_split",
         "8.2.4264_metered_noct",
+        "8.2.4345_with_device_data",
     ],
 )
 @pytest.mark.asyncio

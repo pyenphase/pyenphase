@@ -60,6 +60,7 @@ from .ssl import NO_VERIFY_SSL_CONTEXT
 from .updaters.api_v1_production import EnvoyApiV1ProductionUpdater
 from .updaters.api_v1_production_inverters import EnvoyApiV1ProductionInvertersUpdater
 from .updaters.base import EnvoyUpdater
+from .updaters.device_data_inverters import EnvoyDeviceDataInvertersUpdater
 from .updaters.ensemble import EnvoyEnembleUpdater
 from .updaters.generator import EnvoyGeneratorUpdater
 from .updaters.meters import EnvoyMetersUpdater
@@ -83,6 +84,7 @@ UPDATERS: list[type["EnvoyUpdater"]] = [
     EnvoyProductionUpdater,
     EnvoyApiV1ProductionUpdater,
     EnvoyProductionJsonFallbackUpdater,
+    EnvoyDeviceDataInvertersUpdater,
     EnvoyApiV1ProductionInvertersUpdater,
     EnvoyEnembleUpdater,
     EnvoyTariffUpdater,
