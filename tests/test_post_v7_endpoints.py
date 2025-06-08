@@ -129,10 +129,12 @@ async def test_multiple_inverter_sources(
     original_updaters = UPDATERS.copy()
 
     # Remove existing inverter updaters
-    while EnvoyApiV1ProductionInvertersUpdater in UPDATERS:
-        UPDATERS.remove(EnvoyApiV1ProductionInvertersUpdater)
-    while EnvoyDeviceDataInvertersUpdater in UPDATERS:
-        UPDATERS.remove(EnvoyDeviceDataInvertersUpdater)
+    UPDATERS[:] = [
+        updater
+        for updater in UPDATERS
+        if updater
+        not in (EnvoyApiV1ProductionInvertersUpdater, EnvoyDeviceDataInvertersUpdater)
+    ]
 
     # Add the inverter production endpoint updater followed by the device data updater
     prod_remover = register_updater(EnvoyApiV1ProductionInvertersUpdater)
