@@ -21,7 +21,7 @@ for inverter in data.inverters:
     print (f'{inverter} panel output: {data.inverters[inverter].dc_voltage}V @ {data.inverters[inverter].dc_current}A')
     print (f'{inverter} output: {data.inverters[inverter].ac_voltage}V @ {data.inverters[inverter].ac_current}A {data.inverters[inverter].ac_frequency}Hz')
     print (f'{inverter} temperature: {data.inverters[inverter].temperature}°C')
-    print (f'{inverter} energy produced: {data.inverters[inverter].energy_produced} Wh')
+    print (f'{inverter} energy produced: {data.inverters[inverter].energy_produced} mWh')
     print (f'{inverter} energy produced today: {data.inverters[inverter].energy_today} Wh')
     print (f'{inverter} lifetime energy produced: {data.inverters[inverter].lifetime_energy} Wh')
 ```

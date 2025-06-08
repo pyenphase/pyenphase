@@ -20,9 +20,10 @@ class EnvoyInverter:
     ac_current: float | None = None
     ac_frequency: float | None = None
     temperature: float | None = None
-    lifetime_energy: float | None = None
+    lifetime_energy: int | None = None
     energy_produced: float | None = None
     energy_today: float | None = None
+    last_report_duration: int | None = None
 
     @classmethod
     def from_v1_api(cls, data: dict[str, Any]) -> EnvoyInverter:
@@ -50,9 +51,10 @@ class EnvoyInverter:
             ac_current=last_reading["acCurrentInmA"] / 1000.0,
             ac_frequency=last_reading["acFrequencyINmHz"] / 1000.0,
             temperature=last_reading["channelTemp"],
-            lifetime_energy=channel["lifetime"]["joulesProduced"] / 3600.0,
-            energy_produced=last_reading["joulesProduced"]
-            / last_reading["duration"]
-            / 3600.0,
+            lifetime_energy=round(channel["lifetime"]["joulesProduced"] / 3600.0),
+            energy_produced=round(
+                last_reading["joulesProduced"] / last_reading["duration"] / 3.6, 3
+            ),
             energy_today=channel["wattHours"]["today"],
+            last_report_duration=last_reading["duration"],
         )
