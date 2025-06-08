@@ -125,17 +125,14 @@ async def test_multiple_inverter_sources(
     await envoy.setup()
     await envoy.authenticate("username", "password")
 
+    # Preserve the original updaters
+    original_updaters = UPDATERS.copy()
+
     # Remove existing inverter updaters
-    try:
-        while True:
-            UPDATERS.remove(EnvoyApiV1ProductionInvertersUpdater)
-    except ValueError:
-        pass
-    try:
-        while True:
-            UPDATERS.remove(EnvoyDeviceDataInvertersUpdater)
-    except ValueError:
-        pass
+    while EnvoyApiV1ProductionInvertersUpdater in UPDATERS:
+        UPDATERS.remove(EnvoyApiV1ProductionInvertersUpdater)
+    while EnvoyDeviceDataInvertersUpdater in UPDATERS:
+        UPDATERS.remove(EnvoyDeviceDataInvertersUpdater)
 
     # Add the inverter production endpoint updater followed by the device data updater
     prod_remover = register_updater(EnvoyApiV1ProductionInvertersUpdater)
@@ -172,3 +169,8 @@ async def test_multiple_inverter_sources(
         | SupportedFeatures.PRODUCTION,
         "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
     }
+
+    # Restore the original updaters
+    UPDATERS.clear()
+    for updater in original_updaters:
+        register_updater(updater)
