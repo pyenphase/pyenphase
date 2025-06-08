@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v2.0.1 (2025-06-07)
+
+### Bug Fixes
+
+- Pass middleware as a tuple ([#285](https://github.com/pyenphase/pyenphase/pull/285),
+  [`7d140c5`](https://github.com/pyenphase/pyenphase/commit/7d140c5e7d61f31afea0715b53381fcd7025ac65))
+
+
 ## v2.0.0 (2025-06-06)
 
 ### Chores
