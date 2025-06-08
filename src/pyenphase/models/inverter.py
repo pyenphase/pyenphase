@@ -37,9 +37,6 @@ class EnvoyInverter:
     @classmethod
     def from_device_data(cls, data: dict[str, Any]) -> EnvoyInverter:
         """Initialize from device data."""
-        if "channels" not in data or len(data["channels"]) == 0:
-            raise ValueError(f"Device {data['sn']} has no channel data")
-
         channel = data["channels"][0]
         last_reading = channel["lastReading"]
         return cls(
