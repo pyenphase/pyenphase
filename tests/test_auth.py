@@ -13,7 +13,12 @@ from aioresponses import aioresponses
 
 from pyenphase import Envoy, EnvoyTokenAuth
 from pyenphase.auth import EnvoyLegacyAuth
-from pyenphase.const import URL_AUTH_CHECK_JWT
+from pyenphase.const import (
+    URL_AUTH_CHECK_JWT,
+    URL_DEVICE_DATA,
+    URL_PRODUCTION_INVERTERS,
+    SupportedFeatures,
+)
 from pyenphase.exceptions import EnvoyAuthenticationError, EnvoyAuthenticationRequired
 
 from .common import (
@@ -466,6 +471,67 @@ async def test_remote_login_response_with_7_6_175_standard(
 
     # read unused auth from EnvoyTokenAuth to improve COV
     assert envoy.auth.auth is None
+
+
+@pytest.mark.asyncio
+async def test_device_data_with_8_2_4345_with_device_data(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """Test device data fails with no auth"""
+    version = "8.2.4345_with_device_data"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    from .common import override_mock, updater_features
+
+    # 401 on device data endpoint and inverters production endpoint
+    # This simulates the case where the user does not have access to any inverter data
+    for url in [
+        "https://127.0.0.1" + URL_DEVICE_DATA,
+        "http://127.0.0.1" + URL_DEVICE_DATA,
+        "https://127.0.0.1" + URL_PRODUCTION_INVERTERS,
+        "http://127.0.0.1" + URL_PRODUCTION_INVERTERS,
+    ]:
+        override_mock(
+            mock_aioresponse,
+            "get",
+            url,
+            status=401,
+            body="no device data",
+        )
+
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+    await envoy.setup()
+    await envoy.authenticate("username", "password")
+
+    await envoy.probe()
+    assert SupportedFeatures.INVERTERS not in envoy.supported_features
+
+    # 200 on device data endpoint only
+    # This simulates the case where the user has access to device data but not to inverter production data
+    for url in [
+        "https://127.0.0.1" + URL_DEVICE_DATA,
+        "http://127.0.0.1" + URL_DEVICE_DATA,
+    ]:
+        override_mock(
+            mock_aioresponse,
+            "get",
+            url,
+            status=200,
+            payload=await load_json_fixture(version, "ivp_pdm_device_data"),
+        )
+
+    await envoy.probe()
+    assert updater_features(envoy._updaters) == {
+        "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE | SupportedFeatures.ENPOWER,
+        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+        "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+        | SupportedFeatures.TOTAL_CONSUMPTION
+        | SupportedFeatures.NET_CONSUMPTION
+        | SupportedFeatures.PRODUCTION,
+        "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+    }
 
 
 # S
