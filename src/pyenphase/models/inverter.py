@@ -22,7 +22,7 @@ class EnvoyInverter:
     temperature: float | None = None
     lifetime_energy: int | None = None
     energy_produced: float | None = None
-    energy_today: float | None = None
+    energy_today: int | None = None
     last_report_duration: int | None = None
 
     @classmethod
