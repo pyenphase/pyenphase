@@ -523,7 +523,8 @@ async def test_device_data_with_8_2_4345_with_device_data(
 
     await envoy.probe()
     assert updater_features(envoy._updaters) == {
-        "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+        | SupportedFeatures.DETAILED_INVERTERS,
         "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE | SupportedFeatures.ENPOWER,
         "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
         "EnvoyProductionJsonUpdater": SupportedFeatures.METERING

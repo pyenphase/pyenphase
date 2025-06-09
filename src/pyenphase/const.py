@@ -100,6 +100,7 @@ class SupportedFeatures(enum.IntFlag):
     CTMETERS = 1024  #: Envoy has enabled CT meter(s)
     GENERATOR = 2048  #: Envoy reports generator data
     ACB = 4096  #: Envoy reports ACB Battery data
+    DETAILED_INVERTERS = 8192  #: Detailed inverter data is reported
 
 
 class PhaseNames(enum.StrEnum):

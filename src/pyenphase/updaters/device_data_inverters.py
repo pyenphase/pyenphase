@@ -37,7 +37,9 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             )
             return None
 
-        self._supported_features |= SupportedFeatures.INVERTERS
+        self._supported_features |= (
+            SupportedFeatures.INVERTERS | SupportedFeatures.DETAILED_INVERTERS
+        )
         return self._supported_features
 
     async def update(self, envoy_data: EnvoyData) -> None:

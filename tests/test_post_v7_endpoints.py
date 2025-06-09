@@ -162,7 +162,8 @@ async def test_multiple_inverter_sources(
     # Verify that the device data updater is used first
     await envoy.probe()
     assert updater_features(envoy._updaters) == {
-        "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+        | SupportedFeatures.DETAILED_INVERTERS,
         "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE | SupportedFeatures.ENPOWER,
         "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
         "EnvoyProductionJsonUpdater": SupportedFeatures.METERING

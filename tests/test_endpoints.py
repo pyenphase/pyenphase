@@ -1246,9 +1246,11 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.ENPOWER
             | SupportedFeatures.PRODUCTION
             | SupportedFeatures.TARIFF
-            | SupportedFeatures.CTMETERS,
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.DETAILED_INVERTERS,
             {
-                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+                | SupportedFeatures.DETAILED_INVERTERS,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
                 | SupportedFeatures.ENPOWER,
                 "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
