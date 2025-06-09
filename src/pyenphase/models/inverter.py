@@ -38,42 +38,44 @@ class EnvoyInverter:
     @classmethod
     def from_device_data(cls, data: dict[str, Any]) -> EnvoyInverter:
         """Initialize from device data."""
+
+        def safe_convert_milli(value: float | None) -> float | None:
+            return value / 1000.0 if value is not None else None
+
         # if these don't exist they raise KeyError to not use this model but use from_v1_api
         channel = data["channels"][0]
         last_reading = channel["lastReading"]
+
+        # these four are minimal data set, if one fails keyerror will raise
         serial_number = data["sn"]
         last_report_date = last_reading["endDate"]
         last_report_watts = channel["watts"]["now"]
         max_report_watts = channel["watts"]["max"]
 
         # get data to avoid divide errors if None
-        dc_voltage = last_reading.get("dcVoltageINmV")
-        dc_current = last_reading.get("dcCurrentINmA")
-        ac_voltage = last_reading.get("acVoltageINmV")
-        ac_current = last_reading.get("acCurrentInmA")
-        ac_frequency = last_reading.get("acFrequencyINmHz")
         duration = last_reading.get("duration")
-        energy_produced = last_reading.get("joulesProduced")
+        period_joules_produced = last_reading.get("joulesProduced")
         lifetime = channel.get("lifetime")
-        joulesProduced = lifetime.get("joulesProduced") if lifetime else None
+        lifetime_joulesProduced = lifetime.get("joulesProduced") if lifetime else None
         watthours = channel.get("wattHours")
+
         return cls(
             serial_number=serial_number,
             last_report_date=last_report_date,
             last_report_watts=last_report_watts,
             max_report_watts=max_report_watts,
             # next ones may return none as they didn't exist before in the model
-            dc_voltage=dc_voltage / 1000.0 if dc_voltage is not None else None,
-            dc_current=dc_current / 1000.0 if dc_current is not None else None,
-            ac_voltage=ac_voltage / 1000.0 if ac_voltage is not None else None,
-            ac_current=ac_current / 1000.0 if ac_current is not None else None,
-            ac_frequency=ac_frequency / 1000.0 if ac_frequency is not None else None,
+            dc_voltage=safe_convert_milli(last_reading.get("dcVoltageINmV")),
+            dc_current=safe_convert_milli(last_reading.get("dcCurrentINmA")),
+            ac_voltage=safe_convert_milli(last_reading.get("acVoltageINmV")),
+            ac_current=safe_convert_milli(last_reading.get("acCurrentInmA")),
+            ac_frequency=safe_convert_milli(last_reading.get("acFrequencyINmHz")),
             temperature=last_reading.get("channelTemp"),
-            lifetime_energy=round(joulesProduced / 3600.0)
-            if joulesProduced is not None
+            lifetime_energy=round(lifetime_joulesProduced / 3600.0)
+            if lifetime_joulesProduced is not None
             else None,
-            energy_produced=round(energy_produced / duration / 3.6, 3)
-            if energy_produced is not None and duration is not None
+            energy_produced=round(period_joules_produced / duration / 3.6, 3)
+            if period_joules_produced is not None and duration is not None
             else None,
             energy_today=watthours.get("today") if watthours else None,
             last_report_duration=duration,

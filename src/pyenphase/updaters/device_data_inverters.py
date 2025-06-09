@@ -13,6 +13,15 @@ _LOGGER = logging.getLogger(__name__)
 class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
     """Class to handle updates for inverter device data."""
 
+    def _filter_inverters(self, inverters_data: dict[str, Any]) -> dict[str, Any]:
+        """Filter and return only PCU inverter devices."""
+        return {
+            inverter["sn"]: inverter
+            for id, inverter in inverters_data.items()
+            if id not in ("deviceCount", "deviceDataLimit")
+            and inverter["devName"] == "pcu"
+        }
+
     async def probe(
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
@@ -39,12 +48,12 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
 
         # verify minimal data set to replace inverter production data is present
         try:
+            filtered_inverters = self._filter_inverters(inverters_data)
             _ = {
-                inverter["sn"]: EnvoyInverter.from_device_data(inverter)
-                for id, inverter in inverters_data.items()
-                if id not in ("deviceCount", "deviceDataLimit")
-                and inverter["devName"] == "pcu"
+                sn: EnvoyInverter.from_device_data(inverter)
+                for sn, inverter in filtered_inverters.items()
             }
+
         except KeyError as e:
             # if any inverter returned None there's something messed by json format, fall back to production
             _LOGGER.debug(
@@ -64,9 +73,8 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         """Update the Envoy for this updater."""
         inverters_data: dict[str, Any] = await self._json_request(URL_DEVICE_DATA)
         envoy_data.raw[URL_DEVICE_DATA] = inverters_data
+        filtered_inverters = self._filter_inverters(inverters_data)
         envoy_data.inverters = {
-            inverter["sn"]: EnvoyInverter.from_device_data(inverter)
-            for id, inverter in inverters_data.items()
-            if id not in ("deviceCount", "deviceDataLimit")
-            and inverter["devName"] == "pcu"
+            sn: EnvoyInverter.from_device_data(inverter)
+            for sn, inverter in filtered_inverters.items()
         }
