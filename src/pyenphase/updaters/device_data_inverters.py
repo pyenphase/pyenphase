@@ -22,7 +22,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             return None
 
         try:
-            await self._json_probe_request(URL_DEVICE_DATA)
+            inverters_data = await self._json_probe_request(URL_DEVICE_DATA)
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug(
                 "Device data endpoint not found at %s: %s", URL_DEVICE_DATA, e
@@ -32,6 +32,24 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             _LOGGER.debug(
                 "Disabling inverters device data endpoint as user does"
                 " not have access to %s: %s",
+                URL_DEVICE_DATA,
+                e,
+            )
+            return None
+
+        # verify minimal data set to replace inverter production data is present
+        try:
+            _ = {
+                inverter["sn"]: EnvoyInverter.from_device_data(inverter)
+                for id, inverter in inverters_data.items()
+                if id not in ("deviceCount", "deviceDataLimit")
+                and inverter["devName"] == "pcu"
+            }
+        except KeyError as e:
+            # if any inverter returned None there's something messed by json format, fall back to production
+            _LOGGER.debug(
+                "Disabling inverters device data endpoint "
+                " as not all data fields are present %s: %s",
                 URL_DEVICE_DATA,
                 e,
             )
