@@ -6,14 +6,13 @@ import aiohttp
 import pytest
 from aioresponses import aioresponses
 
-from pyenphase.envoy import SupportedFeatures
-
-from .common import (
-    get_mock_envoy,
-    prep_envoy,
-    start_7_firmware_mock,
-    updater_features,
+from pyenphase.envoy import UPDATERS, Envoy, SupportedFeatures, register_updater
+from pyenphase.updaters.api_v1_production_inverters import (
+    EnvoyApiV1ProductionInvertersUpdater,
 )
+from pyenphase.updaters.device_data_inverters import EnvoyDeviceDataInvertersUpdater
+
+from .common import get_mock_envoy, prep_envoy, start_7_firmware_mock, updater_features
 
 LOGGER = logging.getLogger(__name__)
 
@@ -111,3 +110,70 @@ async def test_metered_noct(
     assert data.system_production.watt_hours_today == watt_hours_today
     assert data.system_production.watt_hours_last_7_days == watt_hours_last_7_days
     assert data.system_production.watt_hours_lifetime == watt_hours_lifetime
+
+
+@pytest.mark.asyncio
+async def test_multiple_inverter_sources(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Test that multiple inverters from different sources are handled correctly."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", "8.2.4345_with_device_data")
+
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+    await envoy.setup()
+    await envoy.authenticate("username", "password")
+
+    # Preserve the original updaters
+    original_updaters = UPDATERS.copy()
+
+    # Remove existing inverter updaters
+    UPDATERS[:] = [
+        updater
+        for updater in UPDATERS
+        if updater
+        not in (EnvoyApiV1ProductionInvertersUpdater, EnvoyDeviceDataInvertersUpdater)
+    ]
+
+    # Add the inverter production endpoint updater followed by the device data updater
+    prod_remover = register_updater(EnvoyApiV1ProductionInvertersUpdater)
+    device_data_remover = register_updater(EnvoyDeviceDataInvertersUpdater)
+
+    # Verify that the production updater is used first
+    await envoy.probe()
+    assert updater_features(envoy._updaters) == {
+        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE | SupportedFeatures.ENPOWER,
+        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+        "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+        | SupportedFeatures.TOTAL_CONSUMPTION
+        | SupportedFeatures.NET_CONSUMPTION
+        | SupportedFeatures.PRODUCTION,
+        "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+    }
+
+    # Remove both updaters and re-add them in reverse order
+    prod_remover()
+    device_data_remover()
+    device_data_remover = register_updater(EnvoyDeviceDataInvertersUpdater)
+    prod_remover = register_updater(EnvoyApiV1ProductionInvertersUpdater)
+
+    # Verify that the device data updater is used first
+    await envoy.probe()
+    assert updater_features(envoy._updaters) == {
+        "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+        | SupportedFeatures.DETAILED_INVERTERS,
+        "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE | SupportedFeatures.ENPOWER,
+        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+        "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+        | SupportedFeatures.TOTAL_CONSUMPTION
+        | SupportedFeatures.NET_CONSUMPTION
+        | SupportedFeatures.PRODUCTION,
+        "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+    }
+
+    # Restore the original updaters
+    UPDATERS.clear()
+    for updater in original_updaters:
+        register_updater(updater)

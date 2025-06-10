@@ -35,6 +35,7 @@ async def main() -> None:
         "/ivp/ensemble/inventory",
         "/ivp/ensemble/dry_contacts",
         "/ivp/ss/dry_contact_settings",
+        "/ivp/pdm/device_data",
     ]
 
     for end_point in end_points:

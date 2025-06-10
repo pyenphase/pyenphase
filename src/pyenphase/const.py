@@ -13,6 +13,7 @@ METERED_NOCT_FALLBACK_TO_INVERTERS = AwesomeVersion("8.2.4264")
 
 # System Production
 URL_PRODUCTION_INVERTERS = "/api/v1/production/inverters"
+URL_DEVICE_DATA = "/ivp/pdm/device_data"
 URL_PRODUCTION_V1 = "/api/v1/production"
 URL_PRODUCTION_JSON = "/production.json?details=1"
 URL_PRODUCTION = "/production"
@@ -99,6 +100,7 @@ class SupportedFeatures(enum.IntFlag):
     CTMETERS = 1024  #: Envoy has enabled CT meter(s)
     GENERATOR = 2048  #: Envoy reports generator data
     ACB = 4096  #: Envoy reports ACB Battery data
+    DETAILED_INVERTERS = 8192  #: Detailed inverter data is reported
 
 
 class PhaseNames(enum.StrEnum):

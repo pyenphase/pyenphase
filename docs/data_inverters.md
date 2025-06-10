@@ -9,3 +9,19 @@ for inverter in data.inverters:
     print (f'{inverter} max watts: {data.inverters[inverter].max_report_watts}')
     print (f'{inverter} last report: {data.inverters[inverter].last_report_date}')
 ```
+
+If the `/ivp/pdm/device_data` endpoint is supported, then extra data is available per inverter
+
+::: note
+The fields (`dc_voltage`, `dc_current`, `ac_voltage`, `ac_current`, `ac_frequency`, `temperature`, `energy_produced`, `energy_today`, `lifetime_energy`) will be `None` if the endpoint is not supported.
+:::
+
+```python
+for inverter in data.inverters:
+    print (f'{inverter} panel output: {data.inverters[inverter].dc_voltage}V @ {data.inverters[inverter].dc_current}A')
+    print (f'{inverter} output: {data.inverters[inverter].ac_voltage}V @ {data.inverters[inverter].ac_current}A {data.inverters[inverter].ac_frequency}Hz')
+    print (f'{inverter} temperature: {data.inverters[inverter].temperature}°C')
+    print (f'{inverter} energy produced: {data.inverters[inverter].energy_produced} mWh')
+    print (f'{inverter} energy produced today: {data.inverters[inverter].energy_today} Wh')
+    print (f'{inverter} lifetime energy produced: {data.inverters[inverter].lifetime_energy} Wh')
+```
