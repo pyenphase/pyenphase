@@ -65,6 +65,9 @@ version_toml = ["pyproject.toml:project.version", "pyproject.toml:tool.poetry.ve
 version_variables = ["src/pyenphase/__init__.py:__version__"]
 build_command = "pip install poetry && poetry build"
 
+[tool.semantic_release.changelog]
+mode = "init"
+
 [tool.pytest.ini_options]
 addopts = "-v -Wdefault --cov=pyenphase --cov-report=term-missing:skip-covered --timeout=5"
 pythonpath = ["src"]
