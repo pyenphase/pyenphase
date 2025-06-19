@@ -2,6 +2,45 @@
 
 <!-- version list -->
 
+## v2.1.1 (2025-06-19)
+
+### Bug Fixes
+
+- Empty commit to force changelog update ([#296](https://github.com/pyenphase/pyenphase/pull/296),
+  [`f81a4ee`](https://github.com/pyenphase/pyenphase/commit/f81a4eee8fe7b96e96e5f5d350765fe24b94a128))
+
+### Chores
+
+- Add insertion flag to changelog ([#290](https://github.com/pyenphase/pyenphase/pull/290),
+  [`eb7087e`](https://github.com/pyenphase/pyenphase/commit/eb7087e10ea4e427c818a0f2ef7b0123ec38b840))
+
+- **deps**: Bump aiohttp from 3.12.11 to 3.12.13
+  ([#292](https://github.com/pyenphase/pyenphase/pull/292),
+  [`db1b8ef`](https://github.com/pyenphase/pyenphase/commit/db1b8ef06c0b6a0b2f39dc609c75815800a3aa3c))
+
+- **deps-dev**: Bump pytest-asyncio from 0.26.0 to 1.0.0
+  ([#291](https://github.com/pyenphase/pyenphase/pull/291),
+  [`0c40ea3`](https://github.com/pyenphase/pyenphase/commit/0c40ea3e7f3048fbed4c815a31eb976b5a2cacd4))
+
+- **deps-dev**: Bump pytest-cov from 6.1.1 to 6.2.1
+  ([#293](https://github.com/pyenphase/pyenphase/pull/293),
+  [`bbf0f5a`](https://github.com/pyenphase/pyenphase/commit/bbf0f5ab92416775abde872fd7b31f5f7f0ece56))
+
+- **deps-dev**: Bump requests from 2.32.3 to 2.32.4
+  ([#289](https://github.com/pyenphase/pyenphase/pull/289),
+  [`919bda4`](https://github.com/pyenphase/pyenphase/commit/919bda470025f19f017edba64bedf7f7df0897c8))
+
+- **deps-dev**: Bump urllib3 from 2.2.2 to 2.5.0
+  ([#295](https://github.com/pyenphase/pyenphase/pull/295),
+  [`2b8d6f2`](https://github.com/pyenphase/pyenphase/commit/2b8d6f2e74ffceefb6e094c92932d66b3c4f0d22))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#294](https://github.com/pyenphase/pyenphase/pull/294),
+  [`17f9387`](https://github.com/pyenphase/pyenphase/commit/17f9387d76fd0254a126193ac9785381e84b0427))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#288](https://github.com/pyenphase/pyenphase/pull/288),
+  [`353dde0`](https://github.com/pyenphase/pyenphase/commit/353dde00af0e15fc8a7a0ede961758944af87ea8))
+
+
 ## v2.0.1 (2025-06-07)
 
 ### Bug Fixes
