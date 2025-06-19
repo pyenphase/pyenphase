@@ -1,6 +1,18 @@
 # CHANGELOG
 
-<!-- version list -->
+
+## v2.1.2 (2025-06-19)
+
+### Bug Fixes
+
+- Set change log mode to init to regenerate missed 2.1.0
+  ([#297](https://github.com/pyenphase/pyenphase/pull/297),
+  [`39289b4`](https://github.com/pyenphase/pyenphase/commit/39289b4125dbb7a14e78d61ab57a3966895c59e8))
+
+- Set change log mode to init to regenerated missed 2.1.0
+  ([#297](https://github.com/pyenphase/pyenphase/pull/297),
+  [`39289b4`](https://github.com/pyenphase/pyenphase/commit/39289b4125dbb7a14e78d61ab57a3966895c59e8))
+
 
 ## v2.1.1 (2025-06-19)
 
@@ -41,6 +53,29 @@
   [`353dde0`](https://github.com/pyenphase/pyenphase/commit/353dde00af0e15fc8a7a0ede961758944af87ea8))
 
 
+## v2.1.0 (2025-06-10)
+
+### Chores
+
+- **ci**: Bump the github-actions group with 2 updates
+  ([#282](https://github.com/pyenphase/pyenphase/pull/282),
+  [`249f2c7`](https://github.com/pyenphase/pyenphase/commit/249f2c77460bc9f586b4d3f17d410b37e58e2a94))
+
+- **deps**: Bump aiohttp from 3.12.9 to 3.12.11
+  ([#286](https://github.com/pyenphase/pyenphase/pull/286),
+  [`54f9d18`](https://github.com/pyenphase/pyenphase/commit/54f9d188dcdd95b4d39c8a3a98f191eb7f5edbb8))
+
+- **deps-dev**: Bump pytest from 8.3.5 to 8.4.0
+  ([#287](https://github.com/pyenphase/pyenphase/pull/287),
+  [`65543b6`](https://github.com/pyenphase/pyenphase/commit/65543b62931da67120a37f87175d522cd5928f98))
+
+### Features
+
+- Use `/ivp/pdm/device_data` to obtain detailed device statistics
+  ([#281](https://github.com/pyenphase/pyenphase/pull/281),
+  [`66872c6`](https://github.com/pyenphase/pyenphase/commit/66872c6743ee0b0c57a868cb5788f46d22c52b5f))
+
+
 ## v2.0.1 (2025-06-07)
 
 ### Bug Fixes
@@ -57,53 +92,19 @@
   ([#283](https://github.com/pyenphase/pyenphase/pull/283),
   [`1f02a1f`](https://github.com/pyenphase/pyenphase/commit/1f02a1fd18193bd931aa771926b23c0f10791560))
 
-- **pre-commit.ci**: Pre-commit autoupdate ([#276](https://github.com/pyenphase/pyenphase/pull/276),
-  [`76ba3a6`](https://github.com/pyenphase/pyenphase/commit/76ba3a6676632008a81b38185792f97048f6dbb1))
-
-updates: - [github.com/astral-sh/ruff-pre-commit: v0.11.8 →
-  v0.11.10](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.8...v0.11.10)
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Pre-commit autoupdate ([#284](https://github.com/pyenphase/pyenphase/pull/284),
+  [`9632e90`](https://github.com/pyenphase/pyenphase/commit/9632e9047614dbc0bea13f820ed23be1734d6cd1))
 
 - **pre-commit.ci**: Pre-commit autoupdate ([#278](https://github.com/pyenphase/pyenphase/pull/278),
   [`d0581b8`](https://github.com/pyenphase/pyenphase/commit/d0581b89821fa67aaf4509d0e9e46b86799bf5d9))
 
-updates: - [github.com/asottile/pyupgrade: v3.19.1 →
-  v3.20.0](https://github.com/asottile/pyupgrade/compare/v3.19.1...v3.20.0) -
-  [github.com/astral-sh/ruff-pre-commit: v0.11.10 →
-  v0.11.11](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.10...v0.11.11)
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate ([#284](https://github.com/pyenphase/pyenphase/pull/284),
-  [`9632e90`](https://github.com/pyenphase/pyenphase/commit/9632e9047614dbc0bea13f820ed23be1734d6cd1))
+- **pre-commit.ci**: Pre-commit autoupdate ([#276](https://github.com/pyenphase/pyenphase/pull/276),
+  [`76ba3a6`](https://github.com/pyenphase/pyenphase/commit/76ba3a6676632008a81b38185792f97048f6dbb1))
 
 ### Features
 
 - Migrate to aiohttp ([#277](https://github.com/pyenphase/pyenphase/pull/277),
   [`ebcc2c3`](https://github.com/pyenphase/pyenphase/commit/ebcc2c307bcbdabc01a46ae9d7964ff04cea0ea7))
-
-Migrate all HTTP client usage from httpx to aiohttp, including error handling, authentication,
-  firmware, updater modules, and SSL context handling.
-
-## Breaking changes
-
-- all (optional) clients are now of type `aiohttp.ClientSession | None = None`. See see [aiohttp
-  ClientSession](https://docs.aiohttp.org/en/stable/client_reference.html) ```py import aiohttp
-  import from pyenphase.ssl NO_VERIFY_SSL_CONTEXT connector =
-  aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT) client =
-  aiohttp.ClientSession(connector=connector) ``` - all (optional) timeouts are now of type: `float |
-  aiohttp.ClientTimeout | None = None`. See [aiohttp
-  ClientTimeout](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientTimeout)
-
-- All request responses are now of type: `aiohttp.ClientResponse`. See [aiohttp
-  ClientResponse](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse).
-
----------
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-Co-authored-by: Arie Catsman <120491684+catsmanac@users.noreply.github.com>
 
 
 ## v1.26.1 (2025-05-10)
@@ -114,69 +115,23 @@ Co-authored-by: Arie Catsman <120491684+catsmanac@users.noreply.github.com>
   ([#275](https://github.com/pyenphase/pyenphase/pull/275),
   [`a998bab`](https://github.com/pyenphase/pyenphase/commit/a998bab2fbc3251371b2833100d8cf16de098088))
 
-* fix: metered envoy without ct reports wrong production in fw 8.2.4264
-
 ### Chores
 
 - **deps**: Bump h11 from 0.14.0 to 0.16.0 ([#269](https://github.com/pyenphase/pyenphase/pull/269),
   [`a6c8fce`](https://github.com/pyenphase/pyenphase/commit/a6c8fce90afe016de64af7df954ae85a8158c419))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps**: Bump lxml from 5.3.2 to 5.4.0 ([#270](https://github.com/pyenphase/pyenphase/pull/270),
   [`ffced2f`](https://github.com/pyenphase/pyenphase/commit/ffced2f4466bc29d57fbdfeefb430218c6fdd650))
-
-Bumps [lxml](https://github.com/lxml/lxml) from 5.3.2 to 5.4.0. - [Release
-  notes](https://github.com/lxml/lxml/releases) -
-  [Changelog](https://github.com/lxml/lxml/blob/master/CHANGES.txt) -
-  [Commits](https://github.com/lxml/lxml/compare/lxml-5.3.2...lxml-5.4.0)
-
---- updated-dependencies: - dependency-name: lxml dependency-version: 5.4.0
-
-dependency-type: direct:production
-
-update-type: version-update:semver-minor ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 - **deps**: Bump orjson from 3.10.16 to 3.10.18
   ([#272](https://github.com/pyenphase/pyenphase/pull/272),
   [`4cee284`](https://github.com/pyenphase/pyenphase/commit/4cee2843989981b947825d33cf64b0f1291007e0))
 
-Bumps [orjson](https://github.com/ijl/orjson) from 3.10.16 to 3.10.18. - [Release
-  notes](https://github.com/ijl/orjson/releases) -
-  [Changelog](https://github.com/ijl/orjson/blob/master/CHANGELOG.md) -
-  [Commits](https://github.com/ijl/orjson/compare/3.10.16...3.10.18)
-
---- updated-dependencies: - dependency-name: orjson dependency-version: 3.10.18
-
-dependency-type: direct:production
-
-update-type: version-update:semver-patch ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate ([#271](https://github.com/pyenphase/pyenphase/pull/271),
-  [`b53cbae`](https://github.com/pyenphase/pyenphase/commit/b53cbaecbd995f978a37372a5f7ee590d153ce09))
-
-updates: - [github.com/astral-sh/ruff-pre-commit: v0.11.6 →
-  v0.11.7](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.6...v0.11.7)
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
 - **pre-commit.ci**: Pre-commit autoupdate ([#273](https://github.com/pyenphase/pyenphase/pull/273),
   [`03af646`](https://github.com/pyenphase/pyenphase/commit/03af6469eb0560bafc86e0711073ce6d0011b95c))
 
-updates: - [github.com/python-poetry/poetry: 2.1.2 →
-  2.1.3](https://github.com/python-poetry/poetry/compare/2.1.2...2.1.3) -
-  [github.com/astral-sh/ruff-pre-commit: v0.11.7 →
-  v0.11.8](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.7...v0.11.8)
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Pre-commit autoupdate ([#271](https://github.com/pyenphase/pyenphase/pull/271),
+  [`b53cbae`](https://github.com/pyenphase/pyenphase/commit/b53cbaecbd995f978a37372a5f7ee590d153ce09))
 
 
 ## v1.26.0 (2025-04-25)
@@ -186,70 +141,22 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
 - **deps**: Bump lxml from 5.3.1 to 5.3.2 ([#262](https://github.com/pyenphase/pyenphase/pull/262),
   [`eea42ef`](https://github.com/pyenphase/pyenphase/commit/eea42ef0700ca583728a650dfec6c96fbe18f74b))
 
-Bumps [lxml](https://github.com/lxml/lxml) from 5.3.1 to 5.3.2. - [Release
-  notes](https://github.com/lxml/lxml/releases) -
-  [Changelog](https://github.com/lxml/lxml/blob/master/CHANGES.txt) -
-  [Commits](https://github.com/lxml/lxml/compare/lxml-5.3.1...lxml-5.3.2)
-
---- updated-dependencies: - dependency-name: lxml dependency-version: 5.3.2
-
-dependency-type: direct:production
-
-update-type: version-update:semver-patch ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps**: Bump tenacity from 9.0.0 to 9.1.2
   ([#263](https://github.com/pyenphase/pyenphase/pull/263),
   [`7a3e38b`](https://github.com/pyenphase/pyenphase/commit/7a3e38b0fdb0d46a32f4b43e1efc86c07383af80))
-
-Bumps [tenacity](https://github.com/jd/tenacity) from 9.0.0 to 9.1.2. - [Release
-  notes](https://github.com/jd/tenacity/releases) -
-  [Commits](https://github.com/jd/tenacity/compare/9.0.0...9.1.2)
-
---- updated-dependencies: - dependency-name: tenacity dependency-version: 9.1.2
-
-dependency-type: direct:production
-
-update-type: version-update:semver-minor ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 - **deps-dev**: Bump pytest-cov from 6.0.0 to 6.1.1
   ([#264](https://github.com/pyenphase/pyenphase/pull/264),
   [`aa99971`](https://github.com/pyenphase/pyenphase/commit/aa99971016ca1808a1a90f704c4771ec754d2e97))
 
-Bumps [pytest-cov](https://github.com/pytest-dev/pytest-cov) from 6.0.0 to 6.1.1. -
-  [Changelog](https://github.com/pytest-dev/pytest-cov/blob/master/CHANGELOG.rst) -
-  [Commits](https://github.com/pytest-dev/pytest-cov/compare/v6.0.0...v6.1.1)
-
---- updated-dependencies: - dependency-name: pytest-cov dependency-version: 6.1.1
-
-dependency-type: direct:development
-
-update-type: version-update:semver-minor ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate ([#265](https://github.com/pyenphase/pyenphase/pull/265),
-  [`5f5b120`](https://github.com/pyenphase/pyenphase/commit/5f5b12053df3c4165c2e6df130afafeeeeb703b1))
+- **pre-commit.ci**: Pre-commit autoupdate ([#267](https://github.com/pyenphase/pyenphase/pull/267),
+  [`e3f555c`](https://github.com/pyenphase/pyenphase/commit/e3f555c246561f35c1befee1a25c880485803829))
 
 - **pre-commit.ci**: Pre-commit autoupdate ([#266](https://github.com/pyenphase/pyenphase/pull/266),
   [`ff371d0`](https://github.com/pyenphase/pyenphase/commit/ff371d0b24292d73605b41e437a74c3d31efde0d))
 
-- **pre-commit.ci**: Pre-commit autoupdate ([#267](https://github.com/pyenphase/pyenphase/pull/267),
-  [`e3f555c`](https://github.com/pyenphase/pyenphase/commit/e3f555c246561f35c1befee1a25c880485803829))
-
-updates: - [github.com/astral-sh/ruff-pre-commit: v0.11.5 →
-  v0.11.6](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.5...v0.11.6)
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Pre-commit autoupdate ([#265](https://github.com/pyenphase/pyenphase/pull/265),
+  [`5f5b120`](https://github.com/pyenphase/pyenphase/commit/5f5b12053df3c4165c2e6df130afafeeeeb703b1))
 
 ### Features
 
@@ -257,21 +164,18 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   ([#268](https://github.com/pyenphase/pyenphase/pull/268),
   [`70ff7ac`](https://github.com/pyenphase/pyenphase/commit/70ff7ac6e1a01b6ea62e1ea6df2638cddd4215e1))
 
-* feat: add method to return envoy active interface settings
-
----------
-
-Co-authored-by: coderabbitai[bot] <136622811+coderabbitai[bot]@users.noreply.github.com>
-
 ### Testing
 
 - De-duplicate fixture loading by using single fixture load function
   ([#261](https://github.com/pyenphase/pyenphase/pull/261),
   [`8ec3fba`](https://github.com/pyenphase/pyenphase/commit/8ec3fba4c1769bd1df702b5db182ec18cb0a6d2c))
 
-* test: de-duplicate fixture loading by using single function
+- De-duplicate fixture loading by using single function
+  ([#261](https://github.com/pyenphase/pyenphase/pull/261),
+  [`8ec3fba`](https://github.com/pyenphase/pyenphase/commit/8ec3fba4c1769bd1df702b5db182ec18cb0a6d2c))
 
-* test: run blocking calls in executor
+- Run blocking calls in executor ([#261](https://github.com/pyenphase/pyenphase/pull/261),
+  [`8ec3fba`](https://github.com/pyenphase/pyenphase/commit/8ec3fba4c1769bd1df702b5db182ec18cb0a6d2c))
 
 
 ## v1.25.5 (2025-04-02)
@@ -282,10 +186,18 @@ Co-authored-by: coderabbitai[bot] <136622811+coderabbitai[bot]@users.noreply.git
   ([#259](https://github.com/pyenphase/pyenphase/pull/259),
   [`da11b5b`](https://github.com/pyenphase/pyenphase/commit/da11b5bd84463188e6f98eb823a1a2f8420fde60))
 
-* fix: v4 metered without cons CT crashes with KeyError: 'measurementType' * Ignore meter if
-  activeCount is zero * Make meters statusFlags optional
-
 ### Chores
+
+- Lock due to https://github.com/dependabot/dependabot-core/pull/11275
+  ([#236](https://github.com/pyenphase/pyenphase/pull/236),
+  [`dffeee0`](https://github.com/pyenphase/pyenphase/commit/dffeee0becae187b154e8c63b56ccfdd6b6abaae))
+
+- Rebuild poetry.lock ([#245](https://github.com/pyenphase/pyenphase/pull/245),
+  [`351036f`](https://github.com/pyenphase/pyenphase/commit/351036fa541075073c5bec8c30cfdf1dfc02a613))
+
+- Replace tenacity .retry.statistics by .statistics
+  ([#236](https://github.com/pyenphase/pyenphase/pull/236),
+  [`dffeee0`](https://github.com/pyenphase/pyenphase/commit/dffeee0becae187b154e8c63b56ccfdd6b6abaae))
 
 - Restore some legacy poetry keys to fix dependabot
   ([#232](https://github.com/pyenphase/pyenphase/pull/232),
@@ -301,6 +213,9 @@ Co-authored-by: coderabbitai[bot] <136622811+coderabbitai[bot]@users.noreply.git
 - Update dev status to production/stable ([#243](https://github.com/pyenphase/pyenphase/pull/243),
   [`d97f24c`](https://github.com/pyenphase/pyenphase/commit/d97f24cb14451ea75d16e43e796e0ea968c38ff7))
 
+- Update poetry.lock ([#248](https://github.com/pyenphase/pyenphase/pull/248),
+  [`fb8ad43`](https://github.com/pyenphase/pyenphase/commit/fb8ad430a676ce43d22e9210d5e18e06eab3606d))
+
 - **ci**: Bump the github-actions group with 2 updates
   ([#247](https://github.com/pyenphase/pyenphase/pull/247),
   [`31475ff`](https://github.com/pyenphase/pyenphase/commit/31475ffd7772b5bab3915c29aa2f52e789f8aec1))
@@ -313,93 +228,25 @@ Co-authored-by: coderabbitai[bot] <136622811+coderabbitai[bot]@users.noreply.git
   ([#236](https://github.com/pyenphase/pyenphase/pull/236),
   [`dffeee0`](https://github.com/pyenphase/pyenphase/commit/dffeee0becae187b154e8c63b56ccfdd6b6abaae))
 
-* chore(deps): bump tenacity from 8.2.3 to 9.0.0
-
-Bumps [tenacity](https://github.com/jd/tenacity) from 8.2.3 to 9.0.0. - [Release
-  notes](https://github.com/jd/tenacity/releases) -
-  [Commits](https://github.com/jd/tenacity/compare/8.2.3...9.0.0)
-
---- updated-dependencies: - dependency-name: tenacity dependency-type: direct:production
-
-update-type: version-update:semver-major ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-* chore: lock due to https://github.com/dependabot/dependabot-core/pull/11275
-
-* chore: replace tenacity .retry.statistics by .statistics
-
----------
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
-Co-authored-by: Arie Catsman <catsmanac@outlook.com>
-
 - **deps-dev**: Bump jinja2 from 3.1.5 to 3.1.6
   ([#251](https://github.com/pyenphase/pyenphase/pull/251),
   [`f0b50de`](https://github.com/pyenphase/pyenphase/commit/f0b50dea3f98374821d0d01055d95c3bcba0ff65))
-
-Bumps [jinja2](https://github.com/pallets/jinja) from 3.1.5 to 3.1.6. - [Release
-  notes](https://github.com/pallets/jinja/releases) -
-  [Changelog](https://github.com/pallets/jinja/blob/main/CHANGES.rst) -
-  [Commits](https://github.com/pallets/jinja/compare/3.1.5...3.1.6)
-
---- updated-dependencies: - dependency-name: jinja2 dependency-type: indirect ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 - **deps-dev**: Bump myst-parser from 4.0.0 to 4.0.1
   ([#240](https://github.com/pyenphase/pyenphase/pull/240),
   [`5423632`](https://github.com/pyenphase/pyenphase/commit/54236321c624e980a537fb6b7af01e5d1a14fc45))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
 - **deps-dev**: Bump pytest from 7.4.4 to 8.3.4
   ([#235](https://github.com/pyenphase/pyenphase/pull/235),
   [`199bd4a`](https://github.com/pyenphase/pyenphase/commit/199bd4a9cbe3c96a6abbee8a2c0b2dc4371e3a26))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 - **deps-dev**: Bump pytest from 8.3.4 to 8.3.5
   ([#248](https://github.com/pyenphase/pyenphase/pull/248),
   [`fb8ad43`](https://github.com/pyenphase/pyenphase/commit/fb8ad430a676ce43d22e9210d5e18e06eab3606d))
 
-* chore(deps-dev): bump pytest from 8.3.4 to 8.3.5
-
-Bumps [pytest](https://github.com/pytest-dev/pytest) from 8.3.4 to 8.3.5. - [Release
-  notes](https://github.com/pytest-dev/pytest/releases) -
-  [Changelog](https://github.com/pytest-dev/pytest/blob/main/CHANGELOG.rst) -
-  [Commits](https://github.com/pytest-dev/pytest/compare/8.3.4...8.3.5)
-
---- updated-dependencies: - dependency-name: pytest dependency-type: direct:development
-
-update-type: version-update:semver-patch ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-* chore: update poetry.lock
-
----------
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: Arie Catsman <catsmanac@outlook.com>
-
 - **deps-dev**: Bump pytest-asyncio from 0.21.2 to 0.25.3
   ([#239](https://github.com/pyenphase/pyenphase/pull/239),
   [`24ab1c0`](https://github.com/pyenphase/pyenphase/commit/24ab1c0c36a1b5fcdcce7c4d948f7bed7d34445e))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 - **deps-dev**: Bump pytest-asyncio from 0.25.3 to 0.26.0
   ([#257](https://github.com/pyenphase/pyenphase/pull/257),
@@ -409,154 +256,52 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#234](https://github.com/pyenphase/pyenphase/pull/234),
   [`6310f28`](https://github.com/pyenphase/pyenphase/commit/6310f2881e5b7250b69885a2344bbdf6d71f7933))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
 - **deps-dev**: Bump sphinx-autodoc-typehints from 1.25.3 to 3.0.1
   ([#233](https://github.com/pyenphase/pyenphase/pull/233),
   [`29ca29d`](https://github.com/pyenphase/pyenphase/commit/29ca29dd8e97b59a427d7fe017ea5bc34411c238))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 - **deps-dev**: Bump sphinx-rtd-theme from 2.0.0 to 3.0.2
   ([#237](https://github.com/pyenphase/pyenphase/pull/237),
   [`7d4498b`](https://github.com/pyenphase/pyenphase/commit/7d4498b2327f1e39a524668f578c923636d2a783))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
 - **deps-dev**: Bump syrupy from 4.8.1 to 4.8.2
   ([#245](https://github.com/pyenphase/pyenphase/pull/245),
   [`351036f`](https://github.com/pyenphase/pyenphase/commit/351036fa541075073c5bec8c30cfdf1dfc02a613))
-
-* chore(deps-dev): bump syrupy from 4.8.1 to 4.8.2
-
-Bumps [syrupy](https://github.com/syrupy-project/syrupy) from 4.8.1 to 4.8.2. - [Release
-  notes](https://github.com/syrupy-project/syrupy/releases) -
-  [Changelog](https://github.com/syrupy-project/syrupy/blob/main/CHANGELOG.md) -
-  [Commits](https://github.com/syrupy-project/syrupy/compare/v4.8.1...v4.8.2)
-
---- updated-dependencies: - dependency-name: syrupy dependency-type: direct:development
-
-update-type: version-update:semver-patch ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-* chore: rebuild poetry.lock
-
----------
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: Arie Catsman <catsmanac@outlook.com>
 
 - **deps-dev**: Bump syrupy from 4.8.2 to 4.9.0
   ([#250](https://github.com/pyenphase/pyenphase/pull/250),
   [`107e0c6`](https://github.com/pyenphase/pyenphase/commit/107e0c6e9829dafd0dca90ea754c4a408d0e8b4e))
 
-Bumps [syrupy](https://github.com/syrupy-project/syrupy) from 4.8.2 to 4.9.0. - [Release
-  notes](https://github.com/syrupy-project/syrupy/releases) -
-  [Changelog](https://github.com/syrupy-project/syrupy/blob/main/CHANGELOG.md) -
-  [Commits](https://github.com/syrupy-project/syrupy/compare/v4.8.2...v4.9.0)
-
---- updated-dependencies: - dependency-name: syrupy dependency-type: direct:development
-
-update-type: version-update:semver-minor ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump syrupy from 4.9.0 to 4.9.1
   ([#254](https://github.com/pyenphase/pyenphase/pull/254),
   [`7f964d2`](https://github.com/pyenphase/pyenphase/commit/7f964d2e6dafed0dc62cf38a542c61e11c8fe2c6))
 
-Bumps [syrupy](https://github.com/syrupy-project/syrupy) from 4.9.0 to 4.9.1. - [Release
-  notes](https://github.com/syrupy-project/syrupy/releases) -
-  [Changelog](https://github.com/syrupy-project/syrupy/blob/main/CHANGELOG.md) -
-  [Commits](https://github.com/syrupy-project/syrupy/compare/v4.9.0...v4.9.1)
-
---- updated-dependencies: - dependency-name: syrupy dependency-type: direct:development
-
-update-type: version-update:semver-patch ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate ([#241](https://github.com/pyenphase/pyenphase/pull/241),
-  [`df71b5c`](https://github.com/pyenphase/pyenphase/commit/df71b5c3de495acaab0d484ff732b9044279b4f5))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate ([#246](https://github.com/pyenphase/pyenphase/pull/246),
-  [`9878d8f`](https://github.com/pyenphase/pyenphase/commit/9878d8fb0e4946bf1a2566fd72c6100b4c300464))
-
-updates: - [github.com/astral-sh/ruff-pre-commit: v0.9.6 →
-  v0.9.7](https://github.com/astral-sh/ruff-pre-commit/compare/v0.9.6...v0.9.7)
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate ([#249](https://github.com/pyenphase/pyenphase/pull/249),
-  [`78547ef`](https://github.com/pyenphase/pyenphase/commit/78547efabf80242680498c801823ee8f661c535a))
-
-updates: - [github.com/astral-sh/ruff-pre-commit: v0.9.7 →
-  v0.9.9](https://github.com/astral-sh/ruff-pre-commit/compare/v0.9.7...v0.9.9)
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate ([#252](https://github.com/pyenphase/pyenphase/pull/252),
-  [`ea01214`](https://github.com/pyenphase/pyenphase/commit/ea012147bb5b18efc6f3f6d831708af23f5cc438))
-
-- **pre-commit.ci**: Pre-commit autoupdate ([#253](https://github.com/pyenphase/pyenphase/pull/253),
-  [`3601946`](https://github.com/pyenphase/pyenphase/commit/3601946bed60eea298f215735fc0695d15af55d2))
-
-* chore(pre-commit.ci): pre-commit autoupdate
-
-updates: - [github.com/astral-sh/ruff-pre-commit: v0.9.10 →
-  v0.11.0](https://github.com/astral-sh/ruff-pre-commit/compare/v0.9.10...v0.11.0)
-
-* refactor: remove unneeded int cast based on ruf046
-
----------
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-Co-authored-by: Arie Catsman <catsmanac@outlook.com>
+- **pre-commit.ci**: Pre-commit autoupdate ([#258](https://github.com/pyenphase/pyenphase/pull/258),
+  [`153787d`](https://github.com/pyenphase/pyenphase/commit/153787d76070f30504dd41847b2863ca2471535d))
 
 - **pre-commit.ci**: Pre-commit autoupdate ([#255](https://github.com/pyenphase/pyenphase/pull/255),
   [`20772e5`](https://github.com/pyenphase/pyenphase/commit/20772e5039e24983fbc2c030bd881dc044b925e5))
 
-updates: - [github.com/astral-sh/ruff-pre-commit: v0.11.0 →
-  v0.11.2](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.0...v0.11.2)
+- **pre-commit.ci**: Pre-commit autoupdate ([#253](https://github.com/pyenphase/pyenphase/pull/253),
+  [`3601946`](https://github.com/pyenphase/pyenphase/commit/3601946bed60eea298f215735fc0695d15af55d2))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Pre-commit autoupdate ([#252](https://github.com/pyenphase/pyenphase/pull/252),
+  [`ea01214`](https://github.com/pyenphase/pyenphase/commit/ea012147bb5b18efc6f3f6d831708af23f5cc438))
 
-- **pre-commit.ci**: Pre-commit autoupdate ([#258](https://github.com/pyenphase/pyenphase/pull/258),
-  [`153787d`](https://github.com/pyenphase/pyenphase/commit/153787d76070f30504dd41847b2863ca2471535d))
+- **pre-commit.ci**: Pre-commit autoupdate ([#249](https://github.com/pyenphase/pyenphase/pull/249),
+  [`78547ef`](https://github.com/pyenphase/pyenphase/commit/78547efabf80242680498c801823ee8f661c535a))
 
-updates: - [github.com/python-poetry/poetry: 2.1.1 →
-  2.1.2](https://github.com/python-poetry/poetry/compare/2.1.1...2.1.2)
+- **pre-commit.ci**: Pre-commit autoupdate ([#246](https://github.com/pyenphase/pyenphase/pull/246),
+  [`9878d8f`](https://github.com/pyenphase/pyenphase/commit/9878d8fb0e4946bf1a2566fd72c6100b4c300464))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Pre-commit autoupdate ([#241](https://github.com/pyenphase/pyenphase/pull/241),
+  [`df71b5c`](https://github.com/pyenphase/pyenphase/commit/df71b5c3de495acaab0d484ff732b9044279b4f5))
 
 ### Documentation
 
 - Reorganize and update usage documentation
   ([#244](https://github.com/pyenphase/pyenphase/pull/244),
   [`37d107b`](https://github.com/pyenphase/pyenphase/commit/37d107be3e9f87d02fe45d6abd36b4f8f25004fb))
-
-* docs: reorganize and update usage documentation
-
----------
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 - Replace black badge by ruff badge in readme
   ([#242](https://github.com/pyenphase/pyenphase/pull/242),
@@ -565,6 +310,11 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 - Update docstring examples to reflect ruff formatting rules.
   ([#238](https://github.com/pyenphase/pyenphase/pull/238),
   [`ede8786`](https://github.com/pyenphase/pyenphase/commit/ede87866a41cd55403c12031058cef28fc0c4852))
+
+### Refactoring
+
+- Remove unneeded int cast based on ruf046 ([#253](https://github.com/pyenphase/pyenphase/pull/253),
+  [`3601946`](https://github.com/pyenphase/pyenphase/commit/3601946bed60eea298f215735fc0695d15af55d2))
 
 
 ## v1.25.4 (2025-02-11)
@@ -627,15 +377,9 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#218](https://github.com/pyenphase/pyenphase/pull/218),
   [`c89bfbe`](https://github.com/pyenphase/pyenphase/commit/c89bfbed1a728d930f4db98977dad4e3c59909ff))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
 - **ci**: Bump the github-actions group with 7 updates
   ([#206](https://github.com/pyenphase/pyenphase/pull/206),
   [`61e31b4`](https://github.com/pyenphase/pyenphase/commit/61e31b48da41fb606ee8135443b308fe0a472141))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 
 ## v1.25.3 (2025-02-11)
@@ -666,31 +410,21 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#208](https://github.com/pyenphase/pyenphase/pull/208),
   [`6488aa6`](https://github.com/pyenphase/pyenphase/commit/6488aa67d4d2c53783894ef31ba90135c0075b52))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump pytest-cov from 5.0.0 to 6.0.0
   ([#210](https://github.com/pyenphase/pyenphase/pull/210),
   [`c8924a4`](https://github.com/pyenphase/pyenphase/commit/c8924a434311c9051efdc4e24ccab21347384219))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 - **deps-dev**: Bump respx from 0.20.2 to 0.22.0
   ([#209](https://github.com/pyenphase/pyenphase/pull/209),
   [`607cbdf`](https://github.com/pyenphase/pyenphase/commit/607cbdf56db34b99f16ba005880aa4a617be1ceb))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump sphinx-autodoc-typehints from 1.25.3 to 3.0.1
   ([#207](https://github.com/pyenphase/pyenphase/pull/207),
   [`bbf89ad`](https://github.com/pyenphase/pyenphase/commit/bbf89adf4c9d9f8b3081299dfc59d72c4affe19d))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump syrupy from 4.6.1 to 4.8.1
   ([#211](https://github.com/pyenphase/pyenphase/pull/211),
   [`1ac802e`](https://github.com/pyenphase/pyenphase/commit/1ac802e6a5763d579fca1a731a969d461778718c))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 
 ## v1.25.1 (2025-02-11)
@@ -701,15 +435,10 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
   ([#203](https://github.com/pyenphase/pyenphase/pull/203),
   [`770cab0`](https://github.com/pyenphase/pyenphase/commit/770cab092890d05b8f32fc9b180be6f58081a013))
 
-* bug: fix indexerror crash for fw 8.3.5027 that sends data for not present CT
+### Chores
 
-* chore(pre-commit.ci): auto fixes
-
----------
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
+- **pre-commit.ci**: Auto fixes ([#203](https://github.com/pyenphase/pyenphase/pull/203),
+  [`770cab0`](https://github.com/pyenphase/pyenphase/commit/770cab092890d05b8f32fc9b180be6f58081a013))
 
 
 ## v1.25.0 (2025-02-11)
@@ -729,37 +458,14 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#200](https://github.com/pyenphase/pyenphase/pull/200),
   [`ed9b448`](https://github.com/pyenphase/pyenphase/commit/ed9b448d3937fb922ecaccb2ee7dc135113f216b))
 
-Bumps [jinja2](https://github.com/pallets/jinja) from 3.1.4 to 3.1.5. - [Release
-  notes](https://github.com/pallets/jinja/releases) -
-  [Changelog](https://github.com/pallets/jinja/blob/main/CHANGES.rst) -
-  [Commits](https://github.com/pallets/jinja/compare/3.1.4...3.1.5)
-
---- updated-dependencies: - dependency-name: jinja2 dependency-type: indirect ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate ([#201](https://github.com/pyenphase/pyenphase/pull/201),
-  [`5fbb475`](https://github.com/pyenphase/pyenphase/commit/5fbb475b9c3770cc132d1ad36472dbd5842561bd))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Pre-commit autoupdate ([#204](https://github.com/pyenphase/pyenphase/pull/204),
+  [`2e5920d`](https://github.com/pyenphase/pyenphase/commit/2e5920d18569868cd6e1ede48678158465b5bd08))
 
 - **pre-commit.ci**: Pre-commit autoupdate ([#202](https://github.com/pyenphase/pyenphase/pull/202),
   [`75b0ef0`](https://github.com/pyenphase/pyenphase/commit/75b0ef075ed29793471110de3e3fd0de9fe6d450))
 
-updates: - [github.com/PyCQA/isort: 5.13.2 →
-  6.0.0](https://github.com/PyCQA/isort/compare/5.13.2...6.0.0) - [github.com/psf/black: 24.10.0 →
-  25.1.0](https://github.com/psf/black/compare/24.10.0...25.1.0) -
-  [github.com/codespell-project/codespell: v2.4.0 →
-  v2.4.1](https://github.com/codespell-project/codespell/compare/v2.4.0...v2.4.1)
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate ([#204](https://github.com/pyenphase/pyenphase/pull/204),
-  [`2e5920d`](https://github.com/pyenphase/pyenphase/commit/2e5920d18569868cd6e1ede48678158465b5bd08))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Pre-commit autoupdate ([#201](https://github.com/pyenphase/pyenphase/pull/201),
+  [`5fbb475`](https://github.com/pyenphase/pyenphase/commit/5fbb475b9c3770cc132d1ad36472dbd5842561bd))
 
 ### Features
 
@@ -767,21 +473,19 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   ([#180](https://github.com/pyenphase/pyenphase/pull/180),
   [`3708a54`](https://github.com/pyenphase/pyenphase/commit/3708a543bada7827fc16c52f9b747c0808061260))
 
-* feat: add token_type property to identify user or installer type token.
-
 - **tariff**: Add new firmware 8.2.42xx Storage settings opt_schedules property to
   EnvoyStorageSettings ([#179](https://github.com/pyenphase/pyenphase/pull/179),
   [`7b3d559`](https://github.com/pyenphase/pyenphase/commit/7b3d559ab56582519a6ccd34ce446f0f4014656e))
 
-* feat(tariff): Add opt_schedules to EnvoyStorageSettings
+- **tariff**: Add opt_schedules to EnvoyStorageSettings
+  ([#179](https://github.com/pyenphase/pyenphase/pull/179),
+  [`7b3d559`](https://github.com/pyenphase/pyenphase/commit/7b3d559ab56582519a6ccd34ce446f0f4014656e))
 
 ### Refactoring
 
 - Add exception catch for envoy._json_request() indirectly used by HA actions.
   ([#194](https://github.com/pyenphase/pyenphase/pull/194),
   [`e2224e2`](https://github.com/pyenphase/pyenphase/commit/e2224e22d8870210c8e1614b7114e16c9426c535))
-
-* refactor: add exception catch for envoy._json_request() indirectly used by HA actions.
 
 
 ## v1.23.1 (2025-01-21)
@@ -792,94 +496,78 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   not a valid EnvoyStorageMode. ([#199](https://github.com/pyenphase/pyenphase/pull/199),
   [`d06680a`](https://github.com/pyenphase/pyenphase/commit/d06680adee686929aa648d294358e0c9a951f1be))
 
-fix: tariff storage_settings mode: None causes exception "None is not a valid EnvoyStorageMode", set
-  EnvoyStorageMode to None.
+- Tariff storage_settings mode: None causes exception "None is not a valid EnvoyStorageMode", set
+  EnvoyStorageMode to None. ([#199](https://github.com/pyenphase/pyenphase/pull/199),
+  [`d06680a`](https://github.com/pyenphase/pyenphase/commit/d06680adee686929aa648d294358e0c9a951f1be))
 
 ### Chores
 
-- **pre-commit.ci**: Pre-commit autoupdate ([#193](https://github.com/pyenphase/pyenphase/pull/193),
-  [`60d9fbf`](https://github.com/pyenphase/pyenphase/commit/60d9fbfe64ebf346d3802ea903d2c3446580d008))
+- Fix lint text issues ([#181](https://github.com/pyenphase/pyenphase/pull/181),
+  [`a6bbc25`](https://github.com/pyenphase/pyenphase/commit/a6bbc256eedf2b8edbcaae7ed0549cb99957fc11))
 
-updates: - [github.com/PyCQA/bandit: 1.7.10 →
-  1.8.0](https://github.com/PyCQA/bandit/compare/1.7.10...1.8.0)
+- **pre-commit.ci**: Auto fixes ([#190](https://github.com/pyenphase/pyenphase/pull/190),
+  [`58b2df1`](https://github.com/pyenphase/pyenphase/commit/58b2df1faa077fcc834377b4a03caf619156c2d2))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Auto fixes ([#186](https://github.com/pyenphase/pyenphase/pull/186),
+  [`76de306`](https://github.com/pyenphase/pyenphase/commit/76de306906e0a7252def6c133a16c88d71913276))
 
-- **pre-commit.ci**: Pre-commit autoupdate ([#196](https://github.com/pyenphase/pyenphase/pull/196),
-  [`ed7c44a`](https://github.com/pyenphase/pyenphase/commit/ed7c44aa486ecd14e129cdd030b6a38684ab3514))
+- **pre-commit.ci**: Auto fixes ([#187](https://github.com/pyenphase/pyenphase/pull/187),
+  [`ecc88c2`](https://github.com/pyenphase/pyenphase/commit/ecc88c285147ac55b2c370a6b28376ca68d4532d))
 
-updates: - [github.com/asottile/pyupgrade: v3.19.0 →
-  v3.19.1](https://github.com/asottile/pyupgrade/compare/v3.19.0...v3.19.1) -
-  [github.com/pre-commit/mirrors-mypy: v1.13.0 →
-  v1.14.0](https://github.com/pre-commit/mirrors-mypy/compare/v1.13.0...v1.14.0)
+- **pre-commit.ci**: Auto fixes ([#184](https://github.com/pyenphase/pyenphase/pull/184),
+  [`b869d0d`](https://github.com/pyenphase/pyenphase/commit/b869d0d9bcb9341c83d3848879efcac5ff5d597f))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Auto fixes ([#181](https://github.com/pyenphase/pyenphase/pull/181),
+  [`a6bbc25`](https://github.com/pyenphase/pyenphase/commit/a6bbc256eedf2b8edbcaae7ed0549cb99957fc11))
 
 - **pre-commit.ci**: Pre-commit autoupdate ([#198](https://github.com/pyenphase/pyenphase/pull/198),
   [`a4bc451`](https://github.com/pyenphase/pyenphase/commit/a4bc451f254d9fc7a5000d5f0e7b2d227950483e))
 
-updates: - [github.com/python-poetry/poetry: 1.8.0 →
-  2.0.1](https://github.com/python-poetry/poetry/compare/1.8.0...2.0.1) -
-  [github.com/pre-commit/mirrors-mypy: v1.14.0 →
-  v1.14.1](https://github.com/pre-commit/mirrors-mypy/compare/v1.14.0...v1.14.1) -
-  [github.com/PyCQA/bandit: 1.8.0 → 1.8.2](https://github.com/PyCQA/bandit/compare/1.8.0...1.8.2)
+- **pre-commit.ci**: Pre-commit autoupdate ([#196](https://github.com/pyenphase/pyenphase/pull/196),
+  [`ed7c44a`](https://github.com/pyenphase/pyenphase/commit/ed7c44aa486ecd14e129cdd030b6a38684ab3514))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Pre-commit autoupdate ([#193](https://github.com/pyenphase/pyenphase/pull/193),
+  [`60d9fbf`](https://github.com/pyenphase/pyenphase/commit/60d9fbfe64ebf346d3802ea903d2c3446580d008))
 
 ### Documentation
 
 - Docs gen 2, refactor authentication doc ([#181](https://github.com/pyenphase/pyenphase/pull/181),
   [`a6bbc25`](https://github.com/pyenphase/pyenphase/commit/a6bbc256eedf2b8edbcaae7ed0549cb99957fc11))
 
-* docs: docs gen 2, refactor authentication doc
+- Fix codespell lint issues ([#187](https://github.com/pyenphase/pyenphase/pull/187),
+  [`ecc88c2`](https://github.com/pyenphase/pyenphase/commit/ecc88c285147ac55b2c370a6b28376ca68d4532d))
 
-* chore(pre-commit.ci): auto fixes
+- Fix issue with multiple docstrings in ssl module.
+  ([#186](https://github.com/pyenphase/pyenphase/pull/186),
+  [`76de306`](https://github.com/pyenphase/pyenphase/commit/76de306906e0a7252def6c133a16c88d71913276))
 
-* chore: fix lint text issues
+- Fix more textlint issues ([#184](https://github.com/pyenphase/pyenphase/pull/184),
+  [`b869d0d`](https://github.com/pyenphase/pyenphase/commit/b869d0d9bcb9341c83d3848879efcac5ff5d597f))
 
----------
+- Fix multiple docstrings in const.py ([#190](https://github.com/pyenphase/pyenphase/pull/190),
+  [`58b2df1`](https://github.com/pyenphase/pyenphase/commit/58b2df1faa077fcc834377b4a03caf619156c2d2))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- Fix textlint issues ([#184](https://github.com/pyenphase/pyenphase/pull/184),
+  [`b869d0d`](https://github.com/pyenphase/pyenphase/commit/b869d0d9bcb9341c83d3848879efcac5ff5d597f))
 
 - Refactor const.py to use docstring for documentation.
   ([#190](https://github.com/pyenphase/pyenphase/pull/190),
   [`58b2df1`](https://github.com/pyenphase/pyenphase/commit/58b2df1faa077fcc834377b4a03caf619156c2d2))
 
-* docs: refactor const.py to use docstring for documentation.
-
-* docs: fix multiple docstrings in const.py
-
-* chore(pre-commit.ci): auto fixes
-
----------
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
 - Refactor envoy class documentation using docstrings
   ([#184](https://github.com/pyenphase/pyenphase/pull/184),
   [`b869d0d`](https://github.com/pyenphase/pyenphase/commit/b869d0d9bcb9341c83d3848879efcac5ff5d597f))
-
-* docs: refactor envoy class documentation using docstrings
-
-* chore(pre-commit.ci): auto fixes
-
-* docs: fix textlint issues
-
-* docs: fix more textlint issues
-
----------
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
 
 - Refactor EnvoyData class documentation using docstrings
   ([#189](https://github.com/pyenphase/pyenphase/pull/189),
   [`6048a0f`](https://github.com/pyenphase/pyenphase/commit/6048a0fda2ef9eae1404962db13fcf300291530e))
 
+- Refactor firmware class documentation ([#185](https://github.com/pyenphase/pyenphase/pull/185),
+  [`ab7bae4`](https://github.com/pyenphase/pyenphase/commit/ab7bae40d135207f34ba762a14b35c0fa24acb08))
+
 - Refactor firmware class documentation using docstrings
   ([#185](https://github.com/pyenphase/pyenphase/pull/185),
   [`ab7bae4`](https://github.com/pyenphase/pyenphase/commit/ab7bae40d135207f34ba762a14b35c0fa24acb08))
-
-docs: refactor firmware class documentation
 
 - Refactor json helper documentation using docstrings
   ([#188](https://github.com/pyenphase/pyenphase/pull/188),
@@ -889,41 +577,20 @@ docs: refactor firmware class documentation
   ([#186](https://github.com/pyenphase/pyenphase/pull/186),
   [`76de306`](https://github.com/pyenphase/pyenphase/commit/76de306906e0a7252def6c133a16c88d71913276))
 
-* docs: refactor ssl helper documentation using docstring
-
-* chore(pre-commit.ci): auto fixes
-
-* docs: fix issue with multiple docstrings in ssl module.
-
----------
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
 - Update guidelines to documentation for using docstring
   ([#187](https://github.com/pyenphase/pyenphase/pull/187),
   [`ecc88c2`](https://github.com/pyenphase/pyenphase/commit/ecc88c285147ac55b2c370a6b28376ca68d4532d))
-
-* docs: update guidelines to documentation for using docstring
-
-* chore(pre-commit.ci): auto fixes
-
-* docs: fix codespell lint issues
-
----------
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
 
 
 ## v1.23.0 (2024-11-21)
 
 ### Chores
 
+- **pre-commit.ci**: Auto fixes ([#182](https://github.com/pyenphase/pyenphase/pull/182),
+  [`fa24372`](https://github.com/pyenphase/pyenphase/commit/fa2437208e76d6c1f90a01b55c98fdd1ca3cb450))
+
 - **pre-commit.ci**: Pre-commit autoupdate ([#176](https://github.com/pyenphase/pyenphase/pull/176),
   [`fc76ed5`](https://github.com/pyenphase/pyenphase/commit/fc76ed5a43b76b4506b99423938bfbef49ad3a5d))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-Co-authored-by: Joostlek <joostlek@outlook.com>
 
 ### Documentation
 
@@ -931,33 +598,36 @@ Co-authored-by: Joostlek <joostlek@outlook.com>
   ([#182](https://github.com/pyenphase/pyenphase/pull/182),
   [`fa24372`](https://github.com/pyenphase/pyenphase/commit/fa2437208e76d6c1f90a01b55c98fdd1ca3cb450))
 
-* docs-2.1-license
-
-* chore(pre-commit.ci): auto fixes
-
----------
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
 - Minor updates to usage example. ([#183](https://github.com/pyenphase/pyenphase/pull/183),
   [`b287005`](https://github.com/pyenphase/pyenphase/commit/b28700558b53ebfaeb7d21e7cdb68415c9a78f1a))
 
 ### Features
 
+- Add ACB model documentation and some pre-commit cleanup
+  ([#191](https://github.com/pyenphase/pyenphase/pull/191),
+  [`1caeff2`](https://github.com/pyenphase/pyenphase/commit/1caeff2f49397e6c2dabf2ff99cb7a8ccc685a50))
+
+- Add ACB updaters ([#191](https://github.com/pyenphase/pyenphase/pull/191),
+  [`1caeff2`](https://github.com/pyenphase/pyenphase/commit/1caeff2f49397e6c2dabf2ff99cb7a8ccc685a50))
+
+- Add model for ACB batteries ([#191](https://github.com/pyenphase/pyenphase/pull/191),
+  [`1caeff2`](https://github.com/pyenphase/pyenphase/commit/1caeff2f49397e6c2dabf2ff99cb7a8ccc685a50))
+
 - Add support for ACB batteries ([#191](https://github.com/pyenphase/pyenphase/pull/191),
   [`1caeff2`](https://github.com/pyenphase/pyenphase/commit/1caeff2f49397e6c2dabf2ff99cb7a8ccc685a50))
 
-* feat: add model for ACB batteries
+### Refactoring
 
-* feat: add ACB model documentation and some pre-commit cleanup
+- Implement review change proposals. ([#191](https://github.com/pyenphase/pyenphase/pull/191),
+  [`1caeff2`](https://github.com/pyenphase/pyenphase/commit/1caeff2f49397e6c2dabf2ff99cb7a8ccc685a50))
 
-* feat: Add ACB updaters
+### Testing
 
-* test: Add 8.2.4382 ACB battery fixture
+- Add 8.2.4382 ACB battery fixture ([#191](https://github.com/pyenphase/pyenphase/pull/191),
+  [`1caeff2`](https://github.com/pyenphase/pyenphase/commit/1caeff2f49397e6c2dabf2ff99cb7a8ccc685a50))
 
-* test: Add ACB battery tests
-
-* refactor: implement review change proposals.
+- Add ACB battery tests ([#191](https://github.com/pyenphase/pyenphase/pull/191),
+  [`1caeff2`](https://github.com/pyenphase/pyenphase/commit/1caeff2f49397e6c2dabf2ff99cb7a8ccc685a50))
 
 
 ## v1.22.0 (2024-08-03)
@@ -968,8 +638,6 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   ([#177](https://github.com/pyenphase/pyenphase/pull/177),
   [`c734a6d`](https://github.com/pyenphase/pyenphase/commit/c734a6d67b6ac355ba528fcf78fd86a33e48a419))
 
-* feat(netconsumption): Add system_net_consumption and phases
-
 
 ## v1.21.0 (2024-07-16)
 
@@ -979,24 +647,10 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   ([#175](https://github.com/pyenphase/pyenphase/pull/175),
   [`52eb502`](https://github.com/pyenphase/pyenphase/commit/52eb502f4a710259cffc5313432c2b7ea8fee603))
 
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 ### Features
 
 - **generator**: Probe for generator ([#160](https://github.com/pyenphase/pyenphase/pull/160),
   [`42a2533`](https://github.com/pyenphase/pyenphase/commit/42a2533f44ec975c72bd0be9dc70c75a987ff030))
-
-* feat(generator): Probe for generator
-
----------
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
-Co-authored-by: Arie Catsman <catsmanac@outlook.com>
-
-Co-authored-by: Arie Catsman <120491684+catsmanac@users.noreply.github.com>
 
 ### Refactoring
 
@@ -1004,30 +658,31 @@ Co-authored-by: Arie Catsman <120491684+catsmanac@users.noreply.github.com>
   ([#162](https://github.com/pyenphase/pyenphase/pull/162),
   [`cb6c40c`](https://github.com/pyenphase/pyenphase/commit/cb6c40cf5d423893f259bb7fd4c98a5a1e693b92))
 
-* refactor: use HA config information and cmdline args for fixture collection
+- Tweak code ([#162](https://github.com/pyenphase/pyenphase/pull/162),
+  [`cb6c40c`](https://github.com/pyenphase/pyenphase/commit/cb6c40cf5d423893f259bb7fd4c98a5a1e693b92))
 
-* Handle multiple Envoy and implement suggested changes
-
-* refactor: tweak code
-
----------
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
+- Use HA config information and cmdline args for fixture collection
+  ([#162](https://github.com/pyenphase/pyenphase/pull/162),
+  [`cb6c40c`](https://github.com/pyenphase/pyenphase/commit/cb6c40cf5d423893f259bb7fd4c98a5a1e693b92))
 
 
 ## v1.20.6 (2024-07-03)
 
 ### Bug Fixes
 
+- Raise EnvoyCommunicationError for hhtpx NetworkError and TimeoutExcpetion exceptions
+  ([#170](https://github.com/pyenphase/pyenphase/pull/170),
+  [`c6d238f`](https://github.com/pyenphase/pyenphase/commit/c6d238f83b10622cb20493bcf70e4e54deb751d2))
+
 - Raise EnvoyCommunicationError for httpx ConnectError and TimeoutException exceptions during
   Envoy.update ([#170](https://github.com/pyenphase/pyenphase/pull/170),
   [`c6d238f`](https://github.com/pyenphase/pyenphase/commit/c6d238f83b10622cb20493bcf70e4e54deb751d2))
 
-* fix: raise EnvoyCommunicationError for hhtpx NetworkError and TimeoutExcpetion exceptions
+### Testing
 
-* test: httpx.TimeoutException and NetworkError map to EnvoyCommunicationError
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
+- Httpx.timeoutexception and NetworkError map to EnvoyCommunicationError
+  ([#170](https://github.com/pyenphase/pyenphase/pull/170),
+  [`c6d238f`](https://github.com/pyenphase/pyenphase/commit/c6d238f83b10622cb20493bcf70e4e54deb751d2))
 
 
 ## v1.20.5 (2024-07-03)
@@ -1038,10 +693,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#171](https://github.com/pyenphase/pyenphase/pull/171),
   [`46fb2b3`](https://github.com/pyenphase/pyenphase/commit/46fb2b386ff1991ba26d4b60628163cff147afa9))
 
-* fix: report EnvoyHTTPStatusError for _json_request if status not in 200-300
-
-* test: add test for request status not between 200-300
-
 ### Chores
 
 - **pre-commit.ci**: Pre-commit autoupdate ([#174](https://github.com/pyenphase/pyenphase/pull/174),
@@ -1049,17 +700,19 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 
 ### Refactoring
 
+- Get monotonic time and only when in debug mode
+  ([#172](https://github.com/pyenphase/pyenphase/pull/172),
+  [`8f0e092`](https://github.com/pyenphase/pyenphase/commit/8f0e092a52b7eea7d9c13a0d1ba1bf2172992e88))
+
 - Unify request reply debug log all showing url and duration.
   ([#172](https://github.com/pyenphase/pyenphase/pull/172),
   [`8f0e092`](https://github.com/pyenphase/pyenphase/commit/8f0e092a52b7eea7d9c13a0d1ba1bf2172992e88))
 
-* refactor: unify request reply debug log all showing url and duration.
+### Testing
 
-* refactor: get monotonic time and only when in debug mode
-
----------
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
+- Add test for request status not between 200-300
+  ([#171](https://github.com/pyenphase/pyenphase/pull/171),
+  [`46fb2b3`](https://github.com/pyenphase/pyenphase/commit/46fb2b386ff1991ba26d4b60628163cff147afa9))
 
 
 ## v1.20.4 (2024-07-02)
@@ -1070,38 +723,19 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#173](https://github.com/pyenphase/pyenphase/pull/173),
   [`8b6b302`](https://github.com/pyenphase/pyenphase/commit/8b6b302b626742e101708c5bbd0c0a46e86f9cb7))
 
-When Envoy running FW 3.x restart it may send all zero values with status 200, while the internals
-  are still restoring data. If major firmware version is 3 and all values in data.system_production
-  are zero signal exception EnvoyPoorDataQuality.
-
 ### Chores
 
 - **deps-dev**: Bump jinja2 from 3.1.3 to 3.1.4
   ([#163](https://github.com/pyenphase/pyenphase/pull/163),
   [`d8d90f9`](https://github.com/pyenphase/pyenphase/commit/d8d90f92344ee10d2fe7bacdc7b40a59166be1fc))
 
-Bumps [jinja2](https://github.com/pallets/jinja) from 3.1.3 to 3.1.4. - [Release
-  notes](https://github.com/pallets/jinja/releases) -
-  [Changelog](https://github.com/pallets/jinja/blob/main/CHANGES.rst) -
-  [Commits](https://github.com/pallets/jinja/compare/3.1.3...3.1.4)
-
---- updated-dependencies: - dependency-name: jinja2 dependency-type: indirect ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump requests from 2.31.0 to 2.32.0
   ([#164](https://github.com/pyenphase/pyenphase/pull/164),
   [`114854d`](https://github.com/pyenphase/pyenphase/commit/114854df454ad6b8d8a0aad9abd87168857af7ed))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump urllib3 from 2.2.1 to 2.2.2
   ([#167](https://github.com/pyenphase/pyenphase/pull/167),
   [`9f130fb`](https://github.com/pyenphase/pyenphase/commit/9f130fb4e816953ea8652552b744cf5c4ea48cbb))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 
 ## v1.20.3 (2024-05-07)
@@ -1112,9 +746,6 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
   ([#159](https://github.com/pyenphase/pyenphase/pull/159),
   [`d2a478c`](https://github.com/pyenphase/pyenphase/commit/d2a478c25581cbb147506d138db3043c70345fae))
 
-make productionjsonupdater first production updater using details=1 to get phase details for
-  production report.
-
 ### Chores
 
 - **deps**: Bump pytest-cov to 5.0 ([#156](https://github.com/pyenphase/pyenphase/pull/156),
@@ -1124,13 +755,9 @@ make productionjsonupdater first production updater using details=1 to get phase
   ([#158](https://github.com/pyenphase/pyenphase/pull/158),
   [`b4eecda`](https://github.com/pyenphase/pyenphase/commit/b4eecda718fd89894396d48e1c5ec484898ffe99))
 
-httpxcookies
-
 - **deps**: Replace deprecated httpx data with content
   ([#157](https://github.com/pyenphase/pyenphase/pull/157),
   [`86f8ba2`](https://github.com/pyenphase/pyenphase/commit/86f8ba2a183ebdf0ca57bd92fd75c57841f4875d))
-
-deprecatedcontent
 
 
 ## v1.20.2 (2024-04-18)
@@ -1141,8 +768,6 @@ deprecatedcontent
   ([#150](https://github.com/pyenphase/pyenphase/pull/150),
   [`d01157a`](https://github.com/pyenphase/pyenphase/commit/d01157a1ec3139f67e085f0a4e529f2e7af09943))
 
-* fix: add missing EnvoyTokenAuth class properties
-
 ### Chores
 
 - Update dependancies to latest versions ([#153](https://github.com/pyenphase/pyenphase/pull/153),
@@ -1151,23 +776,13 @@ deprecatedcontent
 - **deps**: Bump idna from 3.4 to 3.7 ([#149](https://github.com/pyenphase/pyenphase/pull/149),
   [`0596e59`](https://github.com/pyenphase/pyenphase/commit/0596e59d1f232376ce3f97342b8a76ba1bdac174))
 
-Bumps [idna](https://github.com/kjd/idna) from 3.4 to 3.7. - [Release
-  notes](https://github.com/kjd/idna/releases) -
-  [Changelog](https://github.com/kjd/idna/blob/master/HISTORY.rst) -
-  [Commits](https://github.com/kjd/idna/compare/v3.4...v3.7)
-
---- updated-dependencies: - dependency-name: idna dependency-type: indirect ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 ### Documentation
+
+- Let readtedocs use virtualenv for build ([#151](https://github.com/pyenphase/pyenphase/pull/151),
+  [`9e8b648`](https://github.com/pyenphase/pyenphase/commit/9e8b648875db5fcc2210d7f180c0d278485eafb8))
 
 - Let readthedocs use virtualenv for build ([#151](https://github.com/pyenphase/pyenphase/pull/151),
   [`9e8b648`](https://github.com/pyenphase/pyenphase/commit/9e8b648875db5fcc2210d7f180c0d278485eafb8))
-
-docs: let readtedocs use virtualenv for build
 
 - Use new format to specify virtual env for readthedocs
   ([#152](https://github.com/pyenphase/pyenphase/pull/152),
@@ -1182,11 +797,6 @@ docs: let readtedocs use virtualenv for build
 - Improve code coverage ([#146](https://github.com/pyenphase/pyenphase/pull/146),
   [`c55aa92`](https://github.com/pyenphase/pyenphase/commit/c55aa92e0b45fb9ed7b435d6fdc55c3a49e552dd))
 
-* create common test functions. * move ct meter tests to separate test file. * move pre v7 fw tests
-  to seperate test file. * create auth test functions * improve cov.
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
 
 ## v1.20.1 (2024-03-26)
 
@@ -1195,10 +805,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 - Endless loop on envoy unreachable ([#145](https://github.com/pyenphase/pyenphase/pull/145),
   [`f074c61`](https://github.com/pyenphase/pyenphase/commit/f074c61b56b0fdb1080ff3c54f82c59a8015b6d9))
 
-Changed timeout logic to end after 4 tries or 50 seconds, whichever happens first. Lowered httpx
-  read timeout to 45 sec. Effectively limiting to 1 retry on read timeout and 4 retries on
-  connection failures.
-
 
 ## v1.20.0 (2024-03-21)
 
@@ -1206,10 +812,6 @@ Changed timeout logic to end after 4 tries or 50 seconds, whichever happens firs
 
 - Report storage CT data ([#144](https://github.com/pyenphase/pyenphase/pull/144),
   [`52c53fe`](https://github.com/pyenphase/pyenphase/commit/52c53fe20123514177290e964e03a23454e42e9c))
-
-* feat: report storage CT data
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 ### Refactoring
 
@@ -1225,8 +827,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#140](https://github.com/pyenphase/pyenphase/pull/140),
   [`7c2f52c`](https://github.com/pyenphase/pyenphase/commit/7c2f52cc28fdc872a8c5875fc7f7d8b7e233bc01))
 
-* fix: consumption CT not found when 3 CT reported
-
 
 ## v1.19.1 (2024-02-27)
 
@@ -1241,8 +841,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#137](https://github.com/pyenphase/pyenphase/pull/137),
   [`25ad476`](https://github.com/pyenphase/pyenphase/commit/25ad4769681e70cd414ddb4efd665f3334aee361))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 ### Refactoring
 
 - Add type hint to PHASENAMES ([#138](https://github.com/pyenphase/pyenphase/pull/138),
@@ -1255,9 +853,6 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
 
 - Add envoy_model property ([#136](https://github.com/pyenphase/pyenphase/pull/136),
   [`42652cd`](https://github.com/pyenphase/pyenphase/commit/42652cda168d1cf1d4b637071f0603d0b0707066))
-
-Add Envoy_Model property that returns a descriptive name for the Envoy model, including installed CT
-  and phases.
 
 
 ## v1.18.0 (2024-01-23)
@@ -1277,7 +872,8 @@ Add Envoy_Model property that returns a descriptive name for the Envoy model, in
 - Add CT meters model datastructures ([#133](https://github.com/pyenphase/pyenphase/pull/133),
   [`8d6e2c5`](https://github.com/pyenphase/pyenphase/commit/8d6e2c585b2962838fc9be0ff30153915e6873c2))
 
-refactor: Add meters model datastructures
+- Add meters model datastructures ([#133](https://github.com/pyenphase/pyenphase/pull/133),
+  [`8d6e2c5`](https://github.com/pyenphase/pyenphase/commit/8d6e2c585b2962838fc9be0ff30153915e6873c2))
 
 
 ## v1.17.0 (2024-01-11)
@@ -1291,16 +887,10 @@ refactor: Add meters model datastructures
   ([#132](https://github.com/pyenphase/pyenphase/pull/132),
   [`c2a9460`](https://github.com/pyenphase/pyenphase/commit/c2a9460d8a958cc0b3d161e2fbfdcbaf648b021e))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 ### Documentation
 
 - Reorganize and extend documentation. ([#129](https://github.com/pyenphase/pyenphase/pull/129),
   [`4d8e463`](https://github.com/pyenphase/pyenphase/commit/4d8e463fc5d5e500876f721ae2831cc90a275d9a))
-
-- Combine Ensemble description in single file and describe methods and refer to models. - Extend
-  auto-documentation structure and allow entry without docstrings. - Add small description on how to
-  code for auto-documenting - Minor text corrections after review
 
 ### Features
 
@@ -1316,13 +906,6 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
 - Provide phase data for envoy metered with ct
   ([#126](https://github.com/pyenphase/pyenphase/pull/126),
   [`454dbc5`](https://github.com/pyenphase/pyenphase/commit/454dbc58ebb2edf23e9c64173fb8b5d155b327fc))
-
-* feat: provide phase data for envoy metered with ct
-
--Add from_production_phase method to production and consumption models. -In production updater get
-  phase data from models and report in system_production_phase and system_consumption_phase. Set
-  active_phase_count common_property of Envoy -Update tests and snapshots to include phase data.
-  -Move phase documentation to its own section in the docs.
 
 
 ## v1.15.2 (2023-12-20)
@@ -1340,14 +923,10 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
 - Skip meters endpoint if it returns a 401 ([#125](https://github.com/pyenphase/pyenphase/pull/125),
   [`166c25c`](https://github.com/pyenphase/pyenphase/commit/166c25c410b6fa319bddea78db44606da7364aeb))
 
-* fix: skip meters endpoint if it returns a 401
+### Chores
 
-For D3.18.10 (f0855e) systems return 401 even if the user has access to the endpoint so we must skip
-  it.
-
-* chore: add tests
-
-* chore: lint
+- Add tests ([#125](https://github.com/pyenphase/pyenphase/pull/125),
+  [`166c25c`](https://github.com/pyenphase/pyenphase/commit/166c25c410b6fa319bddea78db44606da7364aeb))
 
 
 ## v1.15.0 (2023-12-19)
@@ -1391,8 +970,6 @@ For D3.18.10 (f0855e) systems return 401 even if the user has access to the endp
   ([#111](https://github.com/pyenphase/pyenphase/pull/111),
   [`2188969`](https://github.com/pyenphase/pyenphase/commit/21889696fdc06f423f382eb404483e1b5d641094))
 
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
 ### Chores
 
 - Fix docs build ([#115](https://github.com/pyenphase/pyenphase/pull/115),
@@ -1406,12 +983,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 - Update usage.md ([#109](https://github.com/pyenphase/pyenphase/pull/109),
   [`2e31671`](https://github.com/pyenphase/pyenphase/commit/2e316718081fccab314844a76aa9c6e4e54d20a9))
 
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
-Co-authored-by: Charles Garwood <cgarwood@gmail.com>
-
-Co-authored-by: github-actions <github-actions@github.com>
-
 
 ## v1.14.2 (2023-11-06)
 
@@ -1420,10 +991,6 @@ Co-authored-by: github-actions <github-actions@github.com>
 - Make date field optional in storage settings tariff model
   ([#112](https://github.com/pyenphase/pyenphase/pull/112),
   [`cf98198`](https://github.com/pyenphase/pyenphase/commit/cf98198b80326f5bf57c58c77eedbe17b6142b0b))
-
-* fix: Make date field optional in storage settings tariff model
-
-* update test
 
 ### Chores
 
@@ -1437,16 +1004,6 @@ Co-authored-by: github-actions <github-actions@github.com>
 
 - Add economy EnvoyStorageMode ([#110](https://github.com/pyenphase/pyenphase/pull/110),
   [`edaf93c`](https://github.com/pyenphase/pyenphase/commit/edaf93c8c1cd71f34bf0be227436f676b1c13772))
-
-* fix: Add economy EnvoyStorageMode
-
-* Convert savings-mode to economy
-
-* fix value check
-
-* add new fixture for savings-mode conversion
-
-* Update tests
 
 
 ## v1.14.0 (2023-10-24)
@@ -1475,8 +1032,6 @@ Co-authored-by: github-actions <github-actions@github.com>
   ([#100](https://github.com/pyenphase/pyenphase/pull/100),
   [`f9ae1a7`](https://github.com/pyenphase/pyenphase/commit/f9ae1a766eafd5287c4801a55faa8f1b9a510dfc))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 
 ## v1.13.0 (2023-10-20)
 
@@ -1485,14 +1040,6 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
 - Add support for changing storage mode and reserve soc
   ([#101](https://github.com/pyenphase/pyenphase/pull/101),
   [`16a1471`](https://github.com/pyenphase/pyenphase/commit/16a1471d7b2e961be218825151401a4cd27fe096))
-
-* feat: Add support for changing storage mode and reserve soc
-
-* tests round 1
-
-* tests
-
-* Tweak enum check
 
 
 ## v1.12.0 (2023-10-11)
@@ -1513,33 +1060,11 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
 - Bump syrupy to 4.5.0 ([#98](https://github.com/pyenphase/pyenphase/pull/98),
   [`7ea6c1c`](https://github.com/pyenphase/pyenphase/commit/7ea6c1cf2ca596c8b02ec1975d56121cec143147))
 
-Bump syrupy to 4.5.0
-
 ### Features
 
 - Add initial tariff support and charge from grid functions
   ([#95](https://github.com/pyenphase/pyenphase/pull/95),
   [`5418d4c`](https://github.com/pyenphase/pyenphase/commit/5418d4c99ee6a5f0998367525ccba65f0edb9bc5))
-
-* feat: Add initial tariff support and charge from grid functions
-
-* Tweak request and add SupportedFeature flag
-
-* use keyword argument for method
-
-* Review comments
-
-* mypy
-
-* Update tests
-
-* seasons_sell is not present in firmware 4.x
-
-* rebase and update tests
-
----------
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 
 ## v1.11.4 (2023-09-13)
@@ -1549,8 +1074,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 - Use eim if activeCount is true ([#91](https://github.com/pyenphase/pyenphase/pull/91),
   [`ac041a4`](https://github.com/pyenphase/pyenphase/commit/ac041a4abd2119fa3c784aa74634b27e118b7624))
 
-The logic was reversed here
-
 
 ## v1.11.3 (2023-09-13)
 
@@ -1559,14 +1082,6 @@ The logic was reversed here
 - More dry contact settings should be optional
   ([#90](https://github.com/pyenphase/pyenphase/pull/90),
   [`4fc503a`](https://github.com/pyenphase/pyenphase/commit/4fc503a4f8f60051319aaabf386bced2cd0f3076))
-
-* fix: more dry contact settings should be optional
-
-* forgot manual override
-
-* fix manual override comparison
-
-* update snapshot
 
 ### Chores
 
@@ -1600,14 +1115,17 @@ The logic was reversed here
   ([#84](https://github.com/pyenphase/pyenphase/pull/84),
   [`357f0bd`](https://github.com/pyenphase/pyenphase/commit/357f0bd132a976f31a052063ce514ac86534de8e))
 
-* fix: black_s_start not returned by all Ensemble systems
-
-* updatet test
-
-* Update tests
+- Black_s_start not returned by all Ensemble systems
+  ([#84](https://github.com/pyenphase/pyenphase/pull/84),
+  [`357f0bd`](https://github.com/pyenphase/pyenphase/commit/357f0bd132a976f31a052063ce514ac86534de8e))
 
 
 ## v1.11.0 (2023-09-08)
+
+### Bug Fixes
+
+- Get watt_hours_lifetime on total system ([#83](https://github.com/pyenphase/pyenphase/pull/83),
+  [`d7e195e`](https://github.com/pyenphase/pyenphase/commit/d7e195e498362d1374366d88a24afc8da6b01321))
 
 ### Chores
 
@@ -1616,15 +1134,13 @@ The logic was reversed here
 
 ### Features
 
-- Add fallback when api/v1/production endpoint is broken
+- Add fallback when api/v1/production endpoint if broken
   ([#83](https://github.com/pyenphase/pyenphase/pull/83),
   [`d7e195e`](https://github.com/pyenphase/pyenphase/commit/d7e195e498362d1374366d88a24afc8da6b01321))
 
-* feat: add fallback when api/v1/production endpoint if broken
-
-* fix: update
-
-* fix: get watt_hours_lifetime on total system
+- Add fallback when api/v1/production endpoint is broken
+  ([#83](https://github.com/pyenphase/pyenphase/pull/83),
+  [`d7e195e`](https://github.com/pyenphase/pyenphase/commit/d7e195e498362d1374366d88a24afc8da6b01321))
 
 
 ## v1.10.0 (2023-09-08)
@@ -1662,13 +1178,10 @@ The logic was reversed here
   ([#78](https://github.com/pyenphase/pyenphase/pull/78),
   [`33d07f6`](https://github.com/pyenphase/pyenphase/commit/33d07f6fb231a274bfdf5e693d1d2200fc0b516d))
 
-* fix: envoy default password is last 6 not first 6
+### Chores
 
-https://github.com/jesserizzo/envoy_reader/blob/0d3fb696519d487d14b0fff7def7d77ab2173cff/envoy_reader/envoy_reader.py#L388
-
-* chore: fix snapshot
-
-* Update src/pyenphase/envoy.py
+- Fix snapshot ([#78](https://github.com/pyenphase/pyenphase/pull/78),
+  [`33d07f6`](https://github.com/pyenphase/pyenphase/commit/33d07f6fb231a274bfdf5e693d1d2200fc0b516d))
 
 
 ## v1.9.0 (2023-09-03)
@@ -1678,12 +1191,6 @@ https://github.com/jesserizzo/envoy_reader/blob/0d3fb696519d487d14b0fff7def7d77a
 - Add additional endpoints to fixture collector
   ([#76](https://github.com/pyenphase/pyenphase/pull/76),
   [`9590d21`](https://github.com/pyenphase/pyenphase/commit/9590d219cdee3049364ce82691b74606062898e5))
-
-* Add additional endpoints to fixture collector
-
-* Add additional generator endpoint
-
-* update snapshot
 
 ### Features
 
@@ -1699,18 +1206,6 @@ https://github.com/jesserizzo/envoy_reader/blob/0d3fb696519d487d14b0fff7def7d77a
 - Preemptively update dry contact state when toggling
   ([#75](https://github.com/pyenphase/pyenphase/pull/75),
   [`6a3f12f`](https://github.com/pyenphase/pyenphase/commit/6a3f12f26355721a4d12f3ef490659e4c4ce4a4c))
-
-* Pre-emptively update Dry Contact Status when toggling
-
-* Add comment
-
-* add test
-
-* review comments
-
-* nosec
-
-* ci
 
 
 ## v1.8.0 (2023-08-19)
@@ -1747,18 +1242,6 @@ https://github.com/jesserizzo/envoy_reader/blob/0d3fb696519d487d14b0fff7def7d77a
   ([#68](https://github.com/pyenphase/pyenphase/pull/68),
   [`345165a`](https://github.com/pyenphase/pyenphase/commit/345165a92ffc7ffc35c5d09626757c53f4add7d2))
 
-* Add support for changing settings on dry contact relays
-
-* refactor
-
-* Add tests
-
-* Add additional test
-
-* Guard logging
-
-* codecov
-
 
 ## v1.5.3 (2023-08-12)
 
@@ -1767,8 +1250,6 @@ https://github.com/jesserizzo/envoy_reader/blob/0d3fb696519d487d14b0fff7def7d77a
 - Add "schedule" to DryContactAction ([#67](https://github.com/pyenphase/pyenphase/pull/67),
   [`403d8dc`](https://github.com/pyenphase/pyenphase/commit/403d8dc5c0361a30b95e57fdeda13ea25fd8179a))
 
-Add schedule to DryContactAction
-
 
 ## v1.5.2 (2023-08-11)
 
@@ -1776,8 +1257,6 @@ Add schedule to DryContactAction
 
 - Add EnvoyEnchargeAggregate to __all__ ([#66](https://github.com/pyenphase/pyenphase/pull/66),
   [`63b7698`](https://github.com/pyenphase/pyenphase/commit/63b76980d620cf7e125df0d6058c80230f66756a))
-
-Add EnvoyEnchargeAggregate to __all__
 
 
 ## v1.5.1 (2023-08-11)
@@ -1788,10 +1267,6 @@ Add EnvoyEnchargeAggregate to __all__
   ([#65](https://github.com/pyenphase/pyenphase/pull/65),
   [`e076476`](https://github.com/pyenphase/pyenphase/commit/e07647656920779e7a18a045ddfea1dec583fba7))
 
-* Switch fetching aggregate Encharge data to simpler endpoint
-
-* Update tests
-
 
 ## v1.5.0 (2023-08-11)
 
@@ -1800,10 +1275,6 @@ Add EnvoyEnchargeAggregate to __all__
 - Add EnchargeAggregate model for aggregated battery data
   ([#64](https://github.com/pyenphase/pyenphase/pull/64),
   [`6985935`](https://github.com/pyenphase/pyenphase/commit/69859358ad6c4146fac30198ec5a342633db9834))
-
-* Add EnchargeAggregate model for aggregated battery data
-
-* Update tests
 
 
 ## v1.4.0 (2023-08-10)
@@ -1874,10 +1345,6 @@ Add EnvoyEnchargeAggregate to __all__
 - Return DryContactStatus enum for status ([#53](https://github.com/pyenphase/pyenphase/pull/53),
   [`d366ff3`](https://github.com/pyenphase/pyenphase/commit/d366ff3c86a3419bb0ffcbd24a1edb0333b0a32f))
 
-* fix: Return DryContactStatus enum for status
-
-* Update snapshot
-
 
 ## v1.1.3 (2023-08-08)
 
@@ -1904,8 +1371,6 @@ Add EnvoyEnchargeAggregate to __all__
   ([#50](https://github.com/pyenphase/pyenphase/pull/50),
   [`d37b5e9`](https://github.com/pyenphase/pyenphase/commit/d37b5e9b6e6f12d62ba57a2f6d745868adf67914))
 
-Add Enpower and DryContacts to __all__
-
 
 ## v1.1.0 (2023-08-08)
 
@@ -1913,8 +1378,6 @@ Add Enpower and DryContacts to __all__
 
 - Add support for pulling dry contact data ([#48](https://github.com/pyenphase/pyenphase/pull/48),
   [`7814650`](https://github.com/pyenphase/pyenphase/commit/78146506bb4a93b51987a2b8725cc32f35368643))
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 
 ## v1.0.0 (2023-08-08)
@@ -1932,8 +1395,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 - Add support for polling Enpower data ([#47](https://github.com/pyenphase/pyenphase/pull/47),
   [`0ac58e0`](https://github.com/pyenphase/pyenphase/commit/0ac58e0396d67b4e858deba08eb6bef5c6de9f39))
 
-Add support for polling Enpower data
-
 
 ## v0.17.0 (2023-08-07)
 
@@ -1941,10 +1402,6 @@ Add support for polling Enpower data
 
 - Add fixtures for 7.6.114 without clamps ([#44](https://github.com/pyenphase/pyenphase/pull/44),
   [`4be0a33`](https://github.com/pyenphase/pyenphase/commit/4be0a339ed9ae458246f2260e03c5d4c89c58410))
-
-* Add fixtures for 7.6.114
-
-* It's not metered
 
 
 ## v0.16.0 (2023-08-07)
@@ -1954,14 +1411,8 @@ Add support for polling Enpower data
 - Collect headers as well as XML files ([#43](https://github.com/pyenphase/pyenphase/pull/43),
   [`82678be`](https://github.com/pyenphase/pyenphase/commit/82678be2bdcd59b77befc04883b2bb4693789f36))
 
-* Collect headers as well as XML files
-
-* Fix headers
-
 - Update 7.6.175 fixtures ([#45](https://github.com/pyenphase/pyenphase/pull/45),
   [`9c96475`](https://github.com/pyenphase/pyenphase/commit/9c96475f345786a24b5b786a4880a949a01cabd8))
-
-* Update 7.6.175 fixtures
 
 
 ## v0.15.1 (2023-08-07)
@@ -1983,22 +1434,6 @@ Add support for polling Enpower data
 
 - Add Encharge battery support ([#40](https://github.com/pyenphase/pyenphase/pull/40),
   [`e1a96e9`](https://github.com/pyenphase/pyenphase/commit/e1a96e9de3ade6429561ef863ed8302b481e02df))
-
-* Add Encharge support
-
-* Update tests
-
-* Update import
-
-* Add Encharge support (#41)
-
-refactor
-
-* Update test snapshot
-
----------
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 
 ## v0.14.1 (2023-08-07)
@@ -2034,8 +1469,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 - Add fixture collecting script ([#30](https://github.com/pyenphase/pyenphase/pull/30),
   [`5d66ee9`](https://github.com/pyenphase/pyenphase/commit/5d66ee96154bbd6238a27b6e449b6bb0aece3a54))
 
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
 
 ## v0.12.0 (2023-08-06)
 
@@ -2045,22 +1478,16 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#29](https://github.com/pyenphase/pyenphase/pull/29),
   [`31ffcfa`](https://github.com/pyenphase/pyenphase/commit/31ffcfa00bd39c62df3abf791c250b859234f1b3))
 
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
 - Add tests for 7.3.517 firmware/setup ([#33](https://github.com/pyenphase/pyenphase/pull/33),
   [`4d6434f`](https://github.com/pyenphase/pyenphase/commit/4d6434f0af01e0b4aff50d0d5624eb63519f91a5))
 
 - Update gitignore ([#32](https://github.com/pyenphase/pyenphase/pull/32),
   [`57f5b52`](https://github.com/pyenphase/pyenphase/commit/57f5b526706151a0124a99983909a4f3f2aec1e2))
 
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
 ### Features
 
 - Probe for Encharge and Enpower support ([#26](https://github.com/pyenphase/pyenphase/pull/26),
   [`da2db7d`](https://github.com/pyenphase/pyenphase/commit/da2db7d8005c81153dff6b5802d3c4851dd79432))
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 ### Refactoring
 
@@ -2162,34 +1589,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 - Start bootstrapping some models ([#13](https://github.com/pyenphase/pyenphase/pull/13),
   [`c5d2f36`](https://github.com/pyenphase/pyenphase/commit/c5d2f364f00c9efd7b3c239d2bb16c6affd84ff7))
 
-* Start bootstrapping some models
-
-* Use slots
-
-* Update src/pyenphase/models/inverter.py
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
-* Add model for Enpower/IQ System Controller
-
-* Update class name
-
-* Add model for Encharge/IQ Batteries
-
-* Add model for dry contact relays
-
-* lint
-
-* Add temperature_unit properties
-
-* Add additional Encharge properties from URL_ENCHARGE_BATTERY
-
-* Add comment with data source
-
-* Add comment with data sources
-
----------
-
 ### Features
 
 - Add update functions ([#16](https://github.com/pyenphase/pyenphase/pull/16),
@@ -2208,8 +1607,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 - Add support for legacy firmware ([#11](https://github.com/pyenphase/pyenphase/pull/11),
   [`49cb15c`](https://github.com/pyenphase/pyenphase/commit/49cb15c58cde38dc41ff30c24c3365c491605274))
 
-Co-authored-by: Joost Lekkerkerker <joostlek@outlook.com>
-
 
 ## v0.2.0 (2023-07-26)
 
@@ -2223,21 +1620,12 @@ Co-authored-by: Joost Lekkerkerker <joostlek@outlook.com>
 
 ### Features
 
+- Use cookie sessionId ([#7](https://github.com/pyenphase/pyenphase/pull/7),
+  [`09a1a8a`](https://github.com/pyenphase/pyenphase/commit/09a1a8aa30f2e3be1aa636f2488dc736f4d4f476))
+
 - Use sessionId cookie to have access to some endpoints
   ([#7](https://github.com/pyenphase/pyenphase/pull/7),
   [`09a1a8a`](https://github.com/pyenphase/pyenphase/commit/09a1a8aa30f2e3be1aa636f2488dc736f4d4f476))
-
-* auth for D7.0.88 working
-
-* feature: should work at detecting R3.9.36 firmware
-
-* feat: use cookie sessionId
-
-* address review comments
-
-* minor improvs
-
-* use tenacity
 
 
 ## v0.1.0 (2023-05-28)
@@ -2247,53 +1635,12 @@ Co-authored-by: Joost Lekkerkerker <joostlek@outlook.com>
 - Add constants for API endpoint URLs ([#5](https://github.com/pyenphase/pyenphase/pull/5),
   [`9583a1f`](https://github.com/pyenphase/pyenphase/commit/9583a1fdc1d6070897fc6793c7f2dc8f13482bc2))
 
-chore: add constants for API endpoint URLs
-
 ### Features
 
 - Add initial cloud auth support ([#6](https://github.com/pyenphase/pyenphase/pull/6),
   [`28f4872`](https://github.com/pyenphase/pyenphase/commit/28f4872625a01ee209153d489de566b7ba2302e6))
 
-* auth for D7.0.88 working
-
-* feature: should work at detecting R3.9.36 firmware
-
 
 ## v0.0.3 (2023-05-23)
 
-### Bug Fixes
-
-- Bump versions
-  ([`eef5623`](https://github.com/pyenphase/pyenphase/commit/eef56234a9353d110b174b445da1cfb4034d7c1f))
-
-- Drop 3.12
-  ([`8e0c0f4`](https://github.com/pyenphase/pyenphase/commit/8e0c0f40ad38152bc13a85566d67c7e86345d291))
-
-- Lint
-  ([`683691c`](https://github.com/pyenphase/pyenphase/commit/683691c730e1ef4c491348d66dce70cd75917fd1))
-
-- Permission
-  ([`89f9399`](https://github.com/pyenphase/pyenphase/commit/89f9399bccafcc611d83e264d8f4795d43a7f34e))
-
-- Permission
-  ([`c73e3ed`](https://github.com/pyenphase/pyenphase/commit/c73e3ed86106d6a9b4ea78c37c1a3133ef0af458))
-
-- Permission
-  ([`39e5209`](https://github.com/pyenphase/pyenphase/commit/39e520904e649bb37bd13c790d221b455b4dc90b))
-
-- Permission
-  ([`2068511`](https://github.com/pyenphase/pyenphase/commit/2068511f19a8c2c9ac8322937c830762cba27a16))
-
-- Test publish ([#2](https://github.com/pyenphase/pyenphase/pull/2),
-  [`e3df6b2`](https://github.com/pyenphase/pyenphase/commit/e3df6b264ca55dc12b75dd602cc1f92fa3a54950))
-
-- Typing
-  ([`a75ae30`](https://github.com/pyenphase/pyenphase/commit/a75ae303ef4f98cfafe95081901df7ce88f4fb9e))
-
-- Update ci python version ([#1](https://github.com/pyenphase/pyenphase/pull/1),
-  [`4c2dd2e`](https://github.com/pyenphase/pyenphase/commit/4c2dd2e70464b884b9d8a02ccaf39f04f46ab270))
-
-### Chores
-
-- Initial commit
-  ([`1c7e27b`](https://github.com/pyenphase/pyenphase/commit/1c7e27b67febf534f5700fd1c6ea3abd7c04ca4b))
+- Initial Release
