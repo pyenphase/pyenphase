@@ -142,7 +142,7 @@ class EnvoyFirmware:
                     status_code,
                     content,
                 )
-            xml = etree.fromstring(content)  # nosec  # noqa: S320
+            xml = etree.fromstring(content)  # nosec
             if (device_tag := xml.find("device")) is not None:
                 if (software_tag := device_tag.find("software")) is not None:
                     self._firmware_version = AwesomeVersion(
