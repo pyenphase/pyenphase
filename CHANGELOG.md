@@ -1,6 +1,33 @@
 # CHANGELOG
 
 
+## v2.2.0 (2025-07-03)
+
+### Chores
+
+- **deps**: Bump lxml from 5.4.0 to 6.0.0 ([#300](https://github.com/pyenphase/pyenphase/pull/300),
+  [`c9a668e`](https://github.com/pyenphase/pyenphase/commit/c9a668eee25dc80293399ac324b73611f9f6b46d))
+
+- **deps-dev**: Bump pytest from 8.4.0 to 8.4.1
+  ([#298](https://github.com/pyenphase/pyenphase/pull/298),
+  [`28439b6`](https://github.com/pyenphase/pyenphase/commit/28439b6da778622d20dc715a8152e9feb12e6f08))
+
+- **pre-commit.ci**: Auto fixes ([#299](https://github.com/pyenphase/pyenphase/pull/299),
+  [`1e1087e`](https://github.com/pyenphase/pyenphase/commit/1e1087ec3fc18f3f1e89544ab583a385cd49cb53))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#301](https://github.com/pyenphase/pyenphase/pull/301),
+  [`10451ab`](https://github.com/pyenphase/pyenphase/commit/10451ab48f8ef89f9fc69273ac83617fd960353a))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#299](https://github.com/pyenphase/pyenphase/pull/299),
+  [`1e1087e`](https://github.com/pyenphase/pyenphase/commit/1e1087ec3fc18f3f1e89544ab583a385cd49cb53))
+
+### Features
+
+- Add debug logging for HTTP errors and authentication failures
+  ([#303](https://github.com/pyenphase/pyenphase/pull/303),
+  [`3a9fb42`](https://github.com/pyenphase/pyenphase/commit/3a9fb4230fc52b2040b1fc864ea72ff06b647202))
+
+
 ## v2.1.2 (2025-06-19)
 
 ### Bug Fixes
