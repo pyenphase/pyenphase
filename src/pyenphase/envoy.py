@@ -398,6 +398,13 @@ class Envoy:
 
         status_code = response.status
         if status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
+            content = await response.read()
+            _LOGGER.debug(
+                "Authentication failed for %s with status %s: %s",
+                url,
+                status_code,
+                content[:500] if content else "No content",
+            )
             raise EnvoyAuthenticationRequired(
                 f"Authentication failed for {url} with status {status_code}, "
                 "please check your username/password or token."
@@ -716,10 +723,19 @@ class Envoy:
         try:
             response = await self._request(end_point, data, method)
         except aiohttp.ClientError as err:
+            _LOGGER.debug("Request to %s failed with ClientError: %s", end_point, err)
             raise EnvoyCommunicationError(f"aiohttp ClientError {err!s}") from err
         except asyncio.TimeoutError as err:
+            _LOGGER.debug("Request to %s timed out: %s", end_point, err)
             raise EnvoyCommunicationError(f"Timeout {err!s}") from err
         if not (200 <= response.status < 300):
+            content = await response.read()
+            _LOGGER.debug(
+                "Request to %s failed with status %s: %s",
+                end_point,
+                response.status,
+                content[:500] if content else "No content",
+            )
             raise EnvoyHTTPStatusError(response.status, str(response.url))
 
         return json_loads(end_point, await response.read())
