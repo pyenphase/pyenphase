@@ -69,6 +69,11 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     e,
                 )
                 return None
+            _LOGGER.debug(
+                "Authentication required for %s, re-raising exception: %s",
+                self.end_point,
+                e,
+            )
             raise
 
         active_phase_count = 0
