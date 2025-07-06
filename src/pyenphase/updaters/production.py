@@ -70,7 +70,11 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     e,
                 )
                 return None
-            # with current endpoint we won't get here on a 401
+            _LOGGER.debug(   # pragma: no cover
+                "Authentication required for %s, re-raising exception: %s",
+                self.end_point,
+                e,
+            )
             raise  # pragma: no cover
 
         active_phase_count = 0
