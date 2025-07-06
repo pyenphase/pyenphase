@@ -70,7 +70,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     e,
                 )
                 return None
-            _LOGGER.debug(   # pragma: no cover
+            _LOGGER.debug(  # pragma: no cover
                 "Authentication required for %s, re-raising exception: %s",
                 self.end_point,
                 e,
