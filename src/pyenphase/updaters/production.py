@@ -59,9 +59,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             return None
         except EnvoyAuthenticationRequired as e:
             # For URL_PRODUCTION some systems return 401 even if the user has access
-            # to the endpoint, but for URL_PRODUCTION_JSON is the only way to check
-            # if the user has access to the endpoint
-            if self.end_point == URL_PRODUCTION:
+            # to the endpoint. For URL_PRODUCTION_JSON some early non-metered V7 versions
+            # return 401 when using aiohttp. Non-metered fallback to v1 production anyway.
+            # if there's really no-auth the v1/production will catch it.
+            if self.end_point in (URL_PRODUCTION, URL_PRODUCTION_JSON):
                 _LOGGER.debug(
                     "Skipping production endpoint as user does"
                     " not have access to %s: %s",
@@ -69,12 +70,12 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     e,
                 )
                 return None
-            _LOGGER.debug(
+            _LOGGER.debug(  # pragma: no cover
                 "Authentication required for %s, re-raising exception: %s",
                 self.end_point,
                 e,
             )
-            raise
+            raise  # pragma: no cover
 
         active_phase_count = 0
         phase_count = self._common_properties.phase_count
