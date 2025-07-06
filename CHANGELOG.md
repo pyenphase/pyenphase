@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v2.2.1 (2025-07-06)
+
+### Bug Fixes
+
+- Early v7 firmware returns 401 on production probe with aiohttp.
+  ([#304](https://github.com/pyenphase/pyenphase/pull/304),
+  [`86f4df2`](https://github.com/pyenphase/pyenphase/commit/86f4df2aff689458312e7b0bae39dc8ecc565ed4))
+
+
 ## v2.2.0 (2025-07-03)
 
 ### Chores

@@ -1,6 +1,6 @@
 [project]
 name = "pyenphase"
-version = "2.2.0"
+version = "2.2.1"
 description = "Library to control enphase envoy"
 authors = [{ name = "pyenphase", email = "cgarwood@gmail.com" }]
 license = "MIT"
@@ -10,7 +10,7 @@ dynamic = ["classifiers", "dependencies"]
 
 [tool.poetry]
 name = "pyenphase"
-version = "2.2.0"
+version = "2.2.1"
 description = "Library to control enphase envoy"
 authors = ["pyenphase <cgarwood@gmail.com>"]
 classifiers = [
