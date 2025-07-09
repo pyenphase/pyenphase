@@ -45,6 +45,28 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                 e,
             )
             return None
+        # make sure deviceCount did not reach deviceDataLimit,
+        # if more inverters are actually installed they will not be included
+        # if so fall back to inverter production page
+        try:
+            if inverters_data["deviceCount"] >= inverters_data["deviceDataLimit"]:
+                _LOGGER.debug(
+                    "Disabling inverters device data endpoint "
+                    " as deviceCount reached  deviceDataLimit %s: %s - %s",
+                    URL_DEVICE_DATA,
+                    inverters_data["deviceCount"],
+                    inverters_data["deviceDataLimit"],
+                )
+                return None
+        except KeyError as e:
+            # if doesn't have these keys, fall back to inverter production
+            _LOGGER.debug(
+                "Disabling inverters device data endpoint "
+                " as not all data fields are present %s: %s",
+                URL_DEVICE_DATA,
+                e,
+            )
+            return None
 
         # verify minimal data set to replace inverter production data is present
         try:
