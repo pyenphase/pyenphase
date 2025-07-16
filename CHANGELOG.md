@@ -1,6 +1,28 @@
 # CHANGELOG
 
 
+## v2.2.2 (2025-07-16)
+
+### Bug Fixes
+
+- Fallback to v1 inverter endpoint if installed inverters exceed deviceDataLimit
+  ([#305](https://github.com/pyenphase/pyenphase/pull/305),
+  [`c62c048`](https://github.com/pyenphase/pyenphase/commit/c62c0482b98bcbfdd01010905ecf876f20e0eae1))
+
+- Fallback to v1 inverter endpoint if number of installed inverters exceed deviceDataLimit
+  ([#305](https://github.com/pyenphase/pyenphase/pull/305),
+  [`c62c048`](https://github.com/pyenphase/pyenphase/commit/c62c0482b98bcbfdd01010905ecf876f20e0eae1))
+
+### Chores
+
+- **ci**: Bump the github-actions group with 2 updates
+  ([#302](https://github.com/pyenphase/pyenphase/pull/302),
+  [`21f28de`](https://github.com/pyenphase/pyenphase/commit/21f28decbd7566844bc10fce1900ae8342db68d2))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#306](https://github.com/pyenphase/pyenphase/pull/306),
+  [`50c3163`](https://github.com/pyenphase/pyenphase/commit/50c3163149acda115a1591cafa9cfd1d9779648e))
+
+
 ## v2.2.1 (2025-07-06)
 
 ### Bug Fixes
@@ -716,7 +738,7 @@
 
 ### Testing
 
-- Httpx.timeoutexception and NetworkError map to EnvoyCommunicationError
+- Httpx.TimeoutException and NetworkError map to EnvoyCommunicationError
   ([#170](https://github.com/pyenphase/pyenphase/pull/170),
   [`c6d238f`](https://github.com/pyenphase/pyenphase/commit/c6d238f83b10622cb20493bcf70e4e54deb751d2))
 
