@@ -34,7 +34,7 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
-        args: ["--tab-width", "2"]
+        args: ["--tab-width", "2", "--no-error-on-unmatched-pattern"]
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.20.0
     hooks:

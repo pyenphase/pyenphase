@@ -1,0 +1,383 @@
+{
+    "inventory": {
+        "serial_nums": {
+            "482520020939": {
+                "device_type": 27,
+                "com_interface_str": "CAN",
+                "device_id": "482520020939",
+                "admin_state": 88,
+                "admin_state_str": "ENCMN_MDE_ON_GRID",
+                "prop_set": true,
+                "installed": 1,
+                "msg_retry_count": 0,
+                "part_number": "865-00400-r22",
+                "assembly_number": "885-00400-r23",
+                "app_fw_version": "3.0.6-D0",
+                "ibl_fw_version": "",
+                "swift_asic_fw_version": "",
+                "bmu_fw_version": "",
+                "dmir": {
+                    "part_number": "",
+                    "assembly_number": ""
+                },
+                "procload": {
+                    "part_number": "000-00000-r00",
+                    "assembly_number": "3.0.6-D0"
+                },
+                "submodule_count": 0,
+                "submodules": {}
+            },
+            "482523040548": {
+                "device_type": 30,
+                "com_interface_str": "USB",
+                "device_id": "482523040548",
+                "admin_state": 43,
+                "admin_state_str": "ENS_DEVICE_STATE_READY",
+                "prop_set": true,
+                "msg_retry_count": 0,
+                "part_number": "865-00600-r03",
+                "assembly_number": "885-00600-r03",
+                "app_fw_version": "4.0.1107_rel/99.19",
+                "ibl_fw_version": "1.3.413",
+                "swift_asic_fw_version": "",
+                "bmu_fw_version": "",
+                "dmir": {
+                    "part_number": "546-00003-01",
+                    "assembly_number": "01"
+                },
+                "procload": {
+                    "part_number": "522-00003-01",
+                    "assembly_number": "4.0.1107_rel/99.19"
+                },
+                "submodule_count": 1,
+                "submodules": {
+                    "482523040548": {
+                        "device_type": 31,
+                        "admin_state": 1,
+                        "part_number": "800-02403-r08",
+                        "assembly_number": "830-02403-r03",
+                        "dmir": {
+                            "part_number": "546-00003-01",
+                            "assembly_number": "01"
+                        },
+                        "procload": {
+                            "part_number": "522-00004-01",
+                            "assembly_number": "4.0.1107_rel/99.19"
+                        }
+                    }
+                }
+            },
+            "482523040549": {
+                "device_type": 125,
+                "com_interface_str": "CAN",
+                "device_id": "482523040549",
+                "admin_state": 82,
+                "admin_state_str": "ENCMN_C6_CC_READY",
+                "prop_set": true,
+                "msg_retry_count": 0,
+                "part_number": "800-02403-r08",
+                "assembly_number": "800-02403-r01",
+                "app_fw_version": "0.1.20-D1",
+                "ibl_fw_version": "",
+                "swift_asic_fw_version": "",
+                "bmu_fw_version": "",
+                "dmir": {
+                    "part_number": "546-00060-r00",
+                    "assembly_number": "0.1.20-D1"
+                },
+                "procload": {
+                    "part_number": "522-00060-r00",
+                    "assembly_number": "0.1.20-D1"
+                },
+                "submodule_count": 0,
+                "submodules": {}
+            },
+            "482523040550": {
+                "device_type": 115,
+                "com_interface_str": "CAN",
+                "device_id": "482523040550",
+                "admin_state": 80,
+                "admin_state_str": "ENCMN_C6_RGM_DEV_CONNECTED",
+                "prop_set": true,
+                "msg_retry_count": 0,
+                "part_number": "800-02403-r08",
+                "assembly_number": "880-01407-r05",
+                "app_fw_version": "2.2.1-D4119",
+                "ibl_fw_version": "",
+                "swift_asic_fw_version": "",
+                "bmu_fw_version": "",
+                "dmir": {
+                    "part_number": "",
+                    "assembly_number": ""
+                },
+                "procload": {
+                    "part_number": "521-00015-r00",
+                    "assembly_number": "2.2.1-D4119"
+                },
+                "submodule_count": 0,
+                "submodules": {}
+            },
+            "492516006337": {
+                "device_type": 13,
+                "com_interface_str": "CAN",
+                "device_id": "492516006337",
+                "admin_state": 63,
+                "admin_state_str": "ENCMN_MDE_ENCHARGE_READY",
+                "prop_set": true,
+                "reported_grid_mode": "multimode-ongrid",
+                "phase": "ph-a",
+                "der_index": 2,
+                "encharge_revision": 4,
+                "encharge_capacity": 5000,
+                "encharge_rated_power": 3540,
+                "reported_enc_grid_state": "multimode-ongrid",
+                "msg_retry_count": 0,
+                "part_number": "836-01250-r00",
+                "assembly_number": "836-01250-r00",
+                "app_fw_version": "4.5.35",
+                "ibl_fw_version": "",
+                "swift_asic_fw_version": "",
+                "bmu_fw_version": "4.5.35",
+                "dmir": {
+                    "part_number": "",
+                    "assembly_number": ""
+                },
+                "procload": {
+                    "part_number": "",
+                    "assembly_number": ""
+                },
+                "submodule_count": 4,
+                "submodules": {
+                    "542517021267": {
+                        "device_type": 14,
+                        "alternate_device_type": 120,
+                        "fsm_state": "ENCMN_MDE_PCU_READY",
+                        "admin_state": 1,
+                        "part_number": "800-02041-r05",
+                        "assembly_number": "892-10301-r11",
+                        "rated_power": 2100,
+                        "is_ll": true,
+                        "pcu_phase": "ph-b",
+                        "dmir": {
+                            "part_number": "549-00076-r00",
+                            "assembly_number": "10.9.63-D14494"
+                        },
+                        "procload": {
+                            "part_number": "521-00012-r00",
+                            "assembly_number": "10.9.63-D14494"
+                        }
+                    },
+                    "542517021268": {
+                        "device_type": 16,
+                        "alternate_device_type": 100,
+                        "fsm_state": "ENCMN_MDE_BMU_READY",
+                        "admin_state": 1,
+                        "part_number": "836-11350-r11",
+                        "assembly_number": "892-10301-r11",
+                        "dmir": {
+                            "part_number": "000-00000-r00",
+                            "assembly_number": "0.0.0-D0"
+                        },
+                        "procload": {
+                            "part_number": "522-00040-r00",
+                            "assembly_number": "4.5.35-D1"
+                        }
+                    },
+                    "542517101037": {
+                        "device_type": 14,
+                        "alternate_device_type": 120,
+                        "fsm_state": "ENCMN_MDE_PCU_READY",
+                        "admin_state": 1,
+                        "part_number": "800-02042-r05",
+                        "assembly_number": "892-10301-r11",
+                        "rated_power": 1440,
+                        "is_ll": false,
+                        "pcu_phase": "ph-b",
+                        "dmir": {
+                            "part_number": "549-00095-r00",
+                            "assembly_number": "10.9.64-D14561"
+                        },
+                        "procload": {
+                            "part_number": "521-00016-r00",
+                            "assembly_number": "10.9.64-D14561"
+                        }
+                    },
+                    "542517101038": {
+                        "device_type": 16,
+                        "alternate_device_type": 100,
+                        "fsm_state": "ENCMN_MDE_BMU_READY",
+                        "admin_state": 1,
+                        "part_number": "836-11350-r11",
+                        "assembly_number": "892-10301-r11",
+                        "dmir": {
+                            "part_number": "000-00000-r00",
+                            "assembly_number": "0.0.0-D0"
+                        },
+                        "procload": {
+                            "part_number": "522-00040-r00",
+                            "assembly_number": "4.5.35-D1"
+                        }
+                    }
+                }
+            },
+            "492517004892": {
+                "device_type": 13,
+                "com_interface_str": "CAN",
+                "device_id": "492517004892",
+                "admin_state": 63,
+                "admin_state_str": "ENCMN_MDE_ENCHARGE_READY",
+                "prop_set": true,
+                "reported_grid_mode": "multimode-ongrid",
+                "phase": "ph-a",
+                "der_index": 2,
+                "encharge_revision": 4,
+                "encharge_capacity": 5000,
+                "encharge_rated_power": 3540,
+                "reported_enc_grid_state": "multimode-ongrid",
+                "msg_retry_count": 1,
+                "part_number": "836-01250-r00",
+                "assembly_number": "836-01250-r00",
+                "app_fw_version": "4.5.35",
+                "ibl_fw_version": "",
+                "swift_asic_fw_version": "",
+                "bmu_fw_version": "4.5.35",
+                "dmir": {
+                    "part_number": "",
+                    "assembly_number": ""
+                },
+                "procload": {
+                    "part_number": "",
+                    "assembly_number": ""
+                },
+                "submodule_count": 4,
+                "submodules": {
+                    "542517022009": {
+                        "device_type": 14,
+                        "alternate_device_type": 120,
+                        "fsm_state": "ENCMN_MDE_PCU_READY",
+                        "admin_state": 1,
+                        "part_number": "800-02041-r05",
+                        "assembly_number": "892-10301-r11",
+                        "rated_power": 2100,
+                        "is_ll": true,
+                        "pcu_phase": "ph-a",
+                        "dmir": {
+                            "part_number": "549-00076-r00",
+                            "assembly_number": "10.9.63-D14494"
+                        },
+                        "procload": {
+                            "part_number": "521-00012-r00",
+                            "assembly_number": "10.9.63-D14494"
+                        }
+                    },
+                    "542517022010": {
+                        "device_type": 16,
+                        "alternate_device_type": 100,
+                        "fsm_state": "ENCMN_MDE_BMU_READY",
+                        "admin_state": 1,
+                        "part_number": "836-11350-r11",
+                        "assembly_number": "892-10301-r11",
+                        "dmir": {
+                            "part_number": "000-00000-r00",
+                            "assembly_number": "0.0.0-D0"
+                        },
+                        "procload": {
+                            "part_number": "522-00040-r00",
+                            "assembly_number": "4.5.35-D1"
+                        }
+                    },
+                    "542517093391": {
+                        "device_type": 14,
+                        "alternate_device_type": 120,
+                        "fsm_state": "ENCMN_MDE_PCU_READY",
+                        "admin_state": 1,
+                        "part_number": "800-02042-r05",
+                        "assembly_number": "892-10301-r11",
+                        "rated_power": 1440,
+                        "is_ll": false,
+                        "pcu_phase": "ph-a",
+                        "dmir": {
+                            "part_number": "549-00095-r00",
+                            "assembly_number": "10.9.64-D14561"
+                        },
+                        "procload": {
+                            "part_number": "521-00016-r00",
+                            "assembly_number": "10.9.64-D14561"
+                        }
+                    },
+                    "542517093392": {
+                        "device_type": 16,
+                        "alternate_device_type": 100,
+                        "fsm_state": "ENCMN_MDE_BMU_READY",
+                        "admin_state": 1,
+                        "part_number": "836-11350-r11",
+                        "assembly_number": "892-10301-r11",
+                        "dmir": {
+                            "part_number": "000-00000-r00",
+                            "assembly_number": "0.0.0-D0"
+                        },
+                        "procload": {
+                            "part_number": "522-00040-r00",
+                            "assembly_number": "4.5.35-D1"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "secctrl": {
+        "shutdown": false,
+        "freq_bias_hz": 0.0,
+        "voltage_bias_v": 0.0,
+        "freq_bias_hz_q8": 0,
+        "voltage_bias_v_q5": 0,
+        "freq_bias_hz_phaseb": 0.0,
+        "voltage_bias_v_phaseb": 0.0,
+        "freq_bias_hz_q8_phaseb": 0,
+        "voltage_bias_v_q5_phaseb": 0,
+        "freq_bias_hz_phasec": 0.0,
+        "voltage_bias_v_phasec": 0.0,
+        "freq_bias_hz_q8_phasec": 0,
+        "voltage_bias_v_q5_phasec": 0,
+        "offgrid_secctrl": {
+            "F": 0.7687389826090736,
+            "V": -0.0014091715353808515,
+            "Vd_neg": 5.126506875393791,
+            "Vq_neg": 1.5839945028613174,
+            "Vd_zero": 0.8743872414038012,
+            "Vq_zero": 5.888518297886519,
+            "is_active": false,
+            "is_system_balanced": false
+        },
+        "configured_backup_soc": 100,
+        "adjusted_backup_soc": 100,
+        "agg_soc": 89,
+        "Max_energy": 10000,
+        "ENC_agg_soc": 89,
+        "ENC_agg_soh": 100,
+        "ENC_agg_backup_energy": 10000,
+        "ENC_agg_avail_energy": 8900,
+        "Enc_commissioned_capacity": 10000,
+        "Enc_max_available_capacity": 10000,
+        "ACB_agg_soc": 0,
+        "ACB_agg_energy": 0,
+        "VLS_Limit": 5,
+        "soc_rec_enabled": true,
+        "soc_recovery_entry": 0,
+        "soc_recovery_exit": 10,
+        "Commission_in_progress": false,
+        "ESS_in_progress": false,
+        "ESS_R3_To_R4_in_progress": false
+    },
+    "relay": {
+        "mains_admin_state": "closed",
+        "mains_oper_state": "closed",
+        "srt12_state": "open",
+        "srt13_state": "open",
+        "der1_state": 1,
+        "der2_state": 1,
+        "der3_state": 1,
+        "Enchg_grid_mode": "multimode-ongrid",
+        "Solar_grid_mode": "multimode-ongrid"
+    }
+}
