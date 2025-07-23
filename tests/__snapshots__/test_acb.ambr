@@ -3,6 +3,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': dict({
       'active_power': 567,
       'current': 8.389,
@@ -910,6 +912,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -1320,6 +1324,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': dict({
@@ -2221,6 +2227,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': dict({
       'active_power': -36,
       'current': 2.745,
@@ -3264,6 +3272,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -4569,6 +4579,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -5874,6 +5886,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': dict({
       'active_power': 23,
       'current': 2.985,
@@ -7649,6 +7663,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': dict({
       'active_power': -36,
       'current': 2.745,
@@ -8378,6 +8394,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': dict({
       'active_power': -36,
       'current': 2.745,
@@ -9421,6 +9439,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': dict({
       'active_power': 522,
       'current': 3.138,
@@ -10285,6 +10305,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': None,
     'ctmeter_consumption_phases': None,
     'ctmeter_production': None,
@@ -11850,6 +11872,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': dict({
       'active_power': 129,
       'current': 21.241,
@@ -13665,6 +13689,8 @@
   dict({
     'acb_power': None,
     'battery_aggregate': None,
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': dict({
       'active_power': 196,
       'current': 9.098,
@@ -15275,6 +15301,8 @@
       'max_available_capacity': 7220,
       'state_of_charge': 39,
     }),
+    'c6cc': None,
+    'collar': None,
     'ctmeter_consumption': dict({
       'active_power': 23,
       'current': 1.477,
