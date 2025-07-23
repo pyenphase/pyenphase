@@ -15,6 +15,7 @@ from syrupy.assertion import SnapshotAssertion
 from pyenphase.const import (
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
+    URL_ENSEMBLE_INVENTORY,
     URL_GRID_RELAY,
     URL_TARIFF,
 )
@@ -435,6 +436,33 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
         ),
+        (
+            "8.3.1598_collar",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.DUALPHASE
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.COLLAR
+            | SupportedFeatures.C6CC,
+            {
+                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
+                | SupportedFeatures.COLLAR
+                | SupportedFeatures.C6CC,
+                "EnvoyMetersUpdater": SupportedFeatures.CTMETERS
+                | SupportedFeatures.DUALPHASE,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+            },
+        ),
     ],
     ids=[
         "5.0.62",
@@ -459,6 +487,7 @@ LOGGER = logging.getLogger(__name__)
         "8.2.4286_with_3cts_and_battery_split",
         "8.2.4264_metered_noct",
         "8.2.4345_with_device_data",
+        "8.3.1598_collar",
     ],
 )
 @pytest.mark.asyncio
@@ -891,3 +920,50 @@ async def test_with_7_x_firmware(
             await envoy.enable_charge_from_grid()
         with pytest.raises(EnvoyFeatureNotAvailable):
             await envoy.disable_charge_from_grid()
+
+    if supported_features & SupportedFeatures.COLLAR:
+        # Test collar data
+        assert data.collar is not None
+        assert data.raw is not None
+        assert data.raw[URL_ENSEMBLE_INVENTORY]
+        collar_raw = data.raw[URL_ENSEMBLE_INVENTORY]
+        collar = [
+            collar_type["devices"]
+            for collar_type in collar_raw
+            if collar_type["type"] == "COLLAR"
+        ]
+        assert collar
+        #  should be 1 type collar only
+        assert len(collar) == 1
+        # should be only 1 collar entry in list
+        assert len(collar[0]) == 1
+        # verify model field value matches raw data value
+        assert data.collar.serial_number == collar[0][0]["serial_num"]
+        assert data.collar.admin_state_str == collar[0][0]["admin_state_str"]
+        assert data.collar.mid_state == collar[0][0]["mid_state"]
+        assert data.collar.grid_state == collar[0][0]["grid_state"]
+        assert data.collar.collar_state == collar[0][0]["collar_state"]
+    else:
+        assert data.collar is None
+
+    if supported_features & SupportedFeatures.C6CC:
+        # Test combiner data
+        assert data.c6cc is not None
+        assert data.raw is not None
+        assert data.raw[URL_ENSEMBLE_INVENTORY]
+        c6cc_raw = data.raw[URL_ENSEMBLE_INVENTORY]
+        c6cc = [
+            c6cc_type["devices"]
+            for c6cc_type in c6cc_raw
+            if c6cc_type["type"] == "C6 COMBINER CONTROLLER"
+        ]
+        assert c6cc
+        #  should be 1 type collar only
+        assert len(c6cc) == 1
+        # should be only 1 collar entry in list
+        assert len(c6cc[0]) == 1
+        # verify model field value matches raw data value
+        assert data.c6cc.admin_state_str == c6cc[0][0]["admin_state_str"]
+        assert data.c6cc.serial_number == c6cc[0][0]["serial_num"]
+    else:
+        assert data.c6cc is None
