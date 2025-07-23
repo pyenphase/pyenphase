@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .acb import EnvoyACBPower, EnvoyBatteryAggregate
+from .c6combiner import EnvoyC6CC
+from .collar import EnvoyCollar
 from .dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from .enpower import EnvoyEnpower
@@ -36,6 +38,10 @@ class EnvoyData:
     acb_power: EnvoyACBPower | None = None
     #: aggregated Enphase and ACB battery SOC and total capacity
     battery_aggregate: EnvoyBatteryAggregate | None = None
+    #: IQ Meter collar, only for Envoy with IQ Meter Collar integrated consumption metering installed
+    collar: EnvoyCollar | None = None
+    #: Envoy C6 Combiner controller
+    c6cc: EnvoyC6CC | None = None
     #: Consumption power & energy values, only for Envoy metered with CT installed
     system_consumption: EnvoySystemConsumption | None = None
     #: Solar Production power & energy values
