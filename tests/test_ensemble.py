@@ -943,6 +943,52 @@ async def test_with_7_x_firmware(
         assert data.collar.mid_state == collar[0][0]["mid_state"]
         assert data.collar.grid_state == collar[0][0]["grid_state"]
         assert data.collar.collar_state == collar[0][0]["collar_state"]
+
+        # test cov for empty data
+        json_data = await load_json_fixture(version, "ivp_ensemble_inventory")
+
+        # test missing key
+        del json_data[1]["devices"][0]["admin_state"]  # type: ignore[index]
+
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}/ivp/ensemble/inventory",
+            status=200,
+            payload=json_data,
+            repeat=True,
+        )
+        await envoy.probe()
+        data = await envoy.update()
+        assert data
+        assert data.collar is None
+
+        # test missing device
+        del json_data[1]["devices"]  # type: ignore[index]
+
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}/ivp/ensemble/inventory",
+            status=200,
+            payload=json_data,
+            repeat=True,
+        )
+        await envoy.probe()
+        data = await envoy.update()
+        assert data
+        assert data.collar is None
+
+        # restore from prior changes
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}/ivp/ensemble/inventory",
+            status=200,
+            payload=await load_json_fixture(version, "ivp_ensemble_inventory"),
+            repeat=True,
+        )
+
     else:
         assert data.collar is None
 
@@ -965,5 +1011,50 @@ async def test_with_7_x_firmware(
         # verify model field value matches raw data value
         assert data.c6cc.admin_state_str == c6cc[0][0]["admin_state_str"]
         assert data.c6cc.serial_number == c6cc[0][0]["serial_num"]
+
+        # test cov for empty data
+        json_data = await load_json_fixture(version, "ivp_ensemble_inventory")
+
+        # test missing key
+        del json_data[2]["devices"][0]["admin_state"]  # type: ignore[index]
+
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}/ivp/ensemble/inventory",
+            status=200,
+            payload=json_data,
+            repeat=True,
+        )
+        await envoy.probe()
+        data = await envoy.update()
+        assert data
+        assert data.c6cc is None
+
+        # test missing device
+        del json_data[2]["devices"]  # type: ignore[index]
+
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}/ivp/ensemble/inventory",
+            status=200,
+            payload=json_data,
+            repeat=True,
+        )
+        await envoy.probe()
+        data = await envoy.update()
+        assert data
+        assert data.c6cc is None
+
+        # restore from prior changes
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}/ivp/ensemble/inventory",
+            status=200,
+            payload=await load_json_fixture(version, "ivp_ensemble_inventory"),
+            repeat=True,
+        )
     else:
         assert data.c6cc is None

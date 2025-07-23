@@ -24,8 +24,22 @@ class EnvoyC6CC:
     dmir_version: str
 
     @classmethod
-    def from_api(cls, inventory: dict[str, Any]) -> EnvoyC6CC:
+    def from_api(cls, inventory: dict[str, Any]) -> EnvoyC6CC | None:
         """Initialize from the API."""
+        required_keys = [
+            "admin_state",
+            "admin_state_str",
+            "communicating",
+            "img_load_date",
+            "installed",
+            "last_rpt_date",
+            "part_num",
+            "serial_num",
+            "dmir_version",
+        ]
+        missing_keys = [key for key in required_keys if key not in inventory]
+        if missing_keys:
+            return None
         return cls(
             admin_state=inventory["admin_state"],
             admin_state_str=inventory["admin_state_str"],

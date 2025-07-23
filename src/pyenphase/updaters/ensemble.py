@@ -145,8 +145,9 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
             for item in ensemble_inventory_data:
                 if item["type"] != "COLLAR":
                     continue
-                collar_data = item["devices"][0]
-                envoy_data.collar = EnvoyCollar.from_api(collar_data)
+                if item.get("devices"):
+                    collar_data = item["devices"][0]
+                    envoy_data.collar = EnvoyCollar.from_api(collar_data)
 
         # C6 Combiner seems like a single instance only
         if supported_features & SupportedFeatures.C6CC:
@@ -154,5 +155,6 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
             for item in ensemble_inventory_data:
                 if item["type"] != "C6 COMBINER CONTROLLER":
                     continue
-                c6cc_data = item["devices"][0]
-                envoy_data.c6cc = EnvoyC6CC.from_api(c6cc_data)
+                if item.get("devices"):
+                    c6cc_data = item["devices"][0]
+                    envoy_data.c6cc = EnvoyC6CC.from_api(c6cc_data)

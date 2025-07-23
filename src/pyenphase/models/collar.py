@@ -29,8 +29,27 @@ class EnvoyCollar:
     collar_state: str
 
     @classmethod
-    def from_api(cls, inventory: dict[str, Any]) -> EnvoyCollar:
+    def from_api(cls, inventory: dict[str, Any]) -> EnvoyCollar | None:
         """Initialize from the API."""
+        required_keys = [
+            "admin_state",
+            "admin_state_str",
+            "communicating",
+            "img_load_date",
+            "img_pnum_running",
+            "installed",
+            "last_rpt_date",
+            "part_num",
+            "serial_num",
+            "temperature",
+            "mid_state",
+            "grid_state",
+            "control_error",
+            "collar_state",
+        ]
+        missing_keys = [key for key in required_keys if key not in inventory]
+        if missing_keys:
+            return None
         return cls(
             admin_state=inventory["admin_state"],
             admin_state_str=inventory["admin_state_str"],
