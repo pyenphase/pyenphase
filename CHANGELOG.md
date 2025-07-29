@@ -1,6 +1,30 @@
 # CHANGELOG
 
 
+## v2.2.3 (2025-07-29)
+
+### Bug Fixes
+
+- 3RD-PV is not a valid DryContactType ([#313](https://github.com/pyenphase/pyenphase/pull/313),
+  [`de641a6`](https://github.com/pyenphase/pyenphase/commit/de641a69330e87ad8b854dc43c127804d5e4d314))
+
+- 3RD-PV is not a valid DryContactType - add new type
+  ([#313](https://github.com/pyenphase/pyenphase/pull/313),
+  [`de641a6`](https://github.com/pyenphase/pyenphase/commit/de641a69330e87ad8b854dc43c127804d5e4d314))
+
+### Chores
+
+- **deps**: Bump aiohttp from 3.12.13 to 3.12.14
+  ([#307](https://github.com/pyenphase/pyenphase/pull/307),
+  [`b1be28b`](https://github.com/pyenphase/pyenphase/commit/b1be28ba71960b8eacb1a1d110631adb5703313b))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#310](https://github.com/pyenphase/pyenphase/pull/310),
+  [`189adbc`](https://github.com/pyenphase/pyenphase/commit/189adbc963488ada345e7873818bd36483d0c2ef))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#308](https://github.com/pyenphase/pyenphase/pull/308),
+  [`7378188`](https://github.com/pyenphase/pyenphase/commit/7378188512565b6a0fff311aaf029f600d4dc7f4))
+
+
 ## v2.2.2 (2025-07-16)
 
 ### Bug Fixes
