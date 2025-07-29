@@ -27,7 +27,7 @@ LOGGER = logging.getLogger(__name__)
         (
             "8.3.5167_3rd-pv",
             {
-                "NC1": DryContactType.THRDPV,
+                "NC1": DryContactType.THIRD_PARTY_PV,
                 "NC2": DryContactType.NONE,
                 "NO1": DryContactType.NONE,
                 "NO2": DryContactType.NONE,

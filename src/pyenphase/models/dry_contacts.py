@@ -25,7 +25,7 @@ class DryContactType(StrEnum):
     NONE = "NONE"
     PV = "PV"
     LOAD = "LOAD"
-    THRDPV = "3RD-PV"
+    THIRD_PARTY_PV = "3RD-PV"
 
 
 class DryContactMode(StrEnum):
