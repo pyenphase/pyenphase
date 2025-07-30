@@ -1,0 +1,123 @@
+[
+    {
+        "type": "ENCHARGE",
+        "devices": [
+            {
+                "part_num": "836-01250-r00",
+                "serial_num": "492516006337",
+                "installed": 1752939764,
+                "device_status": [
+                    "envoy.global.ok",
+                    "prop.done"
+                ],
+                "last_rpt_date": 1752974610,
+                "admin_state": 63,
+                "admin_state_str": "ENCMN_MDE_ENCHARGE_READY",
+                "created_date": 1752939764,
+                "img_load_date": 1752939764,
+                "img_pnum_running": "4.5.35",
+                "bmu_fw_version": "4.5.35",
+                "communicating": true,
+                "sleep_enabled": false,
+                "percentFull": 92,
+                "temperature": 32,
+                "maxCellTemp": 33,
+                "reported_enc_grid_state": "grid-tied",
+                "comm_level_sub_ghz": 0,
+                "comm_level_2_4_ghz": 0,
+                "led_status": 12,
+                "dc_switch_off": false,
+                "encharge_rev": 4,
+                "encharge_capacity": 5000,
+                "phase": "ph-a",
+                "der_index": 2
+            },
+            {
+                "part_num": "836-01250-r00",
+                "serial_num": "492517004892",
+                "installed": 1752939763,
+                "device_status": [
+                    "envoy.global.ok",
+                    "prop.done"
+                ],
+                "last_rpt_date": 1752974529,
+                "admin_state": 63,
+                "admin_state_str": "ENCMN_MDE_ENCHARGE_READY",
+                "created_date": 1752939763,
+                "img_load_date": 1752939763,
+                "img_pnum_running": "4.5.35",
+                "bmu_fw_version": "4.5.35",
+                "communicating": true,
+                "sleep_enabled": false,
+                "percentFull": 86,
+                "temperature": 33,
+                "maxCellTemp": 33,
+                "reported_enc_grid_state": "grid-tied",
+                "comm_level_sub_ghz": 0,
+                "comm_level_2_4_ghz": 0,
+                "led_status": 12,
+                "dc_switch_off": false,
+                "encharge_rev": 4,
+                "encharge_capacity": 5000,
+                "phase": "ph-a",
+                "der_index": 2
+            }
+        ]
+    },
+    {
+        "type": "COLLAR",
+        "devices": [
+            {
+                "part_num": "865-00400-r22",
+                "serial_num": "482520020939",
+                "installed": 1752939759,
+                "device_status": [
+                    "envoy.global.ok",
+                    "prop.done"
+                ],
+                "last_rpt_date": 1752939759,
+                "admin_state": 88,
+                "admin_state_str": "ENCMN_MDE_ON_GRID",
+                "created_date": 1752939759,
+                "img_load_date": 1752939759,
+                "img_pnum_running": "3.0.6-D0",
+                "communicating": true,
+                "temperature": 42,
+                "mid_state": "close",
+                "grid_state": "on_grid",
+                "control_error": 0,
+                "collar_state": "Installed"
+            }
+        ]
+    },
+    {
+        "type": "C6 COMBINER CONTROLLER",
+        "devices": [
+            {
+                "part_num": "800-02403-r08",
+                "serial_num": "482523040549",
+                "installed": 1752945451,
+                "last_rpt_date": 1752945451,
+                "admin_state": 82,
+                "admin_state_str": "ENCMN_C6_CC_READY",
+                "created_date": 1752945451,
+                "img_load_date": 1752945451,
+                "fw_version": "0.1.20-D1",
+                "dmir_version": "0.1.20-D1",
+                "communicating": true
+            }
+        ]
+    },
+    {
+        "type": "C6 RGM",
+        "devices": [
+            {
+                "part_num": "800-02403-r08",
+                "serial_num": "482523040550",
+                "installed": 1752939759,
+                "FW Version": "2.2.1-D4119",
+                "Device State": 80
+            }
+        ]
+    }
+]
