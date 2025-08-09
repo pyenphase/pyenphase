@@ -101,6 +101,8 @@ class SupportedFeatures(enum.IntFlag):
     GENERATOR = 2048  #: Envoy reports generator data
     ACB = 4096  #: Envoy reports ACB Battery data
     DETAILED_INVERTERS = 8192  #: Detailed inverter data is reported
+    COLLAR = 0x4000  #: Envoy reports a Collar
+    C6CC = 0x8000  #: Envoy reports a C6 Combiner controller
 
 
 class PhaseNames(enum.StrEnum):

@@ -280,6 +280,28 @@
   :member-order: bysource
 ```
 
+## EnvoyCollar
+
+```{eval-rst}
+.. automodule:: pyenphase.models.collar
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+
+```
+
+## EnvoyC6CC
+
+```{eval-rst}
+.. automodule:: pyenphase.models.c6combiner
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+
+```
+
 ## CT Meters
 
 ```{eval-rst}
