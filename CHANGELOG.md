@@ -1,6 +1,38 @@
 # CHANGELOG
 
 
+## v2.3.0 (2025-08-13)
+
+### Chores
+
+- **deps**: Bump aiohttp from 3.12.14 to 3.12.15
+  ([#316](https://github.com/pyenphase/pyenphase/pull/316),
+  [`83d07aa`](https://github.com/pyenphase/pyenphase/commit/83d07aaf8bc7ee5f2fa65e58ed940b79a572a79a))
+
+- **deps**: Bump awesomeversion from 25.5.0 to 25.8.0
+  ([#317](https://github.com/pyenphase/pyenphase/pull/317),
+  [`2144c90`](https://github.com/pyenphase/pyenphase/commit/2144c909c96d2870cff5d342eb9156642f4f0630))
+
+- **deps**: Bump orjson from 3.10.18 to 3.11.1
+  ([#314](https://github.com/pyenphase/pyenphase/pull/314),
+  [`231de76`](https://github.com/pyenphase/pyenphase/commit/231de768e6f3594caadd1eac3bf35e0bf0452f76))
+
+- **deps-dev**: Bump pytest-asyncio from 1.0.0 to 1.1.0
+  ([#315](https://github.com/pyenphase/pyenphase/pull/315),
+  [`04cbb38`](https://github.com/pyenphase/pyenphase/commit/04cbb38344c38a3476b1f17f80b07fc381846df6))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#318](https://github.com/pyenphase/pyenphase/pull/318),
+  [`6ed4108`](https://github.com/pyenphase/pyenphase/commit/6ed4108d17c956757b8b36d83d70ab2508c68912))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#312](https://github.com/pyenphase/pyenphase/pull/312),
+  [`e5560b7`](https://github.com/pyenphase/pyenphase/commit/e5560b7463b39ab5ab8f62663b39af5d22401814))
+
+### Features
+
+- Add iq meter collar and c6 combiner data ([#311](https://github.com/pyenphase/pyenphase/pull/311),
+  [`47a2365`](https://github.com/pyenphase/pyenphase/commit/47a23655e426da3346e150e759fc91a03904d52a))
+
+
 ## v2.2.3 (2025-07-29)
 
 ### Bug Fixes
