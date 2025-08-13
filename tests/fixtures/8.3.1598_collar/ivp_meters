@@ -1,0 +1,65 @@
+[
+    {
+        "eid": 704643328,
+        "state": "enabled",
+        "measurementType": "production",
+        "phaseMode": "split",
+        "phaseCount": 2,
+        "meteringStatus": "normal",
+        "statusFlags": []
+    },
+    {
+        "eid": 704643584,
+        "state": "enabled",
+        "measurementType": "net-consumption",
+        "phaseMode": "split",
+        "phaseCount": 2,
+        "meteringStatus": "normal",
+        "statusFlags": []
+    },
+    {
+        "eid": 704643840,
+        "state": "enabled",
+        "measurementType": "storage",
+        "phaseMode": "split",
+        "phaseCount": 2,
+        "meteringStatus": "normal",
+        "statusFlags": []
+    },
+    {
+        "eid": 704644352,
+        "state": "enabled",
+        "measurementType": "backfeed",
+        "phaseMode": "split",
+        "phaseCount": 2,
+        "meteringStatus": "normal",
+        "statusFlags": []
+    },
+    {
+        "eid": 704644608,
+        "state": "disabled",
+        "measurementType": "load",
+        "phaseMode": "split",
+        "phaseCount": 2,
+        "meteringStatus": "normal",
+        "statusFlags": []
+    },
+    {
+        "eid": 704644864,
+        "state": "disabled",
+        "measurementType": "evse",
+        "phaseMode": "split",
+        "phaseCount": 2,
+        "meteringStatus": "normal",
+        "statusFlags": []
+    },
+    {
+        "eid": 704645120,
+        "state": "disabled",
+        "measurementType": "pv3p",
+        "phaseMode": "split",
+        "phaseCount": 2,
+        "meteringStatus": "normal",
+        "statusFlags": []
+    }
+]

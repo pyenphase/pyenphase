@@ -12,6 +12,8 @@ from .exceptions import (
     EnvoyProbeFailed,
 )
 from .models.acb import EnvoyACBPower, EnvoyBatteryAggregate
+from .models.c6combiner import EnvoyC6CC
+from .models.collar import EnvoyCollar
 from .models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .models.encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from .models.enpower import EnvoyEnpower
@@ -45,5 +47,7 @@ __all__ = (
     "EnvoyBatteryAggregate",
     "EnvoyDryContactSettings",
     "EnvoyDryContactStatus",
+    "EnvoyCollar",
+    "EnvoyC6CC",
     "EnvoyTariff",
 )

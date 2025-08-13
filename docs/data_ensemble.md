@@ -81,3 +81,14 @@ The Envoy class provides the methods [Envoy.enable_charge_from_grid](#pyenphase.
         print (status)
 
 ```
+
+## IQ Metered Collar data
+
+The Enphase IQ Meter Collar is a meter socket adapter with an integrated microgrid interconnection device (MID) and current
+sensors for energy consumption metering. The CT sensors in the collar provide the [net-consumption](./data_ctmeter.md#consumption-ct-options) data.
+
+The MID status is available in the [EnvoyCollar](#pyenphase.models.collar.EnvoyCollar) data object.
+
+## C6 Combiner data
+
+The C6 Combiner status is available in the [EnvoyC6CC](#pyenphase.models.c6combiner.EnvoyC6CC) data object.
