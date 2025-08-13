@@ -26,7 +26,7 @@ class EnvoyC6CC:
     @classmethod
     def from_api(cls, inventory: dict[str, Any]) -> EnvoyC6CC | None:
         """Initialize from the API."""
-        required_keys = [
+        C6CC_REQUIRED_KEYS = [
             "admin_state",
             "admin_state_str",
             "communicating",
@@ -37,7 +37,7 @@ class EnvoyC6CC:
             "serial_num",
             "dmir_version",
         ]
-        missing_keys = [key for key in required_keys if key not in inventory]
+        missing_keys = [key for key in C6CC_REQUIRED_KEYS if key not in inventory]
         if missing_keys:
             return None
         return cls(
