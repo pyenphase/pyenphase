@@ -41,8 +41,8 @@ class EnvoyC6CC:
 
     @classmethod
     def from_api(cls, inventory: dict[str, Any]) -> EnvoyC6CC | None:
-        """Initialize from the API."""
-        missing_keys = list(C6CC_REQUIRED_KEYS - set(inventory))
+        """Initialize from the API. Returns None if required keys are missing."""
+        missing_keys = C6CC_REQUIRED_KEYS - set(inventory)
         if missing_keys:
             return None
         return cls(
