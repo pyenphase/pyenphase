@@ -7,6 +7,26 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+# Required keys for IQ Meter Collar inventories
+COLLAR_REQUIRED_KEYS: frozenset[str] = frozenset(
+    {
+        "admin_state",
+        "admin_state_str",
+        "communicating",
+        "img_load_date",
+        "img_pnum_running",
+        "installed",
+        "last_rpt_date",
+        "part_num",
+        "serial_num",
+        "temperature",
+        "mid_state",
+        "grid_state",
+        "control_error",
+        "collar_state",
+    }
+)
+
 
 @dataclass(slots=True)
 class EnvoyCollar:
@@ -31,23 +51,7 @@ class EnvoyCollar:
     @classmethod
     def from_api(cls, inventory: dict[str, Any]) -> EnvoyCollar | None:
         """Initialize from the API."""
-        COLLAR_REQUIRED_KEYS = [
-            "admin_state",
-            "admin_state_str",
-            "communicating",
-            "img_load_date",
-            "img_pnum_running",
-            "installed",
-            "last_rpt_date",
-            "part_num",
-            "serial_num",
-            "temperature",
-            "mid_state",
-            "grid_state",
-            "control_error",
-            "collar_state",
-        ]
-        missing_keys = [key for key in COLLAR_REQUIRED_KEYS if key not in inventory]
+        missing_keys = list(COLLAR_REQUIRED_KEYS - set(inventory))
         if missing_keys:
             return None
         return cls(
