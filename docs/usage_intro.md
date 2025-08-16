@@ -2,11 +2,11 @@
 
 ## Setup
 
-Access to the Envoy device requires specifying its ip address or dns name when creating an Instance of the [Envoy class](#pyenphase.Envoy).
+Access to the Envoy device requires specifying its IP address or DNS name when constructing the {py:class}`pyenphase.Envoy`.
 
-Next the envoy serial number and active firmware version should be obtained to identify which authentication method is required. Use the [setup method](#pyenphase.Envoy.setup).
+Next, the Envoy serial number and active firmware version should be obtained to identify which authentication method is required. Use {py:meth}`pyenphase.Envoy.setup`.
 
-Once the firmware version is known, [authentication](./usage_authentication.md#authentication) can take place using the required parameters for the firmware. The [authenticate method](#pyenphase.Envoy.authenticate) requires a username, password, and, in some cases, a JWT Token—[depending on the active firmware](./usage_authentication.md#authentication).
+Once the firmware version is known, [authentication](./usage_authentication.md#authentication) can take place using the required parameters for the firmware. The {py:meth}`pyenphase.Envoy.authenticate` method requires a username, password, and, in some cases, a JWT token—[depending on the active firmware](./usage_authentication.md#authentication).
 
 ```python
 from pyenphase import Envoy, EnvoyData
@@ -26,6 +26,7 @@ for HTTP communication. The caller can optionally specify a client session when 
 If no client session is specified, pyenphase will create one.
 
 The client session created by pyenphase must be closed at application exit. Use {py:meth}`pyenphase.Envoy.close` to close the created session.
+If you supplied your own aiohttp ClientSession, {py:meth}`pyenphase.Envoy.close` will not close it; you remain responsible for closing it.
 
 ```python
 from pyenphase import Envoy, EnvoyData
@@ -43,7 +44,7 @@ await envoy.close()
 
 ## Update
 
-Upon authentication completion, the data can be collected (repeatedly) using the [update method](#pyenphase.Envoy.update).
+Upon authentication completion, data can be collected (repeatedly) using {py:meth}`pyenphase.Envoy.update`.
 
 ```python
 
