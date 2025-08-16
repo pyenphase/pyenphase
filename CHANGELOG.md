@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v2.3.1 (2025-08-16)
+
+### Bug Fixes
+
+- Error asyncio unclosed client session at app close
+  ([#319](https://github.com/pyenphase/pyenphase/pull/319),
+  [`b59a71d`](https://github.com/pyenphase/pyenphase/commit/b59a71ddcd25803d14c24ae6857f86f463ab36e8))
+
+### Chores
+
+- Enable additional ruff linting rules for code quality improvements
+  ([#320](https://github.com/pyenphase/pyenphase/pull/320),
+  [`b10df2f`](https://github.com/pyenphase/pyenphase/commit/b10df2fd7dc4a7198bfad9f9b265443df7840683))
+
+
 ## v2.3.0 (2025-08-13)
 
 ### Chores
