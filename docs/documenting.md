@@ -123,6 +123,26 @@ Use the \_\_init\_\_ of a class to document the class parameters.
 
 ## Documentation structure
 
+### Document links
+
+Direct links to code autodoc from documentation markup files should be done using MyST cross-references where possible. See the [python domain](https://www.sphinx-doc.org/en/master/usage/domains/python.html) for reference.
+
+```
+{py:class}`pyenphase.Envoy`
+{py:meth}`pyenphase.Envoy.setup`
+{py:data}`pyenphase.const.SupportedFeatures.PRODUCTION`
+```
+
+resulting in {py:class}`pyenphase.Envoy`, {py:meth}`pyenphase.Envoy.setup` and {py:data}`pyenphase.const.SupportedFeatures.PRODUCTION`.
+
+URL lnk style for abbreviation can be used, but might generate a doc parser warning.
+
+```text
+[PRODUCTION](#pyenphase.const.SupportedFeatures.PRODUCTION)
+```
+
+resulting in [PRODUCTION](#pyenphase.const.SupportedFeatures.PRODUCTION) versus {py:data}`pyenphase.const.SupportedFeatures.PRODUCTION`
+
 ### index.md
 
 This is the documentation backbone, building the table of content and including all the individual documentation markdown files. As it's a markdown file itself, it is utilizing [sphynx directives](https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html) to achieve this. In the markdown file place the directive in a fenced block with the directive between {}. The syntax between the fences is now as described for the sphynx directives.
