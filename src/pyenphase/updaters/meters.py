@@ -129,11 +129,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                     self.storage_meter_eid = meter["eid"]
                 self.ct_meters_count += 1
                 self.phase_mode = meter["phaseMode"]
-                self.phase_count = (
-                    meter["phaseCount"]
-                    if meter["phaseCount"] > self.phase_count
-                    else self.phase_count
-                )
+                self.phase_count = max(self.phase_count, meter["phaseCount"])
 
         # report phase configuration in envoy common property
         self._set_common_properties()
