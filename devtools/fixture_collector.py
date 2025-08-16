@@ -43,13 +43,13 @@ async def main(
         await envoy.setup()
     except EnvoyFirmwareFatalCheckError as err:
         print(f"Could not connect to Envoy: {err.status_code} {err.status}")
-        return None
+        return
 
     try:
         await envoy.authenticate(username=username, password=password, token=token)
     except EnvoyAuthenticationRequired:
         print("Could not athenticate with Envoy")
-        return None
+        return
 
     target_dir = f"enphase-{envoy.firmware}{label}"
     try:
