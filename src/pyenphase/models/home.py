@@ -49,42 +49,43 @@ class EnvoyInterfaceInformation:
             .. code-block:: json
 
                 {
-                "software_build_epoch": 1719503966,
-                "timezone": "Europe/Amsterdam",
-                "current_date": "04/24/2025",
-                "current_time": "14:53",
-                "network": {
-                    "web_comm": true,
-                    "ever_reported_to_enlighten": true,
-                    "last_enlighten_report_time": 1745499043,
-                    "primary_interface": "eth0",
-                    "interfaces": [
-                    {
-                        "type": "ethernet",
-                        "interface": "eth0",
-                        "mac": "00:1D:C0:7F:B6:3B",
-                        "dhcp": true,
-                        "ip": "192.168.3.112",
-                        "signal_strength": 1,
-                        "signal_strength_max": 1,
-                        "carrier": true
-                    },
-                    {
-                        "signal_strength": 0,
-                        "signal_strength_max": 0,
-                        "type": "wifi",
-                        "interface": "wlan0",
-                        "mac": "60:E8:5B:AB:9D:64",
-                        "dhcp": true,
-                        "ip": null,
-                        "carrier": false,
-                        "supported": true,
-                        "present": true,
-                        "configured": false,
-                        "status": "connecting"
+                    "software_build_epoch": 1719503966,
+                    "timezone": "Europe/Amsterdam",
+                    "current_date": "04/24/2025",
+                    "current_time": "14:53",
+                    "network": {
+                        "web_comm": true,
+                        "ever_reported_to_enlighten": true,
+                        "last_enlighten_report_time": 1745499043,
+                        "primary_interface": "eth0",
+                        "interfaces": [
+                            {
+                                "type": "ethernet",
+                                "interface": "eth0",
+                                "mac": "00:1D:C0:7F:B6:3B",
+                                "dhcp": true,
+                                "ip": "192.168.3.112",
+                                "signal_strength": 1,
+                                "signal_strength_max": 1,
+                                "carrier": true
+                            },
+                            {
+                                "signal_strength": 0,
+                                "signal_strength_max": 0,
+                                "type": "wifi",
+                                "interface": "wlan0",
+                                "mac": "60:E8:5B:AB:9D:64",
+                                "dhcp": true,
+                                "ip": null,
+                                "carrier": false,
+                                "supported": true,
+                                "present": true,
+                                "configured": false,
+                                "status": "connecting"
+                            }
+                        ]
                     }
-                ]
-            }
+                }
 
         :param data: json returned by /home endpoint
         :return: Envoy interface configuration information
