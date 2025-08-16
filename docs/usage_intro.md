@@ -1,14 +1,12 @@
 # Data collection
 
-## Update
+## Setup
 
-Access to the Envoy device requires specifying its ip address or dns name when creating an Instance of the [Envoy class](#pyenphase.Envoy).
+Access to the Envoy device requires specifying its IP address or DNS name when constructing the {py:class}`pyenphase.Envoy`.
 
-Next the envoy serial number and active firmware version should be obtained to identify which authentication method is required. Use the [setup method](#pyenphase.Envoy.setup).
+Next, the Envoy serial number and active firmware version should be obtained to identify which authentication method is required. Use {py:meth}`pyenphase.Envoy.setup`.
 
-Once the firmware version is known, [authentication](./usage_authentication.md#authentication) can take place using the required parameters for the firmware. The [authenticate method](#pyenphase.Envoy.authenticate) requires a username, password, and, in some cases, a JWT Token—[depending on the active firmware](./usage_authentication.md#authentication).
-
-Upon authentication completion, the data can be collected (repeatedly) using the [update method](#pyenphase.Envoy.update).
+Once the firmware version is known, [authentication](./usage_authentication.md#authentication) can take place using the required parameters for the firmware. The {py:meth}`pyenphase.Envoy.authenticate` method requires a username, password, and, in some cases, a JWT token—[depending on the active firmware](./usage_authentication.md#authentication).
 
 ```python
 from pyenphase import Envoy, EnvoyData
@@ -19,13 +17,44 @@ print(f'Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}')
 
 await envoy.authenticate(username=username, password=password, token=token)
 
+```
+
+## Close
+
+The Envoy class uses an [aiohttp client session](https://docs.aiohttp.org/en/stable/client_reference.html)
+for HTTP communication. The caller can optionally specify a client session when constructing the {py:class}`pyenphase.Envoy`.
+If no client session is specified, pyenphase will create one.
+
+The client session created by pyenphase must be closed at application exit. Use {py:meth}`pyenphase.Envoy.close` to close the created session.
+If you supplied your own aiohttp ClientSession, {py:meth}`pyenphase.Envoy.close` will not close it; you remain responsible for closing it.
+
+```python
+from pyenphase import Envoy, EnvoyData
+
+envoy = Envoy(host_ip_or_name)
+await envoy.setup()
+print(f'Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}')
+
+await envoy.authenticate(username=username, password=password, token=token)
+
+data: EnvoyData = await envoy.update()
+
+await envoy.close()
+```
+
+## Update
+
+Upon authentication completion, data can be collected (repeatedly) using {py:meth}`pyenphase.Envoy.update`.
+
+```python
+
 while True:
     data: EnvoyData = await envoy.update()
 
     print(f'Watts: {data.system_production.watts_now}')
     print(f'TodaysEnergy: {data.system_production.watt_hours_today}')
-    print(f'LifetimeEnergy {data.system_production.watt_hours_lifetime}')
-    print(f'Last7DaysEnergy {data.system_production.watt_hours_last_7_days}')
+    print(f'LifetimeEnergy: {data.system_production.watt_hours_lifetime}')
+    print(f'Last7DaysEnergy: {data.system_production.watt_hours_last_7_days}')
 
     await asyncio.sleep(some_time)
 ```

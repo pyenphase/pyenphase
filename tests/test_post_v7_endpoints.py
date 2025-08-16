@@ -177,3 +177,61 @@ async def test_multiple_inverter_sources(
     UPDATERS.clear()
     for updater in original_updaters:
         register_updater(updater)
+
+
+@pytest.mark.parametrize(
+    "version",
+    [
+        "8.2.4264_metered_noct",
+        "7.6.114_without_cts",
+        "7.3.466_metered_disabled_cts",
+    ],
+    ids=[
+        "8.2.4264_metered_noct",
+        "7.6.114_without_cts",
+        "7.3.466_metered_disabled_cts",
+    ],
+)
+@pytest.mark.asyncio
+async def test_client_session_close(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test client session close code COV."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+
+    # pass aiohttp client session for envoy to use
+    envoy = await get_mock_envoy(client_session=test_client_session)
+    data = envoy.data
+    assert data is not None
+    assert envoy._client is not None
+    assert not envoy._client.closed
+    await envoy.close()
+    # it's our client, pyenphase will not close it on close
+    assert not envoy._client.closed
+
+    # test with pyenphase internal created client
+    envoy2 = await get_mock_envoy(client_session=None)
+    data = envoy2.data
+    assert data is not None
+    assert envoy2._client is not None
+    assert not envoy2._client.closed
+    await envoy2.close()
+    # it's pyenphase's client, will close it on close
+    assert envoy2._client.closed
+
+    envoy3 = await get_mock_envoy(client_session=None)
+    data = envoy3.data
+    assert data is not None
+    assert not envoy3._client.closed
+
+    # force close internal envoy client for cov test
+    await envoy3._client.close()
+    assert envoy3._client.closed
+    await envoy3.close()
+    # was closed already, should still be closed.
+    assert envoy3._client.closed

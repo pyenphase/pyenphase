@@ -157,6 +157,8 @@ class Envoy:
                 token=token
             )
             await envoy.update()
+            # ...
+            await envoy.close()
 
         :param host: Envoy DNS name or IP address
         :param client: aiohttp ClientSession not verifying SSL
@@ -168,6 +170,7 @@ class Envoy:
         self._timeout = timeout or LOCAL_TIMEOUT
         connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
         self._client = client or aiohttp.ClientSession(connector=connector)  # nosec
+        self._user_client = client is not None
         self.auth: EnvoyAuth | None = None
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
@@ -198,6 +201,25 @@ class Envoy:
         await self._firmware.setup()
         # force refetch of interface data next time requested
         self._interface_settings = None
+
+    async def close(self) -> None:
+        """
+        Close or clean anything opened or created on behalf of the caller.
+
+        Should be called when ending application, if:
+
+        - no aiohttp ClientSession was specified for the Envoy:
+
+          - the pyenphase-created ClientSession will be closed.
+
+        - an aiohttp ClientSession was provided by the caller:
+
+          - Envoy will not close the provided session; the caller remains responsible.
+
+        :return: None
+        """
+        if not self._user_client and not self._client.closed:
+            await self._client.close()
 
     async def authenticate(
         self,
