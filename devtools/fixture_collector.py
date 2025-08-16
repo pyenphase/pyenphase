@@ -49,7 +49,7 @@ async def main(
     try:
         await envoy.authenticate(username=username, password=password, token=token)
     except EnvoyAuthenticationRequired:
-        print("Could not athenticate with Envoy")
+        print("Could not authenticate with Envoy")
         return
 
     target_dir = f"enphase-{envoy.firmware}{label}"
