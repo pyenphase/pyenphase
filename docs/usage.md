@@ -10,6 +10,8 @@ await envoy.setup()
 
 await envoy.authenticate(username=username, password=password, token=token)
 data: EnvoyData = await envoy.update()
+
+await envoy.close()
 ```
 
 ```{toctree}
