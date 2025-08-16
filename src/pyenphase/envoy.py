@@ -157,8 +157,7 @@ class Envoy:
                 token=token
             )
             await envoy.update()
-            .
-            .
+            # ...
             await envoy.close()
 
         :param host: Envoy DNS name or IP address
