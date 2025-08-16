@@ -218,9 +218,8 @@ class Envoy:
 
         :return: None
         """
-        if not self._user_client:
-            if not self._client.closed:
-                await self._client.close()
+        if not self._user_client and not self._client.closed:
+            await self._client.close()
 
     async def authenticate(
         self,
