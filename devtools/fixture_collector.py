@@ -12,6 +12,7 @@ network connectivity to your Home Assistant config folder and the Envoy.
 
 import argparse
 import asyncio
+import contextlib
 import getpass
 import json
 import logging
@@ -52,10 +53,8 @@ async def main(
         return
 
     target_dir = f"enphase-{envoy.firmware}{label}"
-    try:
+    with contextlib.suppress(FileExistsError):
         os.mkdir(target_dir)
-    except FileExistsError:
-        pass
 
     end_points = [
         "/info",
