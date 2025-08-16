@@ -31,7 +31,7 @@ class CommonProperties:
     #: each utilizing a different updater. This list will be filled
     #: with candidate updaters to use.
     production_fallback_list: list[str] = field(
-        default_factory=list[str]
+        default_factory=list
     )  #: Fallback production endpoints for Metered without CT
 
     #: ACB batteries report current power in production and in ensemble secctl
