@@ -22,10 +22,10 @@ await envoy.authenticate(username=username, password=password, token=token)
 ## Close
 
 The Envoy class uses an [aiohttp client session](https://docs.aiohttp.org/en/stable/client_reference.html)
-for http communication. The caller can optionally specify a client session when [instantiating the class](#pyenphase.Envoy).
+for HTTP communication. The caller can optionally specify a client session when constructing the {py:class}`pyenphase.Envoy`.
 If no client session is specified, pyenphase will create one.
 
-The client session created by pyenphase must be closed at application exit. Use [envoy.close()](#pyenphase.Envoy.close) to close the created session.
+The client session created by pyenphase must be closed at application exit. Use {py:meth}`pyenphase.Envoy.close` to close the created session.
 
 ```python
 from pyenphase import Envoy, EnvoyData
