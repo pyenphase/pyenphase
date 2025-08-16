@@ -208,9 +208,13 @@ class Envoy:
 
         Should be called when ending application, if:
 
-        - no aiohttp Client session was specified for Envoy class:
+        - no aiohttp ClientSession was specified for the Envoy:
 
-          - the pyenphase created client session will be closed
+          - the pyenphase-created ClientSession will be closed.
+
+        - an aiohttp ClientSession was provided by the caller:
+
+          - Envoy will not close the provided session; the caller remains responsible.
 
         :return: None
         """
