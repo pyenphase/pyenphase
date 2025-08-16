@@ -138,7 +138,7 @@ def latest_request(
     """Return count of matched request and last request data."""
     requests = [
         req
-        for req in mock_aioresponse.requests.keys()
+        for req in mock_aioresponse.requests
         if req[0] == method and url in str(req[1])
     ]
     if not requests:
