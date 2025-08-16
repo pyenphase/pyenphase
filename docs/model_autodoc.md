@@ -1,44 +1,11 @@
 # Classes, methods and properties
 
-<!---
-```{eval-rst}
-.. automodule:: pyenphase
-  :members:
-```
-
-```{eval-rst}
-.. automodule:: pyenphase.updaters.base
-  :members:
-
-```
-
-```{eval-rst}
-.. automodule:: pyenphase.firmware
-  :members:
-
-```
-
-## Const
-```{eval-rst}
-.. automodule:: pyenphase.const
-  :members:
-
-```
-
-## Exceptions
-```{eval-rst}
-.. automodule:: pyenphase.exceptions
-  :members:
-
-```
--->
-
 ```{eval-rst}
 .. autoclass:: pyenphase.Envoy
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
   :class-doc-from: init
 ```
 
@@ -47,7 +14,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
   :class-doc-from: init
 ```
 
@@ -56,7 +23,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
   :class-doc-from: init
 ```
 
@@ -65,7 +32,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
   :class-doc-from: init
 ```
 
@@ -74,7 +41,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
   :class-doc-from: init
 ```
 
@@ -83,15 +50,17 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ```{eval-rst}
 .. automodule:: pyenphase.const
   :members:
+  :exclude-members: SupportedFeatures
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
+
 ```
 
 ```{eval-rst}
@@ -99,20 +68,46 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
+  :exclude-members: CommonProperties
 
 ```
 
-# Updaters
+```{include} updaters.md
+
+```
+
+## Supported Features
+
+```{eval-rst}
+.. autoclass:: pyenphase.const.SupportedFeatures
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: alphabetical
+```
 
 ## Base class
 
 ```{eval-rst}
-.. automodule:: pyenphase.updaters.base
+.. autoclass:: pyenphase.updaters.base.EnvoyUpdater
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
+  :private-members:
+  :class-doc-from: init
+```
+
+## Common Properties
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.common.CommonProperties
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: alphabetical
+
 ```
 
 ## production
@@ -122,7 +117,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ```{eval-rst}
@@ -130,7 +125,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## Inverters
@@ -140,7 +135,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 
 ```
 
@@ -151,7 +146,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 
 ```
 
@@ -162,7 +157,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 
 ```
 
@@ -173,7 +168,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 
 ```
 
@@ -186,7 +181,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## EnvoySystemConsumption
@@ -196,7 +191,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## EnvoyInverter
@@ -206,7 +201,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 
 ```
 
@@ -217,7 +212,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## EnvoyEnchargeAggregate
@@ -227,7 +222,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## EnvoyEnchargePower
@@ -237,7 +232,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## EnvoyEnpower
@@ -247,7 +242,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## ACBPower
@@ -257,7 +252,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## Envoy Aggregate Battery SOC
@@ -267,7 +262,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## EnvoyDryContactSettings
@@ -277,7 +272,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## EnvoyCollar
@@ -287,7 +282,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 
 ```
 
@@ -298,7 +293,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 
 ```
 
@@ -309,7 +304,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## Interface data
@@ -319,7 +314,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 # Utilities
@@ -333,7 +328,7 @@ Helper functions for JSON.
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 ```
 
 ## SSL
@@ -351,67 +346,6 @@ Helper functions for JSON.
 .. automodule:: pyenphase.exceptions
   :members:
   :show-inheritance:
-  :member-order: bysource
+  :member-order: alphabetical
 
 ```
-
-<!---
-
-
-
-
-```{eval-rst}
-.. autoclass:: pyenphase.const.PhaseNames
-  :members:
-
-```
-
-```{eval-rst}
-.. autoclass:: pyenphase.models.inverter.EnvoyInverter
-  :members:
-
-```
-
-```{eval-rst}
-.. autoclass:: pyenphase.models.encharge.EnvoyEncharge
-  :members:
-
-```
-
-```{eval-rst}
-.. autoclass:: pyenphase.models.encharge.EnvoyEnchargeAggregate
-  :members:
-
-```
-
-```{eval-rst}
-.. autoclass:: pyenphase.models.encharge.EnvoyEnchargePower
-  :members:
-
-```
-
-```{eval-rst}
-.. autoclass:: pyenphase.models.enpower.EnvoyEnpower
-  :members:
-
-```
-
-```{eval-rst}
-.. autoclass:: pyenphase.models.dry_contacts.EnvoyDryContactSettings
-  :members:
-
-```
-
-```{eval-rst}
-.. autoclass:: pyenphase.models.dry_contacts.EnvoyDryContactStatus
-  :members:
-
-```
-
-```{eval-rst}
-.. autoclass:: pyenphase.updaters.tariff.EnvoyTariff
-  :members:
-
-```
-
--->
