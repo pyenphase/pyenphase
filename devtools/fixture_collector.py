@@ -19,7 +19,9 @@ import logging
 import os
 import zipfile
 
-from pyenphase.envoy import DEFAULT_HEADERS, Envoy
+from aiohttp import ClientResponse
+
+from pyenphase.envoy import Envoy
 from pyenphase.exceptions import (
     EnvoyAuthenticationRequired,
     EnvoyFirmwareFatalCheckError,
@@ -78,29 +80,35 @@ async def main(
         "/ivp/meters",
         "/ivp/meters/readings",
         "/ivp/pdm/device_data",
+        "/home",
+        "/inventory.json?deleted=1",
+        "/inv",
+        "/inventory",
+        "/ivp/pdm/energy",
+        "/ivp/meters/pvReading",
+        "/ivp/meters/gridReading",
+        "/ivp/meters/reports",
     ]
 
     assert envoy.auth  # nosec
 
     for end_point in end_points:
-        url = envoy.auth.get_endpoint_url(end_point)
+        # url = envoy.auth.get_endpoint_url(end_point)
         if verbose:
             print(end_point)
         try:
-            response = await envoy._client.get(
-                url,
-                headers={**DEFAULT_HEADERS, **envoy.auth.headers},
-                cookies=envoy.auth.cookies,
-                follow_redirects=True,
-                auth=envoy.auth.auth,
-                timeout=envoy._timeout,
-            )
+            response: ClientResponse = await envoy.request(end_point)
         except Exception as ex:
             _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
             continue
         file_name = end_point[1:].replace("/", "_").replace("?", "_").replace("=", "_")
         with open(os.path.join(target_dir, file_name), "w") as fixture_file:
-            fixture_file.write(response.text)
+            try:
+                response_text = await response.text()
+            except Exception as ex:
+                _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
+                continue
+            fixture_file.write(response_text)
 
         with open(
             os.path.join(target_dir, f"{file_name}_log.json"), "w"
@@ -109,7 +117,7 @@ async def main(
                 json.dumps(
                     {
                         "headers": dict(response.headers.items()),
-                        "code": response.status_code,
+                        "code": response.status,
                     }
                 )
             )
@@ -135,6 +143,8 @@ async def main(
             print(f"Could not clean folder: {err.strerror}")
         except FileNotFoundError:
             pass
+
+    await envoy.close()
 
 
 def _read_ha_config(file_path: str) -> dict[str, list[str | None]]:
