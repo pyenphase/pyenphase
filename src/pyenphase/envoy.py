@@ -694,7 +694,7 @@ class Envoy:
         for updater in self._updaters:
             try:
                 await updater.update(data)
-            except aiohttp.ClientError as err:
+            except aiohttp.ClientError as err:  # noqa: PERF203
                 raise EnvoyCommunicationError(f"aiohttp ClientError {err!s}") from err
             except asyncio.TimeoutError as err:
                 raise EnvoyCommunicationError(f"Timeout {err!s}") from err

@@ -1,5 +1,6 @@
 """Test endpoint for envoy v7 and newer firmware"""
 
+import contextlib
 import json
 import logging
 from typing import Any
@@ -1543,10 +1544,8 @@ async def test_with_7_x_firmware(
         )
     else:
         override_mock(mock_aioresponse, "get", f"{full_host}/production", status=404)
-    try:
+    with contextlib.suppress(EnvoyProbeFailed):
         await envoy.probe()
-    except EnvoyProbeFailed:
-        pass
 
     # test inverter device data with missing data fields
     if "ivp_pdm_device_data" in files:
