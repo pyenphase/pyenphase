@@ -1,4 +1,6 @@
-# Updater modification
+# Customizations
+
+Some options to customize the library behavior are available. This allows to add or remove [updaters](./updaters.md) to provide alternate sources for {py:class}`pyenphase.EnvoyData` or add new data to the {py:class}`raw data<pyenphase.EnvoyData.raw>`.
 
 ## Register updater
 
