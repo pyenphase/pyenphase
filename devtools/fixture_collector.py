@@ -266,7 +266,7 @@ if __name__ == "__main__":
             try:
                 with open(token[1:]) as f:
                     token = f.read()
-            except FileExistsError:
+            except FileNotFoundError:
                 token = None
         if not username and not token:
             username = os.environ.get("ENVOY_USERNAME", input("Enter the Username: "))
