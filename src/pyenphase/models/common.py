@@ -8,24 +8,35 @@ from ..models.meters import CtType, EnvoyPhaseMode
 @dataclass(slots=True)
 class CommonProperties:
     """
-    Model for common properties of an envoy shared amongst all updaters.
+    Model for common properties for EnvoyUpdater class updaters.
 
-    One set are properties set during probe to share amongst updaters
-    and with clients. These should be reset at each probe run.
+    Class :class:`EnvoyUpdater` implementations
+    each collect a specific data set or information that can be provided by
+    an Envoy. Depending on the actual model, firmware, and installed
+    an Envoy may need one or more updaters to provide all data
+    components, for :any:`pyenphase.Envoy.update`.
 
-    More properties can be added, originators should handle reset as needed
-    by adding to reset_probe_properties to reset at probe or in a different way
-    or leave existing all lifetime.
+    Although each updater has its specific scope, some may need to share
+    information or make operational information available. One set of
+    properties are used during probe to share amongst updaters and with
+    client applications. These should be reset at each probe run. A second
+    set of properties are specific for an updater during its runtime. The
+    updater is in control of resetting the property as needed.
     """
 
     # probe properties here, also add to reset_probe_properties
     # shared amongst production updaters, needs reset before probe
+    #: Probe property, Fallback production endpoints for Metered without CT.
+    #: Solar production data has to be collected from different
+    #: sources in the Envoy, depending on actual Envoy configuration,
+    #: each utilizing a different updater. This list will be filled
+    #: with candidate updaters to use.
     production_fallback_list: list[str] = field(
-        default_factory=list[str]
+        default_factory=list
     )  #: Fallback production endpoints for Metered without CT
 
-    #: ACB batteries report current power in production and in ensemble secctl
-    #: Ensemble updater should only report combined ACB en Encharge if production report has data
+    #: ACB batteries report current power in production and in the Ensemble SECCTRL endpoint
+    #: The Ensemble updater should only report combined ACB and Encharge if production reported data
     acb_batteries_reported: int = 0
 
     #: imeter flag from /info. If true envoy is metered type
@@ -35,38 +46,40 @@ class CommonProperties:
     # other properties from here, reset by originator
 
     # controlled by meters updater
-    phase_count: int = 0  #: number of phases configured in envoy
-    ct_meter_count: int = 0  #: number of active ct meters
-    phase_mode: EnvoyPhaseMode | None = None  #: phase mode configured in the CT meters
-    consumption_meter_type: CtType | None = (
-        None  #: What type of consumption meter is installed, if installed
-    )
-    production_meter_type: CtType | None = (
-        None  #: What type of production meter is installed, if installed
-    )
-    storage_meter_type: CtType | None = (
-        None  #: What type of storage meter is installed, if installed
-    )
-    # controlled by production updater
-    active_phase_count: int = 0  #: number of phases actually reporting phase data
+    #: meters updater, number of phases configured in envoy
+    phase_count: int = 0
+    #: meters updater, number of active ct meters
+    ct_meter_count: int = 0
+    #: meters updater, phase mode configured in the CT meters
+    phase_mode: EnvoyPhaseMode | None = None
+    #: meters updater, what type of consumption meter is installed, if installed
+    consumption_meter_type: CtType | None = None
+    #: meters updater, what type of production meter is installed, if installed
+    production_meter_type: CtType | None = None
+    #: meters updater, what type of storage meter is installed, if installed
+    storage_meter_type: CtType | None = None
 
-    # controlled by
-    # none_probe_property: str = "hello world" #: test
+    # controlled by production updater
+    #: production updater, number of phases actually reporting phase data
+    active_phase_count: int = 0
 
     def reset_probe_properties(self, is_metered: bool = False) -> None:
         """
-        Reset common properties that are initialized during probe.
+        Reset common properties at start of probe.
 
-        probe properties are reset at each probe to avoid sticking memories.
-        This should exclude common properties set outside of probe
-        or controlled by a specific updater, these should be reset at
-        different moments by different method by updaters or owner
+        Probe common properties are reset at each probe by :any:`Envoy.probe`
+        to avoid sticking values. This should only be done for common properties
+        shared among updaters. Any common properties set outside of probe or controlled
+        by a specific updater, should be reset at different moments by the
+        owner of the property.
 
-        reset properties:
+        Shared common properties to reset:
 
-            production_fallback_list shared amongst production updaters
-            ACB_batteries_reported shared between production and Ensemble
-            imeter_info setting from /info indicating envoy is metered type
+            - production_fallback_list shared amongst production updaters
+            - ACB_batteries_reported shared between production and Ensemble
+            - imeter_info setting from /info indicating envoy is metered type
+
+        :return: None
         """
         # shared amongst production updaters
         self.production_fallback_list = []
@@ -74,5 +87,3 @@ class CommonProperties:
 
         # shared between production and ensemble
         self.acb_batteries_reported = 0
-
-        # shared by
