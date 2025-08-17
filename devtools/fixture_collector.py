@@ -32,7 +32,7 @@ from pyenphase.exceptions import (
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_ENdPOINTS = [
+DEFAULT_ENDPOINTS = [
     "/info",
     "/api/v1/production",
     "/api/v1/production/inverters",
@@ -84,12 +84,14 @@ async def main(
         await envoy.setup()
     except EnvoyFirmwareFatalCheckError as err:
         print(f"Could not connect to Envoy: {err.status_code} {err.status}")
+        await envoy.close()
         return
 
     try:
         await envoy.authenticate(username=username, password=password, token=token)
     except EnvoyAuthenticationRequired:
         print("Could not authenticate with Envoy")
+        await envoy.close()
         return
 
     target_dir = f"enphase-{envoy.firmware}{label}"
@@ -98,7 +100,7 @@ async def main(
         if verbose:
             print(f"Created folder: {target_dir}")
 
-    end_points = endpoint_to_get if endpoint_to_get else DEFAULT_ENdPOINTS
+    end_points = endpoint_to_get if endpoint_to_get else DEFAULT_ENDPOINTS
 
     assert envoy.auth  # nosec
 
@@ -117,7 +119,7 @@ async def main(
             end_time: datetime = datetime.now()
             if verbose:
                 print(
-                    f"{end_point} reply text read in: {round((end_time - start_time).microseconds / 1000000, 2)}"
+                    f"{end_point} reply text read in: {round((end_time - start_time).total_seconds(), 2)}"
                 )
         except Exception as ex:
             _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
@@ -275,7 +277,7 @@ if __name__ == "__main__":
     target_ha_file: str = ""
 
     if args.ha_config_folder:
-        target_ha_file = os.path.join(read_ha_config, ".storage/core.config_entries")
+        target_ha_file = os.path.join(read_ha_config, ".storage", "core.config_entries")
         config_entries = _read_ha_config(target_ha_file)
     else:
         username = args.username
