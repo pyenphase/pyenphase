@@ -1,7 +1,7 @@
 """
 Create test fixture file set for pyenphase by scanning known endpoints on Envoy.
 
-execute python fixture_collector.py --help for directons
+execute python fixture_collector.py --help for directions
 
 Copy this file to the Home Assistant config folder. Open a terminal on your HA system
 Navigate to the config folder and execute python fixture_collector.py
@@ -117,10 +117,9 @@ async def main(
         try:
             response_text = await response.text()
             end_time: datetime = datetime.now()
+            duration_seconds = round((end_time - start_time).total_seconds(), 3)
             if verbose:
-                print(
-                    f"{end_point} reply text read in: {round((end_time - start_time).total_seconds(), 2)}"
-                )
+                print(f"{end_point} reply text read in: {duration_seconds}")
         except Exception as ex:
             _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
             continue
@@ -141,11 +140,24 @@ async def main(
         with open(
             os.path.join(target_dir, f"{file_name}_log.json"), "w", encoding="utf-8"
         ) as metadata_file:
+            # Remove potentially sensitive headers from being persisted to disk
+            sensitive = {
+                "authorization",
+                "cookie",
+                "set-cookie",
+                "x-auth-token",
+                "x-csrf-token",
+                "x-api-key",
+            }
+            safe_headers = {
+                k: v for k, v in response.headers.items() if k.lower() not in sensitive
+            }
             metadata_file.write(
                 json.dumps(
                     {
-                        "headers": dict(response.headers.items()),
+                        "headers": dict(safe_headers),
                         "code": response.status,
+                        "duration_seconds": duration_seconds,
                     }
                 )
             )
@@ -202,8 +214,8 @@ def _read_ha_config(file_path: str) -> dict[str, list[str | None]]:
 if __name__ == "__main__":
     description = (
         "Scan Enphase Envoy for endpoint list usable for pyenphase test fixtures. \
-        Creates output folder envoy_<firmware>[label] with results of scan.\
-        Zips content of created folder into envoy_<firmware>[label].zip.\
+        Creates output folder enphase-<firmware>[label] with results of scan.\
+        Zips content of created folder into enphase-<firmware>[label].zip.\
         \
         Optionally collect specified endpoints only.\
         "
