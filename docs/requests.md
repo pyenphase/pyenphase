@@ -8,7 +8,7 @@ await envoy.setup()
 await envoy.authenticate(username=username, password=password, token=token)
 
 myresponse: aiohttp.ClientResponse = await envoy.request('/my/own/endpoint')
-status_code = myresponse.status_code
+status_code = myresponse.status
 
 myjson_data = await myresponse.json()
 
@@ -23,7 +23,7 @@ You can run the package using {py:meth}`Envoy.request() <pyenphase.Envoy.request
 
 [^1]: This is a breaking change from version 1 where an httpx.Response was returned.
 
-To access the response data use either [aiohttp.ClientResponse.read()](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse.read) to access the whole response body as bytes, [aiohttp.ClientResponse.text()](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse.text) to get response body as decoded `str` or [aiohttp.ClientResponse.json()](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse.json) to read the body as JSON.
+To access the response data, use [aiohttp.ClientResponse.read()](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse.read) for the raw bytes, [aiohttp.ClientResponse.text()](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse.text) for a decoded `str`, or [aiohttp.ClientResponse.json()](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse.json) for a parsed JSON object.
 
 Note that `ClientResponse.json()` uses Python’s standard decoder `json.loads` by default. To use a different decoder, pass it via the `loads=` parameter, for example:
 
