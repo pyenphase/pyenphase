@@ -12,13 +12,16 @@ status_code = myresponse.status_code
 
 myjson_data = await myresponse.json()
 
+envoy.close()
 ```
 
-You can run the package using requests only (without calling probe and update), which provides an API into the Envoy without using the internally pre-configured data collections.
+You can run the package using {py:meth}`requests <pyenphase.Envoy.request>` only (without calling [probe](usage_intro.md#probe) and [update](usage_intro.md#update)), which provides an API into the Envoy without using the internally pre-configured data collections.
 
-## V2 Request
+## ClientResponse
 
-As of version 2, envoy.request returns an [aiohttp.ClientResponse](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse) as result. This is a breaking change from version 1 where an httpx.Response was returned.
+{py:meth}`Envoy.request() <pyenphase.Envoy.request>` returns an [aiohttp.ClientResponse](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse) as result. [^1]
+
+[^1]: This is a breaking change from version 1 where an httpx.Response was returned.
 
 To access the response data use either [aiohttp.ClientResponse.read()](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse.read) to access the whole response body as bytes, [aiohttp.ClientResponse.text()](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse.text) to get response body as decoded `str` or [aiohttp.ClientResponse.json()](https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientResponse.json) to read the body as JSON.
 
