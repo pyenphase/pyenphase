@@ -1,7 +1,7 @@
 """
 Create test fixture file set for pyenphase by scanning known endpoints on Envoy.
 
-execute python fixture_collector.py --help for directons
+execute python fixture_collector.py --help for directions
 
 Copy this file to the Home Assistant config folder. Open a terminal on your HA system
 Navigate to the config folder and execute python fixture_collector.py
@@ -18,8 +18,11 @@ import json
 import logging
 import os
 import zipfile
+from datetime import datetime
 
-from pyenphase.envoy import DEFAULT_HEADERS, Envoy
+from aiohttp import ClientResponse
+
+from pyenphase.envoy import Envoy
 from pyenphase.exceptions import (
     EnvoyAuthenticationRequired,
     EnvoyFirmwareFatalCheckError,
@@ -28,6 +31,38 @@ from pyenphase.exceptions import (
 # logging.basicConfig(level=logging.WARNING)
 
 _LOGGER = logging.getLogger(__name__)
+
+DEFAULT_ENDPOINTS = [
+    "/info",
+    "/api/v1/production",
+    "/api/v1/production/inverters",
+    "/production.json",
+    "/production.json?details=1",
+    "/production",
+    "/ivp/ensemble/power",
+    "/ivp/ensemble/inventory",
+    "/ivp/ensemble/dry_contacts",
+    "/ivp/ensemble/status",
+    "/ivp/ensemble/secctrl",
+    "/ivp/ss/dry_contact_settings",
+    "/admin/lib/tariff",
+    "/ivp/ss/gen_config",
+    "/ivp/ss/gen_schedule",
+    "/ivp/sc/pvlimit",
+    "/ivp/ss/pel_settings",
+    "/ivp/ensemble/generator",
+    "/ivp/meters",
+    "/ivp/meters/readings",
+    "/ivp/pdm/device_data",
+    "/home",
+    "/inventory.json?deleted=1",
+    "/inv",
+    "/inventory",
+    "/ivp/pdm/energy",
+    "/ivp/meters/pvReading",
+    "/ivp/meters/gridReading",
+    "/ivp/meters/reports",
+]
 
 
 async def main(
@@ -38,78 +73,91 @@ async def main(
     verbose: bool = False,
     label: str = "",
     clean: bool = False,
+    endpoint_to_get: list[str] | None = None,
 ) -> None:
-    envoy = Envoy(os.environ.get("ENVOY_HOST", envoy_address or "envoy.local"))
+    host_arg = envoy_address
+    env_host = os.environ.get("ENVOY_HOST")
+    host = host_arg or env_host or "envoy.local"
+    envoy = Envoy(host)
+
     try:
         await envoy.setup()
     except EnvoyFirmwareFatalCheckError as err:
         print(f"Could not connect to Envoy: {err.status_code} {err.status}")
+        await envoy.close()
         return
 
     try:
         await envoy.authenticate(username=username, password=password, token=token)
     except EnvoyAuthenticationRequired:
         print("Could not authenticate with Envoy")
+        await envoy.close()
         return
 
     target_dir = f"enphase-{envoy.firmware}{label}"
     with contextlib.suppress(FileExistsError):
         os.mkdir(target_dir)
+        if verbose:
+            print(f"Created folder: {target_dir}")
 
-    end_points = [
-        "/info",
-        "/api/v1/production",
-        "/api/v1/production/inverters",
-        "/production.json",
-        "/production.json?details=1",
-        "/production",
-        "/ivp/ensemble/power",
-        "/ivp/ensemble/inventory",
-        "/ivp/ensemble/dry_contacts",
-        "/ivp/ensemble/status",
-        "/ivp/ensemble/secctrl",
-        "/ivp/ss/dry_contact_settings",
-        "/admin/lib/tariff",
-        "/ivp/ss/gen_config",
-        "/ivp/ss/gen_schedule",
-        "/ivp/sc/pvlimit",
-        "/ivp/ss/pel_settings",
-        "/ivp/ensemble/generator",
-        "/ivp/meters",
-        "/ivp/meters/readings",
-        "/ivp/pdm/device_data",
-    ]
+    end_points = endpoint_to_get if endpoint_to_get else DEFAULT_ENDPOINTS
 
     assert envoy.auth  # nosec
 
     for end_point in end_points:
-        url = envoy.auth.get_endpoint_url(end_point)
+        # url = envoy.auth.get_endpoint_url(end_point)
         if verbose:
-            print(end_point)
+            print(f"Reading: {end_point}")
         try:
-            response = await envoy._client.get(
-                url,
-                headers={**DEFAULT_HEADERS, **envoy.auth.headers},
-                cookies=envoy.auth.cookies,
-                follow_redirects=True,
-                auth=envoy.auth.auth,
-                timeout=envoy._timeout,
-            )
+            start_time: datetime = datetime.now()
+            response: ClientResponse = await envoy.request(end_point)
         except Exception as ex:
             _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
             continue
-        file_name = end_point[1:].replace("/", "_").replace("?", "_").replace("=", "_")
-        with open(os.path.join(target_dir, file_name), "w") as fixture_file:
-            fixture_file.write(response.text)
+        try:
+            response_text = await response.text()
+            end_time: datetime = datetime.now()
+            duration_seconds = round((end_time - start_time).total_seconds(), 3)
+            if verbose:
+                print(f"{end_point} reply text read in: {duration_seconds}")
+        except Exception as ex:
+            _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
+            continue
+        file_name = (
+            end_point[1:]
+            .replace("/", "_")
+            .replace("?", "_")
+            .replace("=", "_")
+            .replace("&", "_")
+            .replace(" ", "_")
+        )
+        file_path = os.path.join(target_dir, file_name)
+        with open(file_path, "w", encoding="utf-8") as fixture_file:
+            fixture_file.write(response_text)
+            if verbose:
+                print(f"Creating: {fixture_file.name}")
 
         with open(
-            os.path.join(target_dir, f"{file_name}_log.json"), "w"
+            os.path.join(target_dir, f"{file_name}_log.json"), "w", encoding="utf-8"
         ) as metadata_file:
+            # Remove potentially sensitive headers from being persisted to disk
+            sensitive = {
+                "authorization",
+                "cookie",
+                "set-cookie",
+                "x-auth-token",
+                "x-csrf-token",
+                "x-api-key",
+            }
+            safe_headers = {
+                k: v for k, v in response.headers.items() if k.lower() not in sensitive
+            }
             metadata_file.write(
                 json.dumps(
                     {
-                        "headers": dict(response.headers.items()),
-                        "code": response.status_code,
+                        "headers": dict(safe_headers),
+                        "code": response.status,
+                        "duration_seconds": duration_seconds,
                     }
                 )
             )
@@ -135,6 +183,8 @@ async def main(
             print(f"Could not clean folder: {err.strerror}")
         except FileNotFoundError:
             pass
+
+    await envoy.close()
 
 
 def _read_ha_config(file_path: str) -> dict[str, list[str | None]]:
@@ -164,8 +214,10 @@ def _read_ha_config(file_path: str) -> dict[str, list[str | None]]:
 if __name__ == "__main__":
     description = (
         "Scan Enphase Envoy for endpoint list usable for pyenphase test fixtures. \
-        Creates output folder envoy_<firmware>[label] with results of scan.\
-        Zips content of created folder into envoy_<firmware>[label].zip.\
+        Creates output folder enphase-<firmware>[label] with results of scan.\
+        Zips content of created folder into enphase-<firmware>[label].zip.\
+        \
+        Optionally collect specified endpoints only.\
         "
     )
     parser = argparse.ArgumentParser(description=description)
@@ -190,12 +242,13 @@ if __name__ == "__main__":
         dest="ha_config_folder",
         help="Read envoyname, username, password and token from HA config folder.\
             Use -r path_to_ha_config_folder. Default is current folder.\
-                Overrides any specified username, password and token.",
+                Overrides any specified username, password and token.\
+                Reads <path_to_ha_config_folder>/.storage/core.config_entries.\
+            ",
     )
-
     parser.add_argument(
-        "-e",
-        "--envoyname",
+        "envoyname",
+        nargs="?",
         default="envoy.local",
         help="Envoy Name or IP address. IP is preferred, default is envoy.local",
     )
@@ -206,7 +259,14 @@ if __name__ == "__main__":
         "-p", "--password", help="Password (blank or for Enphase token website)"
     )
     parser.add_argument(
-        "-t", "--token", help="Enphase owner token or @path_to_file to read from file"
+        "-t",
+        "--token",
+        help="Enphase owner token or @path_to_file to read token from file",
+    )
+    parser.add_argument(
+        "-e",
+        "--endpoint",
+        help="Comma-separated list of endpoints to read (e.g. /info,/home). Endpoints start with /.",
     )
 
     args = parser.parse_args()
@@ -219,32 +279,37 @@ if __name__ == "__main__":
     password: str | None = args.password
     read_ha_config: str = args.ha_config_folder
     verbose: bool = args.verbose
+    endpoints: list[str] | None = (
+        [ep.strip() for ep in args.endpoint.split(",") if ep.strip()]
+        if args.endpoint
+        else []
+    )
 
     config_entries: dict[str, list[str | None]] = {}
     target_ha_file: str = ""
 
     if args.ha_config_folder:
-        target_ha_file = os.path.join(read_ha_config, ".storage/core.config_entries")
+        target_ha_file = os.path.join(read_ha_config, ".storage", "core.config_entries")
         config_entries = _read_ha_config(target_ha_file)
     else:
         username = args.username
         password = args.password
         token = args.token
-        if not username:
-            username = os.environ.get("ENVOY_USERNAME", input("Enter the Username: "))
-        if not password:
-            password = os.environ.get(
-                "ENVOY_PASSWORD", getpass.getpass("Enter the Password: ")
-            )
         if not token:
             token = os.environ.get("ENVOY_TOKEN", getpass.getpass("Enter the token: "))
         if token and token[0] == "@":
             try:
                 with open(token[1:]) as f:
                     token = f.read()
-            except FileExistsError:
+            except FileNotFoundError:
                 token = None
-        config_entries.update({"unknown": [host, username, password, token]})
+        if not username and not token:
+            username = os.environ.get("ENVOY_USERNAME", input("Enter the Username: "))
+        if not password and not token:
+            password = os.environ.get(
+                "ENVOY_PASSWORD", getpass.getpass("Enter the Password: ")
+            )
+        config_entries.update({"": [host, username, password, token]})
 
     for sn, configs in config_entries.items():
         host, username, password, token = configs
@@ -260,5 +325,6 @@ if __name__ == "__main__":
                 verbose=verbose,
                 label=args.label or "",
                 clean=args.clean,
+                endpoint_to_get=endpoints,
             )
         )

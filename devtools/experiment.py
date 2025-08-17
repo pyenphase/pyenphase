@@ -3,6 +3,8 @@ import logging
 import os
 from pprint import pprint
 
+from aiohttp import ClientResponse
+
 from pyenphase.envoy import Envoy
 
 logging.basicConfig(level=logging.DEBUG)
@@ -40,10 +42,11 @@ async def main() -> None:
 
     for end_point in end_points:
         try:
-            json_dict = await envoy.request(end_point)
+            response: ClientResponse = await envoy.request(end_point)
         except Exception as e:
             print(e)
             continue
+        json_dict = await response.json()
         print((end_point, "=" * 80))
         pprint(json_dict)
         print((end_point, "=" * 80))
