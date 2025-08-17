@@ -12,7 +12,7 @@ status_code = myresponse.status_code
 
 myjson_data = await myresponse.json()
 
-envoy.close()
+await envoy.close()
 ```
 
 You can run the package using {py:meth}`Envoy.request() <pyenphase.Envoy.request>` only (without calling [probe](usage_intro.md#probe) and [update](usage_intro.md#update)), which provides an API into the Envoy without using the internally pre-configured data collections.
