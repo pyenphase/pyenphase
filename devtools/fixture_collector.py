@@ -40,6 +40,7 @@ async def main(
     verbose: bool = False,
     label: str = "",
     clean: bool = False,
+    endpoint_to_get: list[str] | None = None,
 ) -> None:
     envoy = Envoy(os.environ.get("ENVOY_HOST", envoy_address or "envoy.local"))
     try:
@@ -57,45 +58,51 @@ async def main(
     target_dir = f"enphase-{envoy.firmware}{label}"
     with contextlib.suppress(FileExistsError):
         os.mkdir(target_dir)
+        if verbose:
+            print(f"Created folder: {target_dir}")
 
-    end_points = [
-        "/info",
-        "/api/v1/production",
-        "/api/v1/production/inverters",
-        "/production.json",
-        "/production.json?details=1",
-        "/production",
-        "/ivp/ensemble/power",
-        "/ivp/ensemble/inventory",
-        "/ivp/ensemble/dry_contacts",
-        "/ivp/ensemble/status",
-        "/ivp/ensemble/secctrl",
-        "/ivp/ss/dry_contact_settings",
-        "/admin/lib/tariff",
-        "/ivp/ss/gen_config",
-        "/ivp/ss/gen_schedule",
-        "/ivp/sc/pvlimit",
-        "/ivp/ss/pel_settings",
-        "/ivp/ensemble/generator",
-        "/ivp/meters",
-        "/ivp/meters/readings",
-        "/ivp/pdm/device_data",
-        "/home",
-        "/inventory.json?deleted=1",
-        "/inv",
-        "/inventory",
-        "/ivp/pdm/energy",
-        "/ivp/meters/pvReading",
-        "/ivp/meters/gridReading",
-        "/ivp/meters/reports",
-    ]
+    end_points = (
+        endpoint_to_get
+        if endpoint_to_get
+        else [
+            "/info",
+            "/api/v1/production",
+            "/api/v1/production/inverters",
+            "/production.json",
+            "/production.json?details=1",
+            "/production",
+            "/ivp/ensemble/power",
+            "/ivp/ensemble/inventory",
+            "/ivp/ensemble/dry_contacts",
+            "/ivp/ensemble/status",
+            "/ivp/ensemble/secctrl",
+            "/ivp/ss/dry_contact_settings",
+            "/admin/lib/tariff",
+            "/ivp/ss/gen_config",
+            "/ivp/ss/gen_schedule",
+            "/ivp/sc/pvlimit",
+            "/ivp/ss/pel_settings",
+            "/ivp/ensemble/generator",
+            "/ivp/meters",
+            "/ivp/meters/readings",
+            "/ivp/pdm/device_data",
+            "/home",
+            "/inventory.json?deleted=1",
+            "/inv",
+            "/inventory",
+            "/ivp/pdm/energy",
+            "/ivp/meters/pvReading",
+            "/ivp/meters/gridReading",
+            "/ivp/meters/reports",
+        ]
+    )
 
     assert envoy.auth  # nosec
 
     for end_point in end_points:
         # url = envoy.auth.get_endpoint_url(end_point)
         if verbose:
-            print(end_point)
+            print(f"Reading: {end_point}")
         try:
             response: ClientResponse = await envoy.request(end_point)
         except Exception as ex:
@@ -109,6 +116,8 @@ async def main(
                 _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
                 continue
             fixture_file.write(response_text)
+            if verbose:
+                print(f"Creating: {fixture_file.name}")
 
         with open(
             os.path.join(target_dir, f"{file_name}_log.json"), "w"
@@ -132,7 +141,7 @@ async def main(
             if clean:
                 os.remove(os.path.join(target_dir, file_name))
 
-    print(f"Zip file written to {zip_file_name}")
+    print(f"Files added to {zip_file_name}")
 
     if clean:
         try:
@@ -176,6 +185,8 @@ if __name__ == "__main__":
         "Scan Enphase Envoy for endpoint list usable for pyenphase test fixtures. \
         Creates output folder envoy_<firmware>[label] with results of scan.\
         Zips content of created folder into envoy_<firmware>[label].zip.\
+        \
+        Optionally collect specified endpoints only.\
         "
     )
     parser = argparse.ArgumentParser(description=description)
@@ -200,14 +211,15 @@ if __name__ == "__main__":
         dest="ha_config_folder",
         help="Read envoyname, username, password and token from HA config folder.\
             Use -r path_to_ha_config_folder. Default is current folder.\
-                Overrides any specified username, password and token.",
+                Overrides any specified username, password and token.\
+                Reads <path_to_ha_config_folder>/.storage/core.config_entries>.\
+            ",
     )
-
     parser.add_argument(
-        "-e",
-        "--envoyname",
+        "envoyname",
         default="envoy.local",
         help="Envoy Name or IP address. IP is preferred, default is envoy.local",
+        nargs="*",
     )
     parser.add_argument(
         "-u", "--username", help="Username (for Envoy or for Enphase token website)"
@@ -216,7 +228,14 @@ if __name__ == "__main__":
         "-p", "--password", help="Password (blank or for Enphase token website)"
     )
     parser.add_argument(
-        "-t", "--token", help="Enphase owner token or @path_to_file to read from file"
+        "-t",
+        "--token",
+        help="Enphase owner token or @path_to_file to read token from file",
+    )
+    parser.add_argument(
+        "-e",
+        "--endpoint",
+        help="read this endpoint(list) only. Endpoints start with /.",
     )
 
     args = parser.parse_args()
@@ -224,11 +243,12 @@ if __name__ == "__main__":
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    host = args.envoyname
+    host = args.envoyname[0] if args.envoyname else "envoy.local"
     username: str | None = args.username
     password: str | None = args.password
     read_ha_config: str = args.ha_config_folder
     verbose: bool = args.verbose
+    endpoints: list[str] | None = args.endpoint.split(",") if args.endpoint else []
 
     config_entries: dict[str, list[str | None]] = {}
     target_ha_file: str = ""
@@ -240,12 +260,6 @@ if __name__ == "__main__":
         username = args.username
         password = args.password
         token = args.token
-        if not username:
-            username = os.environ.get("ENVOY_USERNAME", input("Enter the Username: "))
-        if not password:
-            password = os.environ.get(
-                "ENVOY_PASSWORD", getpass.getpass("Enter the Password: ")
-            )
         if not token:
             token = os.environ.get("ENVOY_TOKEN", getpass.getpass("Enter the token: "))
         if token and token[0] == "@":
@@ -254,7 +268,13 @@ if __name__ == "__main__":
                     token = f.read()
             except FileExistsError:
                 token = None
-        config_entries.update({"unknown": [host, username, password, token]})
+        if not username and not token:
+            username = os.environ.get("ENVOY_USERNAME", input("Enter the Username: "))
+        if not password and not token:
+            password = os.environ.get(
+                "ENVOY_PASSWORD", getpass.getpass("Enter the Password: ")
+            )
+        config_entries.update({"": [host, username, password, token]})
 
     for sn, configs in config_entries.items():
         host, username, password, token = configs
@@ -270,5 +290,6 @@ if __name__ == "__main__":
                 verbose=verbose,
                 label=args.label or "",
                 clean=args.clean,
+                endpoint_to_get=endpoints,
             )
         )
