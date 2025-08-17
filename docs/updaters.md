@@ -2,10 +2,10 @@
 
 ## Introduction
 
-Available data from the Envoy depends on the actual model, firmware, and installed components. The pyenphase library internally implements _Updaters_ to obtain the data. Each updater is specialized for one or more members of {py:class}`pyenphase.EnvoyData` and its _Probe_ method is called by {py:meth}`pyenphase.Envoy.probe` to detect whether the Envoy offers a specific dataset. If so, the probe method will return what data features it supports. If any are returned, the updaters _Update_ method is then used by {py:meth}`pyenphase.Envoy.update` to collect the actual data.
+Available data from the Envoy depends on the actual model, firmware, and installed components. The pyenphase library internally implements _Updaters_ to obtain the data. Each updater is specialized for one or more members of {py:class}`pyenphase.EnvoyData`, and its _Probe_ method is called by {py:meth}`pyenphase.Envoy.probe` to detect whether the Envoy offers a specific dataset. If supported, the method returns the relevant feature mask. If any features are returned, the updater’s update() method is then used by {py:meth}`pyenphase.Envoy.update` to collect the actual data.
 
 The various datasets relate to one or more {py:class}`pyenphase.const.SupportedFeatures` feature flags. For example, the
-{py:data}`pyenphase.const.SupportedFeatures.PRODUCTION` supported feature flag relates to the
+{py:attr}`pyenphase.const.SupportedFeatures.PRODUCTION` supported feature flag relates to the
 {py:class}`pyenphase.models.system_production.EnvoySystemProduction` data class which reports Solar production values. This flag can be set by either {py:class}`pyenphase.updaters.production.EnvoyProductionUpdater` or {py:class}`pyenphase.updaters.api_v1_production.EnvoyApiV1ProductionUpdater` updaters.
 
 Multiple updaters may exist to provide data for a single dataset/feature. For example, Solar production data which is provided by all models may come from different sources. In the most basic Envoy model this data comes from a different endpoint compared to an Envoy equipped with Current Transformers. In both cases the updaters must be able to provide the same data for the {py:class}`pyenphase.models.system_production.EnvoySystemProduction` data class. This can be implemented in the same updater or in multiple updaters.

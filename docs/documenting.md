@@ -130,15 +130,15 @@ Direct links to code autodoc from documentation markup files should be done usin
 ```text
 {py:class}`pyenphase.Envoy`
 {py:meth}`pyenphase.Envoy.setup`
-{py:data}`pyenphase.const.SupportedFeatures.PRODUCTION`
+{py:attr}`pyenphase.const.SupportedFeatures.PRODUCTION`
 ```
 
-resulting in {py:class}`pyenphase.Envoy`, {py:meth}`pyenphase.Envoy.setup` and {py:data}`pyenphase.const.SupportedFeatures.PRODUCTION`.
+resulting in {py:class}`pyenphase.Envoy`, {py:meth}`pyenphase.Envoy.setup` and {py:attr}`pyenphase.const.SupportedFeatures.PRODUCTION`.
 
-URL-style anchor links can be used, but they are fragile and may generate parser warnings. Prefer role-based links such as {py:data}`pyenphase.const.SupportedFeatures.PRODUCTION`. If shorter names are preferred use one of:
+URL-style anchor links can be used, but they are fragile and may generate parser warnings. Prefer role-based links such as {py:attr}`pyenphase.const.SupportedFeatures.PRODUCTION`. If shorter names are preferred use one of:
 
 ```text
-{py:data}`~pyenphase.const.SupportedFeatures.PRODUCTION`
+{py:attr}`~pyenphase.const.SupportedFeatures.PRODUCTION`
 {py:meth}`setup method <pyenphase.Envoy.setup>`
 ```
 
