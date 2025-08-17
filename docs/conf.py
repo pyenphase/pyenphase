@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "pyenphase"
-copyright = "2023-2024, pyenphase"
+copyright = "2023-2025, pyenphase"
 author = "pyenphase"
 release = "|release|"
 

@@ -127,7 +127,7 @@ Use the \_\_init\_\_ of a class to document the class parameters.
 
 Direct links to code autodoc from documentation markup files should be done using MyST cross-references where possible. See the [python domain](https://www.sphinx-doc.org/en/master/usage/domains/python.html) for reference.
 
-```
+```text
 {py:class}`pyenphase.Envoy`
 {py:meth}`pyenphase.Envoy.setup`
 {py:data}`pyenphase.const.SupportedFeatures.PRODUCTION`
@@ -135,13 +135,14 @@ Direct links to code autodoc from documentation markup files should be done usin
 
 resulting in {py:class}`pyenphase.Envoy`, {py:meth}`pyenphase.Envoy.setup` and {py:data}`pyenphase.const.SupportedFeatures.PRODUCTION`.
 
-URL link style for abbreviation can be used, but it might generate a doc parser warning.
+URL-style anchor links can be used, but they are fragile and may generate parser warnings. Prefer role-based links such as {py:data}`pyenphase.const.SupportedFeatures.PRODUCTION`. If shorter names are preferred use one of:
 
 ```text
-[PRODUCTION](#pyenphase.const.SupportedFeatures.PRODUCTION)
+{py:data}`~pyenphase.const.SupportedFeatures.PRODUCTION`
+{py:meth}`setup method <pyenphase.Envoy.setup>`
 ```
 
-resulting in [PRODUCTION](#pyenphase.const.SupportedFeatures.PRODUCTION) versus {py:data}`pyenphase.const.SupportedFeatures.PRODUCTION`
+resulting in {py:data}`~pyenphase.const.SupportedFeatures.PRODUCTION` and {py:meth}`setup method <pyenphase.Envoy.setup>`
 
 ### index.md
 

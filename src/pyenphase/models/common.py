@@ -10,10 +10,11 @@ class CommonProperties:
     """
     Model for common properties for EnvoyUpdater class updaters.
 
-    Class :any:`EnvoyUpdater` updaters each collect a specific data set
-    or information that can be provided by an Envoy. Depending on actual
-    make, firmware and installed components an actual Envoy will need
-    1 or more updater to provide all data for :any:`Envoy.update`.
+    Class :class:`EnvoyUpdater` implementations
+    each collect a specific data set or information that can be provided by
+    an Envoy. Depending on the actual model, firmware, and installed
+    an Envoy may need one or more updaters to provide all data
+    components, for :any:`pyenphase.Envoy.update`.
 
     Although each updater has its specific scope, some may need to share
     information or make operational information available. One set of
@@ -34,8 +35,8 @@ class CommonProperties:
         default_factory=list
     )  #: Fallback production endpoints for Metered without CT
 
-    #: ACB batteries report current power in production and in ensemble secctl
-    #: Ensemble updater should only report combined ACB en Encharge if production report has data
+    #: ACB batteries report current power in production and in the Ensemble SECCTRL endpoint
+    #: The Ensemble updater should only report combined ACB and Encharge if production reported data
     acb_batteries_reported: int = 0
 
     #: imeter flag from /info. If true envoy is metered type
@@ -62,9 +63,6 @@ class CommonProperties:
     #: production updater, number of phases actually reporting phase data
     active_phase_count: int = 0
 
-    # controlled by xyz updater
-    #: xyz updater, none_probe_property: str = "hello world" #: test
-
     def reset_probe_properties(self, is_metered: bool = False) -> None:
         """
         Reset common properties at start of probe.
@@ -89,5 +87,3 @@ class CommonProperties:
 
         # shared between production and ensemble
         self.acb_batteries_reported = 0
-
-        # shared by
