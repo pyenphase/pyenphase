@@ -67,18 +67,21 @@ class CommonProperties:
 
     def reset_probe_properties(self, is_metered: bool = False) -> None:
         """
-        Reset common properties that are initialized during probe.
+        Reset common properties at start of probe.
 
-        probe properties are reset at each probe to avoid sticking memories.
-        This should exclude common properties set outside of probe
-        or controlled by a specific updater, these should be reset at
-        different moments by different method by updaters or owner
+        Probe common properties are reset at each probe by :any:`Envoy.probe`
+        to avoid sticking values. This should only be done for common properties
+        shared among updaters. Any common properties set outside of probe or controlled
+        by a specific updater, should be reset at different moments by the
+        owner of the property.
 
-        reset properties:
+        Shared common properties to reset:
 
-            production_fallback_list shared amongst production updaters
-            ACB_batteries_reported shared between production and Ensemble
-            imeter_info setting from /info indicating envoy is metered type
+            - production_fallback_list shared amongst production updaters
+            - ACB_batteries_reported shared between production and Ensemble
+            - imeter_info setting from /info indicating envoy is metered type
+
+        :return: None
         """
         # shared amongst production updaters
         self.production_fallback_list = []

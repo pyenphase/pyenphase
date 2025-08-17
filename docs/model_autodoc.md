@@ -87,6 +87,17 @@
   :member-order: alphabetical
 ```
 
+## Common Properties
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.common.CommonProperties
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: alphabetical
+
+```
+
 ## Base class
 
 ```{eval-rst}
@@ -97,17 +108,6 @@
   :member-order: alphabetical
   :private-members:
   :class-doc-from: init
-```
-
-## Common Properties
-
-```{eval-rst}
-.. autoclass:: pyenphase.models.common.CommonProperties
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :member-order: alphabetical
-
 ```
 
 ## production
@@ -245,7 +245,7 @@
   :member-order: alphabetical
 ```
 
-## ACBPower
+## EnvoyACBPower
 
 ```{eval-rst}
 .. autoclass:: pyenphase.models.acb.EnvoyACBPower
@@ -265,7 +265,7 @@
   :member-order: alphabetical
 ```
 
-## EnvoyDryContactSettings
+## Envoy Dry Contacts
 
 ```{eval-rst}
 .. automodule:: pyenphase.models.dry_contacts
@@ -319,16 +319,12 @@
 
 # Utilities
 
-## Json
+## JSON
 
 Helper functions for JSON.
 
 ```{eval-rst}
-.. autoclass:: pyenphase.json.json_loads
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :member-order: alphabetical
+.. autofunction:: pyenphase.json.json_loads
 ```
 
 ## SSL

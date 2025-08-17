@@ -60,8 +60,8 @@ class EnvoyUpdater:
 
         :param end_point: Envoy endpoint to request. See :any:`Envoy.request`
         :raises EnvoyHTTPStatusError: If http status not in 2xx range
-        :raises Also See: :any:`Envoy.request`
         :return: JSON content from response
+        :seealso: :any:`Envoy.request`
         """
         response = await self._request(end_point)
         if not (200 <= response.status < 300):
@@ -82,8 +82,8 @@ class EnvoyUpdater:
 
         :param end_point: Envoy endpoint to request. See :any:`Envoy.probe`
         :raises EnvoyHTTPStatusError: If http status not in 2xx range
-        :raises Also See: :any:`Envoy.probe_request`
         :return: JSON content from response
+        :seealso: :any:`Envoy.probe_request`
         """
         response = await self._probe_request(end_point)
         if not (200 <= response.status < 300):
@@ -98,7 +98,7 @@ class EnvoyUpdater:
         Probe the Envoy for this updater and return SupportedFeatures.
 
         Updater must implement a probe method to report which features it supports.
-        Probe method of each registered updater is called by :any:'Envoy.probe'.
+        Probe method of each registered updater is called by :any:`Envoy.probe`.
         Intent of probe is to determine if this updater should be used
         to obtain the data in its scope from the Envoy. If the Envoy
         model does not provide the data the method should return None.
@@ -115,8 +115,17 @@ class EnvoyUpdater:
             async def probe(
                     self, discovered_features: SupportedFeatures
                 ) -> SupportedFeatures | None:
-                    \"\"\"Probe the Envoy for this endpoint and return SupportedFeatures.\"\"\"
-                    pass
+                \"\"\"Probe the Envoy for this endpoint and return SupportedFeatures.\"\"\"
+                if SupportedFeatures.MY_FEATURE in discovered_features:
+                    # Already discovered from another updater
+                    return None
+                try:
+                    json_data: dict[str, Any] = await self._json_probe_request(MY_ENDPOINT)
+                except ENDPOINT_PROBE_EXCEPTIONS as e:
+                    _LOGGER.debug("Endpoint not found at %s: %s", MY_ENDPOINT, e)
+                    return None
+                # process data
+                return SupportedFeatures.MY_FEATURE
 
         :param discovered_features: Mask of already discovered SupportedFeatures
         :return: Mask of SupportedFeatures to be added to already discovered
@@ -134,12 +143,15 @@ class EnvoyUpdater:
 
         The update method is expected to obtain the required data from
         the envoy, map it to the internal data model and store the data.
+        It should also store retrieved raw data in :any:`EnvoyData.raw`
 
         .. code-block:: python
 
             async def update(self, envoy_data: EnvoyData) -> None:
                 \"\"\"Get data from the Envoy and store in EnvoyData.\"\"\"
-                pass
+                json_data = await self._json_request(self.end_point)
+                envoy_data.raw[self.end_point] = json_data
+                # store applicable data in envoy_data
 
         :param envoy_data: Envoy data model to store collected data in
         """

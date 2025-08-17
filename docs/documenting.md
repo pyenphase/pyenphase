@@ -135,7 +135,7 @@ Direct links to code autodoc from documentation markup files should be done usin
 
 resulting in {py:class}`pyenphase.Envoy`, {py:meth}`pyenphase.Envoy.setup` and {py:data}`pyenphase.const.SupportedFeatures.PRODUCTION`.
 
-URL lnk style for abbreviation can be used, but might generate a doc parser warning.
+URL link style for abbreviation can be used, but it might generate a doc parser warning.
 
 ```text
 [PRODUCTION](#pyenphase.const.SupportedFeatures.PRODUCTION)
