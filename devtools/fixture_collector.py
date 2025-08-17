@@ -18,6 +18,7 @@ import json
 import logging
 import os
 import zipfile
+from datetime import datetime
 
 from aiohttp import ClientResponse
 
@@ -30,6 +31,38 @@ from pyenphase.exceptions import (
 # logging.basicConfig(level=logging.WARNING)
 
 _LOGGER = logging.getLogger(__name__)
+
+DEFAULT_ENdPOINTS = [
+    "/info",
+    "/api/v1/production",
+    "/api/v1/production/inverters",
+    "/production.json",
+    "/production.json?details=1",
+    "/production",
+    "/ivp/ensemble/power",
+    "/ivp/ensemble/inventory",
+    "/ivp/ensemble/dry_contacts",
+    "/ivp/ensemble/status",
+    "/ivp/ensemble/secctrl",
+    "/ivp/ss/dry_contact_settings",
+    "/admin/lib/tariff",
+    "/ivp/ss/gen_config",
+    "/ivp/ss/gen_schedule",
+    "/ivp/sc/pvlimit",
+    "/ivp/ss/pel_settings",
+    "/ivp/ensemble/generator",
+    "/ivp/meters",
+    "/ivp/meters/readings",
+    "/ivp/pdm/device_data",
+    "/home",
+    "/inventory.json?deleted=1",
+    "/inv",
+    "/inventory",
+    "/ivp/pdm/energy",
+    "/ivp/meters/pvReading",
+    "/ivp/meters/gridReading",
+    "/ivp/meters/reports",
+]
 
 
 async def main(
@@ -65,41 +98,7 @@ async def main(
         if verbose:
             print(f"Created folder: {target_dir}")
 
-    end_points = (
-        endpoint_to_get
-        if endpoint_to_get
-        else [
-            "/info",
-            "/api/v1/production",
-            "/api/v1/production/inverters",
-            "/production.json",
-            "/production.json?details=1",
-            "/production",
-            "/ivp/ensemble/power",
-            "/ivp/ensemble/inventory",
-            "/ivp/ensemble/dry_contacts",
-            "/ivp/ensemble/status",
-            "/ivp/ensemble/secctrl",
-            "/ivp/ss/dry_contact_settings",
-            "/admin/lib/tariff",
-            "/ivp/ss/gen_config",
-            "/ivp/ss/gen_schedule",
-            "/ivp/sc/pvlimit",
-            "/ivp/ss/pel_settings",
-            "/ivp/ensemble/generator",
-            "/ivp/meters",
-            "/ivp/meters/readings",
-            "/ivp/pdm/device_data",
-            "/home",
-            "/inventory.json?deleted=1",
-            "/inv",
-            "/inventory",
-            "/ivp/pdm/energy",
-            "/ivp/meters/pvReading",
-            "/ivp/meters/gridReading",
-            "/ivp/meters/reports",
-        ]
-    )
+    end_points = endpoint_to_get if endpoint_to_get else DEFAULT_ENdPOINTS
 
     assert envoy.auth  # nosec
 
@@ -108,7 +107,18 @@ async def main(
         if verbose:
             print(f"Reading: {end_point}")
         try:
+            start_time: datetime = datetime.now()
             response: ClientResponse = await envoy.request(end_point)
+        except Exception as ex:
+            _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
+            continue
+        try:
+            response_text = await response.text()
+            end_time: datetime = datetime.now()
+            if verbose:
+                print(
+                    f"{end_point} reply text read in: {round((end_time - start_time).microseconds / 1000000, 2)}"
+                )
         except Exception as ex:
             _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
             continue
@@ -120,19 +130,14 @@ async def main(
             .replace("&", "_")
             .replace(" ", "_")
         )
-        try:
-            response_text = await response.text()
-        except Exception as ex:
-            _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
-            continue
         file_path = os.path.join(target_dir, file_name)
-        with open(file_path, "w") as fixture_file:
+        with open(file_path, "w", encoding="utf-8") as fixture_file:
             fixture_file.write(response_text)
             if verbose:
                 print(f"Creating: {fixture_file.name}")
 
         with open(
-            os.path.join(target_dir, f"{file_name}_log.json"), "w"
+            os.path.join(target_dir, f"{file_name}_log.json"), "w", encoding="utf-8"
         ) as metadata_file:
             metadata_file.write(
                 json.dumps(
@@ -153,7 +158,7 @@ async def main(
             if clean:
                 os.remove(os.path.join(target_dir, file_name))
 
-    print(f"Files added to {zip_file_name}")
+    print(f"Zip file written to {zip_file_name}")
 
     if clean:
         try:
@@ -229,9 +234,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "envoyname",
+        nargs="?",
         default="envoy.local",
         help="Envoy Name or IP address. IP is preferred, default is envoy.local",
-        nargs="*",
     )
     parser.add_argument(
         "-u", "--username", help="Username (for Envoy or for Enphase token website)"
@@ -247,7 +252,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-e",
         "--endpoint",
-        help="read this endpoint(list) only. Endpoints start with /.",
+        help="Comma-separated list of endpoints to read (e.g. /info,/home). Endpoints start with /.",
     )
 
     args = parser.parse_args()
@@ -255,12 +260,16 @@ if __name__ == "__main__":
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    host = args.envoyname[0] if args.envoyname else "envoy.local"
+    host = args.envoyname
     username: str | None = args.username
     password: str | None = args.password
     read_ha_config: str = args.ha_config_folder
     verbose: bool = args.verbose
-    endpoints: list[str] | None = args.endpoint.split(",") if args.endpoint else []
+    endpoints: list[str] | None = (
+        [ep.strip() for ep in args.endpoint.split(",") if ep.strip()]
+        if args.endpoint
+        else []
+    )
 
     config_entries: dict[str, list[str | None]] = {}
     target_ha_file: str = ""
