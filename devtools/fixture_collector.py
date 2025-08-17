@@ -42,7 +42,11 @@ async def main(
     clean: bool = False,
     endpoint_to_get: list[str] | None = None,
 ) -> None:
-    envoy = Envoy(os.environ.get("ENVOY_HOST", envoy_address or "envoy.local"))
+    host_arg = envoy_address
+    env_host = os.environ.get("ENVOY_HOST")
+    host = host_arg or env_host or "envoy.local"
+    envoy = Envoy(host)
+
     try:
         await envoy.setup()
     except EnvoyFirmwareFatalCheckError as err:
@@ -108,13 +112,21 @@ async def main(
         except Exception as ex:
             _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
             continue
-        file_name = end_point[1:].replace("/", "_").replace("?", "_").replace("=", "_")
-        with open(os.path.join(target_dir, file_name), "w") as fixture_file:
-            try:
-                response_text = await response.text()
-            except Exception as ex:
-                _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
-                continue
+        file_name = (
+            end_point[1:]
+            .replace("/", "_")
+            .replace("?", "_")
+            .replace("=", "_")
+            .replace("&", "_")
+            .replace(" ", "_")
+        )
+        try:
+            response_text = await response.text()
+        except Exception as ex:
+            _LOGGER.debug("Error getting %s", end_point, exc_info=ex)
+            continue
+        file_path = os.path.join(target_dir, file_name)
+        with open(file_path, "w") as fixture_file:
             fixture_file.write(response_text)
             if verbose:
                 print(f"Creating: {fixture_file.name}")
@@ -212,7 +224,7 @@ if __name__ == "__main__":
         help="Read envoyname, username, password and token from HA config folder.\
             Use -r path_to_ha_config_folder. Default is current folder.\
                 Overrides any specified username, password and token.\
-                Reads <path_to_ha_config_folder>/.storage/core.config_entries>.\
+                Reads <path_to_ha_config_folder>/.storage/core.config_entries.\
             ",
     )
     parser.add_argument(
