@@ -32,6 +32,30 @@ This is the endpoint used for basic inverter production data.
 
 ```
 
+## /ivp/meters
+
+### description
+
+This is the endpoint used for installed CT meters configuration.
+
+### JSON
+
+```{literalinclude} ./json_data/ivp_meters.json
+
+```
+
+## /ivp/meters/readings
+
+### description
+
+This is the endpoint used for installed CT data.
+
+### JSON
+
+```{literalinclude} ./json_data/ivp_meters_readings.json
+
+```
+
 ## /ivp/pdm/device_data
 
 ### description

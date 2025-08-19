@@ -1,17 +1,16 @@
 # Current Transformer Data
 
-This is the data for installed current transformers (CT) for an Envoy-metered. Class [EnvoyMeterData](#pyenphase.models.meters.EnvoyMeterData).
+This is the data for installed current transformers (CT) for an Envoy-metered, class {py:class}`~pyenphase.models.meters.EnvoyMeterData`.
 
 Depending on how many and which CT are installed, data is available in:
 
-- [Envoy.data.ctmeter_production](#pyenphase.EnvoyData.ctmeter_production)
-- [Envoy.data.ctmeter_consumption](pyenphase.EnvoyData.ctmeter_consumption)
-- [Envoy.data.ctmeter_storage](pyenphase.EnvoyData.ctmeter_storage)
-- [Envoy.data.ctmeter_production_phases](pyenphase.EnvoyData.ctmeter_production_phases)
-- [Envoy.data.ctmeter_consumption_phases](pyenphase.EnvoyData.ctmeter_consumption_phases)
-- [Envoy.data.ctmeter_storage_phases](pyenphase.EnvoyData.ctmeter_storage_phases)
+- {py:class}`pyenphase.EnvoyData.ctmeter_production`
+- {py:class}`pyenphase.EnvoyData.ctmeter_consumption`
+- {py:class}`pyenphase.EnvoyData.ctmeter_storage`
 
-There is one ct for production, one for consumption and one for battery storage. One, 2 or all of these can be installed and enabled. Data is only available if CT's are enabled. Consumption CT can either be `net-consumption` installed on grid boundary or `total-consumption` measuring house load, see [ct-model](#ct-model) below.
+There is multiple types of CT that can be installed. The CT meter types are enumerated as `production`, `storage`, `net-consumption` and `total-consumption` by `pyenphase.models.meters.CtType`. One, or multiple of these can be installed and enabled. For multi-phase configurations there will be one on each phase.
+
+Consumption CT can either be `net-consumption` installed on grid boundary or `total-consumption` measuring house load, see [ct-model](#ct-model) below. The IQ Metered collar has a net-consumption` CT embedded.
 
 ```python
     data: EnvoyData = await envoy.update()
@@ -34,26 +33,26 @@ There is one ct for production, one for consumption and one for battery storage.
 
 ```
 
-To detect how many CT are installed use Envoy property [ct_meter_count](#pyenphase.Envoy.ct_meter_count). One can identify which CT meters are available by testing the [envoy.production_meter_type](#pyenphase.Envoy.production_meter_type), [envoy.consumption_meter_type](pyenphase.Envoy.consumption_meter_type) or [envoy.storage_meter_type](pyenphase.Envoy.storage_meter_type)
+To detect how many CT are installed use Envoy property {py:meth}`~pyenphase.Envoy.ct_meter_count`. One can identify which CT meters are available by testing the {py:meth}`~pyenphase.Envoy.production_meter_type`, {py:meth}`~pyenphase.Envoy.consumption_meter_type)` or {py:meth}`~pyenphase.Envoy.storage_meter_type`.
 
 ```python
     how_many_ct = envoy.ct_meter_count
 
-    consumption_ct = 'installed' if envoy.production_meter_type else 'not installed'
-    procuction_ct = 'installed' if envoy.consumption_meter_type else 'not installed'
+    consumption_ct = 'installed' if envoy.consumption_meter_type else 'not installed'
+    production_ct = 'installed' if envoy.production_meter_type else 'not installed'
     storage_ct = 'installed' if envoy.storage_meter_type else 'not installed'
 
-    print(f'This envoy has Production ct {procuction_ct}, Consumption CT {consumption_ct} and Storage CT {storage_ct}')
+    print(f'This envoy has Production ct {production_ct}, Consumption CT {consumption_ct} and Storage CT {storage_ct}')
 
 ```
 
 ## Consumption CT options
 
-The consumption CT can be installed in 1 of 2 configurations. Either `Solar + Load` or `Load only`. The property [Envoy.consumption_meter_type](#pyenphase.Envoy.consumption_meter_type) will show in [which mode](#pyenphase.models.meters.CtType) the CT is operating, either `net-consumption`or `total-consumption`.
+The consumption CT can be installed in 1 of 2 configurations. Either `Solar + Load` or `Load only`. The property {py:meth}`~pyenphase.Envoy.consumption_meter_type)` will show in {py:meth}`which mode<pyenphase.Envoy.consumption_meter_type>` the CT is operating, either `net-consumption` or `total-consumption`.
 
-When in `net-consumption` mode, the [energy_delivered](#pyenphase.models.meters.EnvoyMeterData.energy_delivered) property reports net-energy _delivered to your site/received from the grid_ while [energy_received](#pyenphase.models.meters.EnvoyMeterData.energy_received) reports net-energy _recived from your site/send to the grid_ to the grid.[^1] [^2] When in `total-consumption` it only reports on the load (house) consumption.
+When in `net-consumption` mode, the {py:meth}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` property reports net-energy _delivered to your site/received from the grid_ while {py:meth}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports net-energy _received from your site/send to the grid_ to the grid.[^1] [^2] When in `total-consumption` mode, it only reports on the load (house) consumption.
 
-[Active_power](#pyenphase.models.meters.EnvoyMeterData.active_power) is the current power flow and will be positive or negative based on actual flow of energy.
+{py:meth}`~pyenphase.models.meters.EnvoyMeterData.active_power` is the current power flow and will be positive or negative based on actual flow of energy.
 
 [^1]: Provided the CT is installed on the main grid entry.
 
@@ -69,30 +68,38 @@ When in `net-consumption` mode, the [energy_delivered](#pyenphase.models.meters.
 
 ## Production CT Options
 
-The production CT is installed to measure solar production. The [energy_delivered](#pyenphase.models.meters.EnvoyMeterData.energy_delivered) property reports the energy generated by the solar while [energy_received](#pyenphase.models.meters.EnvoyMeterData.energy_received) reports energy consumed by the solar. The latter will be minimal and is the consumption by the inverters when it exceeds the solar production, typically only during dawn and dusk periods. [^2]
+The production CT is installed to measure solar production. The {py:meth}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` property reports the energy generated by the solar while {py:meth}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports energy consumed by the solar. The latter will be minimal and is the consumption by the inverters when it exceeds the solar production, typically only during dawn and dusk periods. [^2]
 
 ## Storage CT Options
 
-The storage CT is installed to measure battery charge and discharge. The [energy_delivered](#pyenphase.models.meters.EnvoyMeterData.energy_delivered) property reports the energy discharged from the battery while [energy_received](#pyenphase.models.meters.EnvoyMeterData.energy_received) reports energy charged to battery. [^2]
+The storage CT is installed to measure battery charge and discharge. The {py:meth}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` property reports the energy discharged from the battery while {py:meth}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports energy charged to battery. [^2]
 
 ## Relation to System Production and Consumption
 
-An Envoy metered with CT installed, sources the production and consumption data from the CT meters. The [system_production](data_production.md#system_production-data) data is sourced from the production CT. The [system_consumption](data_consumption.md#system_consumption-data) is total consumption by the load/house and is either sourced from the consmption CT in `total-consumption` mode or calculated from both production and consumption CT when in consumption CT is in `net-consumption` mode.
+An Envoy metered with CT installed, sources the production and consumption data from the CT meters. The [system_production](data_production.md#system_production-data) data is sourced from the production CT. The [system_consumption](data_consumption.md#system_consumption-data) is total consumption by the load/house and is either sourced from the consumption CT in `total-consumption` mode or calculated by the Envoy from both production and consumption CT when in consumption CT is in `net-consumption` mode.
 
-Net-consumption is reported in /production as an increasing/decreasing total of import and export, CT readings however provides these as 2 increasing properties. Production is reported in system_production as a single value as well.
+Net-consumption is reported by the [`/production.json?details=1`](endpoint_json.md#productionjsondetails1) endpoint as an increasing/decreasing total of import and export. The CT readings however, provide these as 2 increasing properties. Production is reported in [system_production](data_production.md#system_production-data) as a single value as well.
 
-## Multi phase
+## Multi phase CT
 
-Phase data is only populated if CT's are installed on more then 1 phase for production and/or consumption phases. If the configuration is in `split phase` mode, no phases are reported for production and consumption reports, but are for CT specific data.
+For [metered Envoy with multi-phase installations](./phase_data.md#phase-data), CT phase data is available in Envoy classes:
 
-To detect if multiple phases are reporting use the Envoy property [phase_count](#pyenphase.Envoy.phase_count).
+- {py:class}`pyenphase.EnvoyData.ctmeter_production_phases`
+- {py:class}`pyenphase.EnvoyData.ctmeter_consumption_phases`
+- {py:class}`pyenphase.EnvoyData.ctmeter_storage_phases`
+
+keyed by {py:class}`~pyenphase.const.PhaseNames`.
+
+Phase data is only populated if CT's are installed on more then 1 phase for production and/or consumption phases.
+
+To detect if multiple phases are reporting use the Envoy property {py:meth}`~pyenphase.Envoy.phase_count`.
 
 ```python
     from pyenphase.const import PhaseNames
 
     data: EnvoyData = await envoy.update()
 
-    if Envoy.phase_count > 1:
+    if envoy.phase_count > 1:
         for phase in data.ctmeter_production_phases:
             phase_data = data.ctmeter_production_phases[phase]
             for key in phase_data:
@@ -106,3 +113,40 @@ Below a generic model for installed CT's. Each CT can be considered as facing th
 ![ct-model showing optional CT configuration](ct-model.png)
 
 These properties have different meaning for each specific CT. For a net-consumption CT, delivered is import from the grid, for Solar production CT, it is solar production and for a battery CT it is battery discharge. A total-consumption CT typically has no delivery but only receives what is consumed by the house.
+
+## Data sources
+
+The data is provided by the [updaters](updaters.md) below.
+
+This data set is identified by the {py:class}`pyenphase.const.SupportedFeatures` flag {py:attr}`~pyenphase.const.SupportedFeatures.CTMETERS`. In addition it returns {py:attr}`~pyenphase.const.SupportedFeatures.THREEPHASE` or {py:attr}`~pyenphase.const.SupportedFeatures.DUALPHASE` to signal if a multi-phase mode is active.
+
+### {py:class}`~pyenphase.updaters.meters.EnvoyMetersUpdater`
+
+This is the default updater for CT data. It provides data for aggregated phases and individual phases. Data is measured/calculated by the Envoy.
+
+|                                                                     |                                                                         |     |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------- | --- |
+| endpoint config                                                     | [`/ivp/meters`](endpoint_json.md#ivpmeters)                             |     |
+| endpoint data                                                       | [`/ivp/meters/readings`](endpoint_json.md#ivpmetersreadings)            |     |
+| json path config                                                    | `$`                                                                     |     |
+| eid of production                                                   | `[?(@.measurementType=='production' <br>  && @.state=='enabled')][eid]` |     |
+| eid of consumption                                                  | `[?(@.measurementType=='net-consumption')][eid]`                        |     |
+|                                                                     | `[?(@.measurementType=='total-consumption')][eid]`                      |     |
+| eid of storage                                                      | `[?(@.measurementType=='storage')][eid]`                                |     |
+| json path aggregated                                                | `[?(@.eid==<eid of ....>)]`                                             |     |
+| json path phases                                                    | `[?(@.eid==<eid of ....>)]["channels": ][*]`                            |     |
+|                                                                     |                                                                         |     |
+| class data                                                          | json node                                                               | uom |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.eid`              | eid                                                                     |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.timestamp`        | timestamp                                                               |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` | actEnergyDlvd                                                           | Wh  |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received`  | actEnergyRcvd                                                           | Wh  |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.active_power`     | activePower                                                             | W   |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.power_factor`     | pwrFactor                                                               |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.voltage`          | voltage                                                                 | V   |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.current`          | current                                                                 | A   |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.frequency`        | freq                                                                    | Hz  |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.state`            | state                                                                   |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.measurement_type` | measurementType                                                         |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.metering_status`  | meteringStatus                                                          |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.status_flags`     | statusFlags                                                             |     |

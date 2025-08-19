@@ -4,7 +4,7 @@ For metered Envoy with installed and configured current transformers (CT meters)
 
 Upon completion of the [probe](usage_intro.md#data-collection) call, the phase setup is available. The [number of configured phases](#pyenphase.Envoy.phase_count), the [number of configured CT meters](#pyenphase.Envoy.ct_meter_count), the [phase mode configured](#pyenphase.Envoy.phase_mode) and [type of consumption CT](#pyenphase.Envoy.consumption_meter_type) are available from the envoy model.
 
-Phase names are enumerated as `L1`, `L2`, and `L3` by `pyenphase.const.PhaseNames`. Phase modes are enumerated as `single`, `split` and `three` by `pyenphase.models.meters.EnvoyPhaseMode`. The CT meter types are enumerated as `production`, ``storage`, `net-consumption` and `total-consumption` by `pyenphase.models.meters.CtType`.
+Phase names are enumerated as `L1`, `L2`, and `L3` by `pyenphase.const.PhaseNames`. Phase modes are enumerated as `single`, `split` and `three` by `pyenphase.models.meters.EnvoyPhaseMode`. The CT meter types are enumerated as `production`, `storage`, `net-consumption` and `total-consumption` by `pyenphase.models.meters.CtType`.
 
 Be aware that `phase_count` and `phase_mode` applies for all configured CT's. The Envoy metered can however be configured with only 1, 2 or all 3 CT. In this case the not used CT data in `system_production_phases` or `system_consumption_phases` or `system_storage_phases` will be `None`
 
