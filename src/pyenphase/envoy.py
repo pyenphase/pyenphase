@@ -163,7 +163,7 @@ class Envoy:
         :param host: Envoy DNS name or IP address
         :param client: aiohttp ClientSession not verifying SSL
             certificates, if not specified one will be created. In
-            that case call :any:`Envoy.close` before application
+            that case call :py:meth:`Envoy.close` before application
             exit.
         :param timeout: aiohttp ClientTimeout to use, if not specified
             10 sec connection and 45 sec read timeouts will be used.
