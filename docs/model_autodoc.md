@@ -131,6 +131,15 @@
 ## Inverters
 
 ```{eval-rst}
+.. automodule:: pyenphase.updaters.device_data_inverters
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: alphabetical
+
+```
+
+```{eval-rst}
 .. automodule:: pyenphase.updaters.api_v1_production_inverters
   :members:
   :undoc-members:
