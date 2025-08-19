@@ -28,4 +28,8 @@ data_ctmeter
 
 data_raw
 
+endpoint_json
+
+known_issues
+
 ```
