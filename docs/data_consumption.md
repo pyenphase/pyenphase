@@ -30,7 +30,7 @@ For [metered Envoy with multi-phase installations](./phase_data.md#phase-data), 
 
         # report specific phase data  by using PhaseNames (for phase 1)
         print(f'Value watt_hours_lifetime : {data.system_consumption_phases[PhaseNames.PHASE_1].watt_hours_lifetime}')
-@
+
         # report specific phase data by using phase index 0-2 (for phase 1)
         print(f'Value watt_hours_lifetime : {data.system_consumption_phases[PHASENAMES[0]].watt_hours_lifetime}')
 ```
