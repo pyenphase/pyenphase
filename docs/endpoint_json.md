@@ -28,7 +28,7 @@ This is the endpoint used for basic inverter production data.
 
 ### JSON
 
-```{literalinclude} ./json_data/api_v1_production.json
+```{literalinclude} ./json_data/api_v1_production_inverters.json
 
 ```
 
