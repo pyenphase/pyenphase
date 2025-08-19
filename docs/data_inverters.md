@@ -33,7 +33,7 @@ This is the default updater for inverter data. It provides data for individual i
 |                                                                                                |                                                              |     |
 | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | --- |
 | endpoint                                                                                       | [`/ivp/pdm/device_data`](endpoint_json.md#ivppdmdevice_data) |     |
-| json path                                                                                      | [?(@.devName=='pcu')]                                        |     |
+| json path                                                                                      | `[?(@.devName=='pcu')]`                                      |     |
 |                                                                                                |                                                              |     |
 | data                                                                                           | json node                                                    | uom |
 | {py:attr}`serial_number <pyenphase.models.inverter.EnvoyInverter.serial_number>`               | serial_number                                                |     |

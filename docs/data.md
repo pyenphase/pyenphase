@@ -7,7 +7,7 @@ Firmware version, system serial-number and part-number are collected from `/info
 ```{include} ../src/pyenphase/const.py
 :start-after : Include in docs from here
 :end-before : Include in docs to here
-:literal :
+:literal:
 ```
 
 ```{toctree}

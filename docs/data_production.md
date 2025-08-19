@@ -21,7 +21,7 @@ from pyenphase.const import PhaseNames, PHASENAMES
 data: EnvoyData = await envoy.update()
 
 # if more then 1 phase reported then get phase data
-if Envoy.actual_phase_count > 1 and data.system_production_phases:
+if envoy.actual_phase_count > 1 and data.system_production_phases:
     # Get data by looping over phase data
     for phase in data.system_production_phases:
         print(f'{phase} Watts: {data.system_production_phases[phase].watts_now}')
@@ -53,8 +53,8 @@ This is the default updater for production data. It provides data for aggregated
 |                                                                                             |                                                                         |     |
 | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | --- |
 | endpoint                                                                                    | [`/production.json?details=1`](endpoint_json.md#productionjsondetails1) |     |
-| json path aggregated                                                                        | production.[?.type=='eim' && .activeCount > 0]                          |     |
-| json path phases                                                                            | production.[?.type=='eim' && .activeCount > 0][lines][*]                |     |
+| json path aggregated                                                                        | `production.[?.type=='eim' && .activeCount > 0]`                        |     |
+| json path phases                                                                            | `production.[?.type=='eim' && .activeCount > 0][lines][*]`              |     |
 |                                                                                             |                                                                         |     |
 | class data                                                                                  | json node                                                               | uom |
 | {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watt_hours_lifetime`    | whLifetime                                                              | Wh  |
@@ -66,15 +66,15 @@ This is the default updater for production data. It provides data for aggregated
 
 This is an alternative updater for production data if the standard updater data is not available. It only provides data for aggregated phases. Data is measured/calculated by the Envoy.
 
-|                                                                                             |                                                   |     |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------- | --- |
-| endpoint                                                                                    | [`/production`](endpoint_json.md#production)      |     |
-| json path                                                                                   | production[?(@.type=='eim' && @.activeCount) > 0] |     |
-| class data                                                                                  | json node                                         | uom |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watt_hours_lifetime`    | whLifetime                                        | Wh  |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watt_hours_last_7_days` | whLastSevenDays                                   | Wh  |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watt_hours_today`       | whToday                                           | Wh  |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watts_now`              | wNow                                              | W   |
+|                                                                                             |                                                     |     |
+| ------------------------------------------------------------------------------------------- | --------------------------------------------------- | --- |
+| endpoint                                                                                    | [`/production`](endpoint_json.md#production)        |     |
+| json path                                                                                   | `production[?(@.type=='eim' && @.activeCount) > 0]` |     |
+| class data                                                                                  | json node                                           | uom |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watt_hours_lifetime`    | whLifetime                                          | Wh  |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watt_hours_last_7_days` | whLastSevenDays                                     | Wh  |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watt_hours_today`       | whToday                                             | Wh  |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watts_now`              | wNow                                                | W   |
 
 ### {py:class}`~pyenphase.updaters.api_v1_production.EnvoyApiV1ProductionUpdater`
 
@@ -83,7 +83,7 @@ This is an alternative updater for production data for non-metered Envoy or Envo
 |                                                                                             |                                                            |     |
 | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | --- |
 | endpoint                                                                                    | [`/api/v1/production`](./endpoint_json.md#apiv1production) |     |
-| json path                                                                                   | $                                                          |     |
+| json path                                                                                   | `$`                                                        |     |
 | class data                                                                                  | json node                                                  | uom |
 | {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watt_hours_lifetime`    | wattHoursLifetime                                          | Wh  |
 | {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watt_hours_last_7_days` | wattHoursSevenDays                                         | Wh  |
@@ -101,7 +101,7 @@ For that case, this updater falls back to the `inverters` section in the product
 |                                                                                             |                                                                   |     |
 | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | --- |
 | endpoint                                                                                    | `/production.json?details=1` or `/production`                     |     |
-| json path                                                                                   | production[?(@.type=='inverters' && @.activeCount) > 0]           |     |
+| json path                                                                                   | `production[?(@.type=='inverters' && @.activeCount) > 0]`         |     |
 | class data                                                                                  | json node                                                         | uom |
 | {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watt_hours_lifetime`    | whLifetime                                                        | Wh  |
 | {py:attr}`~pyenphase.models.system_production.EnvoySystemProduction.watt_hours_last_7_days` | not in report,<br>use unreliable whLastSevenDays from type=='eim' |     |

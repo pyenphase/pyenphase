@@ -21,22 +21,18 @@ For [metered Envoy with multi-phase installations](./phase_data.md#phase-data), 
 
     data: EnvoyData = await envoy.update()
 
-    if Envoy.phase_count > 1:
-        for phase in data.system_consumption_phases and data.system_consumption_phases:
+    if envoy.phase_count > 1 and data.system_consumption_phases:
+        for phase in data.system_consumption_phases:
             print(f'{phase} Watts: {data.system_consumption_phases[phase].watts_now}')
             print(f'{phase} TodaysEnergy: {data.system_consumption_phases[phase].watt_hours_today}')
-            print(f'{phase} LifetimeEnergy {system_consumption_phases.[phase].watt_hours_lifetime}')
-            print(f'{phase} Last7DaysEnergy {system_consumption_phases.[phase].watt_hours_last_7_days}')
+            print(f'{phase} LifetimeEnergy {system_consumption_phases[phase].watt_hours_lifetime}')
+            print(f'{phase} Last7DaysEnergy {system_consumption_phases[phase].watt_hours_last_7_days}')
 
         # report specific phase data  by using PhaseNames (for phase 1)
-        print(
-            f'Value watt_hours_lifetime : {data.system_consumption_phases[PhaseNames.PHASE_1].watt_hours_lifetime}'
-        )
+        print(f'Value watt_hours_lifetime : {data.system_consumption_phases[PhaseNames.PHASE_1].watt_hours_lifetime}')
+@
         # report specific phase data by using phase index 0-2 (for phase 1)
-        print(
-            f'Value watt_hours_lifetime : {data.system_consumption_phases[PHASENAMES[0]].watt_hours_lifetime}'
-        )
-
+        print(f'Value watt_hours_lifetime : {data.system_consumption_phases[PHASENAMES[0]].watt_hours_lifetime}')
 ```
 
 ## Data sources
@@ -49,28 +45,28 @@ This data set is identified by the {py:class}`pyenphase.const.SupportedFeatures`
 
 This is the default updater for consumption data. It provides data for aggregated phases and individual phases. Data is measured/calculated by the Envoy.
 
-|                                                                                              |                                                                                                                                                                     |     |
-| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| endpoint                                                                                     | [`/production.json?details=1`](endpoint_json.md#productionjsondetails1)                                                                                             |     |
-| json path aggregated                                                                         | consumption[?(@.type=='eim' && @.activeCount > 0 && (<br>@.measurementType == 'total-consumption' \|\| <br>@.measurementType == 'net-consumption')<br>)]            |     |
-| json path phases                                                                             | consumption[?(@.type=='eim' && @.activeCount > 0 && <br>(@.measurementType == 'total-consumption' \|\| <br>@.measurementType == 'net-consumption'<br>))][lines][\*] |     |
-|                                                                                              |                                                                                                                                                                     |     |
-| data                                                                                         | json node                                                                                                                                                           | uom |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_lifetime`    | whLifetime                                                                                                                                                          | Wh  |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_last_7_days` | whLastSevenDays                                                                                                                                                     | Wh  |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_today`       | whToday                                                                                                                                                             | Wh  |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watts_now`              | wNow                                                                                                                                                                | W   |
+|                                                                                               |                                                                                                                                                                            |     |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| endpoint                                                                                      | [`/production.json?details=1`](endpoint_json.md#productionjsondetails1)                                                                                                    |     |
+| json path aggregated                                                                          | `consumption[?(@.type=='eim' && @.activeCount > 0 && (`<br>`@.measurementType == 'total-consumption' \|\| `<br>`@.measurementType == 'net-consumption')<br>))]`            |     |
+| json path phases                                                                              | `consumption[?(@.type=='eim' && @.activeCount > 0 && (`<br>`(@.measurementType == 'total-consumption' \|\| `<br>`@.measurementType == 'net-consumption'<br>))][lines][\*]` |     |
+|                                                                                               |                                                                                                                                                                            |     |
+| data                                                                                          | json node                                                                                                                                                                  | uom |
+| {py:attr}`~pyenphase.models.system_consumption.EnvoySystemConsumption.watt_hours_lifetime`    | whLifetime                                                                                                                                                                 | Wh  |
+| {py:attr}`~pyenphase.models.system_consumption.EnvoySystemConsumption.watt_hours_last_7_days` | whLastSevenDays                                                                                                                                                            | Wh  |
+| {py:attr}`~pyenphase.models.system_consumption.EnvoySystemConsumption.watt_hours_today`       | whToday                                                                                                                                                                    | Wh  |
+| {py:attr}`~pyenphase.models.system_consumption.EnvoySystemConsumption.watts_now`              | wNow                                                                                                                                                                       | W   |
 
 ### {py:class}`~pyenphase.updaters.production.EnvoyProductionUpdater`
 
 This is an alternative updater for consumption data if the standard updater data is not available. It only provides data for aggregated phases. Data is measured/calculated by the Envoy.
 
-|                                                                                              |                                                                                                                                                       |     |
-| -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| endpoint                                                                                     | [`/production`](endpoint_json.md#production)                                                                                                          |     |
-| json path                                                                                    | consumption[?(@.type=='eim' && @.activeCount) > 0 && <br>(@.measurementType == 'total-consumption' \|\| <br> @.measurementType == 'net-consumption')] |     |
-| data                                                                                         | json node                                                                                                                                             | uom |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_lifetime`    | whLifetime                                                                                                                                            | Wh  |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_last_7_days` | whLastSevenDays                                                                                                                                       | Wh  |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_today`       | whToday                                                                                                                                               | Wh  |
-| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watts_now`              | wNow                                                                                                                                                  | W   |
+|                                                                                               |                                                                                                                                                             |     |
+| --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| endpoint                                                                                      | [`/production`](endpoint_json.md#production)                                                                                                                |     |
+| json path                                                                                     | `consumption[?(@.type=='eim' && @.activeCount > 0 && `<br>`(@.measurementType == 'total-consumption' \|\| `<br>` @.measurementType == 'net-consumption'))]` |     |
+| data                                                                                          | json node                                                                                                                                                   | uom |
+| {py:attr}`~pyenphase.models.system_consumption.EnvoySystemConsumption.watt_hours_lifetime`    | whLifetime                                                                                                                                                  | Wh  |
+| {py:attr}`~pyenphase.models.system_consumption.EnvoySystemConsumption.watt_hours_last_7_days` | whLastSevenDays                                                                                                                                             | Wh  |
+| {py:attr}`~pyenphase.models.system_consumption.EnvoySystemConsumption.watt_hours_today`       | whToday                                                                                                                                                     | Wh  |
+| {py:attr}`~pyenphase.models.system_consumption.EnvoySystemConsumption.watts_now`              | wNow                                                                                                                                                        | W   |
