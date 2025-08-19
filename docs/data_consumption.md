@@ -39,7 +39,7 @@ For [metered Envoy with multi-phase installations](./phase_data.md#phase-data), 
 
 The data is provided by one of the [updaters](updaters.md) below, ordered in their probe sequence.
 
-This data set is identified by the {py:class}`pyenphase.const.SupportedFeatures` flags {py:attr}`~TOTAL_CONSUMPTION <~pyenphase.const.SupportedFeatures.TOTAL_CONSUMPTION` or {py:attr}`~pyenphase.const.SupportedFeatures.NET_CONSUMPTION`, based on which consumption CT is installed. First updater probe that returns either of the 2 features flag will be used.
+This data set is identified by the {py:class}`pyenphase.const.SupportedFeatures` flags {py:attr}`~pyenphase.const.SupportedFeatures.TOTAL_CONSUMPTION` or {py:attr}`~pyenphase.const.SupportedFeatures.NET_CONSUMPTION`, based on which consumption CT is installed. First updater probe that returns either of the 2 features flag will be used.
 
 ### {py:class}`~pyenphase.updaters.production.EnvoyProductionJsonUpdater`
 
