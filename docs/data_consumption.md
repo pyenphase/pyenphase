@@ -38,3 +38,39 @@ For [metered Envoy with multi-phase installations](./phase_data.md#phase-data), 
         )
 
 ```
+
+## Data sources
+
+The data is provided by one of the [updaters](updaters.md) below, ordered in their probe sequence.
+
+This data set is identified by the {py:class}`pyenphase.const.SupportedFeatures` flags {py:attr}`~TOTAL_CONSUMPTION <~pyenphase.const.SupportedFeatures.TOTAL_CONSUMPTION` or {py:attr}`~pyenphase.const.SupportedFeatures.NET_CONSUMPTION`, based on which consumption CT is installed. First updater probe that returns either of the 2 features flag will be used.
+
+### {py:class}`~pyenphase.updaters.production.EnvoyProductionJsonUpdater`
+
+This is the default updater for consumption data. It provides data for aggregated phases and individual phases. Data is measured/calculated by the Envoy.
+
+|                                                                                              |                                                                                                                                                                     |     |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| endpoint                                                                                     | [`/production.json?details=1`](endpoint_json.md#productionjsondetails1)                                                                                             |     |
+| json path aggregated                                                                         | consumption[?(@.type=='eim' && @.activeCount > 0 && (<br>@.measurementType == 'total-consumption' \|\| <br>@.measurementType == 'net-consumption')<br>)]            |     |
+| json path phases                                                                             | consumption[?(@.type=='eim' && @.activeCount > 0 && <br>(@.measurementType == 'total-consumption' \|\| <br>@.measurementType == 'net-consumption'<br>))][lines][\*] |     |
+|                                                                                              |                                                                                                                                                                     |     |
+| data                                                                                         | json node                                                                                                                                                           | uom |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_lifetime`    | whLifetime                                                                                                                                                          | Wh  |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_last_7_days` | whLastSevenDays                                                                                                                                                     | Wh  |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_today`       | whToday                                                                                                                                                             | Wh  |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watts_now`              | wNow                                                                                                                                                                | W   |
+
+### {py:class}`~pyenphase.updaters.production.EnvoyProductionUpdater`
+
+This is an alternative updater for consumption data if the standard updater data is not available. It only provides data for aggregated phases. Data is measured/calculated by the Envoy.
+
+|                                                                                              |                                                                                                                                                       |     |
+| -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| endpoint                                                                                     | [`/production`](endpoint_json.md#production)                                                                                                          |     |
+| json path                                                                                    | consumption[?(@.type=='eim' && @.activeCount) > 0 && <br>(@.measurementType == 'total-consumption' \|\| <br> @.measurementType == 'net-consumption')] |     |
+| data                                                                                         | json node                                                                                                                                             | uom |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_lifetime`    | whLifetime                                                                                                                                            | Wh  |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_last_7_days` | whLastSevenDays                                                                                                                                       | Wh  |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watt_hours_today`       | whToday                                                                                                                                               | Wh  |
+| {py:attr}`~pyenphase.models.system_production.EnvoySystemConsumption.watts_now`              | wNow                                                                                                                                                  | W   |
