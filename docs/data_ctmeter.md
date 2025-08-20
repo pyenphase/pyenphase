@@ -4,13 +4,13 @@ This is the data for installed current transformers (CT) for an Envoy-metered, c
 
 Depending on how many and which CT are installed, data is available in:
 
-- {py:class}`pyenphase.EnvoyData.ctmeter_production`
-- {py:class}`pyenphase.EnvoyData.ctmeter_consumption`
-- {py:class}`pyenphase.EnvoyData.ctmeter_storage`
+- {py:attr}`pyenphase.EnvoyData.ctmeter_production`
+- {py:attr}`pyenphase.EnvoyData.ctmeter_consumption`
+- {py:attr}`pyenphase.EnvoyData.ctmeter_storage`
 
 There is multiple types of CT that can be installed. The CT meter types are enumerated as `production`, `storage`, `net-consumption` and `total-consumption` by `pyenphase.models.meters.CtType`. One, or multiple of these can be installed and enabled. For multi-phase configurations there will be one on each phase.
 
-Consumption CT can either be `net-consumption` installed on grid boundary or `total-consumption` measuring house load, see [ct-model](#ct-model) below. The IQ Metered collar has a net-consumption` CT embedded.
+Consumption CT can either be `net-consumption` installed on grid boundary or `total-consumption` measuring house load, see [ct-model](#) below. The IQ Metered collar has a `net-consumption` CT embedded.
 
 ```python
     data: EnvoyData = await envoy.update()
@@ -33,7 +33,7 @@ Consumption CT can either be `net-consumption` installed on grid boundary or `to
 
 ```
 
-To detect how many CT are installed use Envoy property {py:meth}`~pyenphase.Envoy.ct_meter_count`. One can identify which CT meters are available by testing the {py:meth}`~pyenphase.Envoy.production_meter_type`, {py:meth}`~pyenphase.Envoy.consumption_meter_type)` or {py:meth}`~pyenphase.Envoy.storage_meter_type`.
+To detect how many CT are installed use Envoy property {py:attr}`~pyenphase.Envoy.ct_meter_count`. One can identify which CT meters are available by testing the {py:attr}`~pyenphase.Envoy.production_meter_type`, {py:attr}`~pyenphase.Envoy.consumption_meter_type`, or {py:attr}`~pyenphase.Envoy.storage_meter_type`.
 
 ```python
     how_many_ct = envoy.ct_meter_count
@@ -84,13 +84,13 @@ Net-consumption is reported by the [`/production.json?details=1`](endpoint_json.
 
 For [metered Envoy with multi-phase installations](./phase_data.md#phase-data), CT phase data is available in Envoy classes:
 
-- {py:class}`pyenphase.EnvoyData.ctmeter_production_phases`
-- {py:class}`pyenphase.EnvoyData.ctmeter_consumption_phases`
-- {py:class}`pyenphase.EnvoyData.ctmeter_storage_phases`
+- {py:attr}`pyenphase.EnvoyData.ctmeter_production_phases`
+- {py:attr}`pyenphase.EnvoyData.ctmeter_consumption_phases`
+- {py:attr}`pyenphase.EnvoyData.ctmeter_storage_phases`
 
 keyed by {py:class}`~pyenphase.const.PhaseNames`.
 
-Phase data is only populated if CT's are installed on more then 1 phase for production and/or consumption phases.
+Phase data is only populated if CTs are installed on more then 1 phase for production and/or consumption phases.
 
 To detect if multiple phases are reporting use the Envoy property {py:meth}`~pyenphase.Envoy.phase_count`.
 

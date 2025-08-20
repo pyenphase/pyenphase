@@ -5,8 +5,8 @@ The pyenphase package collects {py:class}`~pyenphase.EnvoyData` from a specific 
 Firmware version, system serial-number and part-number are collected from `/info` endpoint. Other endpoints are:
 
 ```{include} ../src/pyenphase/const.py
-:start-after : Include in docs from here
-:end-before : Include in docs to here
+:start-after: Include in docs from here
+:end-before: Include in docs to here
 :literal:
 ```
 
