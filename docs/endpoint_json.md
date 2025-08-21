@@ -2,7 +2,7 @@
 
 This section describes the Envoy data used by the library.
 
-Enphase's installer resource web-site has descriptions of the IQ Gateway local api. As this is a dynamic resource, best use the filters for communication device and select the Envoy or IQ Gateway types. This [example link](https://enphase.com/installers/resources/documentation/communication) selects communication documents (at least one time). Use product filters for Envoy and `Design and Tech briefs` for topic filter.
+Enphase's installer resource website documents the IQ Gateway local API. Because it’s a dynamic resource, use the filters for “Communication Device” and select the Envoy or IQ Gateway types. This [example link](https://enphase.com/installers/resources/documentation/communication) pre-selects communication documents. Use the product filters for Envoy and the “Design and Tech Briefs” topic filter.
 
 A wealth of information on the Enphase local Envoy api is available from [Matthew1471's github repository](https://github.com/Matthew1471/Enphase-API), which is an excellent resource.
 
@@ -12,7 +12,7 @@ A wealth of information on the Enphase local Envoy api is available from [Matthe
 
 This is the endpoint used for production data of an Envoy non-metered or Envoy metered without CT installed. It only contains aggregated phase data. Data is measured/calculated by the Envoy.
 
-Also see [Known Issue](known_issues.md#production--consumption-data).
+Also see [Known Issues](known_issues.md#production--consumption-data).
 
 ### JSON
 
@@ -48,7 +48,7 @@ This is the endpoint used for installed CT meters configuration.
 
 ### description
 
-This is the endpoint used for installed CT data.
+This is the endpoint used for CT meter readings.
 
 ### JSON
 
@@ -62,7 +62,7 @@ This is the endpoint used for installed CT data.
 
 This is the endpoint used for detailed inverter data.
 
-Also see [Known Issue](known_issues.md#inverter-device-data).
+Also see [Known Issues](known_issues.md#inverter-device-data).
 
 ### JSON
 
@@ -112,7 +112,7 @@ This is an endpoint for production and consumption data used when older firmware
 
 ### Known issues
 
-Also see [Known Issue](known_issues.md#production--consumption-data).
+Also see [Known Issues](known_issues.md#production--consumption-data).
 
 ### JSON
 

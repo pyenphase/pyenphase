@@ -3,17 +3,18 @@
 Individual inverter data, available for all Envoy models as of firmware 3.9., class {py:class}`~pyenphase.models.inverter.EnvoyInverter`.
 
 ```python
-for inverter in data.inverters:
-    print (f'{inverter} sn: {data.inverters[inverter].serial_number}')
-    print (f'{inverter} watts: {data.inverters[inverter].last_report_watts}')
-    print (f'{inverter} max watts: {data.inverters[inverter].max_report_watts}')
-    print (f'{inverter} last report: {data.inverters[inverter].last_report_date}')
-    print (f'{inverter} panel output: {data.inverters[inverter].dc_voltage}V @ {data.inverters[inverter].dc_current}A')
-    print (f'{inverter} output: {data.inverters[inverter].ac_voltage}V @ {data.inverters[inverter].ac_current}A {data.inverters[inverter].ac_frequency}Hz')
-    print (f'{inverter} temperature: {data.inverters[inverter].temperature}°C')
-    print (f'{inverter} energy produced: {data.inverters[inverter].energy_produced} mWh')
-    print (f'{inverter} energy produced today: {data.inverters[inverter].energy_today} Wh')
-    print (f'{inverter} lifetime energy produced: {data.inverters[inverter].lifetime_energy} Wh')
+
+for sn, inv in data.inverters.items():
+    print(f'{sn} sn: {inv.serial_number}')
+    print(f'{sn} watts: {inv.last_report_watts}')
+    print(f'{sn} max watts: {inv.max_report_watts}')
+    print(f'{sn} last report: {inv.last_report_date}')
+    print(f'{sn} panel output: {inv.dc_voltage}V @ {inv.dc_current}A')
+    print(f'{sn} output: {inv.ac_voltage}V @ {inv.ac_current}A {inv.ac_frequency}Hz')
+    print(f'{sn} temperature: {inv.temperature}°C')
+    print(f'{sn} energy produced: {inv.energy_produced} Wh')
+    print(f'{sn} energy produced today: {inv.energy_today} Wh')
+    print(f'{sn} lifetime energy produced: {inv.lifetime_energy} Wh')
 ```
 
 ```{note}
@@ -62,10 +63,10 @@ This is the updater for base inverter data. It only provides data for individual
 |           |                                                                             |     |
 | data      | json node                                                                   | uom |
 
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.serial_number` | `sn` | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_date` | `channels[0].lastReading.endDate` | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_watts` | `channels[0].watts.now` | W |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.max_report_watts` | `channels[0].watts.max` | W |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.serial_number` | `serialNumber` | |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_date` | `lastReportDate` | |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_watts` | `lastReportWatts` | W |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.max_report_watts` | `maxReportWatts` | W |
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.dc_voltage` | not available | |
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.dc_current` | not available | |
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.ac_voltage` | not available | |
