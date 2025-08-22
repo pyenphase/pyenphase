@@ -1,0 +1,16 @@
+[
+  {
+    "serialNumber": "202020202020",
+    "lastReportDate": 1748576887,
+    "devType": 1,
+    "lastReportWatts": 255,
+    "maxReportWatts": 371
+  },
+  {
+    "serialNumber": "202020202021",
+    "lastReportDate": 1748576917,
+    "devType": 1,
+    "lastReportWatts": 78,
+    "maxReportWatts": 309
+  }
+]

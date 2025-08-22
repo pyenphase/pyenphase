@@ -1,0 +1,86 @@
+{
+  "production": [
+    {
+      "type": "inverters",
+      "activeCount": 12,
+      "readingTime": 1753703609,
+      "wNow": 3554,
+      "whLifetime": 390554
+    },
+    {
+      "type": "eim",
+      "activeCount": 1,
+      "measurementType": "production",
+      "readingTime": 1753703631,
+      "wNow": 5305.189,
+      "whLifetime": 569121.609,
+      "varhLeadLifetime": 654.214,
+      "varhLagLifetime": 111284.568,
+      "vahLifetime": 639677.045,
+      "rmsCurrent": 22.387,
+      "rmsVoltage": 694.538,
+      "reactPwr": 66.542,
+      "apprntPwr": 5312.124,
+      "pwrFactor": 1.0,
+      "whToday": 19282.609,
+      "whLastSevenDays": 550554.609,
+      "vahToday": 20975.045,
+      "varhLeadToday": 31.214,
+      "varhLagToday": 2653.568
+    }
+  ],
+  "consumption": [
+    {
+      "type": "eim",
+      "activeCount": 1,
+      "measurementType": "total-consumption",
+      "readingTime": 1753703631,
+      "wNow": 324.922,
+      "whLifetime": 253002.232,
+      "varhLeadLifetime": 348504.505,
+      "varhLagLifetime": -103510.423,
+      "vahLifetime": 785760.378,
+      "rmsCurrent": 0.999,
+      "rmsVoltage": 694.597,
+      "reactPwr": -814.961,
+      "apprntPwr": 229.496,
+      "pwrFactor": 1.0,
+      "whToday": 8958.0,
+      "whLastSevenDays": 0.0,
+      "vahToday": 22634.378,
+      "varhLeadToday": 323620.505,
+      "varhLagToday": 0.0
+    },
+    {
+      "type": "eim",
+      "activeCount": 1,
+      "measurementType": "net-consumption",
+      "readingTime": 1753703631,
+      "wNow": -4980.266,
+      "whLifetime": -315944.246,
+      "varhLeadLifetime": 349158.719,
+      "varhLagLifetime": 7774.145,
+      "vahLifetime": 785760.378,
+      "rmsCurrent": -21.388,
+      "rmsVoltage": 694.597,
+      "reactPwr": -881.503,
+      "apprntPwr": -4998.912,
+      "pwrFactor": -1.0,
+      "whToday": 0,
+      "whLastSevenDays": 0,
+      "vahToday": 0,
+      "varhLeadToday": 0,
+      "varhLagToday": 0
+    }
+  ],
+  "storage": [
+    {
+      "type": "acb",
+      "activeCount": 0,
+      "readingTime": 0,
+      "wNow": 0,
+      "whNow": 0,
+      "state": "idle"
+    }
+  ]
+}

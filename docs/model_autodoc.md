@@ -131,6 +131,15 @@
 ## Inverters
 
 ```{eval-rst}
+.. automodule:: pyenphase.updaters.device_data_inverters
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: alphabetical
+
+```
+
+```{eval-rst}
 .. automodule:: pyenphase.updaters.api_v1_production_inverters
   :members:
   :undoc-members:
@@ -181,7 +190,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 ```
 
 ## EnvoySystemConsumption
@@ -191,7 +200,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 ```
 
 ## EnvoyInverter
@@ -201,7 +210,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 
 ```
 
@@ -212,7 +221,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 ```
 
 ## EnvoyEnchargeAggregate
@@ -222,7 +231,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 ```
 
 ## EnvoyEnchargePower
@@ -232,7 +241,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 ```
 
 ## EnvoyEnpower
@@ -242,7 +251,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 ```
 
 ## EnvoyACBPower
@@ -252,7 +261,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 ```
 
 ## Envoy Aggregate Battery SOC
@@ -262,7 +271,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 ```
 
 ## Envoy Dry Contacts
@@ -272,7 +281,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 ```
 
 ## EnvoyCollar
@@ -282,7 +291,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 
 ```
 
@@ -293,7 +302,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 
 ```
 
@@ -304,7 +313,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 ```
 
 ## Interface data
@@ -314,7 +323,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :member-order: alphabetical
+  :member-order: groupwise
 ```
 
 # Utilities
