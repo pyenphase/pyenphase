@@ -18,7 +18,7 @@ for sn, inv in data.inverters.items():
 ```
 
 ```{note}
-If the `/ivp/pdm/device_data` endpoint is not supported by the Envoy firmware, the attribute values `dc_voltage`, `dc_current`, `ac_voltage`, `ac_current`, `ac_frequency`, `temperature`, `energy_produced`, `energy_today`, `lifetime_energy` from the inverter details will be `None`.
+If the `/ivp/pdm/device_data` endpoint is not supported by the Envoy firmware, each {py:class}`~pyenphase.models.inverter.EnvoyInverter` will have `None` for the detailed attributes: `dc_voltage`, `dc_current`, `ac_voltage`, `ac_current`, `ac_frequency`, `temperature`, `energy_produced`, `energy_today`, and `lifetime_energy`.
 ```
 
 ## Data sources
@@ -63,7 +63,7 @@ This is the updater for base inverter data. It only provides data for individual
 |           |                                                                             |     |
 | --------- | --------------------------------------------------------------------------- | --- |
 | endpoint  | [`/api/v1/production/inverters`](endpoint_json.md#apiv1productioninverters) |     |
-| json path | $                                                                           |     |
+| json path | `$`                                                                         |     |
 |           |                                                                             |     |
 | data      | json node                                                                   | uom |
 

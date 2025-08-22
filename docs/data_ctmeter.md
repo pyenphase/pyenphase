@@ -8,9 +8,9 @@ Depending on how many and which CT are installed, data is available in:
 - {py:attr}`pyenphase.EnvoyData.ctmeter_consumption`
 - {py:attr}`pyenphase.EnvoyData.ctmeter_storage`
 
-There are multiple CT types that can be installed. The CT meter types are enumerated as `production`, `storage`, `net-consumption`, and `total-consumption` by `pyenphase.models.meters.CtType`. One or more of these can be installed and enabled. For multi-phase configurations, there will be one per phase.
+There are multiple CT types that can be installed. The CT meter types are enumerated as `production`, `storage`, `net-consumption`, and `total-consumption` by {py:class}`~pyenphase.models.meters.CtType`. One or more of these can be installed and enabled. For multi-phase configurations, there will be one per phase.
 
-The consumption CT can be either `net-consumption` (installed at the grid boundary) or `total-consumption` (measuring house load); see [ct-model](#ct-model) below. The IQ Metered collar has a `net-consumption` CT embedded.
+The consumption CT can be either `net-consumption` (installed at the grid boundary) or `total-consumption` (measuring house load); see [ct-model](#ct-model) below. The IQ Metered collar includes an embedded `net-consumption` CT.
 
 ```python
     data: EnvoyData = await envoy.update()
@@ -33,7 +33,7 @@ The consumption CT can be either `net-consumption` (installed at the grid bounda
 
 ```
 
-To detect how many CT are installed use Envoy property {py:attr}`~pyenphase.Envoy.ct_meter_count`. One can identify which CT meters are available by testing the {py:attr}`~pyenphase.Envoy.production_meter_type`, {py:attr}`~pyenphase.Envoy.consumption_meter_type`, or {py:attr}`~pyenphase.Envoy.storage_meter_type`.
+To detect how many CTs are installed, use the Envoy property {py:attr}`~pyenphase.Envoy.ct_meter_count`. You can identify which CT meters are available by testing {py:attr}`~pyenphase.Envoy.production_meter_type`, {py:attr}`~pyenphase.Envoy.consumption_meter_type`, or {py:attr}`~pyenphase.Envoy.storage_meter_type`.
 
 ```python
     how_many_ct = envoy.ct_meter_count
@@ -42,28 +42,29 @@ To detect how many CT are installed use Envoy property {py:attr}`~pyenphase.Envo
     production_ct = 'installed' if envoy.production_meter_type else 'not installed'
     storage_ct = 'installed' if envoy.storage_meter_type else 'not installed'
 
-    print(f'This envoy has Production CT {production_ct}, Consumption CT {consumption_ct} and Storage CT {storage_ct}')
-
+    print(f'This Envoy has Production CT {production_ct}, Consumption CT {consumption_ct}, and Storage CT {storage_ct}')
 ```
 
 ## Consumption CT options
 
-The consumption CT can be installed in 1 of 2 configurations: either `Solar + Load` or `Load only`. The property {py:attr}`~pyenphase.Envoy.consumption_meter_type` indicates whether the CT is operating in `net-consumption` or `total-consumption` mode.
+The consumption CT can be installed in two configurations: `Solar + Load` or `Load only`. The attribute {py:attr}`~pyenphase.Envoy.consumption_meter_type` indicates whether the CT is operating in `net-consumption` or `total-consumption` mode.
 
-When in `net-consumption` mode, {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports net energy delivered to your site (received from the grid), while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports net energy received from your site (sent to the grid).[^1][^2] In `total-consumption` mode, it reports only the load (house) consumption.
+In `net-consumption` mode, {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports cumulative site import (energy received from the grid), while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports cumulative site export (energy sent to the grid).[^1][^2] In `total-consumption` mode, the CT reports only the house load.
 
-{py:attr}`~pyenphase.models.meters.EnvoyMeterData.active_power` is the current power flow and will be positive or negative based on actual flow of energy.
+{py:attr}`~pyenphase.models.meters.EnvoyMeterData.active_power` is the instantaneous power; its sign reflects the direction of energy flow.
 
-[^1]: Provided the CT is installed on the main grid entry.
+[^1]: Provided the CT is installed on the main grid entry. Refer to the [CT Model](#ct-model) for delivered and received directions.
 
-[^2]: Variations between firmware release may exist.
+[^2]: Variations between firmware releases may exist.
 
 ```python
 
-net_consumption = data.ctmeter_consumption.energy_delivered # Grid import
-net_production = data.ctmeter_consumption.energy_received   # Grid export
-net_power = data.ctmeter_consumption.active_power
-
+if data.consumption_meter_type == CtType.NET_CONSUMPTION:
+    grid_import = data.ctmeter_consumption.energy_delivered
+    grid_export = data.ctmeter_consumption.energy_received
+    grid_power = data.ctmeter_consumption.active_power
+else:
+    print("No net consumption CT installed")
 ```
 
 ## Production CT Options
@@ -74,11 +75,13 @@ The production CT measures solar production. {py:attr}`~pyenphase.models.meters.
 
 The storage CT measures battery charge and discharge. {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports energy discharged from the battery, while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports energy charged to the battery.[^2]
 
-An Envoy metered with CTs installed sources production and consumption data from the CT meters. The [system_production](data_production.md#system_production-data) data is sourced from the production CT. The [system_consumption](data_consumption.md#system_consumption-data) data represents total house load and is either sourced from the consumption CT in `total-consumption` mode or calculated by the Envoy from both production and consumption CTs when the consumption CT is in `net-consumption` mode.
+## Dual CT attributes, single production report attribute
 
-Net-consumption is reported by the [`/production.json?details=1`](endpoint_json.md#productionjsondetails1) endpoint as an increasing/decreasing total of import and export. The CT readings however, provide these as 2 increasing properties. Production is reported in [system_production](data_production.md#system_production-data) as a single value as well.
+An Envoy metered with CTs installed, sources production and consumption data from the CT meters. The [system_production](data_production.md#system_production-data) data is collected from the production CT. The [system_consumption](data_consumption.md#system_consumption-data) data represents total house load and is either collected from the consumption CT in `total-consumption` mode or calculated by the Envoy from both production and consumption CTs when the consumption CT is in `net-consumption` mode.
 
-## Multi phase CT
+A single increasing/decreasing total of import and export is reported by the [`/production.json?details=1`](endpoint_json.md#productionjsondetails1) in `net-consumption` as `whLifetime` for energy and `wNow` for power. CT readings provide two monotonically increasing energy properties, `actEnergyDlvd` and `actEnergyRcvd`; power is reported in a single value `activePower`.
+
+## Multi-phase CT
 
 For [metered Envoy with multi-phase installations](./phase_data.md#phase-data), CT phase data is available in Envoy classes:
 
@@ -119,29 +122,29 @@ This data set is identified by the {py:class}`pyenphase.const.SupportedFeatures`
 
 This is the default updater for CT data. It provides data for aggregated phases and individual phases. Data is measured/calculated by the Envoy.
 
-|                                                                     |                                                                               |     |
-| ------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --- |
-| endpoint config                                                     | [`/ivp/meters`](endpoint_json.md#ivpmeters)                                   |     |
-| endpoint data                                                       | [`/ivp/meters/readings`](endpoint_json.md#ivpmetersreadings)                  |     |
-| json path config                                                    | `$`                                                                           |     |
-| eid of production                                                   | `[?(@.measurementType=='production' <br>  && @.state=='enabled')][eid]`       |     |
-| eid of consumption                                                  | `[?(@.measurementType=='net-consumption'<br>  && @.state=='enabled')][eid]`   |     |
-|                                                                     | `[?(@.measurementType=='total-consumption'<br>  && @.state=='enabled')][eid]` |     |
-| eid of storage                                                      | `[?(@.measurementType=='storage'<br>  && @.state=='enabled')][eid]`           |     |
-| json path aggregated                                                | `[?(@.eid==<eid of ....>)]`                                                   |     |
-| json path phases                                                    | `[?(@.eid==<eid of ....>)].channels[*]`                                       |     |
-|                                                                     |                                                                               |     |
-| class data                                                          | json node                                                                     | uom |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.eid`              | eid                                                                           |     |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.timestamp`        | timestamp                                                                     |     |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` | actEnergyDlvd                                                                 | Wh  |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received`  | actEnergyRcvd                                                                 | Wh  |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.active_power`     | activePower                                                                   | W   |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.power_factor`     | pwrFactor                                                                     |     |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.voltage`          | voltage                                                                       | V   |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.current`          | current                                                                       | A   |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.frequency`        | freq                                                                          | Hz  |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.state`            | state                                                                         |     |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.measurement_type` | measurementType                                                               |     |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.metering_status`  | meteringStatus                                                                |     |
-| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.status_flags`     | statusFlags                                                                   |     |
+|                                                                     |                                                                          |     |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------ | --- |
+| endpoint config                                                     | [`/ivp/meters`](endpoint_json.md#ivpmeters)                              |     |
+| endpoint data                                                       | [`/ivp/meters/readings`](endpoint_json.md#ivpmetersreadings)             |     |
+| json path config                                                    | `$`                                                                      |     |
+| eid of production                                                   | `[?(@.measurementType=='production' && @.state=='enabled')][eid]`        |     |
+| eid of consumption                                                  | `[?(@.measurementType=='net-consumption' && @.state=='enabled')][eid]`   |     |
+|                                                                     | `[?(@.measurementType=='total-consumption' && @.state=='enabled')][eid]` |     |
+| eid of storage                                                      | `[?(@.measurementType=='storage' && @.state=='enabled')][eid]`           |     |
+| json path aggregated                                                | `[?(@.eid==<eid of ....>)]`                                              |     |
+| json path phases                                                    | `[?(@.eid==<eid of ....>)].channels[*]`                                  |     |
+|                                                                     |                                                                          |     |
+| class data                                                          | json node                                                                | uom |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.eid`              | eid                                                                      |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.timestamp`        | timestamp                                                                |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` | actEnergyDlvd                                                            | Wh  |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received`  | actEnergyRcvd                                                            | Wh  |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.active_power`     | activePower                                                              | W   |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.power_factor`     | pwrFactor                                                                |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.voltage`          | voltage                                                                  | V   |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.current`          | current                                                                  | A   |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.frequency`        | freq                                                                     | Hz  |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.state`            | state                                                                    |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.measurement_type` | measurementType                                                          |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.metering_status`  | meteringStatus                                                           |     |
+| {py:attr}`~pyenphase.models.meters.EnvoyMeterData.status_flags`     | statusFlags                                                              |     |

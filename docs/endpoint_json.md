@@ -80,15 +80,15 @@ Also see [Known Issues](known_issues.md#inverter-device-data).
 
 This is the default endpoint for production and consumption data. It contains data for aggregated and individual phases. Data is measured/calculated by the Envoy. Individual phase data is in the `lines` segment.
 
-- For non-metered Envoy the `type: "eim"` sections are not present.
+- For non-metered Envoy, the `type: "eim"` sections are not present.
 - For Envoy-metered without a [_production_ CT](data_ctmeter.md#ct-model):
-  - the `production` `"type": "eim"`, `"measurementType": "production"`, `activeCount` will be zero.
+  - the `production` item where `type == "eim"` and `measurementType == "production"` has `activeCount == 0`.
 - For Envoy-metered with:
   - a [_net-consumption_ CT](data_ctmeter.md#ct-model), the _total-consumption_ data is calculated by the Envoy.
   - a [_total-consumption_ CT](data_ctmeter.md#ct-model), the _net-consumption_ data is calculated by the Envoy.
-- For Envoy-metered without any _consumption_ CT, the
-  - `consumption` `type: "eim"` `"measurementType": "net-consumption"` `activeCount` will be zero.
-  - `consumption` `type: "eim"` `"measurementType": "total-consumption"` `activeCount` will be zero.
+- For Envoy-metered without any _consumption_ CT:
+  - the `consumption` item where `type == "eim"` and `measurementType == "net-consumption"` has `activeCount == 0`;
+  - the `consumption` item where `type == "eim"` and `measurementType == "total-consumption"` has `activeCount == 0`.
 
 Also see [Known Issues](known_issues.md#production--consumption-data).
 
@@ -105,15 +105,15 @@ Also see [Known Issues](known_issues.md#production--consumption-data).
 
 This is an endpoint for production and consumption data used when older firmware is running in the Envoy and the [standard endpoint](#productionjsondetails1) is not providing data. It only contains data for aggregated phases, no individual phase data is available. Data is measured/calculated by the Envoy.
 
-- For non-metered Envoy the `type: "eim"` sections are not present.
+- For non-metered Envoy, the `type: "eim"` sections are not present.
 - For Envoy-metered without a [_production_ CT](data_ctmeter.md#ct-model):
-  - the `production` `"type": "eim"`, `"measurementType": "production"`, `activeCount` will be zero.
+  - the `production` item where `type == "eim"` and `measurementType == "production"` has `activeCount == 0`.
 - For Envoy-metered with:
   - a [_net-consumption_ CT](data_ctmeter.md#ct-model), the _total-consumption_ data is calculated by the Envoy.
   - a [_total-consumption_ CT](data_ctmeter.md#ct-model), the _net-consumption_ data is calculated by the Envoy.
-- For Envoy-metered without any _consumption_ CT, the
-  - `consumption` `type: "eim"` `"measurementType": "net-consumption"` `activeCount` will be zero.
-  - `consumption` `type: "eim"` `"measurementType": "total-consumption"` `activeCount` will be zero.
+- For Envoy-metered without any _consumption_ CT:
+  - the `consumption` item where `type == "eim"` and `measurementType == "net-consumption"` has `activeCount == 0`;
+  - the `consumption` item where `type == "eim"` and `measurementType == "total-consumption"` has `activeCount == 0`.
 
 ### Known issues
 
