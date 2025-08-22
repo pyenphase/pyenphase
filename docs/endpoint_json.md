@@ -10,14 +10,14 @@ A wealth of information on the Enphase local Envoy api is available from [Matthe
 
 ### description
 
-This is the endpoint used for production data of an Envoy non-metered or Envoy metered without CT installed. It only contains aggregated phase data. Data is measured/calculated by the Envoy.
+This endpoint is used for production data of a non‑metered Envoy or a metered Envoy without CTs installed. It only contains aggregated phase data. Data is measured/calculated by the Envoy.
 
 Also see [Known Issues](known_issues.md#production--consumption-data).
 
 ### JSON
 
 ```{literalinclude} ./json_data/api_v1_production.json
-
+:language: json
 ```
 
 ## /api/v1/production/inverters
@@ -29,6 +29,7 @@ This is the endpoint used for basic inverter production data.
 ### JSON
 
 ```{literalinclude} ./json_data/api_v1_production_inverters.json
+:language: json
 
 ```
 
@@ -41,6 +42,7 @@ This is the endpoint used for installed CT meters configuration.
 ### JSON
 
 ```{literalinclude} ./json_data/ivp_meters.json
+:language: json
 
 ```
 
@@ -53,6 +55,7 @@ This is the endpoint used for CT meter readings.
 ### JSON
 
 ```{literalinclude} ./json_data/ivp_meters_readings.json
+:language: json
 
 ```
 
@@ -67,6 +70,7 @@ Also see [Known Issues](known_issues.md#inverter-device-data).
 ### JSON
 
 ```{literalinclude} ./json_data/ivp_pdm_device_data.json
+:language: json
 
 ```
 
@@ -86,11 +90,12 @@ This is the default endpoint for production and consumption data. It contains da
   - `consumption` `type: "eim"` `"measurementType": "net-consumption"` `activeCount` will be zero.
   - `consumption` `type: "eim"` `"measurementType": "total-consumption"` `activeCount` will be zero.
 
-Also see [Known Issue](known_issues.md#production--consumption-data).
+Also see [Known Issues](known_issues.md#production--consumption-data).
 
 ### JSON
 
 ```{literalinclude} ./json_data/production_details.json
+:language: json
 
 ```
 
@@ -117,5 +122,6 @@ Also see [Known Issues](known_issues.md#production--consumption-data).
 ### JSON
 
 ```{literalinclude} ./json_data/production.json
+:language: json
 
 ```

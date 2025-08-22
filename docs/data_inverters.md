@@ -1,6 +1,6 @@
 # Inverter data
 
-Individual inverter data, available for all Envoy models as of firmware 3.9., class {py:class}`~pyenphase.models.inverter.EnvoyInverter`.
+Individual inverter data, available for all Envoy models as of firmware 3.9, class {py:class}`~pyenphase.models.inverter.EnvoyInverter`.
 
 ```python
 
@@ -51,6 +51,10 @@ This is the default updater for inverter data. It provides data for individual i
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.energy_produced`      | `channels[0].lastReading.joulesProduced/duration/3.6`        | Wh  |
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.energy_today`         | `channels[0].wattHours.today`                                | Wh  |
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_duration` | `channels[0].lastReading.duration`                           | s   |
+
+```{note}
+Raw fields for dc/ac voltage/current/frequency are provided in milli‑units (mV, mA, mHz) by the endpoint and are converted to V/A/Hz by the model.
+```
 
 ### {py:class}`~pyenphase.updaters.api_v1_production_inverters.EnvoyApiV1ProductionInvertersUpdater`
 

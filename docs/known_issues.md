@@ -18,4 +18,4 @@ Issues have been reported with data; these vary by firmware version. Newer firmw
 
 ## Inverter device data
 
-The [inverter device data](./endpoint_json.md#ivp-pdm-device_data) includes a `deviceDataLimit` that appears to be fixed at 50. If more inverters are installed, only data for the first `deviceDataLimit` inverters is included, resulting in missing inverter data. When the reported `deviceCount` is greater than or equal to `deviceDataLimit`, data falls back to [/api/v1/production/inverters](./endpoint_json.md#api-v1-production-inverters) to avoid data loss; device detail data will then be unavailable for all inverters.
+The [inverter device data](endpoint_json.md#ivppdmdevice_data) includes a `deviceDataLimit` that appears to be fixed at 50. If more inverters are installed, only data for the first `deviceDataLimit` inverters is included, resulting in missing inverter data. When the reported `deviceCount` is greater than or equal to `deviceDataLimit`, data falls back to [/api/v1/production/inverters](endpoint_json.md#apiv1productioninverters) to avoid data loss; device detail data will then be unavailable for all inverters.

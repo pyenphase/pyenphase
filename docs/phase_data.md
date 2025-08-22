@@ -1,10 +1,10 @@
 # Phase data
 
-For a metered Envoy with installed and configured current transformers (CT meters) in `three` phase mode and more then 1 phase active, data for individual phases is reported for solar production {py:attr}`pyenphase.EnvoyData.system_production_phases` and house consumption {py:attr}`pyenphase.EnvoyData.system_consumption_phases`. Configurations in `split` mode do not report multiple phases in their production and consumption data.
+For a metered Envoy with installed and configured current transformers (CT meters) in `three`‑phase mode and more than one active phase, data for individual phases is reported for solar production in {py:attr}`pyenphase.EnvoyData.system_production_phases` and house consumption in {py:attr}`pyenphase.EnvoyData.system_consumption_phases`.
 
 Upon completion of the [probe](usage_intro.md#data-collection) call, the phase setup is available. The {py:attr}`~pyenphase.Envoy.phase_count`, {py:attr}`~pyenphase.Envoy.ct_meter_count`, {py:attr}`~pyenphase.Envoy.phase_mode`, and {py:attr}`~pyenphase.Envoy.consumption_meter_type` are available from the Envoy model.
 
-Phase names are enumerated as `L1`, `L2`, and `L3` by {py:class}`pyenphase.const.PhaseNames`. Phase modes are enumerated as `single`, `split`, and `three` by {py:class}`pyenphase.models.meters.EnvoyPhaseMode`. CT meter types are enumerated as `production`, `storage`, `net-consumption`, and `total-consumption` by {py:class}`pyenphase.models.meters.CtType
+Phase names are enumerated as `L1`, `L2`, and `L3` by {py:class}`pyenphase.const.PhaseNames`. Phase modes are enumerated as `single`, `split`, and `three` by {py:class}`pyenphase.models.meters.EnvoyPhaseMode`. CT meter types are enumerated as `production`, `storage`, `net-consumption`, and `total-consumption` by {py:class}`pyenphase.models.meters.CtType`.
 
 Be aware that `phase_count` and `phase_mode` apply for all configured CTs. The metered Envoy can, however, be configured with only 1, 2, or all 3 CT types. In this case, the unused CT data in `system_production_phases`, `system_consumption_phases`, or `ctmeter_storage_phases` will be `None`.
 
