@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 
-from ..models.meters import CtType, EnvoyPhaseMode
+from ..models.meters import EnvoyPhaseMode
 
 
 @dataclass(slots=True)
@@ -52,14 +52,8 @@ class CommonProperties:
     ct_meter_count: int = 0
     #: meters updater, phase mode configured in the CT meters
     phase_mode: EnvoyPhaseMode | None = None
-    #: meters updater, what type of consumption meter is installed, if installed
-    consumption_meter_type: CtType | None = None
-    #: meters updater, what type of production meter is installed, if installed
-    production_meter_type: CtType | None = None
-    #: meters updater, what type of storage meter is installed, if installed
-    storage_meter_type: CtType | None = None
-
-    # controlled by production updater
+    #: meters updater, list of installed meter types, if installed
+    meter_types: list[str] = field(default_factory=list[str])
     #: production updater, number of phases actually reporting phase data
     active_phase_count: int = 0
 

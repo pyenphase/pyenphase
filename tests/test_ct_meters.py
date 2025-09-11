@@ -102,7 +102,7 @@ async def test_pr111_with_7_6_175_with_cts(
     assert data.system_production.watt_hours_lifetime == 3183793
     assert (
         envoy.envoy_model
-        == "Envoy, phases: 1, phase mode: three, net-consumption CT, production CT"
+        == "Envoy, phases: 1, phase mode: three, production CT, net-consumption CT"
     )
 
 
@@ -193,7 +193,7 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
 
     assert (
         envoy.envoy_model
-        == "Envoy, phases: 3, phase mode: three, net-consumption CT, production CT"
+        == "Envoy, phases: 3, phase mode: three, production CT, net-consumption CT"
     )
 
     # test exception handling by specifying non-existing phase
@@ -314,7 +314,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
 
     assert (
         envoy.envoy_model
-        == "Envoy, phases: 3, phase mode: three, net-consumption CT, production CT"
+        == "Envoy, phases: 3, phase mode: three, production CT, net-consumption CT"
     )
 
     # test exception handling by specifying non-existing phase
@@ -382,7 +382,7 @@ async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase(
 
     assert (
         envoy.envoy_model
-        == "Envoy, phases: 3, phase mode: three, total-consumption CT, production CT"
+        == "Envoy, phases: 3, phase mode: three, production CT, total-consumption CT"
     )
 
 
@@ -434,7 +434,7 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split(
 
     assert (
         envoy.envoy_model
-        == "Envoy, phases: 2, phase mode: split, net-consumption CT, production CT, storage CT"
+        == "Envoy, phases: 2, phase mode: split, production CT, net-consumption CT, storage CT"
     )
 
     # test exception handling by specifying non-existing phase
