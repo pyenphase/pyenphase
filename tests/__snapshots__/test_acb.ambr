@@ -107,6 +107,10 @@
     }),
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -920,6 +924,10 @@
     'ctmeter_production_phases': None,
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -1380,6 +1388,10 @@
     }),
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -2363,6 +2375,10 @@
     }),
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -3280,6 +3296,10 @@
     'ctmeter_production_phases': None,
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5.0,
@@ -4587,6 +4607,10 @@
     'ctmeter_production_phases': None,
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5.0,
@@ -5990,6 +6014,10 @@
     }),
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': None,
@@ -7701,6 +7729,10 @@
     'ctmeter_production_phases': None,
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -8530,6 +8562,10 @@
     }),
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -9477,6 +9513,10 @@
     'ctmeter_production_phases': None,
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
@@ -10313,6 +10353,10 @@
     'ctmeter_production_phases': None,
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5.0,
@@ -12023,6 +12067,10 @@
         'timestamp': 1709829517,
         'voltage': 121.248,
       }),
+    }),
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
     }),
     'dry_contact_settings': dict({
       'NC1': dict({
@@ -13793,6 +13841,10 @@
     }),
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
       'NC1': dict({
         'black_start': 5.0,
@@ -15339,6 +15391,10 @@
     'ctmeter_production_phases': None,
     'ctmeter_storage': None,
     'ctmeter_storage_phases': None,
+    'ctmeters': dict({
+    }),
+    'ctmeters_phases': dict({
+    }),
     'dry_contact_settings': dict({
     }),
     'dry_contact_status': dict({
