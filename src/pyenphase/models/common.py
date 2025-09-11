@@ -53,7 +53,7 @@ class CommonProperties:
     #: meters updater, phase mode configured in the CT meters
     phase_mode: EnvoyPhaseMode | None = None
     #: meters updater, list of installed meter types, if installed
-    meter_types: list[str] = field(default_factory=list[str])
+    meter_types: list[str] = field(default_factory=list)
     #: production updater, number of phases actually reporting phase data
     active_phase_count: int = 0
 

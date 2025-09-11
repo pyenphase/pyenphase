@@ -25,7 +25,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
     data_end_point = (
         ENDPOINT_URL_METERS_READINGS  #: endpoint in Envoy to read CT meter data
     )
-    meter_types: list[str] = field(default_factory=list[str])  #: CT types found
+    meter_types: list[str] = field(default_factory=list)  #: CT types found
     phase_mode: EnvoyPhaseMode | None = (
         None  #: Phase mode configured (Single, Dual or Three)
     )
@@ -33,9 +33,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
     ct_meters_count: int = (
         0  #: Number of installed current transformers (Envoy metered Only)
     )
-    meter_eids: dict[str, str] = field(
-        default_factory=dict[str, str]
-    )  #: CT identifiers
+    meter_eids: dict[str, str] = field(default_factory=dict)  #: CT identifiers
 
     def _set_common_properties(self) -> None:
         """Set Envoy common properties we own and control"""
