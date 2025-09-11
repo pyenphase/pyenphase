@@ -60,6 +60,13 @@ class EnvoyData:
     system_net_consumption_phases: dict[str, EnvoySystemConsumption | None] | None = (
         None
     )
+    #: CT power & energy values , only for Envoy metered with CT installed
+    ctmeters: dict[str, EnvoyMeterData] = field(default_factory=dict)  #: CT Meter data
+    #: CT power & energy phase values , only for Envoy metered with CT installed
+    ctmeters_phases: dict[str, dict[str, EnvoyMeterData]] = field(
+        default_factory=dict
+    )  #: CT Meter phase data
+    # these are still here for backward compatibility
     #: Production CT power & energy values , only for Envoy metered with production CT installed
     ctmeter_production: EnvoyMeterData | None = None  #: Production CT Meter data
     #: Consumption CT power & energy values , only for Envoy metered with consumption CT installed
