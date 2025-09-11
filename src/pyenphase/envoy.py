@@ -7,7 +7,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from functools import cached_property, partial
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, overload
 
 import aiohttp
 import orjson
@@ -526,14 +526,29 @@ class Envoy:
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.ct_meter_count
 
+    @overload
+    def _meter_type(self, *types: CtType) -> CtType | None: ...
+
+    @overload
+    def _meter_type(self, *types: str) -> str | None: ...
+
+    def _meter_type(self, *types: CtType | str) -> CtType | str | None:
+        """Return if ct meter type is installed."""
+        assert self._common_properties is not None, "Call setup() first"  # nosec
+        if not self._common_properties.meter_types:
+            return None
+        for type in types:
+            if type in self._common_properties.meter_types:
+                return type
+        return None
+
     @property
     def consumption_meter_type(self) -> CtType | None:
         """
         Return the type of consumption ct meter installed (total
         or net-consumption or None) as read from the Envoy.
         """
-        assert self._common_properties is not None, "Call setup() first"  # nosec
-        return self._common_properties.consumption_meter_type
+        return self._meter_type(CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION)
 
     @property
     def production_meter_type(self) -> CtType | None:
@@ -541,14 +556,12 @@ class Envoy:
         Return the type of production ct meter installed
         (Production or None) as read from the Envoy.
         """
-        assert self._common_properties is not None, "Call setup() first"  # nosec
-        return self._common_properties.production_meter_type
+        return self._meter_type(CtType.PRODUCTION)
 
     @property
     def storage_meter_type(self) -> CtType | None:
         """Return the type of storage ct meter installed (Storage or None) as read from the Envoy."""
-        assert self._common_properties is not None, "Call setup() first"  # nosec
-        return self._common_properties.storage_meter_type
+        return self._meter_type(CtType.STORAGE)
 
     @property
     def phase_mode(self) -> EnvoyPhaseMode | None:
@@ -572,8 +585,7 @@ class Envoy:
         - if 2 or more phases found or at least 1 ct is found:
         - -  phase count
         - -  phase mode
-        - if consumption CT found, type of consumption CT
-        - presence of production and/or storage ct
+        - if CT found, type of CTs
 
         Example: "Envoy, phases: 2, phase mode: split, net-consumption CT, production CT"
 
@@ -591,17 +603,8 @@ class Envoy:
             phase_mode = self.phase_mode
             model = f"{model}, phase mode: {phase_mode}"
 
-        # if consumption CT type is known add to model
-        if ct_consumption_meter := self.consumption_meter_type:
-            model = f"{model}, {ct_consumption_meter} CT"
-
-        # if production CT is found add to model.
-        if ct_production_meter := self.production_meter_type:
-            model = f"{model}, {ct_production_meter} CT"
-
-        # if storage CT is found add to model.
-        if ct_storage_meter := self.storage_meter_type:
-            model = f"{model}, {ct_storage_meter} CT"
+        for type in self._common_properties.meter_types:
+            model = f"{model}, {type} CT"
 
         return model
 
