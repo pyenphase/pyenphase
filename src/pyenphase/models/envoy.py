@@ -60,27 +60,49 @@ class EnvoyData:
     system_net_consumption_phases: dict[str, EnvoySystemConsumption | None] | None = (
         None
     )
-    #: CT power & energy values , only for Envoy metered with CT installed
-    ctmeters: dict[str, EnvoyMeterData] = field(default_factory=dict)  #: CT Meter data
-    #: CT power & energy phase values , only for Envoy metered with CT installed
+    #: CT power & energy values , only for Envoy metered with CT installed.
+    #: Keyed by :any:`CtType`
+    ctmeters: dict[str, EnvoyMeterData] = field(
+        default_factory=dict[str, EnvoyMeterData]
+    )
+    #: CT power & energy phase values , only for Envoy metered with CT installed.
+    #: Keyed by :any:`CtType` and  :any:`PhaseNames`
     ctmeters_phases: dict[str, dict[str, EnvoyMeterData]] = field(
-        default_factory=dict
-    )  #: CT Meter phase data
+        default_factory=dict[str, dict[str, EnvoyMeterData]]
+    )
     # these are still here for backward compatibility
     #: Production CT power & energy values , only for Envoy metered with production CT installed
-    ctmeter_production: EnvoyMeterData | None = None  #: Production CT Meter data
+    #:
+    #: May be deprecated in a future version, use :any:`ctmeters` [:any:`CtType.PRODUCTION`] instead
+    #:
+    ctmeter_production: EnvoyMeterData | None = None
     #: Consumption CT power & energy values , only for Envoy metered with consumption CT installed
-    ctmeter_consumption: EnvoyMeterData | None = None  #: Consumption CT Meter data
+    #:
+    #: May be deprecated in a future version, use :any:`ctmeters` [:any:`CtType.TOTAL_CONSUMPTION`] or :any:`ctmeters` [:any:`CtType.NET_CONSUMPTION`] instead
+    #:
+    ctmeter_consumption: EnvoyMeterData | None = None
     #: Storage CT power & energy values , only for Envoy metered with storage CT installed
-    ctmeter_storage: EnvoyMeterData | None = None  #: Storage CT Meter data
+    #:
+    #: May be deprecated in a future version, use :any:`ctmeters` [:any:`CtType.STORAGE`] instead
+    #:
+    ctmeter_storage: EnvoyMeterData | None = None
     #: Individual phase production ct power & energy values, keyed by :any:`PhaseNames`,
     #: only for Envoy metered with production CT installed
+    #:
+    #: May be deprecated in a future version, use :any:`ctmeters_phases` [:any:`CtType.PRODUCTION`] instead
+    #:
     ctmeter_production_phases: dict[str, EnvoyMeterData] | None = None
     #: Individual phase consumption ct power & energy values, keyed by :any:`PhaseNames`,
     #: only for Envoy metered with consumption installed
+    #:
+    #: May be deprecated in a future version, use :any:`ctmeters_phases` [:any:`CtType.TOTAL_CONSUMPTION`] or :any:`ctmeters_phases` [:any:`CtType.NET_CONSUMPTION`] instead
+    #:
     ctmeter_consumption_phases: dict[str, EnvoyMeterData] | None = None
     #: Individual phase storage ct power & energy values, keyed by :any:`PhaseNames`,
     #: only for Envoy metered with storage CT installed
+    #:
+    #: May be deprecated in a future version, use :any:`ctmeters_phases` [:any:`CtType.STORAGE`] instead
+    #:
     ctmeter_storage_phases: dict[str, EnvoyMeterData] | None = None
     #: dict of Dry contact relay status, keyed by relay ID
     dry_contact_status: dict[str, EnvoyDryContactStatus] = field(default_factory=dict)

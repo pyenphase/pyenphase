@@ -14,10 +14,20 @@ class EnvoyPhaseMode(StrEnum):
 
 
 class CtType(StrEnum):
-    PRODUCTION = "production"
-    NET_CONSUMPTION = "net-consumption"
-    TOTAL_CONSUMPTION = "total-consumption"
-    STORAGE = "storage"
+    PRODUCTION = (
+        "production"  #: Solar production to main panel or Combiner/System controller
+    )
+    NET_CONSUMPTION = "net-consumption"  #: net consumption between main panel and grid
+    TOTAL_CONSUMPTION = (
+        "total-consumption"  #: total consumption between main panel and house load
+    )
+    STORAGE = "storage"  #: between battery and main panel or Combiner/System controller
+    BACKFEED = (
+        "backfeed"  #:  Backfeed between Combiner/System controller and main panel
+    )
+    LOAD = "load"  #: assumed between Combiner/System controller and backup load
+    EVSE = "evse"  #: between Combiner/System controller and EV charger
+    PV3P = "pv3p"  #: between 3th party solar and Combiner/System controller
 
 
 class CtState(StrEnum):
