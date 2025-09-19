@@ -1,14 +1,25 @@
 """Test envoy metered with enabled and disabled CT"""
 
 import logging
+from typing import Any
 
 import aiohttp
+import jsonpath
 import pytest
 from aioresponses import aioresponses
+from syrupy.assertion import SnapshotAssertion
 
 from pyenphase import register_updater
+from pyenphase.const import (
+    PHASENAMES,
+)
 from pyenphase.envoy import SupportedFeatures
-from pyenphase.models.meters import CtMeterData, CtType, EnvoyMeterData
+from pyenphase.models.meters import (
+    CtMeterData,
+    CtType,
+    EnvoyMeterData,
+    EnvoyPhaseMode,
+)
 from pyenphase.models.system_consumption import EnvoySystemConsumption
 from pyenphase.models.system_production import EnvoySystemProduction
 from pyenphase.updaters.meters import EnvoyMetersUpdater
@@ -23,6 +34,9 @@ from .common import (
     start_7_firmware_mock,
     updater_features,
 )
+
+# we're testing, ignore some issue reports
+# pyright: reportPrivateUsage=false
 
 LOGGER = logging.getLogger(__name__)
 
@@ -257,8 +271,8 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
     await envoy.update()
     data = envoy.data
     assert data is not None
-    assert data.ctmeter_production_phases is None
-    assert data.ctmeter_consumption_phases is None
+    # should not have phase data after removing phase data from source
+    assert data.ctmeters_phases == {}
 
 
 @pytest.mark.asyncio
@@ -496,3 +510,407 @@ async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_ba
     envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
+
+
+@pytest.mark.parametrize(
+    ("test_properties",),
+    [
+        pytest.param(
+            {
+                "ctMeters": 2,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "meter_types": [
+                    CtType.NET_CONSUMPTION,
+                    CtType.PRODUCTION,
+                ],
+            },
+            id="4.10.35",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="5.0.62",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.3.130",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 1,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "meter_types": [
+                    CtType.PRODUCTION,
+                ],
+            },
+            id="7.3.130_no_consumption",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.3.466_metered_disabled_cts",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 2,
+                "phaseCount": 3,
+                "phaseMode": EnvoyPhaseMode.THREE,
+                "meter_types": [
+                    CtType.NET_CONSUMPTION,
+                    CtType.PRODUCTION,
+                ],
+            },
+            id="7.3.466_with_cts_3phase",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.3.517",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.3.517_legacy_savings_mode",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 2,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "meter_types": [
+                    CtType.NET_CONSUMPTION,
+                    CtType.PRODUCTION,
+                ],
+            },
+            id="7.3.517_system_2",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.6.114_without_cts",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.6.175",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.6.175_standard",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.6.175_total",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 2,
+                "phaseCount": 1,
+                "phaseMode": EnvoyPhaseMode.THREE,
+                "meter_types": [
+                    CtType.NET_CONSUMPTION,
+                    CtType.PRODUCTION,
+                ],
+            },
+            id="7.6.175_with_cts",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 2,
+                "phaseCount": 3,
+                "phaseMode": EnvoyPhaseMode.THREE,
+                "meter_types": [
+                    CtType.NET_CONSUMPTION,
+                    CtType.PRODUCTION,
+                ],
+            },
+            id="7.6.175_with_cts_3phase",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 2,
+                "phaseCount": 1,
+                "phaseMode": EnvoyPhaseMode.THREE,
+                "meter_types": [
+                    CtType.NET_CONSUMPTION,
+                    CtType.PRODUCTION,
+                ],
+            },
+            id="7.6.185_with_cts_and_battery_3t",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="8.1.41",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 3,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "meter_types": [
+                    CtType.NET_CONSUMPTION,
+                    CtType.PRODUCTION,
+                    CtType.STORAGE,
+                ],
+            },
+            id="8.2.127_with_3cts_and_battery_split",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 2,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "meter_types": [
+                    CtType.NET_CONSUMPTION,
+                    CtType.PRODUCTION,
+                ],
+            },
+            id="8.2.127_with_generator_running",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="8.2.4264_metered_noct",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 3,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "meter_types": [
+                    CtType.NET_CONSUMPTION,
+                    CtType.PRODUCTION,
+                    CtType.STORAGE,
+                ],
+            },
+            id="8.2.4286_with_3cts_and_battery_split",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 2,
+                "phaseCount": 1,
+                "phaseMode": EnvoyPhaseMode.THREE,
+                "meter_types": [
+                    CtType.NET_CONSUMPTION,
+                    CtType.PRODUCTION,
+                ],
+            },
+            id="8.2.4345_with_device_data",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 4,
+                "phaseCount": 2,
+                "phaseMode": EnvoyPhaseMode.SPLIT,
+                "meter_types": [
+                    CtType.NET_CONSUMPTION,
+                    CtType.PRODUCTION,
+                    CtType.STORAGE,
+                    "backfeed",
+                ],
+            },
+            id="8.3.1598_collar",
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_current_transformers(
+    snapshot: SnapshotAssertion,
+    caplog: pytest.LogCaptureFixture,
+    test_properties: dict[str, Any],
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    request: pytest.FixtureRequest,
+) -> None:
+    """Test Current transformer data and properties."""
+    caplog.set_level(logging.WARNING)
+    start_7_firmware_mock(mock_aioresponse)
+
+    # verify test parameter completeness
+    assert len(test_properties) == 4
+
+    # get version and fixture folder from test id
+    version: Any = request.node.callspec.id
+    files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    envoy = await get_mock_envoy(test_client_session)
+
+    # load data
+    data = envoy.data
+    assert data is not None
+    assert data == snapshot
+
+    # verify expected properties
+    assert envoy.ct_meter_count == test_properties["ctMeters"]
+    assert envoy.phase_count == test_properties["phaseCount"]
+    assert envoy.phase_mode == test_properties["phaseMode"]
+
+    # if we have ct meters we should have CTMETERS feature and not if no meters
+    assert envoy.ct_meter_count == len(envoy.ct_meter_list)
+    assert envoy._supported_features
+    assert (envoy.ct_meter_count == 0) ^ (
+        envoy._supported_features & SupportedFeatures.CTMETERS != 0
+    )
+
+    # test if expected meters were found
+    for type in test_properties["meter_types"]:
+        assert envoy.meter_type(type)
+    # test for unexpected meters showing up
+    for type in envoy.ct_meter_list:
+        assert type in test_properties["meter_types"]
+
+    # are all CT types represented correctly in model description
+    for type in envoy.ct_meter_list:
+        assert (type in envoy.envoy_model) != (envoy.meter_type(type) is None)
+
+    # backward compatibility test, verify individual meter types are still found and in model
+    assert (envoy.consumption_meter_type is None) ^ (
+        (CtType.TOTAL_CONSUMPTION in envoy.ct_meter_list)
+        | (CtType.NET_CONSUMPTION in envoy.ct_meter_list)
+    )
+    assert (envoy.production_meter_type is None) ^ (
+        CtType.PRODUCTION in envoy.ct_meter_list
+    )
+    assert (envoy.storage_meter_type is None) ^ (CtType.STORAGE in envoy.ct_meter_list)
+
+    assert (str(envoy.storage_meter_type) in envoy.envoy_model) != (
+        envoy.storage_meter_type is None
+    )
+    assert (str(envoy.production_meter_type) in envoy.envoy_model) != (
+        envoy.production_meter_type is None
+    )
+    assert (str(envoy.storage_meter_type) in envoy.envoy_model) != (
+        envoy.storage_meter_type is None
+    )
+    # end backward compatibility test
+
+    # verify meter data
+    if "ivp_meters" not in files or "ivp_meters_readings" not in files:
+        assert envoy.ct_meter_count == 0
+    else:
+        # test meter data
+        meter_json = await load_json_fixture(version, "ivp_meters")
+        meter_data_json = await load_json_fixture(version, "ivp_meters_readings")
+
+        # get all enabled meters
+        enabled_meters: list[Any] = jsonpath.findall(
+            "[?(@.state=='enabled')]", meter_json
+        )
+        # envoy should have same count
+        assert envoy.ct_meter_count == len(enabled_meters)
+
+        # validate each meter data
+        for meter in enabled_meters:
+            meters_data: list[Any] = jsonpath.findall(
+                f"[?(@.eid=={meter['eid']})]", meter_data_json
+            )
+            assert meters_data[0]
+            meter_data = meters_data[0]
+            cttype = meter["measurementType"]
+            ctdata = data.ctmeters[cttype]
+            assert ctdata.energy_delivered == round(meter_data["actEnergyDlvd"])
+            assert ctdata.energy_received == round(meter_data["actEnergyRcvd"])
+            assert ctdata.active_power == round(meter_data["activePower"])
+            assert ctdata.voltage == meter_data["voltage"]
+            assert ctdata.current == meter_data["current"]
+            assert ctdata.frequency == meter_data["freq"]
+            assert ctdata.state == meter["state"]
+            assert ctdata.metering_status == meter["meteringStatus"]
+            assert ctdata.status_flags == meter["statusFlags"]
+
+            # backward compatibility test
+            if cttype == CtType.PRODUCTION:
+                assert data.ctmeter_production == data.ctmeters[cttype]
+            elif cttype in (CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION):
+                assert data.ctmeter_consumption == data.ctmeters[cttype]
+            elif cttype == CtType.STORAGE:
+                assert data.ctmeter_storage == data.ctmeters[cttype]
+            # end backward compatibility test
+
+            # test phase data, if phase count is <=1 no phase data should be present
+            assert (envoy.phase_count <= 1) ^ (
+                len(data.ctmeters_phases.get(cttype, [])) == envoy.phase_count
+            )
+            for i in range(0, envoy.phase_count if envoy.phase_count > 1 else 0):
+                phase_data: Any = jsonpath.findall(
+                    f"[?(@.eid=={meter['eid']})]['channels'][*]", meter_data_json
+                )[i]
+                assert data.ctmeters_phases[cttype].get(PHASENAMES[i]) is not None
+                ctdata_phase = data.ctmeters_phases[cttype][PHASENAMES[i]]
+                assert ctdata_phase.energy_delivered == round(
+                    phase_data["actEnergyDlvd"]
+                )
+                assert ctdata_phase.energy_received == round(
+                    phase_data["actEnergyRcvd"]
+                )
+                assert ctdata_phase.active_power == round(phase_data["activePower"])
+                assert ctdata_phase.voltage == phase_data["voltage"]
+                assert ctdata_phase.frequency == phase_data["freq"]
+                assert ctdata_phase.state == meter["state"]
+                assert ctdata_phase.metering_status == meter["meteringStatus"]
+                assert ctdata_phase.status_flags == meter["statusFlags"]
+
+                # backward compatibility, verify individual phase data matches dict data
+                if cttype == CtType.PRODUCTION:
+                    assert data.ctmeter_production_phases == data.ctmeters_phases.get(
+                        cttype
+                    )
+                elif cttype in (CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION):
+                    assert data.ctmeter_consumption_phases == data.ctmeters_phases.get(
+                        cttype
+                    )
+                elif cttype == CtType.STORAGE:
+                    assert data.ctmeter_storage_phases == data.ctmeters_phases.get(
+                        cttype
+                    )
+                # end compatibility
