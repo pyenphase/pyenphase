@@ -4,18 +4,26 @@ This section documents CT data for Envoy‑metered systems via {py:class}`~pyenp
 
 Depending on how many and which CT are installed, data is available in:
 
-- {py:attr}`pyenphase.EnvoyData.ctmeter_production`
-- {py:attr}`pyenphase.EnvoyData.ctmeter_consumption`
-- {py:attr}`pyenphase.EnvoyData.ctmeter_storage`
+- {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:attr}`~pyenphase.models.meters.CtType`]
 
-There are multiple CT types that can be installed. The CT meter types are enumerated as `production`, `storage`, `net-consumption`, and `total-consumption` by {py:class}`~pyenphase.models.meters.CtType`. One or more of these can be installed and enabled. For multi-phase configurations, there will be one per phase.
+---
 
-The consumption CT can be either `net-consumption` (installed at the grid boundary) or `total-consumption` (measuring house load); see [ct-model](#ct-model) below. The IQ Metered collar includes an embedded `net-consumption` CT.
+> BACKWARD COMPATIBILITY
+>
+> - {py:attr}`pyenphase.EnvoyData.ctmeter_production`
+> - {py:attr}`pyenphase.EnvoyData.ctmeter_consumption`
+> - {py:attr}`pyenphase.EnvoyData.ctmeter_storage`
+>
+> are also available. These map to their counterparts {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:attr}`~pyenphase.models.meters.CtType`]. In some future version these may be deprecated.
+
+---
+
+There are multiple CT types that can be installed. The CT meter types are enumerated as `production`, `storage`, `net-consumption`, `total-consumption`, `backfeed`, `load`, `evse` and `pv3p` by {py:class}`pyenphase.models.meters.CtType`. One or more of these can be installed and enabled. For multi-phase configurations, there will be one per phase.
 
 ```python
     data: EnvoyData = await envoy.update()
 
-    production_ct = data.ctmeter_production
+    production_ct = data.ctmeter[CtType.PRODUCTION]
 
     print(f'eid: {production_ct.eid}')
     print(f'timestamp: {production_ct.timestamp}')
@@ -33,14 +41,17 @@ The consumption CT can be either `net-consumption` (installed at the grid bounda
 
 ```
 
-To detect how many CTs are installed, use the Envoy property {py:attr}`~pyenphase.Envoy.ct_meter_count`. You can identify which CT meters are available by testing {py:attr}`~pyenphase.Envoy.production_meter_type`, {py:attr}`~pyenphase.Envoy.consumption_meter_type`, or {py:attr}`~pyenphase.Envoy.storage_meter_type`.
+To detect how many CTs are installed, use the Envoy property {py:attr}`~pyenphase.Envoy.ct_meter_count`. You can identify which CT meters are available by testing {py:attr}`pyenphase.Envoy.ct_meter_list`. To test presence of individual CT meters you can also use {py:attr}`pyenphase.Envoy.meter_type`[{py:class}`~pyenphase.models.meters.CtType`].
+
+The consumption CT can be either `net-consumption` (installed at the grid boundary) or `total-consumption` (measuring house load); see [ct-model](#ct-model) below. Which one is installed, is available in {py:attr}`pyenphase.Envoy.consumption_meter_type`. The IQ Metered collar includes an embedded `net-consumption` CT.
 
 ```python
     how_many_ct = envoy.ct_meter_count
+    meter_list = envoy.ct_meter_list
 
     consumption_ct = 'installed' if envoy.consumption_meter_type else 'not installed'
-    production_ct = 'installed' if envoy.production_meter_type else 'not installed'
-    storage_ct = 'installed' if envoy.storage_meter_type else 'not installed'
+    production_ct = 'installed' if envoy.meter_type[CtType.PRODUCTION] else 'not installed'
+    storage_ct = 'installed' if CtType.STORAGE in meter_list else 'not installed'
 
     print(f'This Envoy has Production CT {production_ct}, Consumption CT {consumption_ct}, and Storage CT {storage_ct}')
 ```
@@ -59,10 +70,10 @@ In `net-consumption` mode, {py:attr}`~pyenphase.models.meters.EnvoyMeterData.ene
 
 ```python
 
-if data.consumption_meter_type == CtType.NET_CONSUMPTION:
-    grid_import = data.ctmeter_consumption.energy_delivered
-    grid_export = data.ctmeter_consumption.energy_received
-    grid_power = data.ctmeter_consumption.active_power
+if (cttype := data.consumption_meter_type) == CtType.NET_CONSUMPTION:
+    grid_import = data.ctmeters[cttype].energy_delivered
+    grid_export = data.ctmeters[cttype].energy_received
+    grid_power = data.ctmeters[cttype].active_power
 else:
     print("No net consumption CT installed")
 ```
@@ -74,6 +85,40 @@ The production CT measures solar production. {py:attr}`~pyenphase.models.meters.
 ## Storage CT Options
 
 The storage CT measures battery charge and discharge. {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports energy discharged from the battery, while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports energy charged to the battery.[^2]
+
+## Backfeed CT Options
+
+The backfeed CT measures energy fed back from the Combiner to the switchboard. {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports energy fed back, while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports received from the switchboard.[^2]
+
+## Load CT Options
+
+The load CT is assumed to measures energy from the combiner to backup load. This may be different in various actual configuration. For example with use of backup and non-backup loads. {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports energy received by the the combiner from the load, while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports energy delivered by the combiner to the load.[^2]. This assumes the 'rule' that delivered is in switchboard direction, still applies. Which is unclear at this moment.
+
+## EVSE CT Options
+
+The EVSE CT measures battery energy to and from the EV Charger. {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports energy discharged from the battery, while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports energy charged to the battery.[^2] This assumes the 'rule' that delivered is in switchboard direction, still applies. Which is unclear at this moment.
+
+## PV3P CT Options
+
+The PV3P CT measures measures solar production by third party PV. {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports the energy generated by the solar array, while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports energy consumed by the solar hardware. The latter is typically minimal (e.g., consumption during dawn and dusk).[^2]
+
+## CT Model
+
+Below is a generic model for installed CTs. Each CT can be considered as facing the switchboard and reporting energy delivered to the switchboard in its `energy_delivered` property and energy received from the switchboard in `energy_received`. Power is positive towards the switchboard and negative from the switchboard.
+
+![ct-model showing optional CT configuration](ct-model.png)
+
+These properties have different meaning for each specific CT. For a net-consumption CT, delivered is import from the grid, for Solar production CT, it is solar production and for a battery CT it is battery discharge. A total-consumption CT typically has no delivery but only receives what is consumed by the house.
+
+When a combiner is used, several other CT types may be available.
+
+![ct-combiner-model showing optional CT configuration](ct-combiner-model.png)
+
+> NOTE
+>
+> - This in no way represents a configuration direction, as actual configuration is driven by local rules, installer designs and Enphase installation guidelines. Variations may exist, based on specific needs or rules. This merely describes a simplified view and naming conventions used in this documentation to clarify integration operation. Refer to [Enphase documentation](https://enphase.com/installers/resources/documentation/communication) for more information.
+> - Some element positions, including PV3P, are assumed positions and still need confirmation.
+> - This is an independent publication and has not been authorized, sponsored, or otherwise approved by Enphase Energy, Inc. It is loosely based on Enphase technical brief “PCS integration in 4th-generation Enphase Energy Systems”.
 
 ## Dual CT attributes, single production report attribute
 
@@ -103,14 +148,6 @@ To detect if multiple phases are reporting, use the Envoy property {py:attr}`~py
             for key, value in vars(phase_data).items():
                 print(f'{phase} {key}: {value}')
 ```
-
-## CT Model
-
-Below is a generic model for installed CTs. Each CT can be considered as facing the switchboard and reporting energy delivered to the switchboard in its `energy_delivered` property and energy received from the switchboard in `energy_received`. Power is positive towards the switchboard and negative from the switchboard.
-
-![ct-model showing optional CT configuration](ct-model.png)
-
-These properties have different meaning for each specific CT. For a net-consumption CT, delivered is import from the grid, for Solar production CT, it is solar production and for a battery CT it is battery discharge. A total-consumption CT typically has no delivery but only receives what is consumed by the house.
 
 ## Data sources
 
