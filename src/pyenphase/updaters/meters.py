@@ -191,9 +191,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                             envoy_data.ctmeters_phases[meter_type]
                         )
                 elif self.meter_eids[eid] == CtType.STORAGE:
-                    envoy_data.ctmeter_storage = envoy_data.ctmeters[
-                        self.meter_eids[eid]
-                    ]
+                    envoy_data.ctmeter_storage = envoy_data.ctmeters[meter_type]
                     if phase_data:
                         envoy_data.ctmeter_storage_phases = envoy_data.ctmeters_phases[
                             meter_type
