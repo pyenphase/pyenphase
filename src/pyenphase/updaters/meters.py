@@ -64,7 +64,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         # set defaults for common properties we own and will set
         self.phase_count = 1  # Default to 1 phase which is overall numbers only
         self.ct_meters_count = (
-            0  # default no CT, are only available on Envoy metered if configured
+            0  # default no CT, only available on Envoy metered if configured
         )
         self.phase_mode = (
             None  # Phase mode only if ct meters are installed and configured
@@ -135,12 +135,11 @@ class EnvoyMetersUpdater(EnvoyUpdater):
 
         Get CT configuration from ivp/meters and CT readings from ivp/meters/readings.
         Store data as EnvoyMeterData in ctmeters if any meter is found enabled during probe.
-        If more then 1 phase is active, store phase data in ctmeters_phases. Match data
+        If more than 1 phase is active, store phase data in ctmeters_phases. Match data
         in ivp/meters and ivp/meters/reading using the eid field in both datasets.
 
-        For backward compatibility ctmeter_production, ctmeter_consumption and ct_meter_storage
-        are still se and point to their entries in ctmeters[CtType].
-
+        For backward compatibility ctmeter_production, ctmeter_consumption and ctmeter_storage
+        are still set and point to their entries in ctmeters[CtType].
         :param envoy_data: EnvoyData structure to store data to
         """
         # get the meter status and readings from the envoy
