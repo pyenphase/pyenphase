@@ -12,8 +12,8 @@ from syrupy.assertion import SnapshotAssertion
 from pyenphase import register_updater
 from pyenphase.const import (
     PHASENAMES,
+    SupportedFeatures,
 )
-from pyenphase.envoy import SupportedFeatures
 from pyenphase.models.meters import (
     CtMeterData,
     CtType,
@@ -798,9 +798,8 @@ async def test_current_transformers(
     # if we have ct meters we should have CTMETERS feature and not if no meters
     assert envoy.ct_meter_count == len(envoy.ct_meter_list)
     assert envoy._supported_features
-    assert (envoy.ct_meter_count == 0) ^ (
-        envoy._supported_features & SupportedFeatures.CTMETERS != 0
-    )
+    has_ctmeters = bool(envoy._supported_features & SupportedFeatures.CTMETERS)
+    assert (envoy.ct_meter_count == 0) ^ has_ctmeters
 
     # test if expected meters were found
     for type in test_properties["meter_types"]:
@@ -823,8 +822,8 @@ async def test_current_transformers(
     )
     assert (envoy.storage_meter_type is None) ^ (CtType.STORAGE in envoy.ct_meter_list)
 
-    assert (str(envoy.storage_meter_type) in envoy.envoy_model) != (
-        envoy.storage_meter_type is None
+    assert (str(envoy.consumption_meter_type) in envoy.envoy_model) != (
+        envoy.consumption_meter_type is None
     )
     assert (str(envoy.production_meter_type) in envoy.envoy_model) != (
         envoy.production_meter_type is None
@@ -879,7 +878,7 @@ async def test_current_transformers(
 
             # test phase data, if phase count is <=1 no phase data should be present
             assert (envoy.phase_count <= 1) ^ (
-                len(data.ctmeters_phases.get(cttype, [])) == envoy.phase_count
+                len(data.ctmeters_phases.get(cttype, {})) == envoy.phase_count
             )
             for i in range(0, envoy.phase_count if envoy.phase_count > 1 else 0):
                 phase_data: Any = jsonpath.findall(

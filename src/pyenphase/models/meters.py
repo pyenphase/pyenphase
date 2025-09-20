@@ -27,7 +27,7 @@ class CtType(StrEnum):
     )
     LOAD = "load"  #: assumed between Combiner/System controller and backup load
     EVSE = "evse"  #: between Combiner/System controller and EV charger
-    PV3P = "pv3p"  #: between 3th party solar and Combiner/System controller
+    PV3P = "pv3p"  #: between 3rd-party solar and Combiner/System controller
 
 
 class CtState(StrEnum):

@@ -6,24 +6,20 @@ Depending on how many and which CT are installed, data is available in:
 
 - {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:attr}`~pyenphase.models.meters.CtType`]
 
----
+Legacy per‑type attributes remain for compatibility:
 
-> BACKWARD COMPATIBILITY
->
-> - {py:attr}`pyenphase.EnvoyData.ctmeter_production`
-> - {py:attr}`pyenphase.EnvoyData.ctmeter_consumption`
-> - {py:attr}`pyenphase.EnvoyData.ctmeter_storage`
->
-> are also available. These map to their counterparts {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:attr}`~pyenphase.models.meters.CtType`]. In some future version these may be deprecated.
+- {py:attr}`pyenphase.EnvoyData.ctmeter_production`
+- {py:attr}`pyenphase.EnvoyData.ctmeter_consumption`
+- {py:attr}`pyenphase.EnvoyData.ctmeter_storage`
 
----
+These map to their counterparts {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:attr}`~pyenphase.models.meters.CtType`]. In some future version these may be deprecated.
 
 There are multiple CT types that can be installed. The CT meter types are enumerated as `production`, `storage`, `net-consumption`, `total-consumption`, `backfeed`, `load`, `evse` and `pv3p` by {py:class}`pyenphase.models.meters.CtType`. One or more of these can be installed and enabled. For multi-phase configurations, there will be one per phase.
 
 ```python
     data: EnvoyData = await envoy.update()
 
-    production_ct = data.ctmeter[CtType.PRODUCTION]
+    production_ct = data.ctmeters[CtType.PRODUCTION]
 
     print(f'eid: {production_ct.eid}')
     print(f'timestamp: {production_ct.timestamp}')
@@ -41,7 +37,7 @@ There are multiple CT types that can be installed. The CT meter types are enumer
 
 ```
 
-To detect how many CTs are installed, use the Envoy property {py:attr}`~pyenphase.Envoy.ct_meter_count`. You can identify which CT meters are available by testing {py:attr}`pyenphase.Envoy.ct_meter_list`. To test presence of individual CT meters you can also use {py:attr}`pyenphase.Envoy.meter_type`[{py:class}`~pyenphase.models.meters.CtType`].
+To detect how many CTs are installed, use the Envoy property {py:attr}`~pyenphase.Envoy.ct_meter_count`. You can identify which CT meters are available via {py:attr}`pyenphase.Envoy.ct_meter_list`. To test presence of individual CT meters use {py:meth}`pyenphase.Envoy.meter_type` with a {py:class}`~pyenphase.models.meters.CtType` argument.
 
 The consumption CT can be either `net-consumption` (installed at the grid boundary) or `total-consumption` (measuring house load); see [ct-model](#ct-model) below. Which one is installed, is available in {py:attr}`pyenphase.Envoy.consumption_meter_type`. The IQ Metered collar includes an embedded `net-consumption` CT.
 
@@ -50,7 +46,7 @@ The consumption CT can be either `net-consumption` (installed at the grid bounda
     meter_list = envoy.ct_meter_list
 
     consumption_ct = 'installed' if envoy.consumption_meter_type else 'not installed'
-    production_ct = 'installed' if envoy.meter_type[CtType.PRODUCTION] else 'not installed'
+    production_ct = 'installed' if envoy.meter_type(CtType.PRODUCTION) else 'not installed'
     storage_ct = 'installed' if CtType.STORAGE in meter_list else 'not installed'
 
     print(f'This Envoy has Production CT {production_ct}, Consumption CT {consumption_ct}, and Storage CT {storage_ct}')
@@ -92,15 +88,15 @@ The backfeed CT measures energy fed back from the Combiner to the switchboard. {
 
 ## Load CT Options
 
-The load CT is assumed to measures energy from the combiner to backup load. This may be different in various actual configuration. For example with use of backup and non-backup loads. {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports energy received by the the combiner from the load, while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports energy delivered by the combiner to the load.[^2]. This assumes the 'rule' that delivered is in switchboard direction, still applies. Which is unclear at this moment.
+The load CT measures energy flow between the combiner and backup loads (installations may vary with backup and non‑backup loads). Per the CT Model, {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` is energy towards the switchboard, and {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` is energy from the switchboard.[^2]
 
 ## EVSE CT Options
 
-The EVSE CT measures battery energy to and from the EV Charger. {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports energy discharged from the battery, while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports energy charged to the battery.[^2] This assumes the 'rule' that delivered is in switchboard direction, still applies. Which is unclear at this moment.
+The EVSE CT measures energy flow between the combiner and the EV charger. Per the CT Model, {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` is energy towards the switchboard, and {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` is energy from the switchboard.[^2]
 
 ## PV3P CT Options
 
-The PV3P CT measures measures solar production by third party PV. {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports the energy generated by the solar array, while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports energy consumed by the solar hardware. The latter is typically minimal (e.g., consumption during dawn and dusk).[^2]
+The PV3P CT measures solar production by third party PV. {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_delivered` reports the energy generated by the solar array, while {py:attr}`~pyenphase.models.meters.EnvoyMeterData.energy_received` reports energy consumed by the solar hardware. The latter is typically minimal (e.g., consumption during dawn and dusk).[^2]
 
 ## CT Model
 
@@ -128,13 +124,15 @@ A single increasing/decreasing total of import and export is reported by the [`/
 
 ## Multi-phase CT
 
-For [metered Envoy with multi-phase installations](./phase_data.md#phase-data), CT phase data is available in Envoy classes:
+For [metered Envoy with multi‑phase installations](./phase_data.md#phase-data), CT phase data is available in:
+
+- {py:attr}`pyenphase.EnvoyData.ctmeters_phases`[{py:class}`~pyenphase.models.meters.CtType`][{py:class}`~pyenphase.const.PhaseNames`]
+
+Legacy per‑type attributes remain for compatibility:
 
 - {py:attr}`pyenphase.EnvoyData.ctmeter_production_phases`
 - {py:attr}`pyenphase.EnvoyData.ctmeter_consumption_phases`
 - {py:attr}`pyenphase.EnvoyData.ctmeter_storage_phases`
-
-keyed by {py:class}`~pyenphase.const.PhaseNames`.
 
 Phase data is only populated if CTs are installed on more than 1 phase for production and/or consumption phases.
 
@@ -144,8 +142,8 @@ To detect if multiple phases are reporting, use the Envoy property {py:attr}`~py
     data: EnvoyData = await envoy.update()
 
     if envoy.phase_count > 1:
-        for phase, phase_data in data.ctmeter_production_phases.items():
-            for key, value in vars(phase_data).items():
+        for phase, phase_data in data.ctmeters_phases.get(CtType.PRODUCTION, {}).items():
+                for key, value in vars(phase_data).items():
                 print(f'{phase} {key}: {value}')
 ```
 
