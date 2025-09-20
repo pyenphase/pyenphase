@@ -512,6 +512,52 @@ async def test_ct_storage_data_without_meter_entry_with_8_2_127_with_3cts_and_ba
     assert data is not None
 
 
+@pytest.mark.asyncio
+async def test_yet_unknown_ct_with_8_2_127_with_3cts_and_battery_split(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """Test meters model with yet unknown ct type in meters config and readings"""
+    # start with regular data first we use this fixture to test issue reported in 8.3.5025
+    version = "8.2.127_with_3cts_and_battery_split"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    yet_unknown_ct_type: str = "this_should_work"
+
+    # change last meter type to one not in CtType
+    meters_data = await load_json_list_fixture(version, "ivp_meters")
+    meter = meters_data[-1]
+    assert meter
+    meter["measurementType"] = yet_unknown_ct_type
+    del meters_data[-1]
+    meters_data.append(meter)
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters",
+        status=200,
+        payload=meters_data,
+        repeat=True,
+    )
+
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+
+    # verify yet unknown type is now in ct list and has data with this label
+    assert yet_unknown_ct_type in envoy.ct_meter_list
+    assert data.ctmeters[yet_unknown_ct_type]
+    assert data.ctmeters[yet_unknown_ct_type].state == meter["state"]
+    assert data.ctmeters[yet_unknown_ct_type].eid == meter["eid"]
+    assert envoy.meter_type(yet_unknown_ct_type) == yet_unknown_ct_type
+
+    # last one in original list was storage ct. Should not be there anymore
+    assert data.ctmeter_storage is None
+    assert CtType.STORAGE not in data.ctmeters
+    assert CtType.STORAGE not in data.ctmeters_phases
+
+
 @pytest.mark.parametrize(
     ("test_properties",),
     [
