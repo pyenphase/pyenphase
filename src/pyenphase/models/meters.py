@@ -66,10 +66,10 @@ class EnvoyMeterData:
     timestamp: int  #: Time of measurement
     energy_delivered: int  #: Lifetime Energy delivered through CT
     energy_received: int  #: Lifetime Energy received through CT
-    active_power: int  #: Current power exchang through CT, positive is delivering, negative is receiving
+    active_power: int  #: Current power exchange through CT, positive is delivering, negative is receiving
     power_factor: float  #: Power factor reported for CT measurement
     voltage: float  #: Voltage on circuit, when multiphase sum of voltage of individual phases
-    current: float  #: current measured by CT
+    current: float  #: Current measured by CT
     frequency: float  #: frequency measured by CT
     state: CtState | None  #: Actual State of CT
     measurement_type: CtType | None  #: Measurement type configured for CT
