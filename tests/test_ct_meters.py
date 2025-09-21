@@ -848,15 +848,15 @@ async def test_current_transformers(
     assert (envoy.ct_meter_count == 0) ^ has_ctmeters
 
     # test if expected meters were found
-    for type in test_properties["meter_types"]:
-        assert envoy.meter_type(type)
+    for cttype in test_properties["meter_types"]:
+        assert envoy.meter_type(cttype)
     # test for unexpected meters showing up
-    for type in envoy.ct_meter_list:
-        assert type in test_properties["meter_types"]
+    for cttype in envoy.ct_meter_list:
+        assert cttype in test_properties["meter_types"]
 
     # are all CT types represented correctly in model description
-    for type in envoy.ct_meter_list:
-        assert (type in envoy.envoy_model) != (envoy.meter_type(type) is None)
+    for cttype in envoy.ct_meter_list:
+        assert (cttype in envoy.envoy_model) != (envoy.meter_type(cttype) is None)
 
     # backward compatibility test, verify individual meter types are still found and in model
     assert (envoy.consumption_meter_type is None) ^ (
