@@ -139,7 +139,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
 
         For backward compatibility, ctmeter_production/ctmeter_consumption/ctmeter_storage
         and their phase equivalents are still set to reference the corresponding entries in
-        ctmeters[CtType] and ctmeters_phase[CtType].
+        ctmeters[CtType] and ctmeters_phases[CtType].
         :param envoy_data: EnvoyData structure to store data to
         """
         # get the meter status and readings from the envoy
@@ -169,11 +169,11 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 envoy_data.ctmeters[meter_type := self.meter_eids[eid]] = (
                     EnvoyMeterData.from_api(meter, ct_status)
                 )
-                # if more then 1 phase configured store ctmeter phase data
+                # if more than 1 phase is configured, store ctmeters phase data
                 if phase_data := _meter_data_for_phases(phase_range, meter, ct_status):
                     envoy_data.ctmeters_phases[meter_type] = phase_data
 
-                # Next part if for backward compatibility
+                # Next part is for backward compatibility
                 # May plan to remove in some future breaking change version
                 if meter_type == CtType.PRODUCTION:
                     envoy_data.ctmeter_production = envoy_data.ctmeters[meter_type]
