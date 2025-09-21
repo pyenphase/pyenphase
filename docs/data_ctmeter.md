@@ -1,10 +1,12 @@
+<!-- markdownlint-disable MD052 -->
+
 # Current Transformer Data
 
 This section documents CT data for Envoy‑metered systems via {py:class}`~pyenphase.models.meters.EnvoyMeterData`.
 
 Depending on how many and which CT are installed, data is available in:
 
-- {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:attr}`~pyenphase.models.meters.CtType`]
+- {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:class}`~pyenphase.models.meters.CtType`]
 
 Legacy per‑type attributes remain for compatibility:
 
@@ -12,7 +14,7 @@ Legacy per‑type attributes remain for compatibility:
 - {py:attr}`pyenphase.EnvoyData.ctmeter_consumption`
 - {py:attr}`pyenphase.EnvoyData.ctmeter_storage`
 
-These map to their counterparts {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:attr}`~pyenphase.models.meters.CtType`]. In some future version these may be deprecated.
+These map to their counterparts {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:class}`~pyenphase.models.meters.CtType`]. In some future version these may be deprecated.
 
 There are multiple CT types that can be installed. The CT meter types are enumerated as `production`, `storage`, `net-consumption`, `total-consumption`, `backfeed`, `load`, `evse` and `pv3p` by {py:class}`pyenphase.models.meters.CtType`. One or more of these can be installed and enabled. For multi-phase configurations, there will be one per phase.
 
