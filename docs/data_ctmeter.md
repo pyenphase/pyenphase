@@ -143,7 +143,7 @@ To detect if multiple phases are reporting, use the Envoy property {py:attr}`~py
 
     if envoy.phase_count > 1:
         for phase, phase_data in data.ctmeters_phases.get(CtType.PRODUCTION, {}).items():
-                for key, value in vars(phase_data).items():
+            for key, value in vars(phase_data).items():
                 print(f'{phase} {key}: {value}')
 ```
 
