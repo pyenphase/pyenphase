@@ -620,8 +620,7 @@ class Envoy:
             model = f"{model}, phase mode: {phase_mode}"
 
         for ct_type in self.ct_meter_list:
-            mt = ct_type.value if isinstance(ct_type, CtType) else ct_type
-            model = f"{model}, {mt} CT"
+            model = f"{model}, {ct_type} CT"
 
         return model
 
