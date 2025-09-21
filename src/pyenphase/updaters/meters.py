@@ -102,7 +102,6 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 _LOGGER.debug("No CT Meters found")
                 return None
         # Set multiphase features so other providers/models can return phase data
-        self.phase_count = 1
         for meter in meters_json:
             if meter["state"] == CtState.ENABLED:
                 # remember what meter is installed
@@ -134,12 +133,13 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         Update the Envoy data from the meters endpoints.
 
         Get CT configuration from ivp/meters and CT readings from ivp/meters/readings.
-        Store data as EnvoyMeterData in ctmeters if any meter is found enabled during probe.
-        If more than 1 phase is active, store phase data in ctmeters_phases. Match data
+        Store EnvoyMeterData in ctmeters for any meters enabled during probe.
+        If more than one phase is active, store per-phase data in ctmeters_phases. Match data
         in ivp/meters and ivp/meters/reading using the eid field in both datasets.
 
-        For backward compatibility ctmeter_production, ctmeter_consumption and ctmeter_storage
-        are still set and point to their entries in ctmeters[CtType].
+        For backward compatibility, ctmeter_production/ctmeter_consumption/ctmeter_storage
+        and their phase equivalents are still set to reference the corresponding entries in
+        ctmeters[CtType] and ctmeters_phase[CtType].
         :param envoy_data: EnvoyData structure to store data to
         """
         # get the meter status and readings from the envoy
