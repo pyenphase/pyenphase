@@ -32,7 +32,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
     ct_meters_count: int = (
         0  #: Number of installed current transformers (Envoy metered Only)
     )
-    meter_eids: dict[str, str]  #: CT identifiers
+    meter_eids: dict[int | str, str]  #: CT identifiers
 
     def _set_common_properties(self) -> None:
         """Set Envoy common properties we own and control"""
