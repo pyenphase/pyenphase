@@ -575,24 +575,6 @@ async def test_yet_unknown_ct_with_8_2_127_with_3cts_and_battery_split(
         ),
         pytest.param(
             {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "meter_types": [],
-            },
-            id="5.0.62",
-        ),
-        pytest.param(
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "meter_types": [],
-            },
-            id="7.3.130",
-        ),
-        pytest.param(
-            {
                 "ctMeters": 1,
                 "phaseCount": 2,
                 "phaseMode": EnvoyPhaseMode.SPLIT,
@@ -601,15 +583,6 @@ async def test_yet_unknown_ct_with_8_2_127_with_3cts_and_battery_split(
                 ],
             },
             id="7.3.130_no_consumption",
-        ),
-        pytest.param(
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "meter_types": [],
-            },
-            id="7.3.466_metered_disabled_cts",
         ),
         pytest.param(
             {
@@ -625,24 +598,6 @@ async def test_yet_unknown_ct_with_8_2_127_with_3cts_and_battery_split(
         ),
         pytest.param(
             {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "meter_types": [],
-            },
-            id="7.3.517",
-        ),
-        pytest.param(
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "meter_types": [],
-            },
-            id="7.3.517_legacy_savings_mode",
-        ),
-        pytest.param(
-            {
                 "ctMeters": 2,
                 "phaseCount": 2,
                 "phaseMode": EnvoyPhaseMode.SPLIT,
@@ -652,42 +607,6 @@ async def test_yet_unknown_ct_with_8_2_127_with_3cts_and_battery_split(
                 ],
             },
             id="7.3.517_system_2",
-        ),
-        pytest.param(
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "meter_types": [],
-            },
-            id="7.6.114_without_cts",
-        ),
-        pytest.param(
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "meter_types": [],
-            },
-            id="7.6.175",
-        ),
-        pytest.param(
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "meter_types": [],
-            },
-            id="7.6.175_standard",
-        ),
-        pytest.param(
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "meter_types": [],
-            },
-            id="7.6.175_total",
         ),
         pytest.param(
             {
@@ -727,15 +646,6 @@ async def test_yet_unknown_ct_with_8_2_127_with_3cts_and_battery_split(
         ),
         pytest.param(
             {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "meter_types": [],
-            },
-            id="8.1.41",
-        ),
-        pytest.param(
-            {
                 "ctMeters": 3,
                 "phaseCount": 2,
                 "phaseMode": EnvoyPhaseMode.SPLIT,
@@ -758,15 +668,6 @@ async def test_yet_unknown_ct_with_8_2_127_with_3cts_and_battery_split(
                 ],
             },
             id="8.2.127_with_generator_running",
-        ),
-        pytest.param(
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "meter_types": [],
-            },
-            id="8.2.4264_metered_noct",
         ),
         pytest.param(
             {
@@ -827,7 +728,276 @@ async def test_current_transformers(
 
     # get version and fixture folder from test id
     version: Any = request.node.callspec.id
-    files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    envoy = await get_mock_envoy(test_client_session)
+
+    # load data
+    data = envoy.data
+    assert data is not None
+    assert data == snapshot
+
+    # verify expected properties
+    assert envoy.ct_meter_count == test_properties["ctMeters"]
+    assert envoy.phase_count == test_properties["phaseCount"]
+    assert envoy.phase_mode == test_properties["phaseMode"]
+
+    # if we have ct meters we should have CTMETERS feature and if no meters not
+    assert envoy.ct_meter_count == len(envoy.ct_meter_list)
+    assert envoy._supported_features
+    has_ctmeters = bool(envoy._supported_features & SupportedFeatures.CTMETERS)
+    meter_count_not_zero = bool(envoy.ct_meter_count > 0)
+    assert has_ctmeters == meter_count_not_zero
+
+    # test if expected meters were found
+    for cttype in test_properties["meter_types"]:
+        assert envoy.meter_type(cttype)
+    # test for unexpected meters showing up
+    for cttype in envoy.ct_meter_list:
+        assert cttype in test_properties["meter_types"]
+
+    # are all CT types represented correctly in model description
+    for cttype in envoy.ct_meter_list:
+        assert (cttype in envoy.envoy_model) != (envoy.meter_type(cttype) is None)
+
+    # backward compatibility test, verify individual meter types are still found and in model
+
+    # if no xxx meter is reported then xxx_meter_type should not report one and other way around
+    # if no xxx meter is reported then it should not show in modelname and other way around
+    has_meter = bool(
+        (CtType.TOTAL_CONSUMPTION in envoy.ct_meter_list)
+        | (CtType.NET_CONSUMPTION in envoy.ct_meter_list)
+    )
+    meter_type_present = bool(envoy.consumption_meter_type is not None)
+    meter_in_model = bool(str(envoy.consumption_meter_type) in envoy.envoy_model)
+    assert has_meter == meter_type_present
+    assert has_meter == meter_in_model
+
+    has_meter = bool(CtType.PRODUCTION in envoy.ct_meter_list)
+    meter_type_present = bool(envoy.production_meter_type is not None)
+    meter_in_model = bool(str(envoy.production_meter_type) in envoy.envoy_model)
+    assert has_meter == meter_type_present
+    assert has_meter == meter_in_model
+
+    has_meter = bool(CtType.STORAGE in envoy.ct_meter_list)
+    meter_type_present = bool(envoy.storage_meter_type is not None)
+    meter_in_model = bool(str(envoy.storage_meter_type) in envoy.envoy_model)
+    assert has_meter == meter_type_present
+    assert has_meter == meter_in_model
+
+    # end backward compatibility test
+
+    # verify meter data
+    meter_json = await load_json_fixture(version, "ivp_meters")
+    meter_data_json = await load_json_fixture(version, "ivp_meters_readings")
+
+    # get all enabled meters
+    enabled_meters: list[Any] = jsonpath.findall("[?(@.state=='enabled')]", meter_json)
+    # envoy should have same count
+    assert envoy.ct_meter_count == len(enabled_meters)
+
+    # validate each meter data
+    for meter in enabled_meters:
+        meters_data: list[Any] = jsonpath.findall(
+            f"[?(@.eid=={meter['eid']})]", meter_data_json
+        )
+        assert meters_data[0]
+        meter_data = meters_data[0]
+        cttype = meter["measurementType"]
+        ctdata = data.ctmeters[cttype]
+        assert ctdata.energy_delivered == round(meter_data["actEnergyDlvd"])
+        assert ctdata.energy_received == round(meter_data["actEnergyRcvd"])
+        assert ctdata.active_power == round(meter_data["activePower"])
+        assert ctdata.voltage == meter_data["voltage"]
+        assert ctdata.current == meter_data["current"]
+        assert ctdata.frequency == meter_data["freq"]
+        assert ctdata.state == meter["state"]
+        assert ctdata.metering_status == meter["meteringStatus"]
+        assert ctdata.status_flags == meter["statusFlags"]
+
+        # backward compatibility test
+        # specific xxx meter data should match ctmeters[xxx] data
+        meter_match = bool(cttype == CtType.PRODUCTION)
+        data_match = bool(data.ctmeter_production == data.ctmeters[cttype])
+        assert meter_match == data_match
+
+        meter_match = bool(cttype in (CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION))
+        data_match = bool(data.ctmeter_consumption == data.ctmeters[cttype])
+        assert meter_match == data_match
+
+        meter_match = bool(cttype == CtType.STORAGE)
+        data_match = bool(data.ctmeter_storage == data.ctmeters[cttype])
+        assert meter_match == data_match
+        # end backward compatibility test
+
+        # test phase data, if phase count is <=1 no phase data should be present
+        multiple_phases = bool(envoy.phase_count > 1)
+        phase_data_len_equals_count = bool(
+            len(data.ctmeters_phases.get(cttype, {})) == envoy.phase_count
+        )
+        assert multiple_phases == phase_data_len_equals_count
+        for i in range(0, envoy.phase_count if envoy.phase_count > 1 else 0):
+            phase_data: Any = jsonpath.findall(
+                f"[?(@.eid=={meter['eid']})]['channels'][*]", meter_data_json
+            )[i]
+            assert data.ctmeters_phases[cttype].get(PHASENAMES[i]) is not None
+            ctdata_phase = data.ctmeters_phases[cttype][PHASENAMES[i]]
+            assert ctdata_phase.energy_delivered == round(phase_data["actEnergyDlvd"])
+            assert ctdata_phase.energy_received == round(phase_data["actEnergyRcvd"])
+            assert ctdata_phase.active_power == round(phase_data["activePower"])
+            assert ctdata_phase.voltage == phase_data["voltage"]
+            assert ctdata_phase.frequency == phase_data["freq"]
+            assert ctdata_phase.state == meter["state"]
+            assert ctdata_phase.metering_status == meter["meteringStatus"]
+            assert ctdata_phase.status_flags == meter["statusFlags"]
+
+            # backward compatibility, verify individual phase data matches dict data
+            # specific xxx meter should match ctmeters_phases[xxx] data
+            meter_match = bool(cttype == CtType.PRODUCTION)
+            data_match = bool(
+                data.ctmeter_production_phases == data.ctmeters_phases.get(cttype)
+            )
+            assert meter_match == data_match
+
+            meter_match = bool(
+                cttype in (CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION)
+            )
+            data_match = bool(
+                data.ctmeter_consumption_phases == data.ctmeters_phases.get(cttype)
+            )
+            assert meter_match == data_match
+
+            meter_match = bool(cttype == CtType.STORAGE)
+            data_match = bool(
+                data.ctmeter_storage_phases == data.ctmeters_phases.get(cttype)
+            )
+            assert meter_match == data_match
+            # end compatibility
+
+
+@pytest.mark.parametrize(
+    ("test_properties",),
+    [
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="5.0.62",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.3.130",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.3.466_metered_disabled_cts",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.3.517",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.3.517_legacy_savings_mode",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.6.114_without_cts",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.6.175",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.6.175_standard",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="7.6.175_total",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="8.1.41",
+        ),
+        pytest.param(
+            {
+                "ctMeters": 0,
+                "phaseCount": 1,
+                "phaseMode": None,
+                "meter_types": [],
+            },
+            id="8.2.4264_metered_noct",
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_without_current_transformers(
+    snapshot: SnapshotAssertion,
+    caplog: pytest.LogCaptureFixture,
+    test_properties: dict[str, Any],
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    request: pytest.FixtureRequest,
+) -> None:
+    """Test Current transformer data when none are installed."""
+    caplog.set_level(logging.WARNING)
+    start_7_firmware_mock(mock_aioresponse)
+
+    # verify test parameter completeness
+    assert len(test_properties) == 4
+
+    # get version and fixture folder from test id
+    version: Any = request.node.callspec.id
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     envoy = await get_mock_envoy(test_client_session)
 
@@ -845,117 +1015,32 @@ async def test_current_transformers(
     assert envoy.ct_meter_count == len(envoy.ct_meter_list)
     assert envoy._supported_features
     has_ctmeters = bool(envoy._supported_features & SupportedFeatures.CTMETERS)
-    assert (envoy.ct_meter_count == 0) ^ has_ctmeters
-
-    # test if expected meters were found
-    for cttype in test_properties["meter_types"]:
-        assert envoy.meter_type(cttype)
-    # test for unexpected meters showing up
-    for cttype in envoy.ct_meter_list:
-        assert cttype in test_properties["meter_types"]
-
-    # are all CT types represented correctly in model description
-    for cttype in envoy.ct_meter_list:
-        assert (cttype in envoy.envoy_model) != (envoy.meter_type(cttype) is None)
+    meter_count_not_zero = bool(envoy.ct_meter_count > 0)
+    assert has_ctmeters == meter_count_not_zero
 
     # backward compatibility test, verify individual meter types are still found and in model
-    assert (envoy.consumption_meter_type is None) ^ (
+
+    # if no xxx meter is reported then xxx_meter_type should not report one and other way around
+    # if no xxx meter is reported then it should not show in modelname and other way around
+    has_meter = bool(
         (CtType.TOTAL_CONSUMPTION in envoy.ct_meter_list)
         | (CtType.NET_CONSUMPTION in envoy.ct_meter_list)
     )
-    assert (envoy.production_meter_type is None) ^ (
-        CtType.PRODUCTION in envoy.ct_meter_list
-    )
-    assert (envoy.storage_meter_type is None) ^ (CtType.STORAGE in envoy.ct_meter_list)
+    meter_type_present = bool(envoy.consumption_meter_type is not None)
+    meter_in_model = bool(str(envoy.consumption_meter_type) in envoy.envoy_model)
+    assert has_meter == meter_type_present
+    assert has_meter == meter_in_model
 
-    assert (str(envoy.consumption_meter_type) in envoy.envoy_model) != (
-        envoy.consumption_meter_type is None
-    )
-    assert (str(envoy.production_meter_type) in envoy.envoy_model) != (
-        envoy.production_meter_type is None
-    )
-    assert (str(envoy.storage_meter_type) in envoy.envoy_model) != (
-        envoy.storage_meter_type is None
-    )
+    has_meter = bool(CtType.PRODUCTION in envoy.ct_meter_list)
+    meter_type_present = bool(envoy.production_meter_type is not None)
+    meter_in_model = bool(str(envoy.production_meter_type) in envoy.envoy_model)
+    assert has_meter == meter_type_present
+    assert has_meter == meter_in_model
+
+    has_meter = bool(CtType.STORAGE in envoy.ct_meter_list)
+    meter_type_present = bool(envoy.storage_meter_type is not None)
+    meter_in_model = bool(str(envoy.storage_meter_type) in envoy.envoy_model)
+    assert has_meter == meter_type_present
+    assert has_meter == meter_in_model
+
     # end backward compatibility test
-
-    # verify meter data
-    if "ivp_meters" not in files or "ivp_meters_readings" not in files:
-        assert envoy.ct_meter_count == 0
-    else:
-        # test meter data
-        meter_json = await load_json_fixture(version, "ivp_meters")
-        meter_data_json = await load_json_fixture(version, "ivp_meters_readings")
-
-        # get all enabled meters
-        enabled_meters: list[Any] = jsonpath.findall(
-            "[?(@.state=='enabled')]", meter_json
-        )
-        # envoy should have same count
-        assert envoy.ct_meter_count == len(enabled_meters)
-
-        # validate each meter data
-        for meter in enabled_meters:
-            meters_data: list[Any] = jsonpath.findall(
-                f"[?(@.eid=={meter['eid']})]", meter_data_json
-            )
-            assert meters_data[0]
-            meter_data = meters_data[0]
-            cttype = meter["measurementType"]
-            ctdata = data.ctmeters[cttype]
-            assert ctdata.energy_delivered == round(meter_data["actEnergyDlvd"])
-            assert ctdata.energy_received == round(meter_data["actEnergyRcvd"])
-            assert ctdata.active_power == round(meter_data["activePower"])
-            assert ctdata.voltage == meter_data["voltage"]
-            assert ctdata.current == meter_data["current"]
-            assert ctdata.frequency == meter_data["freq"]
-            assert ctdata.state == meter["state"]
-            assert ctdata.metering_status == meter["meteringStatus"]
-            assert ctdata.status_flags == meter["statusFlags"]
-
-            # backward compatibility test
-            if cttype == CtType.PRODUCTION:
-                assert data.ctmeter_production == data.ctmeters[cttype]
-            elif cttype in (CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION):
-                assert data.ctmeter_consumption == data.ctmeters[cttype]
-            elif cttype == CtType.STORAGE:
-                assert data.ctmeter_storage == data.ctmeters[cttype]
-            # end backward compatibility test
-
-            # test phase data, if phase count is <=1 no phase data should be present
-            assert (envoy.phase_count <= 1) ^ (
-                len(data.ctmeters_phases.get(cttype, {})) == envoy.phase_count
-            )
-            for i in range(0, envoy.phase_count if envoy.phase_count > 1 else 0):
-                phase_data: Any = jsonpath.findall(
-                    f"[?(@.eid=={meter['eid']})]['channels'][*]", meter_data_json
-                )[i]
-                assert data.ctmeters_phases[cttype].get(PHASENAMES[i]) is not None
-                ctdata_phase = data.ctmeters_phases[cttype][PHASENAMES[i]]
-                assert ctdata_phase.energy_delivered == round(
-                    phase_data["actEnergyDlvd"]
-                )
-                assert ctdata_phase.energy_received == round(
-                    phase_data["actEnergyRcvd"]
-                )
-                assert ctdata_phase.active_power == round(phase_data["activePower"])
-                assert ctdata_phase.voltage == phase_data["voltage"]
-                assert ctdata_phase.frequency == phase_data["freq"]
-                assert ctdata_phase.state == meter["state"]
-                assert ctdata_phase.metering_status == meter["meteringStatus"]
-                assert ctdata_phase.status_flags == meter["statusFlags"]
-
-                # backward compatibility, verify individual phase data matches dict data
-                if cttype == CtType.PRODUCTION:
-                    assert data.ctmeter_production_phases == data.ctmeters_phases.get(
-                        cttype
-                    )
-                elif cttype in (CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION):
-                    assert data.ctmeter_consumption_phases == data.ctmeters_phases.get(
-                        cttype
-                    )
-                elif cttype == CtType.STORAGE:
-                    assert data.ctmeter_storage_phases == data.ctmeters_phases.get(
-                        cttype
-                    )
-                # end compatibility
