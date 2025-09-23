@@ -228,13 +228,8 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
 
     # test exception handling for phase data if key is missing
     del production_data["production"][1]["type"]
-    try:
-        production_no_phase_data = EnvoySystemProduction.from_production_phase(
-            production_data, 0
-        )
-    except ValueError:
-        production_no_phase_data = None
-    assert production_no_phase_data is None
+    with pytest.raises(ValueError):
+        EnvoySystemProduction.from_production_phase(production_data, 0)
 
     # test exception handling for phase data in consumption using wrong phase
     consumption_data = data.raw["/production.json?details=1"]
@@ -377,7 +372,7 @@ async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase(
     )
 
     # Force ct consumption meter to total consumption for COV
-    ivp_Meters = (await load_fixture(version, "ivp_meters")).replace(
+    ivp_meters = (await load_fixture(version, "ivp_meters")).replace(
         CtType.NET_CONSUMPTION, CtType.TOTAL_CONSUMPTION
     )
     override_mock(
@@ -385,7 +380,7 @@ async def test_ct_data_structures_with_7_6_175_with_total_cts_3phase(
         "get",
         "https://127.0.0.1/ivp/meters",
         status=200,
-        body=ivp_Meters,
+        body=ivp_meters,
         repeat=True,
     )
 
@@ -758,7 +753,7 @@ async def test_current_transformers(
 
     # are all CT types represented correctly in model description
     for cttype in envoy.ct_meter_list:
-        assert (cttype in envoy.envoy_model) != (envoy.meter_type(cttype) is None)
+        assert (cttype in envoy.envoy_model) == (envoy.meter_type(cttype) is not None)
 
     # backward compatibility test, verify individual meter types are still found and in model
 
@@ -766,7 +761,7 @@ async def test_current_transformers(
     # if no xxx meter is reported then it should not show in modelname and other way around
     has_meter = bool(
         (CtType.TOTAL_CONSUMPTION in envoy.ct_meter_list)
-        | (CtType.NET_CONSUMPTION in envoy.ct_meter_list)
+        or (CtType.NET_CONSUMPTION in envoy.ct_meter_list)
     )
     meter_type_present = bool(envoy.consumption_meter_type is not None)
     meter_in_model = bool(str(envoy.consumption_meter_type) in envoy.envoy_model)
@@ -1024,7 +1019,7 @@ async def test_without_current_transformers(
     # if no xxx meter is reported then it should not show in modelname and other way around
     has_meter = bool(
         (CtType.TOTAL_CONSUMPTION in envoy.ct_meter_list)
-        | (CtType.NET_CONSUMPTION in envoy.ct_meter_list)
+        or (CtType.NET_CONSUMPTION in envoy.ct_meter_list)
     )
     meter_type_present = bool(envoy.consumption_meter_type is not None)
     meter_in_model = bool(str(envoy.consumption_meter_type) in envoy.envoy_model)
