@@ -808,7 +808,7 @@ async def test_current_transformers(
         assert ctdata.frequency == meter_data["freq"]
         assert ctdata.state == meter["state"]
         assert ctdata.metering_status == meter["meteringStatus"]
-        assert ctdata.status_flags == meter["statusFlags"]
+        assert ctdata.status_flags == meter.get("statusFlags")
 
         # backward compatibility test
         # specific xxx meter data should match ctmeters[xxx] data
@@ -844,7 +844,7 @@ async def test_current_transformers(
             assert ctdata_phase.frequency == phase_data["freq"]
             assert ctdata_phase.state == meter["state"]
             assert ctdata_phase.metering_status == meter["meteringStatus"]
-            assert ctdata_phase.status_flags == meter["statusFlags"]
+            assert ctdata_phase.status_flags == meter.get("statusFlags")
 
             # backward compatibility, verify individual phase data matches dict data
             # specific xxx meter should match ctmeters_phases[xxx] data
