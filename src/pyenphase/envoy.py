@@ -563,6 +563,22 @@ class Envoy:
         """Return the type of storage ct meter installed (Storage or None) as read from the Envoy."""
         return self._meter_type(CtType.STORAGE)
 
+    @overload
+    def meter_type(self, meter_type: CtType) -> CtType | None: ...
+
+    @overload
+    def meter_type(self, meter_type: str) -> str | None: ...
+
+    def meter_type(self, meter_type: CtType | str) -> CtType | str | None:
+        """Return the type of ct meter installed as read from the Envoy."""
+        return self._meter_type(meter_type)
+
+    @property
+    def ct_meter_list(self) -> list[CtType | str]:
+        """Return the list of configured current transformers (CT) as read from the Envoy"""
+        assert self._common_properties is not None, "Call setup() first"  # nosec
+        return self._common_properties.meter_types
+
     @property
     def phase_mode(self) -> EnvoyPhaseMode | None:
         """Return the phase mode configured for the CT meters (single, split or three) as read from the Envoy."""
@@ -603,8 +619,8 @@ class Envoy:
             phase_mode = self.phase_mode
             model = f"{model}, phase mode: {phase_mode}"
 
-        for type in self._common_properties.meter_types:
-            model = f"{model}, {type} CT"
+        for ct_type in self.ct_meter_list:
+            model = f"{model}, {ct_type} CT"
 
         return model
 
