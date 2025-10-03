@@ -14,10 +14,22 @@ class EnvoyPhaseMode(StrEnum):
 
 
 class CtType(StrEnum):
+    #: Solar production to main panel or Combiner/System controller
     PRODUCTION = "production"
+    #: Net consumption between main panel and grid
     NET_CONSUMPTION = "net-consumption"
+    #: Total consumption between main panel and house load
     TOTAL_CONSUMPTION = "total-consumption"
+    #: Power and energy between battery and main panel or Combiner/System controller
     STORAGE = "storage"
+    #: Power and energy backfeed between Combiner/System controller and main panel
+    BACKFEED = "backfeed"
+    #: Power and energy assumed between Combiner/System controller and backup load
+    LOAD = "load"
+    #: Power and Energy between Combiner/System controller and EV charger
+    EVSE = "evse"
+    #: Power and energy between 3rd-party solar and Combiner/System controller
+    PV3P = "pv3p"
 
 
 class CtState(StrEnum):
@@ -56,10 +68,10 @@ class EnvoyMeterData:
     timestamp: int  #: Time of measurement
     energy_delivered: int  #: Lifetime Energy delivered through CT
     energy_received: int  #: Lifetime Energy received through CT
-    active_power: int  #: Current power exchang through CT, positive is delivering, negative is receiving
+    active_power: int  #: Current power exchange through CT, positive is delivering, negative is receiving
     power_factor: float  #: Power factor reported for CT measurement
     voltage: float  #: Voltage on circuit, when multiphase sum of voltage of individual phases
-    current: float  #: current measured by CT
+    current: float  #: Current measured by CT
     frequency: float  #: frequency measured by CT
     state: CtState | None  #: Actual State of CT
     measurement_type: CtType | None  #: Measurement type configured for CT
