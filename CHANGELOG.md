@@ -1,6 +1,113 @@
 # CHANGELOG
 
 
+## v2.4.0 (2025-10-03)
+
+### Chores
+
+- Add python-jsonpath and pre-commit to dev group dependencies
+  ([#340](https://github.com/pyenphase/pyenphase/pull/340),
+  [`c762e13`](https://github.com/pyenphase/pyenphase/commit/c762e1320be397642ba29f0b06a84cbd2d0d4640))
+
+- Switch dev tools to aiohttp ([#321](https://github.com/pyenphase/pyenphase/pull/321),
+  [`9c0d67a`](https://github.com/pyenphase/pyenphase/commit/9c0d67a35d6d61277a9931dc2a5699455f174eac))
+
+- **ci**: Bump the github-actions group with 7 updates
+  ([#346](https://github.com/pyenphase/pyenphase/pull/346),
+  [`9e44782`](https://github.com/pyenphase/pyenphase/commit/9e44782b5226360cdd0bc5e41dabf6963490b456))
+
+- **deps**: Bump lxml from 6.0.0 to 6.0.1 ([#329](https://github.com/pyenphase/pyenphase/pull/329),
+  [`98325ba`](https://github.com/pyenphase/pyenphase/commit/98325bae50e87ff26279b4a63af259d4ad65bd78))
+
+- **deps**: Bump lxml from 6.0.1 to 6.0.2 ([#342](https://github.com/pyenphase/pyenphase/pull/342),
+  [`b75088a`](https://github.com/pyenphase/pyenphase/commit/b75088af82810352448e7e526dacde0359d6b9a8))
+
+- **deps**: Bump orjson from 3.11.1 to 3.11.2
+  ([#328](https://github.com/pyenphase/pyenphase/pull/328),
+  [`20b9806`](https://github.com/pyenphase/pyenphase/commit/20b98063cf5c98ef6c33e5288835221acbd123eb))
+
+- **deps**: Bump orjson from 3.11.2 to 3.11.3
+  ([#331](https://github.com/pyenphase/pyenphase/pull/331),
+  [`0ebee3f`](https://github.com/pyenphase/pyenphase/commit/0ebee3fba6cea2548bb30ecb10dd047043145068))
+
+- **deps-dev**: Bump pytest from 8.4.1 to 8.4.2
+  ([#333](https://github.com/pyenphase/pyenphase/pull/333),
+  [`fee3b88`](https://github.com/pyenphase/pyenphase/commit/fee3b8843c817a911cfb76ced9cb66f33dea2aa9))
+
+- **deps-dev**: Bump pytest-asyncio from 1.1.0 to 1.2.0
+  ([#338](https://github.com/pyenphase/pyenphase/pull/338),
+  [`211f003`](https://github.com/pyenphase/pyenphase/commit/211f003d935a30c9a16b2300c9f4acd94c19b9ef))
+
+- **deps-dev**: Bump pytest-cov from 6.2.1 to 6.3.0
+  ([#332](https://github.com/pyenphase/pyenphase/pull/332),
+  [`4cb0466`](https://github.com/pyenphase/pyenphase/commit/4cb04661a73ba124df7bb047243e7022f4f55994))
+
+- **deps-dev**: Bump pytest-cov from 6.3.0 to 7.0.0
+  ([#337](https://github.com/pyenphase/pyenphase/pull/337),
+  [`59414ca`](https://github.com/pyenphase/pyenphase/commit/59414cab696139777c0c617272a83d68895a0d3b))
+
+- **deps-dev**: Bump syrupy from 4.9.1 to 5.0.0
+  ([#344](https://github.com/pyenphase/pyenphase/pull/344),
+  [`e28c018`](https://github.com/pyenphase/pyenphase/commit/e28c01893ad34935321d84a10c8d539f02cd7e79))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#345](https://github.com/pyenphase/pyenphase/pull/345),
+  [`bb6d129`](https://github.com/pyenphase/pyenphase/commit/bb6d12959f7fecfaf3814e94ad893bbe838e0ac5))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#343](https://github.com/pyenphase/pyenphase/pull/343),
+  [`b2af0fe`](https://github.com/pyenphase/pyenphase/commit/b2af0fe42edb231dd328b267c34d1fd54c9b82ea))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#339](https://github.com/pyenphase/pyenphase/pull/339),
+  [`d3628c0`](https://github.com/pyenphase/pyenphase/commit/d3628c0b2ef2a1cf15e43b496339a62f5fe12d4f))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#334](https://github.com/pyenphase/pyenphase/pull/334),
+  [`eada400`](https://github.com/pyenphase/pyenphase/commit/eada4004affb8ba61291525c1c950d8d186187f4))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#330](https://github.com/pyenphase/pyenphase/pull/330),
+  [`3d6e1ad`](https://github.com/pyenphase/pyenphase/commit/3d6e1ad16d6c9b4d6a855f3e9515b4a3e60491f3))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#327](https://github.com/pyenphase/pyenphase/pull/327),
+  [`e3c8033`](https://github.com/pyenphase/pyenphase/commit/e3c803303eb95cba7f431deeb45cdffc0a1ccec0))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#324](https://github.com/pyenphase/pyenphase/pull/324),
+  [`71b8dea`](https://github.com/pyenphase/pyenphase/commit/71b8deacd37dac82c3c859dd56ed33ad1e047d70))
+
+### Documentation
+
+- Add descriptions of production and consumption model data and mapping to json data
+  ([#325](https://github.com/pyenphase/pyenphase/pull/325),
+  [`ffbfc12`](https://github.com/pyenphase/pyenphase/commit/ffbfc12e18316f0fabca9dd0272a46531a0a55e1))
+
+- Re-add request response description ([#323](https://github.com/pyenphase/pyenphase/pull/323),
+  [`2e9eeb3`](https://github.com/pyenphase/pyenphase/commit/2e9eeb35a5880de086fcab781a771c87ed91caaa))
+
+- Some doc reorg, repairs, updates, and cleanups
+  ([#322](https://github.com/pyenphase/pyenphase/pull/322),
+  [`9b9da7c`](https://github.com/pyenphase/pyenphase/commit/9b9da7c33691bdad930ac29d46c72c936c36bd08))
+
+### Features
+
+- Add backfeed, load, evse and pv3p CT data
+  ([#341](https://github.com/pyenphase/pyenphase/pull/341),
+  [`350a645`](https://github.com/pyenphase/pyenphase/commit/350a645fd1c2fdf63e46ef4e43571becbb871545))
+
+- Add feedback, load, evse and pv3p CT to reported CT data
+  ([#341](https://github.com/pyenphase/pyenphase/pull/341),
+  [`350a645`](https://github.com/pyenphase/pyenphase/commit/350a645fd1c2fdf63e46ef4e43571becbb871545))
+
+### Refactoring
+
+- Add generic empty data structures for CT data
+  ([#336](https://github.com/pyenphase/pyenphase/pull/336),
+  [`f8b53c1`](https://github.com/pyenphase/pyenphase/commit/f8b53c1c7ae37b8b362bc1c7a8d88ab9558f9625))
+
+- Make unused variable a dummy ([#339](https://github.com/pyenphase/pyenphase/pull/339),
+  [`d3628c0`](https://github.com/pyenphase/pyenphase/commit/d3628c0b2ef2a1cf15e43b496339a62f5fe12d4f))
+
+- Replace individual meter_type with list of found types
+  ([#335](https://github.com/pyenphase/pyenphase/pull/335),
+  [`1e7c499`](https://github.com/pyenphase/pyenphase/commit/1e7c499e91c30c6ecffaee2df02e01b036ca5939))
+
+
 ## v2.3.1 (2025-08-16)
 
 ### Bug Fixes
