@@ -399,7 +399,10 @@ class Envoy:
         if data:
             if debugon:
                 _LOGGER.debug(
-                    "Sending POST to %s with data %s", url, orjson.dumps(data)
+                    "Sending %s to %s with data %s",
+                    method if method else "POST",
+                    url,
+                    orjson.dumps(data),
                 )
             response = await self._client.request(
                 method if method else "POST",
