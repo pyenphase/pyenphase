@@ -60,24 +60,23 @@ Raw fields for dc/ac voltage/current/frequency are provided in milli‑units (mV
 
 This is the updater for base inverter data. It only provides data for individual inverter production data. Data is measured/calculated by the Envoy.
 
-|           |                                                                             |     |
-| --------- | --------------------------------------------------------------------------- | --- |
-| endpoint  | [`/api/v1/production/inverters`](endpoint_json.md#apiv1productioninverters) |     |
-| json path | `$`                                                                         |     |
-|           |                                                                             |     |
-| data      | json node                                                                   | uom |
-
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.serial_number` | `serialNumber` | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_date` | `lastReportDate` | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_watts` | `lastReportWatts` | W |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.max_report_watts` | `maxReportWatts` | W |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.dc_voltage` | not available | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.dc_current` | not available | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.ac_voltage` | not available | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.ac_current` | not available | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.ac_frequency` | not available | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.temperature` | not available | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.lifetime_energy` | not available | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.energy_produced` | not available | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.energy_today` | not available | |
-| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_duration` | not available | |
+|                                                                          |                                                                             |     |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------- | --- |
+| endpoint                                                                 | [`/api/v1/production/inverters`](endpoint_json.md#apiv1productioninverters) |     |
+| json path                                                                | `$`                                                                         |     |
+|                                                                          |                                                                             |     |
+| data                                                                     | json node                                                                   | uom |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.serial_number`        | `serialNumber`                                                              |     |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_date`     | `lastReportDate`                                                            |     |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_watts`    | `lastReportWatts`                                                           | W   |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.max_report_watts`     | `maxReportWatts`                                                            | W   |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.dc_voltage`           | not available                                                               |     |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.dc_current`           | not available                                                               |     |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.ac_voltage`           | not available                                                               |     |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.ac_current`           | not available                                                               |     |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.ac_frequency`         | not available                                                               |     |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.temperature`          | not available                                                               |     |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.lifetime_energy`      | not available                                                               |     |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.energy_produced`      | not available                                                               |     |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.energy_today`         | not available                                                               |     |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_duration` | not available                                                               |     |
