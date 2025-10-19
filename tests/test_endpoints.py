@@ -1376,14 +1376,18 @@ async def test_with_7_x_firmware(
         assert orjson.loads(request_data) == test_data
 
     # with method should be specified method
+    caplog.clear()
     await envoy.request("/api/v1/production/inverters", data=test_data, method="PUT")
     cnt, request_data = latest_request(
         mock_aioresponse, "PUT", "/api/v1/production/inverters"
     )
     assert cnt == 1
     assert orjson.loads(request_data) == test_data
+    # verify debug log shows correct method
+    assert "Sending PUT to" in caplog.text
 
     # change data to recognize this from previous requests
+    caplog.clear()
     test_data.append({"second_post": "test"})  # type: ignore[attr-defined]
     await envoy.request("/api/v1/production/inverters", data=test_data, method="POST")
     # Check that POST requests with changed data was made
@@ -1392,6 +1396,9 @@ async def test_with_7_x_firmware(
     )
     assert cnt == 1
     assert orjson.loads(request_data) == test_data
+    # verify debug log shows correct method
+    assert "Sending POST to" in caplog.text
+    caplog.clear()
 
     assert envoy.phase_count == phase_count
     assert envoy.ct_meter_count == common_properties["ctMeters"]
