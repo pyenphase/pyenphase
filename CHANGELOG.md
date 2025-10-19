@@ -1,6 +1,24 @@
 # CHANGELOG
 
 
+## v2.4.1 (2025-10-19)
+
+### Bug Fixes
+
+- Show used method in debug when sending data
+  ([#352](https://github.com/pyenphase/pyenphase/pull/352),
+  [`02bc58f`](https://github.com/pyenphase/pyenphase/commit/02bc58f349758510716c45b9331aafaddb070f17))
+
+### Chores
+
+- **deps**: Bump aiohttp from 3.12.15 to 3.13.0
+  ([#351](https://github.com/pyenphase/pyenphase/pull/351),
+  [`d580d6f`](https://github.com/pyenphase/pyenphase/commit/d580d6f271e8cb5d47e0c45e538e3968957cf8d2))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#350](https://github.com/pyenphase/pyenphase/pull/350),
+  [`fcac787`](https://github.com/pyenphase/pyenphase/commit/fcac78776fbe0b96d7b5f0208341060c38b2761f))
+
+
 ## v2.4.0 (2025-10-03)
 
 ### Chores
