@@ -15,7 +15,6 @@ from pyenphase.const import (
     PhaseNames,
 )
 from pyenphase.envoy import EnvoyProbeFailed, SupportedFeatures
-from pyenphase.models.meters import CtMeterStatus, CtType, EnvoyPhaseMode
 
 from .common import (
     endpoint_path,
@@ -29,6 +28,9 @@ from .common import (
     updater_features,
 )
 
+# we're testing, ignore private member access
+# pyright: reportPrivateUsage=false
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -39,15 +41,8 @@ LOGGER = logging.getLogger(__name__)
         "supported_features",
         "updaters",
         "phase_count",
-        "common_properties",
         "production_phases",
         "consumption_phases",
-        "ct_production",
-        "ct_consumption",
-        "ct_storage",
-        "ct_production_phases",
-        "ct_consumption_phases",
-        "ct_storage_phases",
     ),
     [
         (
@@ -62,20 +57,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "consumptionMeter": None,
-                "productionMeter": None,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -101,57 +82,7 @@ LOGGER = logging.getLogger(__name__)
                 | SupportedFeatures.CTMETERS,
             },
             2,
-            {
-                "ctMeters": 2,
-                "phaseCount": 2,
-                "phaseMode": EnvoyPhaseMode.SPLIT,
-                "consumptionMeter": CtType.NET_CONSUMPTION,
-                "productionMeter": CtType.PRODUCTION,
-                "storageMeter": None,
-            },
             {},
-            {},
-            {
-                "eid": 704643328,
-                "active_power": 166,
-                "measurement_type": CtType.PRODUCTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {
-                "eid": 704643584,
-                "active_power": 567,
-                "measurement_type": CtType.NET_CONSUMPTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {},
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385169,
-                    "active_power": 83,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385170,
-                    "active_power": 84,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385425,
-                    "active_power": 394,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385426,
-                    "active_power": 173,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
             {},
         ),
         (
@@ -170,20 +101,6 @@ LOGGER = logging.getLogger(__name__)
                 | SupportedFeatures.PRODUCTION,
             },
             1,
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "consumptionMeter": None,
-                "productionMeter": None,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -205,38 +122,6 @@ LOGGER = logging.getLogger(__name__)
                 | SupportedFeatures.CTMETERS,
             },
             2,
-            {
-                "ctMeters": 1,
-                "phaseCount": 2,
-                "phaseMode": EnvoyPhaseMode.SPLIT,
-                "consumptionMeter": None,
-                "productionMeter": CtType.PRODUCTION,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {
-                "eid": 704643328,
-                "active_power": 3625,
-                "measurement_type": CtType.PRODUCTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {},
-            {},
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385169,
-                    "active_power": 1811,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385170,
-                    "active_power": 1814,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
             {},
             {},
         ),
@@ -262,20 +147,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "consumptionMeter": None,
-                "productionMeter": None,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -301,20 +172,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "consumptionMeter": None,
-                "productionMeter": None,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -344,57 +201,7 @@ LOGGER = logging.getLogger(__name__)
                 | SupportedFeatures.CTMETERS,
             },
             2,
-            {
-                "ctMeters": 2,
-                "phaseCount": 2,
-                "phaseMode": EnvoyPhaseMode.SPLIT,
-                "consumptionMeter": CtType.NET_CONSUMPTION,
-                "productionMeter": CtType.PRODUCTION,
-                "storageMeter": None,
-            },
             {},
-            {},
-            {
-                "eid": 704643328,
-                "active_power": 2660,
-                "measurement_type": CtType.PRODUCTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {
-                "eid": 704643584,
-                "active_power": 23,
-                "measurement_type": CtType.NET_CONSUMPTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {},
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385169,
-                    "active_power": 1331,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385170,
-                    "active_power": 1329,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385425,
-                    "active_power": -17,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385426,
-                    "active_power": 41,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
             {},
         ),
         (
@@ -409,20 +216,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "consumptionMeter": None,
-                "productionMeter": None,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -435,20 +228,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
             },
             1,
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "consumptionMeter": None,
-                "productionMeter": None,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -461,20 +240,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
             },
             1,
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "consumptionMeter": None,
-                "productionMeter": None,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -490,20 +255,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "consumptionMeter": None,
-                "productionMeter": None,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -516,20 +267,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
             },
             1,
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "consumptionMeter": None,
-                "productionMeter": None,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -553,20 +290,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
             },
             1,
-            {
-                "ctMeters": 2,
-                "phaseCount": 1,
-                "phaseMode": EnvoyPhaseMode.THREE,
-                "consumptionMeter": CtType.NET_CONSUMPTION,
-                "productionMeter": CtType.PRODUCTION,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -593,14 +316,6 @@ LOGGER = logging.getLogger(__name__)
             },
             3,
             {
-                "ctMeters": 2,
-                "phaseCount": 3,
-                "phaseMode": EnvoyPhaseMode.THREE,
-                "consumptionMeter": CtType.NET_CONSUMPTION,
-                "productionMeter": CtType.PRODUCTION,
-                "storageMeter": None,
-            },
-            {
                 PhaseNames.PHASE_1: {
                     "watt_hours_lifetime": 1869678,
                     "watt_hours_last_7_days": 29891,
@@ -640,60 +355,6 @@ LOGGER = logging.getLogger(__name__)
                     "watts_now": -3,
                 },
             },
-            {
-                "eid": 704643328,
-                "active_power": 489,
-                "measurement_type": CtType.PRODUCTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {
-                "eid": 704643584,
-                "active_power": -36,
-                "measurement_type": CtType.NET_CONSUMPTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {},
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385169,
-                    "active_power": 489,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385170,
-                    "active_power": 0,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_3: {
-                    "eid": 1778385171,
-                    "active_power": -1,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385425,
-                    "active_power": -36,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385426,
-                    "active_power": -0,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_3: {
-                    "eid": 1778385427,
-                    "active_power": -0,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
-            {},
         ),
         (
             "7.3.466_with_cts_3phase",
@@ -718,14 +379,6 @@ LOGGER = logging.getLogger(__name__)
             },
             3,
             {
-                "ctMeters": 2,
-                "phaseCount": 3,
-                "phaseMode": EnvoyPhaseMode.THREE,
-                "consumptionMeter": CtType.NET_CONSUMPTION,
-                "productionMeter": CtType.PRODUCTION,
-                "storageMeter": None,
-            },
-            {
                 PhaseNames.PHASE_1: {
                     "watt_hours_lifetime": 1869678,
                     "watt_hours_last_7_days": 29891,
@@ -765,60 +418,6 @@ LOGGER = logging.getLogger(__name__)
                     "watts_now": -3,
                 },
             },
-            {
-                "eid": 704643328,
-                "active_power": 489,
-                "measurement_type": CtType.PRODUCTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {
-                "eid": 704643584,
-                "active_power": -36,
-                "measurement_type": CtType.NET_CONSUMPTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {},
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385169,
-                    "active_power": 489,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385170,
-                    "active_power": 0,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_3: {
-                    "eid": 1778385171,
-                    "active_power": -1,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385425,
-                    "active_power": -36,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385426,
-                    "active_power": -0,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_3: {
-                    "eid": 1778385427,
-                    "active_power": -0,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
-            {},
         ),
         (
             "7.6.185_with_cts_and_battery_3t",
@@ -842,20 +441,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
             },
             1,
-            {
-                "ctMeters": 2,
-                "phaseCount": 1,
-                "phaseMode": EnvoyPhaseMode.THREE,
-                "consumptionMeter": CtType.NET_CONSUMPTION,
-                "productionMeter": CtType.PRODUCTION,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -879,20 +464,6 @@ LOGGER = logging.getLogger(__name__)
                 | SupportedFeatures.NET_CONSUMPTION,
             },
             1,
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "consumptionMeter": None,
-                "productionMeter": None,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -922,76 +493,8 @@ LOGGER = logging.getLogger(__name__)
                 | SupportedFeatures.CTMETERS,
             },
             2,
-            {
-                "ctMeters": 3,
-                "phaseCount": 2,
-                "phaseMode": EnvoyPhaseMode.SPLIT,
-                "consumptionMeter": CtType.NET_CONSUMPTION,
-                "productionMeter": CtType.PRODUCTION,
-                "storageMeter": CtType.STORAGE,
-            },
             {},
             {},
-            {
-                "eid": 704643328,
-                "active_power": 1714,
-                "measurement_type": CtType.PRODUCTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {
-                "eid": 704643584,
-                "active_power": 129,
-                "measurement_type": CtType.NET_CONSUMPTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {
-                "eid": 704643840,
-                "active_power": -2580,
-                "measurement_type": CtType.STORAGE,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385169,
-                    "active_power": 856,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385170,
-                    "active_power": 858,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385425,
-                    "active_power": -201,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385426,
-                    "active_power": 331,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385681,
-                    "active_power": -2115,
-                    "measurement_type": CtType.STORAGE,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385682,
-                    "active_power": -465,
-                    "measurement_type": CtType.STORAGE,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
         ),
         (
             "8.2.127_with_generator_running",
@@ -1021,57 +524,7 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyGeneratorUpdater": SupportedFeatures.GENERATOR,
             },
             2,
-            {
-                "ctMeters": 2,
-                "phaseCount": 2,
-                "phaseMode": EnvoyPhaseMode.SPLIT,
-                "consumptionMeter": CtType.NET_CONSUMPTION,
-                "productionMeter": CtType.PRODUCTION,
-                "storageMeter": None,
-            },
             {},
-            {},
-            {
-                "eid": 704643328,
-                "active_power": 2336,
-                "measurement_type": CtType.PRODUCTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {
-                "eid": 704643584,
-                "active_power": 196,
-                "measurement_type": CtType.NET_CONSUMPTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {},
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385169,
-                    "active_power": 1173,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385170,
-                    "active_power": 1163,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385425,
-                    "active_power": 268,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385426,
-                    "active_power": -72,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
             {},
         ),
         (
@@ -1101,14 +554,6 @@ LOGGER = logging.getLogger(__name__)
             },
             2,
             {
-                "ctMeters": 3,
-                "phaseCount": 2,
-                "phaseMode": EnvoyPhaseMode.SPLIT,
-                "consumptionMeter": CtType.NET_CONSUMPTION,
-                "productionMeter": CtType.PRODUCTION,
-                "storageMeter": CtType.STORAGE,
-            },
-            {
                 PhaseNames.PHASE_1: {
                     "watt_hours_lifetime": 6709433,
                     "watt_hours_last_7_days": 6703259,
@@ -1136,66 +581,6 @@ LOGGER = logging.getLogger(__name__)
                     "watts_now": 4478,
                 },
             },
-            {
-                "eid": 704643328,
-                "active_power": 7131,
-                "measurement_type": CtType.PRODUCTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {
-                "eid": 704643584,
-                "active_power": 1750,
-                "measurement_type": CtType.NET_CONSUMPTION,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {
-                "eid": 704643840,
-                "active_power": -7084,
-                "measurement_type": CtType.STORAGE,
-                "metering_status": CtMeterStatus.NORMAL,
-            },
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385169,
-                    "active_power": 3562,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385170,
-                    "active_power": 3569,
-                    "measurement_type": CtType.PRODUCTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385425,
-                    "active_power": 810,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385426,
-                    "active_power": 940,
-                    "measurement_type": CtType.NET_CONSUMPTION,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
-            {
-                PhaseNames.PHASE_1: {
-                    "eid": 1778385681,
-                    "active_power": -3538,
-                    "measurement_type": CtType.STORAGE,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-                PhaseNames.PHASE_2: {
-                    "eid": 1778385682,
-                    "active_power": -3545,
-                    "measurement_type": CtType.STORAGE,
-                    "metering_status": CtMeterStatus.NORMAL,
-                },
-            },
         ),
         (
             "8.2.4264_metered_noct",
@@ -1209,20 +594,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
-            {
-                "ctMeters": 0,
-                "phaseCount": 1,
-                "phaseMode": None,
-                "consumptionMeter": None,
-                "productionMeter": None,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -1252,20 +623,6 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             1,
-            {
-                "ctMeters": 2,
-                "phaseCount": 1,
-                "phaseMode": EnvoyPhaseMode.THREE,
-                "consumptionMeter": CtType.NET_CONSUMPTION,
-                "productionMeter": CtType.PRODUCTION,
-                "storageMeter": None,
-            },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
             {},
             {},
         ),
@@ -1304,15 +661,8 @@ async def test_with_7_x_firmware(
     updaters: dict[str, SupportedFeatures],
     caplog: pytest.LogCaptureFixture,
     phase_count: int,
-    common_properties: dict[str, Any],
     production_phases: dict[str, dict[str, Any]],
     consumption_phases: dict[str, dict[str, Any]],
-    ct_production: dict[str, Any],
-    ct_consumption: dict[str, Any],
-    ct_storage: dict[str, Any],
-    ct_production_phases: dict[str, dict[str, Any]],
-    ct_consumption_phases: dict[str, dict[str, Any]],
-    ct_storage_phases: dict[str, dict[str, Any]],
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
@@ -1328,14 +678,14 @@ async def test_with_7_x_firmware(
     assert data is not None
     assert data == snapshot
 
+    # verify expected properties
     assert envoy.firmware == version.split("_")[0]
     assert envoy.serial_number
 
     assert envoy.part_number == part_number
     assert updater_features(envoy._updaters) == updaters
-    # We're testing, disable warning on private member
-    # pylint: disable=protected-access
     assert envoy._supported_features == supported_features
+    assert envoy.phase_count == phase_count
 
     # test envoy request methods GET, PUT and POST
     test_data = await load_json_fixture(version, "api_v1_production_inverters")
@@ -1358,7 +708,6 @@ async def test_with_7_x_firmware(
         myresponse: aiohttp.ClientResponse = await envoy.request(
             "/api/v1/production/inverters"
         )
-        # with data but no method should be post
         # Check that at least one GET request was made to this URL
         cnt, request_data = latest_request(
             mock_aioresponse, "GET", "/api/v1/production/inverters"
@@ -1378,6 +727,7 @@ async def test_with_7_x_firmware(
     # with method should be specified method
     caplog.clear()
     await envoy.request("/api/v1/production/inverters", data=test_data, method="PUT")
+    # Check that at least one PUT request was made to this URL
     cnt, request_data = latest_request(
         mock_aioresponse, "PUT", "/api/v1/production/inverters"
     )
@@ -1399,25 +749,6 @@ async def test_with_7_x_firmware(
     # verify debug log shows correct method
     assert "Sending POST to" in caplog.text
     caplog.clear()
-
-    assert envoy.phase_count == phase_count
-    assert envoy.ct_meter_count == common_properties["ctMeters"]
-    assert envoy.phase_count == common_properties["phaseCount"]
-    assert envoy.phase_mode == common_properties["phaseMode"]
-    assert envoy.consumption_meter_type == common_properties["consumptionMeter"]
-    assert envoy.production_meter_type == common_properties["productionMeter"]
-    assert envoy.storage_meter_type == common_properties["storageMeter"]
-
-    # are CT types represented correctly in model
-    assert (str(envoy.storage_meter_type) in envoy.envoy_model) != (
-        envoy.storage_meter_type is None
-    )
-    assert (str(envoy.production_meter_type) in envoy.envoy_model) != (
-        envoy.production_meter_type is None
-    )
-    assert (str(envoy.storage_meter_type) in envoy.envoy_model) != (
-        envoy.storage_meter_type is None
-    )
 
     # data is the original collected envoy.data
     # are all production phases reported
@@ -1470,69 +801,6 @@ async def test_with_7_x_firmware(
         assert consdata.watt_hours_last_7_days == modeldata["watt_hours_last_7_days"]
         assert consdata.watt_hours_today == modeldata["watt_hours_today"]
         assert consdata.watts_now == modeldata["watts_now"]
-
-    # test ct production meter values
-    for key in ct_production:
-        assert data.ctmeter_production is not None
-        assert ct_production[key] == getattr(data.ctmeter_production, key)
-
-    # are all CT production phases reported
-    assert (
-        len(ct_production_phases) == 0
-        if data.ctmeter_production_phases is None
-        else len(data.ctmeter_production_phases)
-    )
-
-    # Test each ct production phase
-    for phase in ct_production_phases:
-        assert data.ctmeter_production_phases is not None
-        ct_proddata = data.ctmeter_production_phases[phase]
-        modeldata = ct_production_phases[phase]
-        # test each element of the phase data
-        for key in modeldata:
-            assert modeldata[key] == getattr(ct_proddata, key)
-
-    # test ct consumption meter values
-    for key in ct_consumption:
-        assert data.ctmeter_consumption is not None
-        assert ct_consumption[key] == getattr(data.ctmeter_consumption, key)
-
-    # are all consumption CT phases reported
-    assert (
-        len(ct_consumption_phases) == 0
-        if data.ctmeter_consumption_phases is None
-        else len(data.ctmeter_consumption_phases)
-    )
-
-    # Test each ct consumption phase
-    for phase in ct_consumption_phases:
-        assert data.ctmeter_consumption_phases is not None
-        ct_consdata = data.ctmeter_consumption_phases[phase]
-        modeldata = ct_consumption_phases[phase]
-        # test each element of the phase data
-        for key in modeldata:
-            assert modeldata[key] == getattr(ct_consdata, key)
-
-    # test ct storage meter values
-    for key in ct_storage:
-        assert data.ctmeter_storage is not None
-        assert ct_storage[key] == getattr(data.ctmeter_storage, key)
-
-    # test expected vs actual phases reported
-    assert (
-        len(ct_storage_phases) == 0
-        if data.ctmeter_storage_phases is None
-        else len(data.ctmeter_storage_phases)
-    )
-
-    # Test each ct storage phase
-    for phase in ct_storage_phases:
-        assert data.ctmeter_storage_phases is not None
-        storedata = data.ctmeter_storage_phases[phase]
-        modeldata = ct_storage_phases[phase]
-        # test each element of the phase data
-        for key in modeldata:
-            assert modeldata[key] == getattr(storedata, key)
 
     # COV test with no production segment
     if "production" in files:
