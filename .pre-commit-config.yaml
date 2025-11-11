@@ -36,12 +36,12 @@ repos:
       - id: prettier
         args: ["--tab-width", "2", "--no-error-on-unmatched-pattern"]
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.0
+    rev: v3.21.1
     hooks:
       - id: pyupgrade
         args: [--py310-plus]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.3
+    rev: v0.14.4
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
