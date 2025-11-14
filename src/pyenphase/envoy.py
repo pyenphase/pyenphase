@@ -33,6 +33,7 @@ from .const import (
     AUTH_TOKEN_MIN_VERSION,
     ENDPOINT_URL_HOME,
     LOCAL_TIMEOUT,
+    MAX_PROBE_REQUEST_DELAY,
     MAX_REQUEST_ATTEMPTS,
     MAX_REQUEST_DELAY,
     URL_DRY_CONTACT_SETTINGS,
@@ -297,7 +298,7 @@ class Envoy:
             )
         ),
         wait=wait_random_exponential(multiplier=2, max=5),
-        stop=stop_after_delay(MAX_REQUEST_DELAY)
+        stop=stop_after_delay(MAX_PROBE_REQUEST_DELAY)
         | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
         reraise=True,
     )

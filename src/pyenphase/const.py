@@ -58,7 +58,8 @@ LOCAL_TIMEOUT = aiohttp.ClientTimeout(
 )
 
 # Requests should no longer retry after max delay (sec) or times since first try
-MAX_REQUEST_DELAY = 50
+MAX_REQUEST_DELAY = 120
+MAX_PROBE_REQUEST_DELAY = 50
 MAX_REQUEST_ATTEMPTS = 4
 
 
