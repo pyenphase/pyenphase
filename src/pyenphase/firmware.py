@@ -98,8 +98,9 @@ class EnvoyFirmware:
         from xml response.
 
         Reads first on HTTPS, if that fails on HTTP for firmware < 7.
-        Will retry up to 4 times or 50 sec elapsed at next try, which
-        ever comes first.
+        Will retry up to :any:`MAX_REQUEST_ATTEMPTS` times
+        or :any:`MAX_PROBE_REQUEST_DELAY` elapsed at next try, which
+        ever comes first on network or remote protocol errors.
 
         .. code-block:: python
 
