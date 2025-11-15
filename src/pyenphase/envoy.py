@@ -193,10 +193,9 @@ class Envoy:
         decide what authentication to use for sub-sequent Envoy
         communication. Use this method as first step after class instantiation
 
-        Will retry up to :any:`MAX_REQUEST_ATTEMPTS` times,
-        :any:`MAX_PROBE_REQUEST_DELAY` sec for probe
-        or :any:`MAX_REQUEST_DELAY` sec for
-        requests elapsed time at next try, which ever comes first.
+        Will retry up to :any:`MAX_REQUEST_ATTEMPTS` times or
+        :any:`MAX_POBE_REQUEST_DELAY` elapsed at next try, which
+        ever comes first.
 
         :raises EnvoyFirmwareFatalCheckError: if connection or timeout
             failure occurs
