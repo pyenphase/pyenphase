@@ -71,7 +71,6 @@ class EnvoyFirmware:
         Will retry up to :any:`MAX_REQUEST_ATTEMPTS` times
         or :any:`MAX_PROBE_REQUEST_DELAY` elapsed at next try, which
         ever comes first on network or remote protocol errors.
-        ever comes first on network or remote protocol errors.
         HTTP status is not verified.
 
         :return: tuple of (status_code, content)
