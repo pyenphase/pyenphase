@@ -35,7 +35,7 @@ This endpoint is accessible without token authorization and provides information
 ### json
 
 ```{literalinclude} ./json_data/home.json
-:language: xml
+:language: json
 ```
 
 ## /api/v1/production
