@@ -24,7 +24,7 @@
         "interface": "eth0",
         "mac": "01:02:03:04:05:06",
         "dhcp": true,
-        "ip": "123.456.789.1",
+        "ip": "192.168.1.100",
         "signal_strength": 0,
         "signal_strength_max": 1,
         "carrier": false
@@ -36,7 +36,7 @@
         "interface": "wlan0",
         "mac": "02:03:04:05:06:07",
         "dhcp": true,
-        "ip": "123.456.7.89",
+        "ip": "192.168.1.101",
         "carrier": true,
         "supported": true,
         "present": true,

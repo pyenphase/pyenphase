@@ -30,7 +30,7 @@ This endpoint is accessible without token authorization and provides information
 
 ### description
 
-This endpoint is accessible without token authorization and provides information on configured network interfaces and communication. It is used by to retrieve active network device when using {py:attr}`~pyenphase.Envoy.interface_settings`.
+This endpoint is accessible without token authorization and provides information on configured network interfaces and communication. It is used to retrieve active network device when using {py:attr}`~pyenphase.Envoy.interface_settings`.
 
 ### json
 
