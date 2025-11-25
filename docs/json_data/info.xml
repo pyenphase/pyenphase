@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<envoy_info>
+  <time>1753703630</time>
+  <device>
+    <sn>123456789012</sn>
+    <pn>800-00649-r01</pn>
+    <software>D8.3.5167</software>
+    <euaid>4c8675</euaid>
+    <seqnum>0</seqnum>
+    <apiver>1</apiver>
+    <imeter>true</imeter>
+  </device>
+  <web-tokens>true</web-tokens>
+  <package name="agf">
+    <pn>500-00012-r01</pn>
+    <version>02.02.00</version>
+    <build>240195</build>
+  </package>
+  <package name="app">
+    <pn>500-00002-r01</pn>
+    <version>08.03.5167</version>
+    <build>5c3a00</build>
+  </package>
+  <package name="backbone">
+    <pn>500-00010-r01</pn>
+    <version>07.00.20</version>
+    <build>176d57</build>
+  </package>
+  <package name="boot">
+    <pn>590-00019-r01</pn>
+    <version>02.00.01</version>
+    <build>2569cb</build>
+  </package>
+  <package name="devimg">
+    <pn>500-00005-r01</pn>
+    <version>01.02.536</version>
+    <build>66b5c8</build>
+  </package>
+  <package name="essimg">
+    <pn>500-00020-r01</pn>
+    <version>31.43.13</version>
+    <build>b60ff5</build>
+  </package>
+  <package name="ffuimg">
+    <pn>500-00022-r01</pn>
+    <version>01.00.04</version>
+    <build>2cd3479</build>
+  </package>
+  <package name="geo">
+    <pn>500-00008-r01</pn>
+    <version>02.01.24</version>
+    <build>a74d96</build>
+  </package>
+  <package name="kernel">
+    <pn>500-00011-r02</pn>
+    <version>04.04.225</version>
+    <build>08bedf</build>
+  </package>
+  <package name="meter">
+    <pn>500-00013-r01</pn>
+    <version>03.02.08</version>
+    <build>91ea9b</build>
+  </package>
+  <package name="patch">
+    <pn>500-00016-r01</pn>
+    <version>01.00.00</version>
+    <build>768</build>
+  </package>
+  <package name="pkgsec">
+    <pn>500-00021-r01</pn>
+    <version>01.00.00</version>
+    <build>0fdc14</build>
+  </package>
+  <package name="rootfs">
+    <pn>500-00001-r01</pn>
+    <version>02.00.00</version>
+    <build>1211</build>
+  </package>
+  <package name="rootfs-full">
+    <pn>500-00001-r01</pn>
+    <version>02.00.00</version>
+    <build>1211</build>
+  </package>
+  <package name="security">
+    <pn>500-00016-r01</pn>
+    <version>02.00.00</version>
+    <build>54a6dc</build>
+  </package>
+  <build_info>
+    <build_id>-FRA-799-merge-master-enable-prod:pkg-Jun-03-25-03:50:24</build_id>
+    <build_time_gmt>1748922970</build_time_gmt>
+    <release_stage>700-GA</release_stage>
+    <release_ver>02.00.284</release_ver>
+  </build_info>
+</envoy_info>

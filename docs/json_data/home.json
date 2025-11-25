@@ -1,0 +1,85 @@
+{
+  "software_build_epoch": 1749981828,
+  "timezone": "US/Eastern",
+  "current_date": "07/19/2025",
+  "current_time": "21:25",
+  "network": {
+    "web_comm": true,
+    "ever_reported_to_enlighten": true,
+    "last_enlighten_report_time": 1752974593,
+    "primary_interface": "wlan0",
+    "interfaces": [
+      {
+        "signal_strength": 24,
+        "signal_strength_max": 31,
+        "network": true,
+        "type": "cellular",
+        "interface": "ppp0",
+        "dhcp": true,
+        "ip": "1.2.3.4",
+        "carrier": true
+      },
+      {
+        "type": "ethernet",
+        "interface": "eth0",
+        "mac": "01:02:03:04:05:06",
+        "dhcp": true,
+        "ip": "123.456.789.1",
+        "signal_strength": 0,
+        "signal_strength_max": 1,
+        "carrier": false
+      },
+      {
+        "signal_strength": 4,
+        "signal_strength_max": 5,
+        "type": "wifi",
+        "interface": "wlan0",
+        "mac": "02:03:04:05:06:07",
+        "dhcp": true,
+        "ip": "123.456.7.89",
+        "carrier": true,
+        "supported": true,
+        "present": true,
+        "configured": true,
+        "status": "connected"
+      }
+    ]
+  },
+  "tariff": "time_of_use",
+  "comm": {
+    "num": 1,
+    "level": 0,
+    "pcu": {
+      "num": 0,
+      "level": 0
+    },
+    "acb": {
+      "num": 0,
+      "level": 0
+    },
+    "nsrb": {
+      "num": 0,
+      "level": 0
+    },
+    "esub": {
+      "num": 1,
+      "level": 5
+    },
+    "encharge": [
+      {
+        "num": 2,
+        "level": 0,
+        "level_24g": 0,
+        "level_subg": 0
+      }
+    ]
+  },
+  "wireless_connection": [
+    {
+      "signal_strength": 0,
+      "signal_strength_max": 0,
+      "type": "BLE",
+      "connected": true
+    }
+  ]
+}
