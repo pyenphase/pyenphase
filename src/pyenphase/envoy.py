@@ -33,6 +33,7 @@ from .const import (
     AUTH_TOKEN_MIN_VERSION,
     ENDPOINT_URL_HOME,
     LOCAL_TIMEOUT,
+    MAX_PROBE_REQUEST_DELAY,
     MAX_REQUEST_ATTEMPTS,
     MAX_REQUEST_DELAY,
     URL_DRY_CONTACT_SETTINGS,
@@ -192,7 +193,8 @@ class Envoy:
         decide what authentication to use for sub-sequent Envoy
         communication. Use this method as first step after class instantiation
 
-        Will retry up to 4 times or 50 sec elapsed at next try, which
+        Will retry up to :any:`MAX_REQUEST_ATTEMPTS` times or
+        :any:`MAX_PROBE_REQUEST_DELAY` elapsed at next try, which
         ever comes first.
 
         :raises EnvoyFirmwareFatalCheckError: if connection or timeout
@@ -297,7 +299,7 @@ class Envoy:
             )
         ),
         wait=wait_random_exponential(multiplier=2, max=5),
-        stop=stop_after_delay(MAX_REQUEST_DELAY)
+        stop=stop_after_delay(MAX_PROBE_REQUEST_DELAY)
         | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
         reraise=True,
     )
@@ -310,6 +312,11 @@ class Envoy:
         on connection errors, timeouts or bad JSON responses.
         For regular data retrieval, use the request method.
         Sends GET request to endpoint on Envoy and returns the response.
+
+        Probe retries on client connection issues or timeouts.
+        Will retry up to :any:`MAX_REQUEST_ATTEMPTS` times
+        or :any:`MAX_PROBE_REQUEST_DELAY` sec elapsed at next try,
+        which ever comes first.
 
         :param endpoint: Envoy Endpoint to access, start with leading /.
         :raises EnvoyAuthenticationRequired: if no prior authentication
@@ -345,7 +352,8 @@ class Envoy:
         to form full URL based on authentication method.
 
         Request retries on client connection issues or timeouts.
-        Will retry up to 4 times or 50 sec elapsed at next try, which
+        Will retry up to :any:`MAX_REQUEST_ATTEMPTS` times or
+        :any:`MAX_REQUEST_DELAY` sec elapsed at next try, which
         ever comes first.
 
         :param endpoint: Envoy Endpoint to access, start with leading /
