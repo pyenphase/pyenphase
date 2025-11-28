@@ -194,7 +194,7 @@ class Envoy:
         communication. Use this method as first step after class instantiation
 
         Will retry up to :any:`MAX_REQUEST_ATTEMPTS` times or
-        :any:`MAX_POBE_REQUEST_DELAY` elapsed at next try, which
+        :any:`MAX_PROBE_REQUEST_DELAY` elapsed at next try, which
         ever comes first.
 
         :raises EnvoyFirmwareFatalCheckError: if connection or timeout
