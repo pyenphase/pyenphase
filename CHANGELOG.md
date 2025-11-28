@@ -1,6 +1,85 @@
 # CHANGELOG
 
 
+## v2.4.2 (2025-11-28)
+
+### Bug Fixes
+
+- Relax request retry timeout to prevent 11pm timeouts
+  ([#363](https://github.com/pyenphase/pyenphase/pull/363),
+  [`b2ce22f`](https://github.com/pyenphase/pyenphase/commit/b2ce22f1e3e34c2c235972591eb0592a90799cca))
+
+### Chores
+
+- Bump pytest-asyncio to 1.3.0 ([#360](https://github.com/pyenphase/pyenphase/pull/360),
+  [`4390363`](https://github.com/pyenphase/pyenphase/commit/4390363d6b7987d24a4b320afaf8c3f6d6ed2ac1))
+
+- **ci**: Bump browniebroke/hacktoberfest-labeler-action
+  ([#357](https://github.com/pyenphase/pyenphase/pull/357),
+  [`1d32114`](https://github.com/pyenphase/pyenphase/commit/1d321148f3815389cfc8ec39e750f024fdca8269))
+
+- **ci**: Bump browniebroke/hacktoberfest-labeler-action from 2.4.0 to 2.6.0 in the github-actions
+  group ([#357](https://github.com/pyenphase/pyenphase/pull/357),
+  [`1d32114`](https://github.com/pyenphase/pyenphase/commit/1d321148f3815389cfc8ec39e750f024fdca8269))
+
+- **deps**: Bump aiohttp from 3.13.0 to 3.13.1
+  ([#353](https://github.com/pyenphase/pyenphase/pull/353),
+  [`52b6475`](https://github.com/pyenphase/pyenphase/commit/52b6475a2bfa9eb7a4d22a4e45099e1b0bd52738))
+
+- **deps**: Bump aiohttp from 3.13.1 to 3.13.2
+  ([#358](https://github.com/pyenphase/pyenphase/pull/358),
+  [`5f9a7c4`](https://github.com/pyenphase/pyenphase/commit/5f9a7c4524e48cab307dcb7fe71dc4f9bd469a3d))
+
+- **deps**: Bump orjson from 3.11.3 to 3.11.4
+  ([#355](https://github.com/pyenphase/pyenphase/pull/355),
+  [`c1bb209`](https://github.com/pyenphase/pyenphase/commit/c1bb20965f51872d80afd257ae558d8af27bca76))
+
+- **deps-dev**: Bump pre-commit from 4.3.0 to 4.4.0
+  ([#361](https://github.com/pyenphase/pyenphase/pull/361),
+  [`13b36ce`](https://github.com/pyenphase/pyenphase/commit/13b36ced5a8bba4363e7d5e07b800538854a3622))
+
+- **deps-dev**: Bump pre-commit from 4.4.0 to 4.5.0
+  ([#366](https://github.com/pyenphase/pyenphase/pull/366),
+  [`2980ca3`](https://github.com/pyenphase/pyenphase/commit/2980ca33cfada3bd4cd1e9349c5787c0448f36e2))
+
+- **deps-dev**: Bump pytest from 8.4.2 to 9.0.0
+  ([#360](https://github.com/pyenphase/pyenphase/pull/360),
+  [`4390363`](https://github.com/pyenphase/pyenphase/commit/4390363d6b7987d24a4b320afaf8c3f6d6ed2ac1))
+
+- **deps-dev**: Bump pytest from 9.0.0 to 9.0.1
+  ([#364](https://github.com/pyenphase/pyenphase/pull/364),
+  [`d898a4a`](https://github.com/pyenphase/pyenphase/commit/d898a4a69a6a75c4e087a6cca808c3d9ab666982))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#367](https://github.com/pyenphase/pyenphase/pull/367),
+  [`019cdf9`](https://github.com/pyenphase/pyenphase/commit/019cdf9a9c810d281e97da987d7a5f3d8783b16a))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#365](https://github.com/pyenphase/pyenphase/pull/365),
+  [`c7e2cd5`](https://github.com/pyenphase/pyenphase/commit/c7e2cd5f4dd4a785ec60c913e1f84fc7d29fea1c))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#362](https://github.com/pyenphase/pyenphase/pull/362),
+  [`726009c`](https://github.com/pyenphase/pyenphase/commit/726009ca793296619cbd9f0be5307d4628bd15e4))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#359](https://github.com/pyenphase/pyenphase/pull/359),
+  [`ff6bec0`](https://github.com/pyenphase/pyenphase/commit/ff6bec00930fc23929850be56e3b511f2c1cdc05))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#354](https://github.com/pyenphase/pyenphase/pull/354),
+  [`1bff216`](https://github.com/pyenphase/pyenphase/commit/1bff2165fe96607e5d0c48c96f0e76ed86e47a3c))
+
+### Documentation
+
+- Fix table layout for inverter data ([#356](https://github.com/pyenphase/pyenphase/pull/356),
+  [`ea66c7b`](https://github.com/pyenphase/pyenphase/commit/ea66c7b92f632f0f709c5d0797914acd66fdc35a))
+
+- Move endpoint list to endpoint topic and add info and home
+  ([#368](https://github.com/pyenphase/pyenphase/pull/368),
+  [`659950d`](https://github.com/pyenphase/pyenphase/commit/659950d7e2c42d0f82f85a4156298f97a48db742))
+
+### Testing
+
+- Remove redundant ct tests ([#349](https://github.com/pyenphase/pyenphase/pull/349),
+  [`3a515dc`](https://github.com/pyenphase/pyenphase/commit/3a515dcc1720cb6f280c60423136827a5b1558ae))
+
+
 ## v2.4.1 (2025-10-19)
 
 ### Bug Fixes
