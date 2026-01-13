@@ -407,14 +407,14 @@ async def test_enlighten_json_error_with_7_6_175_standard(
 async def test_enlighten_json_missing_is_consumer_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test Unable to decode response from Enlighten"""
+    """Test response from Enlighten is missing is_consumer and manager keys"""
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     from .common import override_mock
 
-    # Override the login endpoint to return invalid JSON
+    # Override the login endpoint to return missing is_consumer and manager keys in JSON
     override_mock(
         mock_aioresponse,
         "post",
@@ -433,7 +433,7 @@ async def test_enlighten_json_missing_is_consumer_with_7_6_175_standard(
     await envoy.authenticate("username", "password")
     assert isinstance(envoy.auth, EnvoyTokenAuth)
     assert not envoy.auth.is_consumer
-    assert envoy.auth.manager_token == "missing"
+    assert envoy.auth.manager_token == ""
 
 
 @pytest.mark.asyncio
