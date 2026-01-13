@@ -195,8 +195,8 @@ class EnvoyTokenAuth(EnvoyAuth):
                     f"{response.status}: {text}"
                 ) from err
 
-            self._is_consumer = response_json["is_consumer"]
-            self._manager_token = response_json["manager_token"]
+            self._is_consumer = response_json.get("is_consumer", False)
+            self._manager_token = response_json.get("manager_token", "missing")
 
             # Obtain the token
             response = await self._post_json_with_cloud_client(

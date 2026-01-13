@@ -404,6 +404,39 @@ async def test_enlighten_json_error_with_7_6_175_standard(
 
 
 @pytest.mark.asyncio
+async def test_enlighten_json_missing_is_consumer_with_7_6_175_standard(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """Test Unable to decode response from Enlighten"""
+    version = "7.6.175_standard"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    from .common import override_mock
+
+    # Override the login endpoint to return invalid JSON
+    override_mock(
+        mock_aioresponse,
+        "post",
+        "https://enlighten.enphaseenergy.com/login/login.json?",
+        status=200,
+        payload={
+            "session_id": "1234567890",
+            "user_id": "1234567890",
+            "user_name": "test",
+            "first_name": "Test",
+        },
+    )
+
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+    await envoy.setup()
+    await envoy.authenticate("username", "password")
+    assert isinstance(envoy.auth, EnvoyTokenAuth)
+    assert not envoy.auth.is_consumer
+    assert envoy.auth.manager_token == "missing"
+
+
+@pytest.mark.asyncio
 async def test_token_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
