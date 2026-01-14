@@ -102,7 +102,7 @@ class EnvoyTokenAuth(EnvoyAuth):
         self.envoy_serial = envoy_serial
         self._token = token
         self._is_consumer: bool = False
-        self._manager_token: str = ""
+        self._manager_token: str | None = None
         self._cookies: dict[str, str] = {}
 
     async def setup(self, client: aiohttp.ClientSession) -> None:
@@ -195,8 +195,8 @@ class EnvoyTokenAuth(EnvoyAuth):
                     f"{response.status}: {text}"
                 ) from err
 
-            self._is_consumer = response_json["is_consumer"]
-            self._manager_token = response_json["manager_token"]
+            self._is_consumer = response_json.get("is_consumer", False)
+            self._manager_token = response_json.get("manager_token")
 
             # Obtain the token
             response = await self._post_json_with_cloud_client(
@@ -302,12 +302,11 @@ class EnvoyTokenAuth(EnvoyAuth):
         from the Enlighten cloud. This is only the case if no token
         was specified, or a token refresh was requested. If a valid
         token with a future expiration time was specified this method
-        will assert.
+        will return an empty string.
 
         :return: token string
         """
-        assert self._manager_token is not None  # nosec
-        return self._manager_token
+        return self._manager_token if self._manager_token is not None else ""
 
     @property
     def cookies(self) -> dict[str, str]:
