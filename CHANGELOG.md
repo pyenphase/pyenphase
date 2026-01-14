@@ -1,6 +1,76 @@
 # CHANGELOG
 
 
+## v2.4.3 (2026-01-14)
+
+### Bug Fixes
+
+- KeyError: is_consumer during token request
+  ([#383](https://github.com/pyenphase/pyenphase/pull/383),
+  [`0763a96`](https://github.com/pyenphase/pyenphase/commit/0763a961e7ad2ffefb910f9163f4d73a19253e50))
+
+### Chores
+
+- **ci**: Bump the github-actions group with 3 updates
+  ([#378](https://github.com/pyenphase/pyenphase/pull/378),
+  [`934a8b9`](https://github.com/pyenphase/pyenphase/commit/934a8b93281b43dce4a2543e89156e94fbc673af))
+
+- **deps**: Bump aiohttp from 3.13.2 to 3.13.3
+  ([#379](https://github.com/pyenphase/pyenphase/pull/379),
+  [`2d4dbbd`](https://github.com/pyenphase/pyenphase/commit/2d4dbbd4b55238f2decaffd9f95a2fb4fe685795))
+
+- **deps**: Bump orjson from 3.11.4 to 3.11.5
+  ([#371](https://github.com/pyenphase/pyenphase/pull/371),
+  [`a4448d8`](https://github.com/pyenphase/pyenphase/commit/a4448d8d01502bab51cf9774e4f571c2bebd00c1))
+
+- **deps-dev**: Bump filelock from 3.19.1 to 3.20.1
+  ([#375](https://github.com/pyenphase/pyenphase/pull/375),
+  [`42a34f8`](https://github.com/pyenphase/pyenphase/commit/42a34f8983eb48633b7a3162c73e21cf8aa71f96))
+
+- **deps-dev**: Bump filelock from 3.20.1 to 3.20.3
+  ([#385](https://github.com/pyenphase/pyenphase/pull/385),
+  [`5db70cc`](https://github.com/pyenphase/pyenphase/commit/5db70ccc799b532fac9a972967de825c978839b1))
+
+- **deps-dev**: Bump pre-commit from 4.5.0 to 4.5.1
+  ([#376](https://github.com/pyenphase/pyenphase/pull/376),
+  [`aded8f0`](https://github.com/pyenphase/pyenphase/commit/aded8f0c76243ca5ffce56c2097a912243d7ae04))
+
+- **deps-dev**: Bump pytest from 9.0.1 to 9.0.2
+  ([#372](https://github.com/pyenphase/pyenphase/pull/372),
+  [`e1149fc`](https://github.com/pyenphase/pyenphase/commit/e1149fcb1a798d49e9092795ca9762613cdc9e78))
+
+- **deps-dev**: Bump python-jsonpath from 2.0.1 to 2.0.2
+  ([#381](https://github.com/pyenphase/pyenphase/pull/381),
+  [`4d6bb9e`](https://github.com/pyenphase/pyenphase/commit/4d6bb9ea31a1e84915f521f8090919a69dc7cfe3))
+
+- **deps-dev**: Bump urllib3 from 2.5.0 to 2.6.0
+  ([#370](https://github.com/pyenphase/pyenphase/pull/370),
+  [`f659bef`](https://github.com/pyenphase/pyenphase/commit/f659befcc7e74384cba42d42d4ecd05e3bbab6b9))
+
+- **deps-dev**: Bump urllib3 from 2.6.0 to 2.6.3
+  ([#380](https://github.com/pyenphase/pyenphase/pull/380),
+  [`7bfd9d1`](https://github.com/pyenphase/pyenphase/commit/7bfd9d1173ce2086b02edecf5db36ffea457e590))
+
+- **deps-dev**: Bump virtualenv from 20.34.0 to 20.36.1
+  ([#384](https://github.com/pyenphase/pyenphase/pull/384),
+  [`a5b179e`](https://github.com/pyenphase/pyenphase/commit/a5b179e5a424f4be63c08166c7a7ed1172fb0375))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#382](https://github.com/pyenphase/pyenphase/pull/382),
+  [`09650fe`](https://github.com/pyenphase/pyenphase/commit/09650fe7e3c9fb44f8563eec1eb61e4cd015b55a))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#377](https://github.com/pyenphase/pyenphase/pull/377),
+  [`334b23f`](https://github.com/pyenphase/pyenphase/commit/334b23f1080bfc32cb9b3ae7b98aee69144e5c95))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#374](https://github.com/pyenphase/pyenphase/pull/374),
+  [`013eb30`](https://github.com/pyenphase/pyenphase/commit/013eb30ee0fa8eaf5a4c3058b645f8e795b888db))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#373](https://github.com/pyenphase/pyenphase/pull/373),
+  [`61d1346`](https://github.com/pyenphase/pyenphase/commit/61d1346b44d1a92a5412ef20e033f3d982b49bdd))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#369](https://github.com/pyenphase/pyenphase/pull/369),
+  [`6ef3254`](https://github.com/pyenphase/pyenphase/commit/6ef3254079b18bbd558697341227f796b125d1e5))
+
+
 ## v2.4.2 (2025-11-28)
 
 ### Bug Fixes
