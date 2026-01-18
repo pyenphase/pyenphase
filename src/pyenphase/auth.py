@@ -117,8 +117,8 @@ class EnvoyTokenAuth(EnvoyAuth):
 
         :param client: an aiohttp ClientSession to communicate with the local Envoy,
         :raises EnvoyAuthenticationError: Authentication failed with the local Envoy
-            or no token could be obtained from Enlighten cloud due to error or
-            missing parameters,
+            or no token could be obtained from Enlighten cloud due to error,
+            missing parameters or Enlighten account issue.
 
         """
         if not self._token:
@@ -199,15 +199,26 @@ class EnvoyTokenAuth(EnvoyAuth):
             self._manager_token = response_json.get("manager_token")
 
             # Obtain the token
-            response = await self._post_json_with_cloud_client(
-                cloud_client,
-                self.TOKEN_URL,
-                json={
-                    "session_id": response_json["session_id"],
-                    "serial_num": self.envoy_serial,
-                    "username": self.cloud_username,
-                },
-            )
+            try:
+                response = await self._post_json_with_cloud_client(
+                    cloud_client,
+                    self.TOKEN_URL,
+                    json={
+                        "session_id": response_json["session_id"],
+                        "serial_num": self.envoy_serial,
+                        "username": self.cloud_username,
+                    },
+                )
+            except KeyError as err:
+                # if no session_id is returned from login we can't continue
+                # this is an Enlighten account issue
+                text = await response.text()
+                raise EnvoyAuthenticationError(
+                    "Unable to obtain session id from login to Enlighten at "
+                    f"{self.JSON_LOGIN_URL}: "
+                    f"{response.status}: {text}"
+                ) from err
+
             if response.status != 200:
                 text = await response.text()
                 raise EnvoyAuthenticationError(
