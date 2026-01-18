@@ -462,8 +462,8 @@ async def test_enlighten_json_missing_session_id_with_7_6_175_standard(
     )
     envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
-    # with pytest.raises(EnvoyAuthenticationError):
-    await envoy.authenticate("username", "password")
+    with pytest.raises(EnvoyAuthenticationError):
+        await envoy.authenticate("username", "password")
 
 
 @pytest.mark.asyncio
