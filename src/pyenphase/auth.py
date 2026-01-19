@@ -211,12 +211,10 @@ class EnvoyTokenAuth(EnvoyAuth):
                 )
             except KeyError as err:
                 # if no session_id is returned from login we can't continue
-                # this is an Enlighten account issue
-                text = await response.text()
+                # this happens if MFA is enabled on Enlighten account
                 raise EnvoyAuthenticationError(
-                    "Unable to obtain session id from login to Enlighten at "
-                    f"{self.JSON_LOGIN_URL}: "
-                    f"{response.status}: {text}"
+                    "No session id in Enlighten login reply, disable Multi Factor Authentication if enabled, "
+                    f"status: {response.status}, received {response_json.keys()}"
                 ) from err
 
             if response.status != 200:
