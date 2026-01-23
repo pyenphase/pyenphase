@@ -124,12 +124,15 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         acb_storage: list[dict[str, Any]] | None = production_json.get("storage")
         # if storage segment is present and activeCount > 0 then signal as detected
+        # verify presence of percentFull key to confirm a well configured envoy
+        # we've seen activeCount > 0 without percentFull key, ignore ACB in that case
         # only report we support ACB if no prior updater did
         # only report first list element as that's where ACB data is
         if (
             acb_storage
             and not discovered_acb_storage
             and (acb_count := acb_storage[0].get("activeCount"))
+            and acb_storage[0].get("percentFull")
         ):
             # signal we can provide ACB data
             self._supported_features |= SupportedFeatures.ACB
