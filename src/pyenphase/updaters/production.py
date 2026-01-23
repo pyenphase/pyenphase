@@ -132,7 +132,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             acb_storage
             and not discovered_acb_storage
             and (acb_count := acb_storage[0].get("activeCount"))
-            and acb_storage[0].get("percentFull")
+            and "percentFull" in acb_storage[0]
         ):
             # signal we can provide ACB data
             self._supported_features |= SupportedFeatures.ACB

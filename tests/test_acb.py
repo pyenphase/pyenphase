@@ -351,7 +351,7 @@ async def test_with_7_x_firmware(
     assert data
     assert envoy.acb_count == 0
 
-    # test with activeCont  = 1 and missing percentFull key
+    # test with activeCount  = 1 and missing percentFull key
     prod_json = await load_json_fixture(version, "production.json")
     prod_json["storage"][0].pop("percentFull", None)
     prod_json["storage"][0]["activeCount"] = 1
