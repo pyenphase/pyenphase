@@ -350,3 +350,21 @@ async def test_with_7_x_firmware(
     data = envoy.data
     assert data
     assert envoy.acb_count == 0
+
+    # test with activeCount  = 1 and missing percentFull key
+    prod_json = await load_json_fixture(version, "production.json")
+    prod_json["storage"][0].pop("percentFull", None)
+    prod_json["storage"][0]["activeCount"] = 1
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/production.json?details=1",
+        status=200,
+        payload=prod_json,
+        repeat=True,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data
+    assert envoy.acb_count == 0
+    assert data.acb_power is None
