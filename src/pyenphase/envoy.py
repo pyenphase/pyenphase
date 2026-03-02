@@ -408,12 +408,12 @@ class Envoy:
             if debugon:
                 _LOGGER.debug(
                     "Sending %s to %s with data %s",
-                    method if method else "POST",
+                    method or "POST",
                     url,
                     orjson.dumps(data),
                 )
             response = await self._client.request(
-                method if method else "POST",
+                method or "POST",
                 url,
                 headers={**DEFAULT_HEADERS, **self.auth.headers},
                 timeout=self._timeout,

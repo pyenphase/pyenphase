@@ -100,7 +100,7 @@ async def main(
         if verbose:
             print(f"Created folder: {target_dir}")
 
-    end_points = endpoint_to_get if endpoint_to_get else DEFAULT_ENDPOINTS
+    end_points = endpoint_to_get or DEFAULT_ENDPOINTS
 
     assert envoy.auth  # nosec
 
