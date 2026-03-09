@@ -183,6 +183,7 @@ async def test_home_endpoint_errors_with_7_6_175(
     await envoy.interface_settings()
     assert "Failure getting interface information" in caplog.text
 
+
 @pytest.mark.asyncio
 async def test_home_endpoint_non_json_response(
     mock_aioresponse: aioresponses,
