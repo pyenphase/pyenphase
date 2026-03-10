@@ -2,7 +2,7 @@
 
 This section describes the Envoy data used by the library.
 
-Enphase's installer resource website documents the IQ Gateway local API. As it’s a dynamic resource, use the filters for “Communication Device” and select the Envoy or IQ Gateway types. This [example link](https://enphase.com/installers/resources/documentation/communication) pre-selects communication documents. Use the product filters for Envoy and the “Design and Tech Briefs” topic filter.
+Enphase's installer resource website documents the IQ Gateway local API. As it’s a dynamic resource, use the filters for “Communication Device” and select the Envoy or IQ Gateway types. This [example link](https://enphase.com/installers/resources/documentation/communication) preselects communication documents. Use the product filters for Envoy and the “Design and Tech Briefs” topic filter.
 
 A wealth of information on the Enphase local Envoy api is available from [Matthew1471's github repository](https://github.com/Matthew1471/Enphase-API), which is an excellent resource.
 
