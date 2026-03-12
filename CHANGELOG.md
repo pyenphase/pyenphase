@@ -1,6 +1,39 @@
 # CHANGELOG
 
 
+## v2.4.6 (2026-03-12)
+
+### Bug Fixes
+
+- Handle non-JSON responses from older Envoys
+  ([#399](https://github.com/pyenphase/pyenphase/pull/399),
+  [`7b071a9`](https://github.com/pyenphase/pyenphase/commit/7b071a91ed2ea25547eb904e32d6a6d39a121094))
+
+### Chores
+
+- **deps**: Bump orjson from 3.11.6 to 3.11.7
+  ([#395](https://github.com/pyenphase/pyenphase/pull/395),
+  [`1ca601b`](https://github.com/pyenphase/pyenphase/commit/1ca601b7908c7fb1a70e72c022096b84d9c0cf6c))
+
+- **deps**: Bump tenacity from 9.1.2 to 9.1.4
+  ([#396](https://github.com/pyenphase/pyenphase/pull/396),
+  [`f16a396`](https://github.com/pyenphase/pyenphase/commit/f16a396c60cfb1de07dc24c102d7265166a03cfb))
+
+- **pre-commit.ci**: Auto fixes ([#397](https://github.com/pyenphase/pyenphase/pull/397),
+  [`3e2ed17`](https://github.com/pyenphase/pyenphase/commit/3e2ed17866bc559c956918b5be24e636191a120c))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#400](https://github.com/pyenphase/pyenphase/pull/400),
+  [`dc3b66f`](https://github.com/pyenphase/pyenphase/commit/dc3b66f2e7a32578bdf0bcaeefa275108d41e62d))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#397](https://github.com/pyenphase/pyenphase/pull/397),
+  [`3e2ed17`](https://github.com/pyenphase/pyenphase/commit/3e2ed17866bc559c956918b5be24e636191a120c))
+
+### Documentation
+
+- Fix typo detected by updated codespell ([#400](https://github.com/pyenphase/pyenphase/pull/400),
+  [`dc3b66f`](https://github.com/pyenphase/pyenphase/commit/dc3b66f2e7a32578bdf0bcaeefa275108d41e62d))
+
+
 ## v2.4.5 (2026-02-05)
 
 ### Bug Fixes
