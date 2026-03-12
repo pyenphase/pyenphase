@@ -792,7 +792,12 @@ class Envoy:
             )
             raise EnvoyHTTPStatusError(response.status, str(response.url))
 
-        return json_loads(end_point, await response.read())
+        try:
+            return json_loads(end_point, await response.read())
+        except orjson.JSONDecodeError as err:
+            raise EnvoyCommunicationError(
+                f"Invalid JSON response from {end_point}: {err}"
+            ) from err
 
     async def go_on_grid(self) -> dict[str, Any]:
         """

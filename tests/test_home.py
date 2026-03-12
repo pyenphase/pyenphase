@@ -182,3 +182,36 @@ async def test_home_endpoint_errors_with_7_6_175(
     )
     await envoy.interface_settings()
     assert "Failure getting interface information" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_home_endpoint_non_json_response(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test home endpoint returning non-JSON content (older Envoys)."""
+    caplog.set_level(logging.DEBUG)
+
+    version = "7.6.175"
+
+    start_7_firmware_mock(mock_aioresponse)
+
+    info_data = await load_fixture(version, "info")
+    mock_aioresponse.get(
+        "https://127.0.0.1/info", status=200, body=info_data, repeat=True
+    )
+
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+    await envoy.setup()
+    await envoy.authenticate("username", "password")
+
+    # Mock /home returning HTML (non-JSON) with 200 status
+    mock_aioresponse.get(
+        "https://127.0.0.1/home",
+        status=200,
+        body=b"<html><body>Not Found</body></html>",
+    )
+    result = await envoy.interface_settings()
+    assert result is None
+    assert "Failure getting interface information" in caplog.text
