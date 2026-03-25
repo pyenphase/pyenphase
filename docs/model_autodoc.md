@@ -63,16 +63,12 @@
 ```
 
 ```{eval-rst}
-.. autoclass:: pyenphase.envoy.CUSTOM_RETRIES
-  :members:
-  :undoc-members:
-  :show-inheritance:
-  :member-order: bysource
+.. autodata:: pyenphase.envoy.CUSTOM_RETRIES
 
 ```
 
 ```{eval-rst}
-.. automethod:: pyenphase.envoy.register_custom_retry
+.. autofunction:: pyenphase.envoy.register_custom_retry
 
 ```
 
