@@ -4,7 +4,7 @@ import asyncio
 import logging
 import time
 from collections.abc import Awaitable, Callable
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from functools import cached_property, partial
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, overload
@@ -14,6 +14,7 @@ import orjson
 from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import (
+    RetryCallState,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
@@ -31,6 +32,10 @@ from .auth import (
 )
 from .const import (
     AUTH_TOKEN_MIN_VERSION,
+    CUSTOM_11PM_REQUEST_ATTEMPTS,
+    CUSTOM_11PM_RETRY_DELAY,
+    CUSTOM_11PM_RETRY_END,
+    CUSTOM_11PM_RETRY_START,
     ENDPOINT_URL_HOME,
     LOCAL_TIMEOUT,
     MAX_PROBE_REQUEST_DELAY,
@@ -93,6 +98,22 @@ UPDATERS: list[type["EnvoyUpdater"]] = [
 ]  #: Ordered list of standard updaters for Envoy data collection
 
 
+@dataclass(slots=True)
+class custom_retry:
+    """
+    Custom request retry period defined by start and end minute
+    in the day, specifying maximum elapsed seconds and retry attempts.
+    """
+
+    start: int  #: start of custom retry period in minutes since start of day
+    end: int  #: end of custom retry period in minutes since start of day
+    elapsed: int  #: maximum elapsed time in second to use in custom retry period
+    attempts: int  #: request attempts to use in custom retry period
+
+
+CUSTOM_RETRIES: list[custom_retry] = []  #: List of configured custom timeout periods
+
+
 def register_updater(updater: type[EnvoyUpdater]) -> Callable[[], None]:
     """
     Register an updater in the updaters list.
@@ -128,6 +149,82 @@ def get_updaters() -> list[type[EnvoyUpdater]]:
     :return: list of callable updaters
     """
     return UPDATERS
+
+
+def register_custom_retry(retry: custom_retry) -> Callable[[], None]:
+    """
+    Register a custom retry perod.
+
+    During a custom retry period, specified request max alapsed
+    time and retry attempts are used instead of the default ones.
+    This allows to overcome very long response times during
+    Envoy internal recycle and cleanup without setting overall default
+    timeouts also handling this situation. Envoy cycle activities
+    typically occur somewhere between 23:00 and 23:20.
+
+    :param retry: custom retry period specifying start and end minute
+        in the day, max alapsed time and retry attempts to use
+    :return: callable to remove custom period
+    """
+    if retry not in CUSTOM_RETRIES:
+        CUSTOM_RETRIES.append(retry)
+
+    def _remove_custom_retry() -> None:
+        """Callable to remove a prior registered custom retry period."""
+        CUSTOM_RETRIES.remove(retry)
+
+    return _remove_custom_retry
+
+
+def get_custom_retries() -> list[custom_retry]:
+    """
+    Return configured custom retry periods. Custom
+    retry periods are defined by their start and end minute
+    in the day and the max elapsed time and attempts to use.
+
+    :return: list of custom retries with start, end minutes, max elapsed and attempts
+    """
+    return CUSTOM_RETRIES
+
+
+def stop_retry(retry_state: RetryCallState) -> bool:
+    """
+    Determine retry decision for tenacity retries.
+
+    Allow for custom retry when current time is in
+    one of the configured custom retry periods. Otherwise
+    use default retry settings.
+
+    :return: decision to repeat or not
+    """
+    # custom timeout periods use minute in day for start and end.
+    this_moment = (_t := time.localtime(time.time())).tm_hour * 60 + _t.tm_min
+    custom_retries = [
+        period
+        for period in get_custom_retries()
+        if period.start <= this_moment <= period.end
+    ]
+
+    # Sort any overlaps on shortest timespan (considered more detailed)
+    custom_retries.sort(key=lambda timeout: timeout.end - timeout.start)
+
+    # decide if time or attempts are exceeded
+    time_exceeded = (time.monotonic() - retry_state.start_time) > (
+        custom_retries[0].elapsed if custom_retries else MAX_REQUEST_DELAY
+    )
+    attempts_exceeded = retry_state.attempt_number >= (
+        custom_retries[0].attempts if custom_retries else MAX_REQUEST_ATTEMPTS
+    )
+
+    _LOGGER.debug(
+        "Retrying, attempt %s ended after: %s, time exceeded: %s, attempts exceeded: %s attempt outcome: %s, ",
+        retry_state.attempt_number,
+        round(time.monotonic() - retry_state.start_time, 2),
+        time_exceeded,
+        attempts_exceeded,
+        retry_state.outcome,
+    )
+    return time_exceeded or attempts_exceeded
 
 
 class Envoy:
@@ -183,6 +280,19 @@ class Envoy:
         self.data: EnvoyData | None = None
         self._common_properties: CommonProperties = CommonProperties()
         self._interface_settings: EnvoyInterfaceInformation | None = None
+
+        # add custom retry period between 23:00 and 23:20
+        # to handle Envoy 11 PM outage without errors
+        # retry upto 6 minutes or 10 tries whichever comes first
+        # each try uses default 45 second or custom timeout.
+        self._remove_default_custom_retry = register_custom_retry(
+            custom_retry(
+                start=CUSTOM_11PM_RETRY_START,
+                end=CUSTOM_11PM_RETRY_END,
+                elapsed=CUSTOM_11PM_RETRY_DELAY,
+                attempts=CUSTOM_11PM_REQUEST_ATTEMPTS,
+            )
+        )
 
     async def setup(self) -> None:
         """
@@ -333,8 +443,7 @@ class Envoy:
             )
         ),
         wait=wait_random_exponential(multiplier=2, max=5),
-        stop=stop_after_delay(MAX_REQUEST_DELAY)
-        | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
+        stop=stop_retry,
         reraise=True,
     )
     async def request(
