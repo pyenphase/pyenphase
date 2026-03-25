@@ -111,7 +111,8 @@ class custom_retry:
     attempts: int  #: request attempts to use in custom retry period
 
 
-CUSTOM_RETRIES: list[custom_retry] = []  #: List of configured custom timeout periods
+CUSTOM_RETRIES: list[custom_retry] = []  #: List of configured custom retry periods
+RETRIES_REFERENCES: list[int] = []  #: Number of references to custom retry period
 
 
 def register_updater(updater: type[EnvoyUpdater]) -> Callable[[], None]:
@@ -166,12 +167,18 @@ def register_custom_retry(retry: custom_retry) -> Callable[[], None]:
         in the day, max alapsed time and retry attempts to use
     :return: callable to remove custom period
     """
-    if retry not in CUSTOM_RETRIES:
+    if retry in CUSTOM_RETRIES:
+        RETRIES_REFERENCES[CUSTOM_RETRIES.index(retry)] += 1
+    else:
         CUSTOM_RETRIES.append(retry)
+        RETRIES_REFERENCES.append(1)
 
     def _remove_custom_retry() -> None:
         """Callable to remove a prior registered custom retry period."""
-        CUSTOM_RETRIES.remove(retry)
+        RETRIES_REFERENCES[idx := CUSTOM_RETRIES.index(retry)] -= 1
+        if RETRIES_REFERENCES[idx] < 1:
+            del RETRIES_REFERENCES[idx]
+            CUSTOM_RETRIES.remove(retry)
 
     return _remove_custom_retry
 
@@ -198,23 +205,28 @@ def stop_retry(retry_state: RetryCallState) -> bool:
     :return: decision to repeat or not
     """
     # custom timeout periods use minute in day for start and end.
-    this_moment = (_t := time.localtime(time.time())).tm_hour * 60 + _t.tm_min
+    elapsed_since_start = time.monotonic() - retry_state.start_time
+    start_moment = (
+        _t := time.localtime(time.time() - elapsed_since_start)
+    ).tm_hour * 60 + _t.tm_min
+    # select custom retries based on start moment of first request
     custom_retries = [
         period
         for period in get_custom_retries()
-        if period.start <= this_moment <= period.end
+        if period.start <= start_moment <= period.end
     ]
-
     # Sort any overlaps on shortest timespan (considered more detailed)
     custom_retries.sort(key=lambda timeout: timeout.end - timeout.start)
+    elapsed_allowed = (
+        custom_retries[0].elapsed if len(custom_retries) > 0 else MAX_REQUEST_DELAY
+    )
+    attempts_allowed = (
+        custom_retries[0].attempts if len(custom_retries) > 0 else MAX_REQUEST_ATTEMPTS
+    )
 
     # decide if time or attempts are exceeded
-    time_exceeded = (time.monotonic() - retry_state.start_time) > (
-        custom_retries[0].elapsed if custom_retries else MAX_REQUEST_DELAY
-    )
-    attempts_exceeded = retry_state.attempt_number >= (
-        custom_retries[0].attempts if custom_retries else MAX_REQUEST_ATTEMPTS
-    )
+    time_exceeded = elapsed_since_start > elapsed_allowed
+    attempts_exceeded = retry_state.attempt_number >= attempts_allowed
 
     _LOGGER.debug(
         "Retrying, attempt %s ended after: %s, time exceeded: %s, attempts exceeded: %s attempt outcome: %s, ",
@@ -280,6 +292,7 @@ class Envoy:
         self.data: EnvoyData | None = None
         self._common_properties: CommonProperties = CommonProperties()
         self._interface_settings: EnvoyInterfaceInformation | None = None
+        self._remove_default_custom_retry: Callable[[], None] | None = None
 
         # add custom retry period between 23:00 and 23:20
         # to handle Envoy 11 PM outage without errors
@@ -320,20 +333,15 @@ class Envoy:
         """
         Close or clean anything opened or created on behalf of the caller.
 
-        Should be called when ending application, if:
-
-        - no aiohttp ClientSession was specified for the Envoy:
-
-          - the pyenphase-created ClientSession will be closed.
-
-        - an aiohttp ClientSession was provided by the caller:
-
-          - Envoy will not close the provided session; the caller remains responsible.
+        Should be called when ending application.
 
         :return: None
         """
         if not self._user_client and not self._client.closed:
             await self._client.close()
+
+        if self._remove_default_custom_retry is not None:
+            self._remove_default_custom_retry()
 
     async def authenticate(
         self,

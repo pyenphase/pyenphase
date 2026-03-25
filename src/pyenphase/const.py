@@ -58,11 +58,9 @@ LOCAL_TIMEOUT = aiohttp.ClientTimeout(
 )
 
 # Requests should no longer retry after max delay (sec) or times since first try
-MAX_REQUEST_DELAY = (
-    50  #: no more request retries after this elapsed time, default value
-)
+MAX_REQUEST_DELAY = 50  #: default no more request retries after this elapsed time
 MAX_PROBE_REQUEST_DELAY = 50  #: no more probe request retries after this elapsed time
-MAX_REQUEST_ATTEMPTS = 4  #: maximum request retry attempts, default value
+MAX_REQUEST_ATTEMPTS = 4  #: default maximum request retry attempts
 
 # 11 PM custom retries for Envoy internal cycle between 11PM and 11:20 PM
 CUSTOM_11PM_RETRY_START = 23 * 60  #: start minute in day for 11 PM custom retry period
