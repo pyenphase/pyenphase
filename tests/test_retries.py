@@ -601,7 +601,7 @@ async def test_11pm_relaxed_retries(
     # set 11PM retry period to current time
     now_in_the_day = (_t := (datetime.datetime.now())).hour * 60 + _t.minute
     configure_11pm_retry(
-        start=max(now_in_the_day - 10, 0), end=min(now_in_the_day + 10, 1440)
+        start=max(now_in_the_day - 10, 0), end=min(now_in_the_day + 10, 1439)
     )
 
     # force failure on first endpoint called by update
