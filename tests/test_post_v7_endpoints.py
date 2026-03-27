@@ -10,9 +10,18 @@ from pyenphase.envoy import UPDATERS, Envoy, SupportedFeatures, register_updater
 from pyenphase.updaters.api_v1_production_inverters import (
     EnvoyApiV1ProductionInvertersUpdater,
 )
-from pyenphase.updaters.device_data_inverters import EnvoyDeviceDataInvertersUpdater
+from pyenphase.updaters.device_data_inverters import (
+    EnvoyAuthenticationRequired,
+    EnvoyDeviceDataInvertersUpdater,
+)
 
-from .common import get_mock_envoy, prep_envoy, start_7_firmware_mock, updater_features
+from .common import (
+    get_mock_envoy,
+    override_mock,
+    prep_envoy,
+    start_7_firmware_mock,
+    updater_features,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -235,3 +244,87 @@ async def test_client_session_close(
     await envoy3.close()
     # was closed already, should still be closed.
     assert envoy3._client.closed
+
+
+@pytest.mark.parametrize(
+    "version",
+    [
+        "7.3.130_no_consumption",
+    ],
+    ids=[
+        "7.3.130_no_consumption",
+    ],
+)
+@pytest.mark.asyncio
+async def test_early_v7_with_all_401(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+) -> None:
+    """Test envoy disconnect at start, should return EnvoyFirmwareFatalCheckError."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    # endpoints return 401 on early v7 firmwares
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/ensemble/inventory",
+        exception=EnvoyAuthenticationRequired("Test early v7 401"),
+        repeat=True,
+        payload=[],
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json?details=1",
+        exception=EnvoyAuthenticationRequired("Test early v7 401"),
+        repeat=True,
+        payload=[],
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production",
+        exception=EnvoyAuthenticationRequired("Test early v7 401"),
+        repeat=True,
+        payload=[],
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/pdm/device_data",
+        exception=EnvoyAuthenticationRequired("Test early v7 401"),
+        repeat=True,
+        payload=[],
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/api/v1/production/inverters",
+        exception=EnvoyAuthenticationRequired("Test early v7 401"),
+        repeat=True,
+        payload=[],
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/ensemble/inventory",
+        exception=EnvoyAuthenticationRequired("Test early v7 401"),
+        repeat=True,
+        payload=[],
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/admin/lib/tariff",
+        exception=EnvoyAuthenticationRequired("Test early v7 401"),
+        repeat=True,
+        payload=[],
+    )
+
+    envoy = await get_mock_envoy(client_session=test_client_session)
+    assert updater_features(envoy._updaters) == {
+        "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
+        "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE | SupportedFeatures.CTMETERS,
+    }

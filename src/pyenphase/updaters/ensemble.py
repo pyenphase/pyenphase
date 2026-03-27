@@ -12,7 +12,7 @@ from ..const import (
     URL_ENSEMBLE_SECCTRL,
     SupportedFeatures,
 )
-from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS
+from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.acb import EnvoyBatteryAggregate
 from ..models.c6combiner import EnvoyC6CC
 from ..models.collar import EnvoyCollar
@@ -42,6 +42,16 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
             result = await self._json_probe_request(URL_ENSEMBLE_INVENTORY)
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug("Ensemble Inventory endpoint not found: %s", e)
+        except EnvoyAuthenticationRequired as e:
+            # For URL_ENSEMBLE_INVENTORY some early V7 versions
+            # return 401 when using aiohttp.
+            _LOGGER.debug(
+                "Skipping Ensemble Inventory endpoint as user does"
+                " not have access to %s: %s",
+                URL_ENSEMBLE_INVENTORY,
+                e,
+            )
+            return None
         else:
             if not result or "error" in result:
                 # Newer firmware with no Ensemble devices returns an empty list
