@@ -63,12 +63,12 @@
 ```
 
 ```{eval-rst}
-.. autodata:: pyenphase.envoy.CUSTOM_RETRIES
+.. autodata:: pyenphase.envoy.CUSTOM_11PM_RETRY
 
 ```
 
 ```{eval-rst}
-.. autofunction:: pyenphase.envoy.register_custom_retry
+.. autofunction:: pyenphase.envoy.configure_11pm_retry
 
 ```
 

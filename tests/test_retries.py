@@ -1,8 +1,8 @@
 """Test tenacity retry functioning."""
 
 import asyncio
+import datetime
 import logging
-import time
 from typing import Any
 
 import aiohttp
@@ -11,17 +11,8 @@ from aioresponses import aioresponses
 from tenacity import stop_after_attempt, stop_after_delay, wait_none
 
 from pyenphase import Envoy
-from pyenphase.const import (
-    MAX_REQUEST_ATTEMPTS,
-)
-from pyenphase.envoy import (
-    CUSTOM_RETRIES,
-    RETRIES_REFERENCES,
-    custom_retry,
-    get_custom_retries,
-    register_custom_retry,
-    stop_retry,
-)
+from pyenphase.const import CUSTOM_11PM_REQUEST_ATTEMPTS, MAX_REQUEST_ATTEMPTS
+from pyenphase.envoy import configure_11pm_retry, stop_retry
 from pyenphase.exceptions import (
     EnvoyAuthenticationRequired,
     EnvoyCommunicationError,
@@ -589,14 +580,15 @@ async def test_bad_request_status_7_6_175_standard(
 
 @pytest.mark.asyncio
 async def test_11pm_relaxed_retries(
-    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Test envoy relaxed retries."""
     version = "7.6.175_with_cts"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-
     envoy = Envoy("127.0.0.1", client=test_client_session)
+
     await envoy.setup()
     await envoy.authenticate("username", "password")
     # do initial update to get cache right
@@ -606,134 +598,45 @@ async def test_11pm_relaxed_retries(
     envoy.request.retry.wait = wait_none()
     envoy.request.retry.stop = stop_retry
 
-    # remove default 23 pm custom retry to avoid
-    # test issues when running in that window
-    current_custom_retries = get_custom_retries()
-    try:
-        CUSTOM_RETRIES.clear()
-        RETRIES_REFERENCES.clear()
-        envoy._remove_default_custom_retry = None
+    # set 11PM retry period to current time
+    now_in_the_day = (_t := (datetime.datetime.now())).hour * 60 + _t.minute
+    configure_11pm_retry(
+        start=max(now_in_the_day - 10, 0), end=min(now_in_the_day + 10, 1440)
+    )
 
-        # force failure on first endpoint called by update
-        override_mock(
-            mock_aioresponse,
-            "get",
-            "https://127.0.0.1/ivp/meters",
-            exception=asyncio.TimeoutError("Test timeoutexception"),
-        )
-        with pytest.raises(EnvoyCommunicationError):
-            await envoy.update()
+    # force failure on first endpoint called by update
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters",
+        exception=asyncio.TimeoutError("Test timeoutexception"),
+    )
+    with pytest.raises(EnvoyCommunicationError):
+        await envoy.update()
 
-        # verify default attempts where used
-        stats: dict[str, Any] = envoy.request.statistics
-        assert "attempt_number" in stats
-        assert stats["attempt_number"] == MAX_REQUEST_ATTEMPTS
+    # verify 11pm attempts where used
+    stats: dict[str, Any] = envoy.request.statistics
+    assert "attempt_number" in stats
+    assert stats["attempt_number"] == CUSTOM_11PM_REQUEST_ATTEMPTS
 
-        # add custom retry window around current time and test stop_retry
-        this_moment = (_t := time.localtime(time.time())).tm_hour * 60 + _t.tm_min
-        remove_custom_retry1 = register_custom_retry(
-            custom_retry(
-                start=this_moment - 10, end=this_moment + 10, elapsed=360, attempts=10
-            )
-        )
-        with pytest.raises(EnvoyCommunicationError):
-            await envoy.update()
+    # set 11PM retry period to not be current time
+    now_in_the_day = (_t := (datetime.datetime.now())).hour * 60 + _t.minute
+    now_in_the_day = 300 if now_in_the_day > 740 else 1340
+    configure_11pm_retry(
+        start=max(now_in_the_day - 10, 0), end=min(now_in_the_day + 10, 1440)
+    )
 
-        # verify custom attempts where used
-        stats = envoy.request.statistics
-        assert "attempt_number" in stats
-        assert stats["attempt_number"] == 10
+    # force failure on first endpoint called by update
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters",
+        exception=asyncio.TimeoutError("Test timeoutexception"),
+    )
+    with pytest.raises(EnvoyCommunicationError):
+        await envoy.update()
 
-        # add more detailed custom retry within existing custom period
-        remove_custom_retry2 = register_custom_retry(
-            custom_retry(
-                start=this_moment - 5, end=this_moment + 5, elapsed=360, attempts=15
-            )
-        )
-        with pytest.raises(EnvoyCommunicationError):
-            await envoy.update()
-
-        # verify most detailed custom attempts where used
-        stats = envoy.request.statistics
-        assert "attempt_number" in stats
-        assert stats["attempt_number"] == 15
-
-        # add second custom retry with same setting
-        remove_custom_retry22 = register_custom_retry(
-            custom_retry(
-                start=this_moment - 5, end=this_moment + 5, elapsed=360, attempts=15
-            )
-        )
-        with pytest.raises(EnvoyCommunicationError):
-            await envoy.update()
-
-        # verify most detailed custom attempts where used
-        stats = envoy.request.statistics
-        assert "attempt_number" in stats
-        assert stats["attempt_number"] == 15
-
-        assert get_custom_retries() == [
-            custom_retry(
-                start=this_moment - 10, end=this_moment + 10, elapsed=360, attempts=10
-            ),
-            custom_retry(
-                start=this_moment - 5, end=this_moment + 5, elapsed=360, attempts=15
-            ),
-        ]
-
-        # remove first detailed custom retry
-        remove_custom_retry2()
-        with pytest.raises(EnvoyCommunicationError):
-            await envoy.update()
-
-        # verify detailed one is still in list
-        assert get_custom_retries() == [
-            custom_retry(
-                start=this_moment - 10, end=this_moment + 10, elapsed=360, attempts=10
-            ),
-            custom_retry(
-                start=this_moment - 5, end=this_moment + 5, elapsed=360, attempts=15
-            ),
-        ]
-
-        with pytest.raises(EnvoyCommunicationError):
-            await envoy.update()
-
-        # verify most detailed custom attempts where used
-        stats = envoy.request.statistics
-        assert "attempt_number" in stats
-        assert stats["attempt_number"] == 15
-
-        # remove second detailed custom retry
-        remove_custom_retry22()
-
-        # verify only first one is still in the list
-        assert get_custom_retries() == [
-            custom_retry(
-                start=this_moment - 10, end=this_moment + 10, elapsed=360, attempts=10
-            ),
-        ]
-
-        with pytest.raises(EnvoyCommunicationError):
-            await envoy.update()
-
-        # verify custom attempts are now used again
-        stats = envoy.request.statistics
-        assert "attempt_number" in stats
-        assert stats["attempt_number"] == 10
-
-        # remove initial custom retry
-        remove_custom_retry1()
-        with pytest.raises(EnvoyCommunicationError):
-            await envoy.update()
-
-        # verify default attempts are now used again
-        stats = envoy.request.statistics
-        assert "attempt_number" in stats
-        assert stats["attempt_number"] == MAX_REQUEST_ATTEMPTS
-
-        await envoy.close()
-    finally:
-        # leav global as is was before
-        for retry in current_custom_retries:
-            register_custom_retry(retry)
+    # verify 11pm attempts where used
+    stats = envoy.request.statistics
+    assert "attempt_number" in stats
+    assert stats["attempt_number"] == MAX_REQUEST_ATTEMPTS

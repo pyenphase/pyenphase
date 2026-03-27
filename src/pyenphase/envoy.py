@@ -1,6 +1,7 @@
 """Enphase Envoy class"""
 
 import asyncio
+import datetime
 import logging
 import time
 from collections.abc import Awaitable, Callable
@@ -110,9 +111,19 @@ class custom_retry:
     elapsed: int  #: maximum elapsed time in second to use in custom retry period
     attempts: int  #: request attempts to use in custom retry period
 
+    def set(self, start: int, end: int, elapsed: int, attempts: int) -> None:
+        self.start = start
+        self.end = end
+        self.elapsed = elapsed
+        self.attempts = attempts
 
-CUSTOM_RETRIES: list[custom_retry] = []  #: List of configured custom retry periods
-RETRIES_REFERENCES: list[int] = []  #: Number of references to custom retry period
+
+CUSTOM_11PM_RETRY = custom_retry(
+    start=CUSTOM_11PM_RETRY_START,
+    end=CUSTOM_11PM_RETRY_END,
+    elapsed=CUSTOM_11PM_RETRY_DELAY,
+    attempts=CUSTOM_11PM_REQUEST_ATTEMPTS,
+)  #: tenacety retry settings to use during the 11PM Envoy outage
 
 
 def register_updater(updater: type[EnvoyUpdater]) -> Callable[[], None]:
@@ -152,88 +163,75 @@ def get_updaters() -> list[type[EnvoyUpdater]]:
     return UPDATERS
 
 
-def register_custom_retry(retry: custom_retry) -> Callable[[], None]:
+def configure_11pm_retry(
+    start: int = CUSTOM_11PM_RETRY_START,
+    end: int = CUSTOM_11PM_RETRY_END,
+    elapsed: int = CUSTOM_11PM_RETRY_DELAY,
+    attempts: int = CUSTOM_11PM_REQUEST_ATTEMPTS,
+) -> None:
     """
-    Register a custom retry perod.
+    Configure the 11PM retry setup.
 
-    During a custom retry period, specified request max alapsed
+    During the 11PM retry period, specific request max alapsed
     time and retry attempts are used instead of the default ones.
     This allows to overcome very long response times during
     Envoy internal recycle and cleanup without setting overall default
     timeouts also handling this situation. Envoy cycle activities
     typically occur somewhere between 23:00 and 23:20.
 
-    :param retry: custom retry period specifying start and end minute
-        in the day, max alapsed time and retry attempts to use
-    :return: callable to remove custom period
+    This functions allows tuning of these settings. Be aware these
+    settings are shared by all Envoy communications active.
+
+    Retrying ends when, at attempt failure, either the number of
+    allowed attempts is exceeded or more then allowed time is
+    elapsed since start of first attempt.
+
+    :param start: minute in the day the retry setting should start
+    :param end: minute in the day the retry setting should end
+    :param elapsed: maximum elapsed time in seconds before retry is ended
+    :param attempts: maximum number of attempts to try
     """
-    if retry in CUSTOM_RETRIES:
-        RETRIES_REFERENCES[CUSTOM_RETRIES.index(retry)] += 1
-    else:
-        CUSTOM_RETRIES.append(retry)
-        RETRIES_REFERENCES.append(1)
-
-    def _remove_custom_retry() -> None:
-        """Callable to remove a prior registered custom retry period."""
-        RETRIES_REFERENCES[idx := CUSTOM_RETRIES.index(retry)] -= 1
-        if RETRIES_REFERENCES[idx] < 1:
-            del RETRIES_REFERENCES[idx]
-            CUSTOM_RETRIES.remove(retry)
-
-    return _remove_custom_retry
-
-
-def get_custom_retries() -> list[custom_retry]:
-    """
-    Return configured custom retry periods. Custom
-    retry periods are defined by their start and end minute
-    in the day and the max elapsed time and attempts to use.
-
-    :return: list of custom retries with start, end minutes, max elapsed and attempts
-    """
-    return CUSTOM_RETRIES
+    CUSTOM_11PM_RETRY.set(start=start, end=end, elapsed=elapsed, attempts=attempts)
+    return
 
 
 def stop_retry(retry_state: RetryCallState) -> bool:
     """
     Determine retry decision for tenacity retries.
 
-    Allow for custom retry when current time is in
-    one of the configured custom retry periods. Otherwise
-    use default retry settings.
+    Allow for relaxed retry when start time of request is
+    between 23:00 and 23:20. Otherwise use default retry settings.
 
     :return: decision to repeat or not
     """
-    # custom timeout periods use minute in day for start and end.
     elapsed_since_start = time.monotonic() - retry_state.start_time
+    # use wallclock time to get to minutes in the day request first started
     start_moment = (
-        _t := time.localtime(time.time() - elapsed_since_start)
-    ).tm_hour * 60 + _t.tm_min
-    # select custom retries based on start moment of first request
-    custom_retries = [
-        period
-        for period in get_custom_retries()
-        if period.start <= start_moment <= period.end
-    ]
-    # Sort any overlaps on shortest timespan (considered more detailed)
-    custom_retries.sort(key=lambda timeout: timeout.end - timeout.start)
-    elapsed_allowed = (
-        custom_retries[0].elapsed if len(custom_retries) > 0 else MAX_REQUEST_DELAY
-    )
-    attempts_allowed = (
-        custom_retries[0].attempts if len(custom_retries) > 0 else MAX_REQUEST_ATTEMPTS
-    )
+        _t := (
+            datetime.datetime.now() - datetime.timedelta(seconds=elapsed_since_start)
+        )
+    ).hour * 60 + _t.minute
+    elapsed_allowed = MAX_REQUEST_DELAY
+    attempts_allowed = MAX_REQUEST_ATTEMPTS
+
+    # use relaxed retries between 23:00 and 23:20
+    if CUSTOM_11PM_RETRY.start < start_moment < CUSTOM_11PM_RETRY.end:
+        elapsed_allowed = CUSTOM_11PM_RETRY.elapsed
+        attempts_allowed = CUSTOM_11PM_RETRY.attempts
 
     # decide if time or attempts are exceeded
     time_exceeded = elapsed_since_start > elapsed_allowed
     attempts_exceeded = retry_state.attempt_number >= attempts_allowed
 
     _LOGGER.debug(
-        "Retrying, attempt %s ended after: %s, time exceeded: %s, attempts exceeded: %s attempt outcome: %s, ",
+        "Retrying, attempt %s started at: %s, elapsed: %s, attempts exceeded: %s (%s), time exceeded: %s (%s), attempt outcome: %s",
         retry_state.attempt_number,
-        round(time.monotonic() - retry_state.start_time, 2),
-        time_exceeded,
+        start_moment,
+        round(elapsed_since_start, 2),
         attempts_exceeded,
+        attempts_allowed,
+        time_exceeded,
+        elapsed_allowed,
         retry_state.outcome,
     )
     return time_exceeded or attempts_exceeded
@@ -292,20 +290,6 @@ class Envoy:
         self.data: EnvoyData | None = None
         self._common_properties: CommonProperties = CommonProperties()
         self._interface_settings: EnvoyInterfaceInformation | None = None
-        self._remove_default_custom_retry: Callable[[], None] | None = None
-
-        # add custom retry period between 23:00 and 23:20
-        # to handle Envoy 11 PM outage without errors
-        # retry upto 6 minutes or 10 tries whichever comes first
-        # each try uses default 45 second or custom timeout.
-        self._remove_default_custom_retry = register_custom_retry(
-            custom_retry(
-                start=CUSTOM_11PM_RETRY_START,
-                end=CUSTOM_11PM_RETRY_END,
-                elapsed=CUSTOM_11PM_RETRY_DELAY,
-                attempts=CUSTOM_11PM_REQUEST_ATTEMPTS,
-            )
-        )
 
     async def setup(self) -> None:
         """
@@ -339,9 +323,6 @@ class Envoy:
         """
         if not self._user_client and not self._client.closed:
             await self._client.close()
-
-        if self._remove_default_custom_retry is not None:
-            self._remove_default_custom_retry()
 
     async def authenticate(
         self,
