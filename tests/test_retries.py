@@ -11,7 +11,13 @@ from aioresponses import aioresponses
 from tenacity import stop_after_attempt, stop_after_delay, wait_none
 
 from pyenphase import Envoy
-from pyenphase.const import CUSTOM_11PM_REQUEST_ATTEMPTS, MAX_REQUEST_ATTEMPTS
+from pyenphase.const import (
+    CUSTOM_11PM_REQUEST_ATTEMPTS,
+    CUSTOM_11PM_RETRY_DELAY,
+    CUSTOM_11PM_RETRY_END,
+    CUSTOM_11PM_RETRY_START,
+    MAX_REQUEST_ATTEMPTS,
+)
 from pyenphase.envoy import configure_11pm_retry, stop_retry
 from pyenphase.exceptions import (
     EnvoyAuthenticationRequired,
@@ -603,21 +609,29 @@ async def test_11pm_relaxed_retries(
     configure_11pm_retry(
         start=max(now_in_the_day - 10, 0), end=min(now_in_the_day + 10, 1439)
     )
+    try:
+        # force failure on first endpoint called by update
+        override_mock(
+            mock_aioresponse,
+            "get",
+            "https://127.0.0.1/ivp/meters",
+            exception=asyncio.TimeoutError("Test timeoutexception"),
+        )
+        with pytest.raises(EnvoyCommunicationError):
+            await envoy.update()
 
-    # force failure on first endpoint called by update
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/ivp/meters",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
-    )
-    with pytest.raises(EnvoyCommunicationError):
-        await envoy.update()
-
-    # verify 11pm attempts where used
-    stats: dict[str, Any] = envoy.request.statistics
-    assert "attempt_number" in stats
-    assert stats["attempt_number"] == CUSTOM_11PM_REQUEST_ATTEMPTS
+        # verify 11pm attempts where used
+        stats: dict[str, Any] = envoy.request.statistics
+        assert "attempt_number" in stats
+        assert stats["attempt_number"] == CUSTOM_11PM_REQUEST_ATTEMPTS
+    finally:
+        # restore standard settings
+        configure_11pm_retry(
+            start=CUSTOM_11PM_RETRY_START,
+            end=CUSTOM_11PM_RETRY_END,
+            elapsed=CUSTOM_11PM_RETRY_DELAY,
+            attempts=CUSTOM_11PM_REQUEST_ATTEMPTS,
+        )
 
     # set 11PM retry period to not be current time
     now_in_the_day = (_t := (datetime.datetime.now())).hour * 60 + _t.minute
@@ -625,16 +639,24 @@ async def test_11pm_relaxed_retries(
     configure_11pm_retry(
         start=max(now_in_the_day - 10, 0), end=min(now_in_the_day + 10, 1440)
     )
-
-    # force failure on first endpoint called by update
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/ivp/meters",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
-    )
-    with pytest.raises(EnvoyCommunicationError):
-        await envoy.update()
+    try:
+        # force failure on first endpoint called by update
+        override_mock(
+            mock_aioresponse,
+            "get",
+            "https://127.0.0.1/ivp/meters",
+            exception=asyncio.TimeoutError("Test timeoutexception"),
+        )
+        with pytest.raises(EnvoyCommunicationError):
+            await envoy.update()
+    finally:
+        # restore standard settings
+        configure_11pm_retry(
+            start=CUSTOM_11PM_RETRY_START,
+            end=CUSTOM_11PM_RETRY_END,
+            elapsed=CUSTOM_11PM_RETRY_DELAY,
+            attempts=CUSTOM_11PM_REQUEST_ATTEMPTS,
+        )
 
     # verify 11pm attempts where used
     stats = envoy.request.statistics
