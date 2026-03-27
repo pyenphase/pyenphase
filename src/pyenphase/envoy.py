@@ -215,7 +215,7 @@ def stop_retry(retry_state: RetryCallState) -> bool:
     attempts_allowed = MAX_REQUEST_ATTEMPTS
 
     # use relaxed retries between 23:00 and 23:20
-    if CUSTOM_11PM_RETRY.start < start_moment < CUSTOM_11PM_RETRY.end:
+    if CUSTOM_11PM_RETRY.start <= start_moment <= CUSTOM_11PM_RETRY.end:
         elapsed_allowed = CUSTOM_11PM_RETRY.elapsed
         attempts_allowed = CUSTOM_11PM_RETRY.attempts
 
@@ -317,7 +317,15 @@ class Envoy:
         """
         Close or clean anything opened or created on behalf of the caller.
 
-        Should be called when ending application.
+        Should be called when ending application, if:
+
+        - no aiohttp ClientSession was specified for the Envoy:
+
+          - the pyenphase-created ClientSession will be closed.
+
+        - an aiohttp ClientSession was provided by the caller:
+
+          - Envoy will not close the provided session; the caller remains responsible.
 
         :return: None
         """
