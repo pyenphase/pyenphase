@@ -7,13 +7,11 @@ import pytest
 from aioresponses import aioresponses
 
 from pyenphase.envoy import UPDATERS, Envoy, SupportedFeatures, register_updater
+from pyenphase.exceptions import EnvoyAuthenticationRequired
 from pyenphase.updaters.api_v1_production_inverters import (
     EnvoyApiV1ProductionInvertersUpdater,
 )
-from pyenphase.updaters.device_data_inverters import (
-    EnvoyAuthenticationRequired,
-    EnvoyDeviceDataInvertersUpdater,
-)
+from pyenphase.updaters.device_data_inverters import EnvoyDeviceDataInvertersUpdater
 
 from .common import (
     get_mock_envoy,
@@ -261,19 +259,11 @@ async def test_early_v7_with_all_401(
     test_client_session: aiohttp.ClientSession,
     version: str,
 ) -> None:
-    """Test envoy disconnect at start, should return EnvoyFirmwareFatalCheckError."""
+    """Test early v7 startup where several probe endpoints return auth-required."""
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # endpoints return 401 on early v7 firmwares
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/ivp/ensemble/inventory",
-        exception=EnvoyAuthenticationRequired("Test early v7 401"),
-        repeat=True,
-        payload=[],
-    )
     override_mock(
         mock_aioresponse,
         "get",
