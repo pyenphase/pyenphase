@@ -640,3 +640,40 @@ async def test_11pm_relaxed_retries(
     stats = envoy.request.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == MAX_REQUEST_ATTEMPTS
+
+
+@pytest.mark.asyncio
+async def test_11pm_configuration_errors(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Test envoy relaxed retries setting errors."""
+    version = "7.6.175_with_cts"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+
+    await envoy.setup()
+    await envoy.authenticate("username", "password")
+    # do initial update to get cache right
+    await envoy.update()
+
+    # specify retries to use, they might have been changed by previous test
+    envoy.request.retry.wait = wait_none()
+    envoy.request.retry.stop = stop_retry
+
+    # test configure_11pm_retry
+    with pytest.raises(ValueError):
+        configure_11pm_retry(start=-10, end=120)
+    with pytest.raises(ValueError):
+        configure_11pm_retry(start=0, end=-10)
+    with pytest.raises(ValueError):
+        configure_11pm_retry(start=1440, end=1441)
+    with pytest.raises(ValueError):
+        configure_11pm_retry(start=1380, end=1440)
+    with pytest.raises(ValueError):
+        configure_11pm_retry(start=120, end=120)
+    with pytest.raises(ValueError):
+        configure_11pm_retry(elapsed=0)
+    with pytest.raises(ValueError):
+        configure_11pm_retry(attempts=0)

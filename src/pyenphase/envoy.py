@@ -191,6 +191,12 @@ def configure_11pm_retry(
     :param elapsed: maximum elapsed time in seconds before retry is ended
     :param attempts: maximum number of attempts to try
     """
+    if not (0 <= start < 1440 and 0 <= end < 1440):
+        raise ValueError("start and end must be minutes in the day (0-1439)")
+    if start >= end:
+        raise ValueError("start must be less than end (wrap-around not supported)")
+    if elapsed <= 0 or attempts <= 0:
+        raise ValueError("elapsed and attempts must be positive")
     CUSTOM_11PM_RETRY.set(start=start, end=end, elapsed=elapsed, attempts=attempts)
     return
 
