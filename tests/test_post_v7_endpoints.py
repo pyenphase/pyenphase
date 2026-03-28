@@ -264,54 +264,22 @@ async def test_early_v7_with_all_401(
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     # endpoints return 401 on early v7 firmwares
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/production.json?details=1",
-        exception=EnvoyAuthenticationRequired("Test early v7 401"),
-        repeat=True,
-        payload=[],
-    )
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/production",
-        exception=EnvoyAuthenticationRequired("Test early v7 401"),
-        repeat=True,
-        payload=[],
-    )
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/ivp/pdm/device_data",
-        exception=EnvoyAuthenticationRequired("Test early v7 401"),
-        repeat=True,
-        payload=[],
-    )
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/api/v1/production/inverters",
-        exception=EnvoyAuthenticationRequired("Test early v7 401"),
-        repeat=True,
-        payload=[],
-    )
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/ivp/ensemble/inventory",
-        exception=EnvoyAuthenticationRequired("Test early v7 401"),
-        repeat=True,
-        payload=[],
-    )
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/admin/lib/tariff",
-        exception=EnvoyAuthenticationRequired("Test early v7 401"),
-        repeat=True,
-        payload=[],
-    )
+    for endpoint in [
+        "production.json?details=1",
+        "production",
+        "ivp/pdm/device_data",
+        "api/v1/production/inverters",
+        "ivp/ensemble/inventory",
+        "admin/lib/tariff",
+    ]:
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"https://127.0.0.1/{endpoint}",
+            exception=EnvoyAuthenticationRequired("Test early v7 401"),
+            repeat=True,
+            payload=[],
+        )
 
     envoy = await get_mock_envoy(client_session=test_client_session)
     assert updater_features(envoy._updaters) == {
