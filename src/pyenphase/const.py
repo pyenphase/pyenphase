@@ -62,9 +62,11 @@ MAX_REQUEST_DELAY = 50  #: default no more request retries after this elapsed ti
 MAX_PROBE_REQUEST_DELAY = 50  #: no more probe request retries after this elapsed time
 MAX_REQUEST_ATTEMPTS = 4  #: default maximum request retry attempts
 
-# 11 PM custom retries for Envoy internal cycle between 11PM and 11:20 PM
-CUSTOM_11PM_RETRY_START = 23 * 60  #: start minute in day for 11 PM custom retry period
-CUSTOM_11PM_RETRY_END = 23 * 60 + 20  #: end minute in day for 11 PM custom retry period
+# 11 PM custom retries for Envoy internal cycle between 10:45PM and 11:45 PM
+CUSTOM_11PM_RETRY_START = (
+    22 * 60 + 45
+)  #: start minute in day for 11 PM custom retry period
+CUSTOM_11PM_RETRY_END = 23 * 60 + 45  #: end minute in day for 11 PM custom retry period
 CUSTOM_11PM_RETRY_DELAY = (
     360  #: no more retries after this elapsed time during 11 PM custom retry period
 )
