@@ -1,10 +1,11 @@
 """Enphase Envoy class"""
 
 import asyncio
+import datetime
 import logging
 import time
 from collections.abc import Awaitable, Callable
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from functools import cached_property, partial
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, overload
@@ -14,6 +15,7 @@ import orjson
 from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import (
+    RetryCallState,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
@@ -31,6 +33,10 @@ from .auth import (
 )
 from .const import (
     AUTH_TOKEN_MIN_VERSION,
+    CUSTOM_11PM_REQUEST_ATTEMPTS,
+    CUSTOM_11PM_RETRY_DELAY,
+    CUSTOM_11PM_RETRY_END,
+    CUSTOM_11PM_RETRY_START,
     ENDPOINT_URL_HOME,
     LOCAL_TIMEOUT,
     MAX_PROBE_REQUEST_DELAY,
@@ -93,6 +99,33 @@ UPDATERS: list[type["EnvoyUpdater"]] = [
 ]  #: Ordered list of standard updaters for Envoy data collection
 
 
+@dataclass(slots=True)
+class custom_retry:
+    """
+    Custom request retry period defined by start and end minute
+    in the day, specifying maximum elapsed seconds and retry attempts.
+    """
+
+    start: int  #: start of custom retry period in minutes since start of day
+    end: int  #: end of custom retry period in minutes since start of day
+    elapsed: int  #: maximum elapsed time in second to use in custom retry period
+    attempts: int  #: request attempts to use in custom retry period
+
+    def set(self, start: int, end: int, elapsed: int, attempts: int) -> None:
+        self.start = start
+        self.end = end
+        self.elapsed = elapsed
+        self.attempts = attempts
+
+
+CUSTOM_11PM_RETRY = custom_retry(
+    start=CUSTOM_11PM_RETRY_START,
+    end=CUSTOM_11PM_RETRY_END,
+    elapsed=CUSTOM_11PM_RETRY_DELAY,
+    attempts=CUSTOM_11PM_REQUEST_ATTEMPTS,
+)  #: tenacety retry settings to use during the 11PM Envoy outage
+
+
 def register_updater(updater: type[EnvoyUpdater]) -> Callable[[], None]:
     """
     Register an updater in the updaters list.
@@ -128,6 +161,86 @@ def get_updaters() -> list[type[EnvoyUpdater]]:
     :return: list of callable updaters
     """
     return UPDATERS
+
+
+def configure_11pm_retry(
+    start: int = CUSTOM_11PM_RETRY_START,
+    end: int = CUSTOM_11PM_RETRY_END,
+    elapsed: int = CUSTOM_11PM_RETRY_DELAY,
+    attempts: int = CUSTOM_11PM_REQUEST_ATTEMPTS,
+) -> None:
+    """
+    Configure the 11PM retry setup.
+
+    During the 11PM retry period, specific request max alapsed
+    time and retry attempts are used instead of the default ones.
+    This allows to overcome very long response times during
+    Envoy internal recycle and cleanup without setting overall default
+    timeouts also handling this situation. Envoy cycle activities
+    typically occur somewhere between 23:00 and 23:20.
+
+    This functions allows tuning of these settings. Be aware these
+    settings are shared by all Envoy communications active.
+
+    Retrying ends when, at attempt failure, either the number of
+    allowed attempts is exceeded or more then allowed time is
+    elapsed since start of first attempt.
+
+    :param start: minute in the day the retry setting should start
+    :param end: minute in the day the retry setting should end
+    :param elapsed: maximum elapsed time in seconds before retry is ended
+    :param attempts: maximum number of attempts to try
+    """
+    if not (0 <= start < 1440 and 0 <= end < 1440):
+        raise ValueError("start and end must be minutes in the day (0-1439)")
+    if start >= end:
+        raise ValueError("start must be less than end (wrap-around not supported)")
+    if elapsed <= 0 or attempts <= 0:
+        raise ValueError("elapsed and attempts must be positive")
+    CUSTOM_11PM_RETRY.set(start=start, end=end, elapsed=elapsed, attempts=attempts)
+    return
+
+
+def stop_retry(retry_state: RetryCallState) -> bool:
+    """
+    Determine retry decision for tenacity retries.
+
+    Allow for relaxed retry when start time of request is
+    between 23:00 and 23:20. Otherwise use default retry settings.
+
+    :return: decision to repeat or not
+    """
+    elapsed_since_start = time.monotonic() - retry_state.start_time
+    # use wallclock time to get to minutes in the day request first started
+    start_moment = (
+        _t := (
+            datetime.datetime.now() - datetime.timedelta(seconds=elapsed_since_start)
+        )
+    ).hour * 60 + _t.minute
+    elapsed_allowed = MAX_REQUEST_DELAY
+    attempts_allowed = MAX_REQUEST_ATTEMPTS
+
+    # use relaxed retries between 23:00 and 23:20
+    if CUSTOM_11PM_RETRY.start <= start_moment <= CUSTOM_11PM_RETRY.end:
+        elapsed_allowed = CUSTOM_11PM_RETRY.elapsed
+        attempts_allowed = CUSTOM_11PM_RETRY.attempts
+
+    # decide if time or attempts are exceeded
+    time_exceeded = elapsed_since_start > elapsed_allowed
+    attempts_exceeded = retry_state.attempt_number >= attempts_allowed
+
+    _LOGGER.debug(
+        "Retrying, attempt %s started at: %s, elapsed: %s, attempts exceeded: %s (%s), time exceeded: %s (%s), attempt outcome: %s",
+        retry_state.attempt_number,
+        start_moment,
+        round(elapsed_since_start, 2),
+        attempts_exceeded,
+        attempts_allowed,
+        time_exceeded,
+        elapsed_allowed,
+        retry_state.outcome,
+    )
+    return time_exceeded or attempts_exceeded
 
 
 class Envoy:
@@ -333,8 +446,7 @@ class Envoy:
             )
         ),
         wait=wait_random_exponential(multiplier=2, max=5),
-        stop=stop_after_delay(MAX_REQUEST_DELAY)
-        | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
+        stop=stop_retry,
         reraise=True,
     )
     async def request(

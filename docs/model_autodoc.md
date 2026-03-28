@@ -54,6 +54,25 @@
 ```
 
 ```{eval-rst}
+.. autoclass:: pyenphase.envoy.custom_retry
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: bysource
+
+```
+
+```{eval-rst}
+.. autodata:: pyenphase.envoy.CUSTOM_11PM_RETRY
+
+```
+
+```{eval-rst}
+.. autofunction:: pyenphase.envoy.configure_11pm_retry
+
+```
+
+```{eval-rst}
 .. automodule:: pyenphase.const
   :members:
   :exclude-members: SupportedFeatures
