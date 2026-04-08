@@ -429,7 +429,7 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split(
         meters_readings[2],
         meter_status,
     )
-    assert ct_data.eid == "704643840"
+    assert str(ct_data.eid) == "704643840"
     assert ct_data.measurement_type == "storage"
 
     # test meters.from_phase method
