@@ -605,6 +605,7 @@ async def test_retry_policy(
         "get",
         "https://127.0.0.1/ivp/meters",
         exception=asyncio.TimeoutError("Test timeoutexception"),
+        repeat=True,
     )
     with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
@@ -615,11 +616,11 @@ async def test_retry_policy(
     assert stats["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS
 
     # set retry policy to use custom retries
-    envoy.set_retry_policy(max_delay=600, max_attempts=6)
+    envoy.set_retry_policy(max_delay=600, max_attempts=8)
     with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
     # verify custom attempts where used
     stats = envoy.request.statistics
     assert "attempt_number" in stats
-    assert stats["attempt_number"] == 6
+    assert stats["attempt_number"] == 8
