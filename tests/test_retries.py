@@ -54,7 +54,7 @@ async def test_full_connected_from_start_with_7_6_175_standard(
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
     await envoy.setup()
@@ -80,7 +80,7 @@ async def test_full_disconnected_from_start_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
     # Mock both HTTPS and HTTP since firmware code falls back to HTTP
@@ -114,7 +114,7 @@ async def test_2_timeout_from_start_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
     # Mock both HTTPS and HTTP since firmware code falls back to HTTP
@@ -147,7 +147,7 @@ async def test_httperror_from_start_with_7_6_175_standard(
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
     # The test expects no retries, which means we need to trigger the code path
@@ -179,7 +179,7 @@ async def test_1_timeout_from_start_with_7_6_175_standard(
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
     # Mock both HTTPS and HTTP since firmware code falls back to HTTP
@@ -217,7 +217,7 @@ async def test_5_not_connected_at_start_with_7_6_175_standard(
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
     # Each retry attempt tries HTTPS first, then falls back to HTTP
@@ -277,7 +277,7 @@ async def test_2_network_errors_at_start_with_7_6_175_standard(
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
     # we need 2 side effects for each try as https and then http is attempted
@@ -320,7 +320,7 @@ async def test_network_errors_at_start_with_7_6_175_standard(
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
     # We need 3 failures, each could try HTTPS then HTTP fallback
@@ -352,7 +352,7 @@ async def test_noconnection_at_probe_with_7_6_175_standard(
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
     await envoy.setup()
@@ -389,7 +389,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
     await envoy.setup()
@@ -515,7 +515,7 @@ async def test_bad_request_status_7_6_175_standard(
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
     await envoy.setup()
@@ -549,10 +549,10 @@ async def test_retry_policy(
     envoy = Envoy("127.0.0.1", client=test_client_session)
 
     # remove the waits between retries for this test and set known retries
-    # retries are defined by MAX_PROBE_RETRY_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
 
-    # verify MAX_PROBE_RETRY_ATTEMPTS are used in fw setup
+    # verify MAX_PROBE_REQUEST_ATTEMPTS are used in fw setup
     # Mock both HTTPS and HTTP since firmware code falls back to HTTP
     mock_aioresponse.get(
         "https://127.0.0.1/info",
@@ -586,6 +586,14 @@ async def test_retry_policy(
         mock_aioresponse,
         "get",
         "https://127.0.0.1/info",
+        status=200,
+        body=await load_fixture(version, "info"),
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/info",
         status=200,
         body=await load_fixture(version, "info"),
         repeat=True,
