@@ -14,6 +14,7 @@ from pyenphase.const import (
     PHASENAMES,
     SupportedFeatures,
 )
+from pyenphase.envoy import UPDATERS
 from pyenphase.models.meters import (
     CtMeterData,
     CtType,
@@ -169,6 +170,9 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
     data = envoy.data
     assert data is not None
 
+    # Preserve the original updaters
+    original_updaters = UPDATERS.copy()
+
     # Test prior similar updater active
     remove_2nd_metersupdater = register_updater(EnvoyMetersUpdater)
     await envoy.probe()
@@ -269,6 +273,11 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
     # should not have phase data after removing phase data from source
     assert data.ctmeters_phases == {}
 
+    # Restore the original updaters
+    UPDATERS.clear()
+    for updater in original_updaters:
+        register_updater(updater)
+
 
 @pytest.mark.asyncio
 async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
@@ -284,6 +293,9 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
     envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
     assert data is not None
+
+    # Preserve the original updaters
+    original_updaters = UPDATERS.copy()
 
     # Test prior similar updater active
     remove_2nd_metersupdater = register_updater(EnvoyMetersUpdater)
@@ -340,6 +352,11 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
     del production_data["production"][1]["type"]
     with pytest.raises(ValueError):
         EnvoySystemProduction.from_production_phase(production_data, 0)
+
+    # Restore the original updaters
+    UPDATERS.clear()
+    for updater in original_updaters:
+        register_updater(updater)
 
 
 @pytest.mark.asyncio

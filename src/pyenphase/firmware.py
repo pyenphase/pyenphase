@@ -15,7 +15,7 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from .const import LOCAL_TIMEOUT, MAX_PROBE_REQUEST_DELAY, MAX_REQUEST_ATTEMPTS
+from .const import LOCAL_TIMEOUT, MAX_PROBE_REQUEST_ATTEMPTS, MAX_PROBE_REQUEST_DELAY
 from .exceptions import EnvoyFirmwareCheckError, EnvoyFirmwareFatalCheckError
 
 _LOGGER = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ class EnvoyFirmware:
         retry=retry_if_exception_type(aiohttp.ClientError),
         wait=wait_random_exponential(multiplier=2, max=5),
         stop=stop_after_delay(MAX_PROBE_REQUEST_DELAY)
-        | stop_after_attempt(MAX_REQUEST_ATTEMPTS),
+        | stop_after_attempt(MAX_PROBE_REQUEST_ATTEMPTS),
         reraise=True,
     )
     async def _get_info(self) -> tuple[int, bytes]:
@@ -68,7 +68,7 @@ class EnvoyFirmware:
         Try GET request to https://<host>/info to read info endpoint.
         If connection error or timeout, retry on http://<host>/info.
 
-        Will retry up to :any:`MAX_REQUEST_ATTEMPTS` times
+        Will retry up to :any:`MAX_PROBE_REQUEST_ATTEMPTS` times
         or :any:`MAX_PROBE_REQUEST_DELAY` elapsed at next try, which
         ever comes first on network or remote protocol errors.
         HTTP status is not verified.
@@ -98,7 +98,7 @@ class EnvoyFirmware:
         from xml response.
 
         Reads first on HTTPS, if that fails on HTTP for firmware < 7.
-        Will retry up to :any:`MAX_REQUEST_ATTEMPTS` times
+        Will retry up to :any:`MAX_PROBE_REQUEST_ATTEMPTS` times
         or :any:`MAX_PROBE_REQUEST_DELAY` elapsed at next try, which
         ever comes first on network or remote protocol errors.
 

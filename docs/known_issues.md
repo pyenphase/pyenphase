@@ -22,8 +22,8 @@ The [inverter device data](endpoint_json.md#ivppdmdevice_data) includes a `devic
 
 ## Daily Outage at 11 PM
 
-Each day, shortly after 11 PM local time, the Envoy performs some internal resets and cleanups. These cause the Envoy to become unresponsive. How long this outage lasts, varies by hardware type and/or firmware version.
+Each day, shortly after 11 PM local Envoy time, the Envoy performs some internal resets and cleanups. These cause the Envoy to become unresponsive. How long this outage lasts, varies by hardware type and/or firmware version.
 
-Pyenphase uses retries when a request fails. Default retry setup is no more than 50 seconds elapsed, or 4 attempts. Each try uses the timeout specified in {py:class}`pyenphase.Envoy` or a 45 seconds default. With the default timeout of 45 seconds, this results in maximum 2 attempts, 1 retry. Or up to 4 attempts if the failure occurs quicker.
+Pyenphase uses retries when a request fails. Default retry setup is no more than 240 seconds elapsed, or 6 attempts. Each try uses the timeout specified in {py:class}`pyenphase.Envoy` or a 45 seconds default. With the default timeout of 45 seconds, this results in maximum 6 attempts, 5 retries. Or up to 6 attempts if the failure occurs quicker.
 
-To overcome the 11 PM outage, a relaxed retry scheme is used between 11:00 PM and 11:20 PM. During that time interval, 360 seconds elapsed time and/or 10 retry attempts are allowed before a failure is returned.
+If this 11 PM outage still results in errors, use the {py:meth}`pyenphase.Envoy.set_retry_policy` method to set a more relaxed retry scheme.
