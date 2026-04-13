@@ -308,11 +308,11 @@ class Envoy:
         """
         Make a probe request to the Envoy.
 
-        Probe requests are intended for use  by updates during initial
-        search of available features in the Envoy. They are not retried
-        on connection errors, timeouts or bad JSON responses.
-        For regular data retrieval, use the request method.
-        Sends GET request to endpoint on Envoy and returns the response.
+        Probe requests are intended for use during initial
+        search of available features in the Envoy. For regular
+        data retrieval, use the :py:meth:`pyenphase.Envoy.request`
+        or :py:meth:`pyenphase.Envoy.update` methods. Sends GET
+        request to endpoint on Envoy and returns the response.
 
         Probe retries on client connection issues or timeouts.
         Will retry up to :any:`MAX_PROBE_REQUEST_ATTEMPTS` times
@@ -356,13 +356,13 @@ class Envoy:
         By default will retry up to :any:`DEFAULT_MAX_REQUEST_ATTEMPTS` times or
         :any:`DEFAULT_MAX_REQUEST_DELAY` sec elapsed at next try, which
         ever comes first. Adjust these settings using
-        :class:`pyenphase.Envoy.set_retry_policy`
+        :py:meth:`pyenphase.Envoy.set_retry_policy`
 
         :param endpoint: Envoy Endpoint to access, start with leading /
-        :param data: optional data dictionary to send to the Envoy
+        :param data: optional data dictionary to send to the Envoy.
             Defaults to none, if none a GET request is issued.
         :param method: HTTP method to use when sending data dictionary,
-            if none and data is specified POST is default
+            if none and data is specified, POST is default.
         :raises EnvoyAuthenticationRequired: if no prior authentication
             was completed or HTTP status 401 or 404 is returned.
         :raises: Any communication errors when retries are exceeded
@@ -374,7 +374,7 @@ class Envoy:
         """
         Set request retry parameters for request retries. Retry
         attempts will continue until either max_attempts have been
-        tried or maximum elapsed time in secdonds since first try has
+        tried or maximum elapsed time in seconds since first try has
         passed at next attempt. Applies to update and request methods.
 
         :param max_delay: maximum time elapsed in seconds since first try
