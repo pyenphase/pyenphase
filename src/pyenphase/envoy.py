@@ -14,6 +14,8 @@ import orjson
 from awesomeversion import AwesomeVersion
 from envoy_utils.envoy_utils import EnvoyUtils
 from tenacity import (
+    AsyncRetrying,
+    before_sleep_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
@@ -168,7 +170,8 @@ class Envoy:
             that case call :py:meth:`Envoy.close` before application
             exit.
         :param timeout: aiohttp ClientTimeout to use, if not specified
-            10 sec connection and 45 sec read timeouts will be used.
+            10 sec connection and 45 sec read timeouts will be used
+            (:any:`LOCAL_TIMEOUT`).
         """
         # We use our own aiohttp client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._timeout = timeout or LOCAL_TIMEOUT
@@ -184,6 +187,12 @@ class Envoy:
         self.data: EnvoyData | None = None
         self._common_properties: CommonProperties = CommonProperties()
         self._interface_settings: EnvoyInterfaceInformation | None = None
+        self._request_max_attempts: int = DEFAULT_MAX_REQUEST_ATTEMPTS
+        self._request_max_delay: int = DEFAULT_MAX_REQUEST_DELAY
+        self._request_wait_multiplier: float = 2
+        self._request_last_attempts: int = 0
+        self._request_last_elapsed: float | None = 0
+        self._request_last_endpoint: str = ""
 
     async def setup(self) -> None:
         """
@@ -326,18 +335,6 @@ class Envoy:
         """
         return await self._request(endpoint)
 
-    @retry(
-        retry=retry_if_exception_type(
-            (
-                aiohttp.ClientError,
-                asyncio.TimeoutError,
-            )
-        ),
-        wait=wait_random_exponential(multiplier=2, max=5),
-        stop=stop_after_delay(DEFAULT_MAX_REQUEST_DELAY)
-        | stop_after_attempt(DEFAULT_MAX_REQUEST_ATTEMPTS),
-        reraise=True,
-    )
     async def request(
         self,
         endpoint: str,
@@ -368,26 +365,94 @@ class Envoy:
         :raises: Any communication errors when retries are exceeded
         :return: request response.
         """
-        return await self._request(endpoint, data, method)
+        self._request_last_attempts = 0
+        self._request_last_elapsed = 0
+        self._request_last_endpoint = endpoint
 
-    def set_retry_policy(self, *, max_delay: int, max_attempts: int) -> None:
+        async for attempt in AsyncRetrying(
+            wait=wait_random_exponential(
+                multiplier=self._request_wait_multiplier, max=5
+            ),
+            stop=stop_after_delay(self._request_max_delay)
+            | stop_after_attempt(self._request_max_attempts),
+            retry=retry_if_exception_type(
+                (
+                    aiohttp.ClientError,
+                    asyncio.TimeoutError,
+                )
+            ),
+            reraise=True,
+            before_sleep=before_sleep_log(_LOGGER, logging.DEBUG),
+        ):
+            with attempt:
+                result = await self._request(endpoint, data, method)
+            self._request_last_attempts = attempt.retry_state.attempt_number
+            self._request_last_elapsed = attempt.retry_state.seconds_since_start
+        return result
+
+    def set_retry_policy(
+        self,
+        *,
+        max_delay: int | None = None,
+        max_attempts: int | None = None,
+        wait_multiplier: float | None = None,
+        timeout: float | aiohttp.ClientTimeout | None = None,
+    ) -> None:
         """
         Set request retry parameters for request retries. Retry
         attempts will continue until either max_attempts have been
         tried or maximum elapsed time in seconds since first try has
-        passed at next attempt. Applies to update and request methods.
+        passed at next attempt. Applies to :py:meth:`pyenphase.Envoy.update`
+        and :py:meth:`pyenphase.Envoy.request` methods.
 
-        :param max_delay: maximum time elapsed in seconds since first try
-        :param max_attempts: maximum retry attempts
+        :param max_delay: maximum time elapsed allowed in seconds since first try.
+            Optional, if not specified, setting is not changed. Default setting
+            for each instantiated Envoy is :any:`DEFAULT_MAX_REQUEST_ATTEMPTS`.
+        :param max_attempts: maximum retry attempts. Optional, if not specified,
+            setting is not changed. Default setting for each instantiated Envoy
+            is :any:`DEFAULT_MAX_REQUEST_ATTEMPTS`.
+        :param wait_multiplier: multiplier to increase wait time between
+            retry attempts. Optional, if not specified, setting is not changed.
+            Default setting for each instantiated Envoy
+            is 2. Set to zero to disable waits between retries
+        :param timeout: timeout to use for each request. Optional, if not
+            specified, setting is not changed. Default setting for each
+            instantiated Envoy is the :py:class:`pyenphase.Envoy` timeout
+            parameter or :any:`LOCAL_TIMEOUT` if not specified when
+            instantiating an Envoy.
         """
-        self.request.retry.stop = stop_after_delay(max_delay) | stop_after_attempt(
-            max_attempts
-        )
+        if max_attempts is not None:
+            self._request_max_attempts = max_attempts
+        if max_delay is not None:
+            self._request_max_delay = max_delay
+        if wait_multiplier is not None:
+            self._request_wait_multiplier = wait_multiplier
+        if timeout is not None:
+            self._timeout = timeout
         _LOGGER.debug(
-            "Request retries set to %s attempts and %s seconds maximum elapsed time",
-            max_attempts,
-            max_delay,
+            "Request retries set to %s attempts and %s seconds maximum elapsed time, wait multiplier %s, timeout %s",
+            self._request_max_attempts,
+            self._request_max_delay,
+            self._request_wait_multiplier,
+            self._timeout,
         )
+
+    @property
+    def last_request_statistics(self) -> dict[str, str | int | float | None]:
+        """
+        Return statistics of last request call.
+
+        Returns retry information on last executed
+        :py:meth:`pyenphase.Envoy.request` method. Provides
+        information on retry endpoint, attempts and elapsed time.
+
+        :return: {"endpoint": str,"attempt_number": int,"delay_since_first_attempt": float}.
+        """
+        return {
+            "endpoint": self._request_last_endpoint,
+            "attempt_number": self._request_last_attempts,
+            "delay_since_first_attempt": self._request_last_elapsed,
+        }
 
     async def _request(
         self,

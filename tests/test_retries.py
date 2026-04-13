@@ -392,7 +392,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     # remove the waits between retries for this test and set known retries
     # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
-    envoy.request.retry.wait = wait_none()
+    envoy.set_retry_policy(wait_multiplier=0)
 
     await envoy.setup()
     await envoy.authenticate("username", "password")
@@ -439,7 +439,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         await envoy.update()
 
     # Check statistics immediately after the failed update
-    stats = envoy.request.statistics
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS
 
@@ -456,7 +456,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     with pytest.raises(EnvoyCommunicationError, match="aiohttp ClientError"):
         await envoy.update()
 
-    stats = envoy.request.statistics
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS
 
@@ -473,7 +473,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     with pytest.raises(EnvoyCommunicationError, match="aiohttp ClientError"):
         await envoy.update()
 
-    stats = envoy.request.statistics
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS
 
@@ -501,7 +501,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     with pytest.raises(EnvoyAuthenticationRequired):
         await envoy.update()
 
-    stats = envoy.request.statistics
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 2
 
@@ -534,7 +534,7 @@ async def test_bad_request_status_7_6_175_standard(
     with pytest.raises(EnvoyHTTPStatusError, match="503"):
         await envoy.update()
 
-    stats = envoy.request.statistics
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
 
@@ -543,8 +543,10 @@ async def test_bad_request_status_7_6_175_standard(
 async def test_retry_policy(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test envoy retry policy."""
+    caplog.set_level(logging.DEBUG)
     version = "7.6.175_with_cts"
     start_7_firmware_mock(mock_aioresponse)
     envoy = Envoy("127.0.0.1", client=test_client_session)
@@ -609,11 +611,14 @@ async def test_retry_policy(
         exception=asyncio.TimeoutError("Test timeoutexception"),
         repeat=True,
     )
+    # remove waits between retries
+    envoy.set_retry_policy(wait_multiplier=0)
+
     with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
     # verify custom attempts where used
-    stats = envoy.request.statistics
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS
 
@@ -624,20 +629,35 @@ async def test_retry_policy(
     await envoy2.setup()
     await envoy2.authenticate("username", "password")
 
+    # disable wait between retries
+    envoy2.set_retry_policy(wait_multiplier=0)
     data2 = await envoy2.update()
     assert data2
 
     # set retry policy to use custom retries on first envoy
-    envoy.set_retry_policy(max_delay=600, max_attempts=8)
+    envoy.set_retry_policy(
+        max_delay=600,
+        max_attempts=8,
+        timeout=aiohttp.ClientTimeout(
+            total=25.0,
+            connect=5.0,
+            sock_read=25.0,
+        ),
+    )
+    caplog.clear()
     with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
-    # verify custom attempts where used
-    stats = envoy.request.statistics
+    # verify custom attempts and timeout where used
+    assert (
+        "Requesting https://127.0.0.1/ivp/meters with timeout ClientTimeout(total=25.0, connect=5.0, sock_read=25.0,"
+        in caplog.text
+    )
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 8
 
-    # verify custom retries are used on second envoy as well
+    # verify default retries and timeout are used on second envoy
     override_mock(
         mock_aioresponse,
         "get",
@@ -645,10 +665,15 @@ async def test_retry_policy(
         exception=asyncio.TimeoutError("Test timeoutexception"),
         repeat=True,
     )
+    caplog.clear()
     with pytest.raises(EnvoyCommunicationError):
         await envoy2.update()
 
     # verify custom attempts where used on second envoy as well
-    stats2: dict[str, Any] = envoy2.request.statistics
+    assert (
+        "Requesting https://127.0.0.2/ivp/meters with timeout ClientTimeout(total=45.0, connect=10.0, sock_read=45.0,"
+        in caplog.text
+    )
+    stats2: dict[str, Any] = envoy2.last_request_statistics
     assert "attempt_number" in stats2
-    assert stats2["attempt_number"] == 8
+    assert stats2["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS
