@@ -1,6 +1,76 @@
 # CHANGELOG
 
 
+## v2.4.7 (2026-04-09)
+
+### Bug Fixes
+
+- Ignore ensemble instead of throwing auth error for early v7 firmware returning 401
+  ([#409](https://github.com/pyenphase/pyenphase/pull/409),
+  [`8684236`](https://github.com/pyenphase/pyenphase/commit/868423617977276fe1e8f818284a0f90e408ad75))
+
+### Chores
+
+- Bump python versions on test and lint ci ([#418](https://github.com/pyenphase/pyenphase/pull/418),
+  [`de369c0`](https://github.com/pyenphase/pyenphase/commit/de369c0d90c42b0c8bb647ddd995636ad2dada0e))
+
+- Bump ubuntu and python versions for readthedocs
+  ([#417](https://github.com/pyenphase/pyenphase/pull/417),
+  [`419436b`](https://github.com/pyenphase/pyenphase/commit/419436bf0b6e724ff3d3e050459818586ad523aa))
+
+- **ci**: Bump codecov/codecov-action from 5 to 6 in the github-actions group
+  ([#413](https://github.com/pyenphase/pyenphase/pull/413),
+  [`2a0981d`](https://github.com/pyenphase/pyenphase/commit/2a0981d7f024242e5c2b48b5d3ae1ae2f2bfdad5))
+
+- **ci**: Bump codecov/codecov-action in the github-actions group
+  ([#413](https://github.com/pyenphase/pyenphase/pull/413),
+  [`2a0981d`](https://github.com/pyenphase/pyenphase/commit/2a0981d7f024242e5c2b48b5d3ae1ae2f2bfdad5))
+
+- **deps**: Bump aiohttp from 3.13.3 to 3.13.4
+  ([#410](https://github.com/pyenphase/pyenphase/pull/410),
+  [`1b37030`](https://github.com/pyenphase/pyenphase/commit/1b370308c537ed83f12e62cc790bbf36e36b8a78))
+
+- **deps**: Bump aiohttp from 3.13.4 to 3.13.5
+  ([#415](https://github.com/pyenphase/pyenphase/pull/415),
+  [`6f2fbb0`](https://github.com/pyenphase/pyenphase/commit/6f2fbb02fb7c8b114c3a77b4c155a664aa700176))
+
+- **deps**: Bump orjson from 3.11.7 to 3.11.8
+  ([#414](https://github.com/pyenphase/pyenphase/pull/414),
+  [`e1bb572`](https://github.com/pyenphase/pyenphase/commit/e1bb5720e52c79925c54260579b3c7038113bfb1))
+
+- **deps**: Bump pyjwt from 2.11.0 to 2.12.0
+  ([#402](https://github.com/pyenphase/pyenphase/pull/402),
+  [`0645d38`](https://github.com/pyenphase/pyenphase/commit/0645d387a5feb45c1fa5c5a951cf1b3bdf2daafb))
+
+- **deps**: Bump pyjwt from 2.12.0 to 2.12.1
+  ([#403](https://github.com/pyenphase/pyenphase/pull/403),
+  [`ffd1ce1`](https://github.com/pyenphase/pyenphase/commit/ffd1ce1834362226dfc4436782466b282a5740eb))
+
+- **deps-dev**: Bump pygments from 2.17.2 to 2.20.0
+  ([#411](https://github.com/pyenphase/pyenphase/pull/411),
+  [`f9c5180`](https://github.com/pyenphase/pyenphase/commit/f9c5180020e3e6e63af10ec45c0f2b58a6933131))
+
+- **deps-dev**: Bump pytest-cov from 7.0.0 to 7.1.0
+  ([#405](https://github.com/pyenphase/pyenphase/pull/405),
+  [`c9c7a13`](https://github.com/pyenphase/pyenphase/commit/c9c7a13d162eab81345e0ad54c76e3be340ee2e2))
+
+- **deps-dev**: Bump requests from 2.32.4 to 2.33.0
+  ([#408](https://github.com/pyenphase/pyenphase/pull/408),
+  [`fed8b75`](https://github.com/pyenphase/pyenphase/commit/fed8b75d750f098539d31be23e6396cd325a6263))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#416](https://github.com/pyenphase/pyenphase/pull/416),
+  [`08de768`](https://github.com/pyenphase/pyenphase/commit/08de7686292fc82c91e326babd73ff784d54deab))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#412](https://github.com/pyenphase/pyenphase/pull/412),
+  [`13c4656`](https://github.com/pyenphase/pyenphase/commit/13c4656ab0bee1b06aad3f5b8a957e0c401e2ed8))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#406](https://github.com/pyenphase/pyenphase/pull/406),
+  [`b6c0c61`](https://github.com/pyenphase/pyenphase/commit/b6c0c6198ed015fa1e743976be8a0480271138f8))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#404](https://github.com/pyenphase/pyenphase/pull/404),
+  [`6b2a797`](https://github.com/pyenphase/pyenphase/commit/6b2a79748186491ebf9d539ce38133a419442d9e))
+
+
 ## v2.4.6 (2026-03-12)
 
 ### Bug Fixes
