@@ -333,7 +333,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
             meters_readings[0], meter_status, 0
         )
         assert ct_phase_data is not None
-        assert ct_phase_data.eid == 1778385169
+        assert str(ct_phase_data.eid) == "1778385169"
         assert ct_phase_data.measurement_type == "production"
         assert ct_phase_data.energy_delivered == 3183794
 
@@ -454,7 +454,7 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split(
         meters_readings[2],
         meter_status,
     )
-    assert ct_data.eid == 704643840
+    assert str(ct_data.eid) == "704643840"
     assert ct_data.measurement_type == "storage"
 
     # test meters.from_phase method
@@ -462,7 +462,7 @@ async def test_ct_storage_with_8_2_127_with_3cts_and_battery_split(
         meters_readings[2], meter_status, 0
     )
     assert ct_phase_data is not None
-    assert ct_phase_data.eid == 1778385681
+    assert str(ct_phase_data.eid) == "1778385681"
     assert ct_phase_data.measurement_type == "storage"
     assert ct_phase_data.energy_delivered == 1136860
 
