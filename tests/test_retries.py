@@ -543,10 +543,8 @@ async def test_bad_request_status_7_6_175_standard(
 async def test_retry_policy(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test envoy retry policy."""
-    caplog.set_level(logging.DEBUG)
     version = "7.6.175_with_cts"
     start_7_firmware_mock(mock_aioresponse)
     envoy = Envoy("127.0.0.1", client=test_client_session)
@@ -635,29 +633,16 @@ async def test_retry_policy(
     assert data2
 
     # set retry policy to use custom retries on first envoy
-    envoy.set_retry_policy(
-        max_delay=600,
-        max_attempts=8,
-        timeout=aiohttp.ClientTimeout(
-            total=25.0,
-            connect=5.0,
-            sock_read=25.0,
-        ),
-    )
-    caplog.clear()
+    envoy.set_retry_policy(max_delay=600, max_attempts=8)
     with pytest.raises(EnvoyCommunicationError):
         await envoy.update()
 
-    # verify custom attempts and timeout where used
-    assert (
-        "Requesting https://127.0.0.1/ivp/meters with timeout ClientTimeout(total=25.0, connect=5.0, sock_read=25.0,"
-        in caplog.text
-    )
+    # verify custom attempts where used
     stats = envoy.last_request_statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 8
 
-    # verify default retries and timeout are used on second envoy
+    # verify default retries are used on second envoy
     override_mock(
         mock_aioresponse,
         "get",
@@ -665,15 +650,10 @@ async def test_retry_policy(
         exception=asyncio.TimeoutError("Test timeoutexception"),
         repeat=True,
     )
-    caplog.clear()
     with pytest.raises(EnvoyCommunicationError):
         await envoy2.update()
 
-    # verify custom attempts where used on second envoy as well
-    assert (
-        "Requesting https://127.0.0.2/ivp/meters with timeout ClientTimeout(total=45.0, connect=10.0, sock_read=45.0,"
-        in caplog.text
-    )
+    # verify default attempts were used on second envoy as well
     stats2: dict[str, Any] = envoy2.last_request_statistics
     assert "attempt_number" in stats2
     assert stats2["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS

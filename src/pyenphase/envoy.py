@@ -191,7 +191,7 @@ class Envoy:
         self._request_max_delay: int = DEFAULT_MAX_REQUEST_DELAY
         self._request_wait_multiplier: float = 2
         self._request_last_attempts: int = 0
-        self._request_last_elapsed: float | None = 0
+        self._request_last_elapsed: float = 0.0
         self._request_last_endpoint: str = ""
 
     async def setup(self) -> None:
@@ -396,7 +396,6 @@ class Envoy:
         max_delay: int | None = None,
         max_attempts: int | None = None,
         wait_multiplier: float | None = None,
-        timeout: float | aiohttp.ClientTimeout | None = None,
     ) -> None:
         """
         Set request retry parameters for request retries. Retry
@@ -407,7 +406,7 @@ class Envoy:
 
         :param max_delay: maximum time elapsed allowed in seconds since first try.
             Optional, if not specified, setting is not changed. Default setting
-            for each instantiated Envoy is :any:`DEFAULT_MAX_REQUEST_ATTEMPTS`.
+            for each instantiated Envoy is :any:`DEFAULT_MAX_REQUEST_DELAY`.
         :param max_attempts: maximum retry attempts. Optional, if not specified,
             setting is not changed. Default setting for each instantiated Envoy
             is :any:`DEFAULT_MAX_REQUEST_ATTEMPTS`.
@@ -415,11 +414,6 @@ class Envoy:
             retry attempts. Optional, if not specified, setting is not changed.
             Default setting for each instantiated Envoy
             is 2. Set to zero to disable waits between retries
-        :param timeout: timeout to use for each request. Optional, if not
-            specified, setting is not changed. Default setting for each
-            instantiated Envoy is the :py:class:`pyenphase.Envoy` timeout
-            parameter or :any:`LOCAL_TIMEOUT` if not specified when
-            instantiating an Envoy.
         """
         if max_attempts is not None:
             self._request_max_attempts = max_attempts
@@ -427,14 +421,11 @@ class Envoy:
             self._request_max_delay = max_delay
         if wait_multiplier is not None:
             self._request_wait_multiplier = wait_multiplier
-        if timeout is not None:
-            self._timeout = timeout
         _LOGGER.debug(
-            "Request retries set to %s attempts and %s seconds maximum elapsed time, wait multiplier %s, timeout %s",
+            "Request retries set to %s attempts and %s seconds maximum elapsed time, wait multiplier %s",
             self._request_max_attempts,
             self._request_max_delay,
             self._request_wait_multiplier,
-            self._timeout,
         )
 
     @property
