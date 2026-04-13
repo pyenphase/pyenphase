@@ -172,111 +172,115 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
 
     # Preserve the original updaters
     original_updaters = UPDATERS.copy()
+    try:
+        # Test prior similar updater active
+        remove_2nd_metersupdater = register_updater(EnvoyMetersUpdater)
+        await envoy.probe()
+        remove_2nd_metersupdater()
 
-    # Test prior similar updater active
-    remove_2nd_metersupdater = register_updater(EnvoyMetersUpdater)
-    await envoy.probe()
-    remove_2nd_metersupdater()
+        # load mock data for meters and their readings
+        meters_status = await load_json_list_fixture(version, "ivp_meters")
+        meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
 
-    # load mock data for meters and their readings
-    meters_status = await load_json_list_fixture(version, "ivp_meters")
-    meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
+        meter_status: CtMeterData = {
+            "eid": meters_status[0]["eid"],
+            "state": meters_status[0]["state"],
+            "measurementType": meters_status[0]["measurementType"],
+            "phaseMode": meters_status[0]["phaseMode"],
+            "phaseCount": meters_status[0]["phaseCount"],
+            "meteringStatus": meters_status[0]["meteringStatus"],
+            "statusFlags": meters_status[0]["statusFlags"],
+        }
 
-    meter_status: CtMeterData = {
-        "eid": meters_status[0]["eid"],
-        "state": meters_status[0]["state"],
-        "measurementType": meters_status[0]["measurementType"],
-        "phaseMode": meters_status[0]["phaseMode"],
-        "phaseCount": meters_status[0]["phaseCount"],
-        "meteringStatus": meters_status[0]["meteringStatus"],
-        "statusFlags": meters_status[0]["statusFlags"],
-    }
+        # test meters.from_api method
+        ct_data: EnvoyMeterData = EnvoyMeterData.from_api(
+            meters_readings[0],
+            meter_status,
+        )
+        assert ct_data.eid == 704643328
+        assert ct_data.measurement_type == "production"
 
-    # test meters.from_api method
-    ct_data: EnvoyMeterData = EnvoyMeterData.from_api(
-        meters_readings[0],
-        meter_status,
-    )
-    assert ct_data.eid == 704643328
-    assert ct_data.measurement_type == "production"
+        # test meters.from_phase method
+        ct_phase_data: EnvoyMeterData | None = EnvoyMeterData.from_phase(
+            meters_readings[0], meter_status, 0
+        )
+        assert ct_phase_data is not None
+        assert ct_phase_data.eid == 1778385169
+        assert ct_phase_data.measurement_type == "production"
+        assert ct_phase_data.energy_delivered == 3183794
 
-    # test meters.from_phase method
-    ct_phase_data: EnvoyMeterData | None = EnvoyMeterData.from_phase(
-        meters_readings[0], meter_status, 0
-    )
-    assert ct_phase_data is not None
-    assert ct_phase_data.eid == 1778385169
-    assert ct_phase_data.measurement_type == "production"
-    assert ct_phase_data.energy_delivered == 3183794
+        assert (
+            envoy.envoy_model
+            == "Envoy, phases: 3, phase mode: three, production CT, net-consumption CT"
+        )
 
-    assert (
-        envoy.envoy_model
-        == "Envoy, phases: 3, phase mode: three, production CT, net-consumption CT"
-    )
+        # test exception handling by specifying non-existing phase
+        ct_no_phase_data = EnvoyMeterData.from_phase(
+            meters_readings[0], meter_status, 3
+        )
+        assert ct_no_phase_data is None
 
-    # test exception handling by specifying non-existing phase
-    ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[0], meter_status, 3)
-    assert ct_no_phase_data is None
+        # test exception handling for missing phase data, remove phase data from mock data
+        del meters_readings[0]["channels"]
+        ct_no_phase_data = EnvoyMeterData.from_phase(
+            meters_readings[0], meter_status, 0
+        )
+        assert ct_no_phase_data is None
 
-    # test exception handling for missing phase data, remove phase data from mock data
-    del meters_readings[0]["channels"]
-    ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[0], meter_status, 0)
-    assert ct_no_phase_data is None
+        # test exception handling for phase data in production using wrong phase
+        production_data = data.raw["/production.json?details=1"]
+        production_no_phase_data = EnvoySystemProduction.from_production_phase(
+            production_data, 3
+        )
+        assert production_no_phase_data is None
 
-    # test exception handling for phase data in production using wrong phase
-    production_data = data.raw["/production.json?details=1"]
-    production_no_phase_data = EnvoySystemProduction.from_production_phase(
-        production_data, 3
-    )
-    assert production_no_phase_data is None
+        # test exception handling for phase data if key is missing
+        del production_data["production"][1]["type"]
+        with pytest.raises(ValueError):
+            EnvoySystemProduction.from_production_phase(production_data, 0)
 
-    # test exception handling for phase data if key is missing
-    del production_data["production"][1]["type"]
-    with pytest.raises(ValueError):
-        EnvoySystemProduction.from_production_phase(production_data, 0)
+        # test exception handling for phase data in consumption using wrong phase
+        consumption_data = data.raw["/production.json?details=1"]
+        consumption_no_phase_data = EnvoySystemConsumption.from_production_phase(
+            consumption_data, 3
+        )
+        assert consumption_no_phase_data is None
 
-    # test exception handling for phase data in consumption using wrong phase
-    consumption_data = data.raw["/production.json?details=1"]
-    consumption_no_phase_data = EnvoySystemConsumption.from_production_phase(
-        consumption_data, 3
-    )
-    assert consumption_no_phase_data is None
+        # test handling missing phases when expected in ct readings
+        meters_status = await load_json_list_fixture(version, "ivp_meters")
+        meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
 
-    # test handling missing phases when expected in ct readings
-    meters_status = await load_json_list_fixture(version, "ivp_meters")
-    meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
+        # remove phase data from CT readings
+        del meters_readings[0]["channels"]
+        del meters_readings[1]["channels"]
 
-    # remove phase data from CT readings
-    del meters_readings[0]["channels"]
-    del meters_readings[1]["channels"]
+        override_mock(
+            mock_aioresponse,
+            "get",
+            "https://127.0.0.1/ivp/meters",
+            status=200,
+            payload=meters_status,
+            repeat=True,
+        )
+        override_mock(
+            mock_aioresponse,
+            "get",
+            "https://127.0.0.1/ivp/meters/readings",
+            status=200,
+            payload=meters_readings,
+            repeat=True,
+        )
 
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/ivp/meters",
-        status=200,
-        payload=meters_status,
-        repeat=True,
-    )
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/ivp/meters/readings",
-        status=200,
-        payload=meters_readings,
-        repeat=True,
-    )
-
-    await envoy.update()
-    data = envoy.data
-    assert data is not None
-    # should not have phase data after removing phase data from source
-    assert data.ctmeters_phases == {}
-
-    # Restore the original updaters
-    UPDATERS.clear()
-    for updater in original_updaters:
-        register_updater(updater)
+        await envoy.update()
+        data = envoy.data
+        assert data is not None
+        # should not have phase data after removing phase data from source
+        assert data.ctmeters_phases == {}
+    finally:
+        # Restore the original updaters
+        UPDATERS.clear()
+        for updater in original_updaters:
+            register_updater(updater)
 
 
 @pytest.mark.asyncio
@@ -296,67 +300,71 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
 
     # Preserve the original updaters
     original_updaters = UPDATERS.copy()
+    try:
+        # Test prior similar updater active
+        remove_2nd_metersupdater = register_updater(EnvoyMetersUpdater)
+        await envoy.probe()
+        remove_2nd_metersupdater()
 
-    # Test prior similar updater active
-    remove_2nd_metersupdater = register_updater(EnvoyMetersUpdater)
-    await envoy.probe()
-    remove_2nd_metersupdater()
+        # load mock data for meters and their readings
+        meters_status = await load_json_list_fixture(version, "ivp_meters")
+        meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
 
-    # load mock data for meters and their readings
-    meters_status = await load_json_list_fixture(version, "ivp_meters")
-    meters_readings = await load_json_list_fixture(version, "ivp_meters_readings")
+        meter_status: CtMeterData = {
+            "eid": meters_status[0]["eid"],
+            "state": meters_status[0]["state"],
+            "measurementType": meters_status[0]["measurementType"],
+            "phaseMode": meters_status[0]["phaseMode"],
+            "phaseCount": meters_status[0]["phaseCount"],
+            "meteringStatus": meters_status[0]["meteringStatus"],
+            "statusFlags": meters_status[0]["statusFlags"],
+        }
 
-    meter_status: CtMeterData = {
-        "eid": meters_status[0]["eid"],
-        "state": meters_status[0]["state"],
-        "measurementType": meters_status[0]["measurementType"],
-        "phaseMode": meters_status[0]["phaseMode"],
-        "phaseCount": meters_status[0]["phaseCount"],
-        "meteringStatus": meters_status[0]["meteringStatus"],
-        "statusFlags": meters_status[0]["statusFlags"],
-    }
+        # test meters.from_api method
+        ct_data: EnvoyMeterData = EnvoyMeterData.from_api(
+            meters_readings[0],
+            meter_status,
+        )
+        assert ct_data.eid == 704643328
+        assert ct_data.measurement_type == "production"
 
-    # test meters.from_api method
-    ct_data: EnvoyMeterData = EnvoyMeterData.from_api(
-        meters_readings[0],
-        meter_status,
-    )
-    assert ct_data.eid == 704643328
-    assert ct_data.measurement_type == "production"
+        # test meters.from_phase method
+        ct_phase_data: EnvoyMeterData | None = EnvoyMeterData.from_phase(
+            meters_readings[0], meter_status, 0
+        )
+        assert ct_phase_data is not None
+        assert ct_phase_data.eid == 1778385169
+        assert ct_phase_data.measurement_type == "production"
+        assert ct_phase_data.energy_delivered == 3183794
 
-    # test meters.from_phase method
-    ct_phase_data: EnvoyMeterData | None = EnvoyMeterData.from_phase(
-        meters_readings[0], meter_status, 0
-    )
-    assert ct_phase_data is not None
-    assert ct_phase_data.eid == 1778385169
-    assert ct_phase_data.measurement_type == "production"
-    assert ct_phase_data.energy_delivered == 3183794
+        assert (
+            envoy.envoy_model
+            == "Envoy, phases: 3, phase mode: three, production CT, net-consumption CT"
+        )
 
-    assert (
-        envoy.envoy_model
-        == "Envoy, phases: 3, phase mode: three, production CT, net-consumption CT"
-    )
+        # test exception handling by specifying non-existing phase
+        ct_no_phase_data = EnvoyMeterData.from_phase(
+            meters_readings[0], meter_status, 3
+        )
+        assert ct_no_phase_data is None
 
-    # test exception handling by specifying non-existing phase
-    ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[0], meter_status, 3)
-    assert ct_no_phase_data is None
+        # test exception handling for missing phase data, remove phase data from mock data
+        del meters_readings[0]["channels"]
+        ct_no_phase_data = EnvoyMeterData.from_phase(
+            meters_readings[0], meter_status, 0
+        )
+        assert ct_no_phase_data is None
 
-    # test exception handling for missing phase data, remove phase data from mock data
-    del meters_readings[0]["channels"]
-    ct_no_phase_data = EnvoyMeterData.from_phase(meters_readings[0], meter_status, 0)
-    assert ct_no_phase_data is None
-
-    # test exception handling for phase data if key is missing
-    production_data = data.raw["/production.json?details=1"]
-    del production_data["production"][1]["type"]
-    with pytest.raises(ValueError):
-        EnvoySystemProduction.from_production_phase(production_data, 0)
-
-    # Restore the original updaters
-    UPDATERS.clear()
-    for updater in original_updaters:
-        register_updater(updater)
+        # test exception handling for phase data if key is missing
+        production_data = data.raw["/production.json?details=1"]
+        del production_data["production"][1]["type"]
+        with pytest.raises(ValueError):
+            EnvoySystemProduction.from_production_phase(production_data, 0)
+    finally:
+        # Restore the original updaters
+        UPDATERS.clear()
+        for updater in original_updaters:
+            register_updater(updater)
 
 
 @pytest.mark.asyncio
