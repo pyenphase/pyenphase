@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v2.4.8 (2026-04-14)
+
+### Bug Fixes
+
+- Relax request timout to 3 minutes for Envoy 11PM outage
+  ([#407](https://github.com/pyenphase/pyenphase/pull/407),
+  [`eb02767`](https://github.com/pyenphase/pyenphase/commit/eb027672a4152702d58534422a2556b8e8146cef))
+
+
 ## v2.4.7 (2026-04-09)
 
 ### Bug Fixes
