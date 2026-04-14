@@ -7,9 +7,13 @@ from typing import Any
 import aiohttp
 import pytest
 from aioresponses import aioresponses
-from tenacity import stop_after_attempt, stop_after_delay, wait_none
+from tenacity import wait_none
 
 from pyenphase import Envoy
+from pyenphase.const import (
+    DEFAULT_MAX_REQUEST_ATTEMPTS,
+    MAX_PROBE_REQUEST_ATTEMPTS,
+)
 from pyenphase.exceptions import (
     EnvoyAuthenticationRequired,
     EnvoyCommunicationError,
@@ -49,9 +53,9 @@ async def test_full_connected_from_start_with_7_6_175_standard(
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
-    # remove the waits between retries for this test and set known retries
+    # remove the waits between retries for this test
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
-    envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
 
     await envoy.setup()
     await envoy.authenticate("username", "password")
@@ -76,8 +80,8 @@ async def test_full_disconnected_from_start_with_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
-    envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
 
     # Mock both HTTPS and HTTP since firmware code falls back to HTTP
     mock_aioresponse.get(
@@ -96,10 +100,10 @@ async def test_full_disconnected_from_start_with_7_6_175_standard(
     ):
         await envoy.setup()
 
-    # Ensure that there were 3 attempts.
+    # Ensure there were MAX_PROBE_REQUEST_ATTEMPTS attempts.
     stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
-    assert stats["attempt_number"] == 3
+    assert stats["attempt_number"] == MAX_PROBE_REQUEST_ATTEMPTS
 
 
 @pytest.mark.asyncio
@@ -109,10 +113,11 @@ async def test_2_timeout_from_start_with_7_6_175_standard(
     """Test envoy timeout at start, timeout is not in retry loop."""
     start_7_firmware_mock(mock_aioresponse)
     envoy = Envoy("127.0.0.1", client=test_client_session)
+    # remove the waits between retries for this test and set known retries
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
-    envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
 
-    # test if 2 timeouts return failed
+    # Mock both HTTPS and HTTP since firmware code falls back to HTTP
     mock_aioresponse.get(
         "https://127.0.0.1/info",
         exception=asyncio.TimeoutError("Test timeoutexception"),
@@ -126,7 +131,7 @@ async def test_2_timeout_from_start_with_7_6_175_standard(
     ):
         await envoy.setup()
 
-    # Ensure that there were retries.
+    # Ensure there was only 1 attempt
     stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
@@ -141,12 +146,13 @@ async def test_httperror_from_start_with_7_6_175_standard(
     # Don't call prep_envoy because we want to control the /info response
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
+    # remove the waits between retries for this test and set known retries
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
-    envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
 
     # The test expects no retries, which means we need to trigger the code path
-    # that doesn't retry. Since _get_info retries all exceptions, we need to
-    # make the first attempt succeed but return bad data that causes setup() to fail
+    # that doesn't retry. Since _get_info retries all https exceptions on http, we need to
+    # make the first https attempt succeeds but return bad data that causes setup() to fail
     mock_aioresponse.get(
         "https://127.0.0.1/info",
         status=500,  # Return HTTP error status
@@ -156,7 +162,7 @@ async def test_httperror_from_start_with_7_6_175_standard(
     with pytest.raises(EnvoyFirmwareCheckError, match="500"):
         await envoy.setup()
 
-    # Ensure that there were retries.
+    # Ensure there was 1 attempt.
     stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
@@ -172,10 +178,11 @@ async def test_1_timeout_from_start_with_7_6_175_standard(
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
+    # remove the waits between retries for this test and set known retries
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
-    envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
 
-    # test if 2 timeouts return failed
+    # Mock both HTTPS and HTTP since firmware code falls back to HTTP
     mock_aioresponse.get(
         "https://127.0.0.1/info",
         exception=asyncio.TimeoutError("Test timeoutexception"),
@@ -187,7 +194,7 @@ async def test_1_timeout_from_start_with_7_6_175_standard(
     await envoy.setup()
     await envoy.authenticate("username", "password")
 
-    # Ensure that there were retries.
+    # Ensure there was 1 attempt.
     stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
@@ -210,8 +217,8 @@ async def test_5_not_connected_at_start_with_7_6_175_standard(
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
-    envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
 
     # Each retry attempt tries HTTPS first, then falls back to HTTP
     # We want 2 full failures (4 requests) then success on the 3rd attempt (request 5-6)
@@ -270,8 +277,8 @@ async def test_2_network_errors_at_start_with_7_6_175_standard(
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
-    envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
 
     # we need 2 side effects for each try as https and then http is attempted
     mock_aioresponse.get(
@@ -304,17 +311,17 @@ async def test_2_network_errors_at_start_with_7_6_175_standard(
 
 
 @pytest.mark.asyncio
-async def test_3_network_errors_at_start_with_7_6_175_standard(
+async def test_network_errors_at_start_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test 3 network error failures at start"""
+    """Test network error failures at start"""
     start_7_firmware_mock(mock_aioresponse)
     # Don't call prep_envoy because we want to control the /info response
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
-    envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
 
     # We need 3 failures, each could try HTTPS then HTTP fallback
     mock_aioresponse.get(
@@ -331,7 +338,7 @@ async def test_3_network_errors_at_start_with_7_6_175_standard(
     # Ensure that there were retries.
     stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
-    assert stats["attempt_number"] == 3
+    assert stats["attempt_number"] == MAX_PROBE_REQUEST_ATTEMPTS
 
 
 @pytest.mark.asyncio
@@ -345,68 +352,52 @@ async def test_noconnection_at_probe_with_7_6_175_standard(
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    envoy._firmware._get_info.retry.wait = wait_none()
     envoy.probe_request.retry.wait = wait_none()
-    envoy.probe_request.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
 
     await envoy.setup()
     await envoy.authenticate("username", "password")
 
-    # Ensure that there were retries.
+    # Ensure there was 1 attempt.
     stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
 
-    # Probe is re-calling retried probe_request before returning
-    # we can only see stats for the last request done.
-    # force 3 retries for last one
-    mock_aioresponse.get(
-        "https://127.0.0.1/ivp/ss/gen_config",
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/admin/lib/tariff",
         exception=aiohttp.ClientError("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/ivp/ss/gen_config",
-        exception=_make_client_connector_error("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/ivp/ss/gen_config",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
+        repeat=True,
     )
 
-    # Set up all other endpoints for probe
-    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-
-    await envoy.setup()
-    await envoy.authenticate("username", "password")
     await envoy.probe()
-    # assert data
 
     stats = envoy.probe_request.statistics
     assert "attempt_number" in stats
-    print(f"--stats--{stats}")
-    assert stats["attempt_number"] == 1
-
-    data = await envoy.update()
-    assert data
+    assert stats["attempt_number"] == MAX_PROBE_REQUEST_ATTEMPTS
 
 
 @pytest.mark.asyncio
 async def test_noconnection_at_update_with_7_6_175_standard(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
-    """Test 3 network error failures at start"""
+    """Test network error failures at update"""
     version = "7.6.175_standard"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # remove the waits between retries for this test and set known retries
-    envoy.request.retry.wait = wait_none()
-    envoy.request.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    envoy._firmware._get_info.retry.wait = wait_none()
+    envoy.set_retry_policy(wait_multiplier=0)
 
     await envoy.setup()
     await envoy.authenticate("username", "password")
 
-    # Ensure that there were no retries.
+    # Ensure there was 1 attempt.
     stats: dict[str, Any] = envoy._firmware._get_info.statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
@@ -417,20 +408,13 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
 
-    # Test timeout exceptions - need to override existing mock first, then add additional ones
+    # Test timeout exceptions - need to override existing mock
     override_mock(
         mock_aioresponse,
         "get",
         "https://127.0.0.1/api/v1/production",
         exception=asyncio.TimeoutError("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
+        repeat=True,
     )
 
     # Clear endpoint cache to force retries
@@ -448,25 +432,16 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         "get",
         "https://127.0.0.1/api/v1/production",
         exception=_make_client_connector_error("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=_make_client_connector_error("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=_make_client_connector_error("Test timeoutexception"),
+        repeat=True,
     )
 
     with pytest.raises(EnvoyCommunicationError, match="aiohttp ClientError"):
         await envoy.update()
 
     # Check statistics immediately after the failed update
-    stats = envoy.request.statistics
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
-    print(f"Connection error test attempts: {stats['attempt_number']}")
-    # Statistics accumulate across all update() calls
-    assert stats["attempt_number"] >= 3
+    assert stats["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS
 
     # Test general client errors (equivalent to RemoteProtocolError)
     envoy._endpoint_cache.clear()
@@ -475,22 +450,15 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         "get",
         "https://127.0.0.1/api/v1/production",
         exception=aiohttp.ClientError("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=aiohttp.ClientError("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=aiohttp.ClientError("Test timeoutexception"),
+        repeat=True,
     )
 
     with pytest.raises(EnvoyCommunicationError, match="aiohttp ClientError"):
         await envoy.update()
 
-    stats = envoy.request.statistics
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
-    assert stats["attempt_number"] == 3
+    assert stats["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS
 
     # Test network errors (using ClientConnectorError as equivalent)
     envoy._endpoint_cache.clear()
@@ -499,22 +467,15 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         "get",
         "https://127.0.0.1/api/v1/production",
         exception=_make_client_connector_error("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=_make_client_connector_error("Test timeoutexception"),
-    )
-    mock_aioresponse.get(
-        "https://127.0.0.1/api/v1/production",
-        exception=_make_client_connector_error("Test timeoutexception"),
+        repeat=True,
     )
 
     with pytest.raises(EnvoyCommunicationError, match="aiohttp ClientError"):
         await envoy.update()
 
-    stats = envoy.request.statistics
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
-    assert stats["attempt_number"] == 3
+    assert stats["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS
 
     # other error EnvoyAuthenticationRequired should end cycle
     # First mock will be consumed, then the EnvoyAuthenticationRequired will stop retries
@@ -540,7 +501,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
     with pytest.raises(EnvoyAuthenticationRequired):
         await envoy.update()
 
-    stats = envoy.request.statistics
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 2
 
@@ -554,8 +515,9 @@ async def test_bad_request_status_7_6_175_standard(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     envoy = Envoy("127.0.0.1", client=test_client_session)
+    # remove the waits between retries for this test and set known retries
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
     envoy._firmware._get_info.retry.wait = wait_none()
-    envoy._firmware._get_info.retry.stop = stop_after_attempt(3) | stop_after_delay(50)
 
     await envoy.setup()
     await envoy.authenticate("username", "password")
@@ -572,6 +534,126 @@ async def test_bad_request_status_7_6_175_standard(
     with pytest.raises(EnvoyHTTPStatusError, match="503"):
         await envoy.update()
 
-    stats = envoy.request.statistics
+    stats = envoy.last_request_statistics
     assert "attempt_number" in stats
     assert stats["attempt_number"] == 1
+
+
+@pytest.mark.asyncio
+async def test_retry_policy(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Test envoy retry policy."""
+    version = "7.6.175_with_cts"
+    start_7_firmware_mock(mock_aioresponse)
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+
+    # remove the waits between retries for this test and set known retries
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    envoy._firmware._get_info.retry.wait = wait_none()
+
+    # verify MAX_PROBE_REQUEST_ATTEMPTS are used in fw setup
+    # Mock both HTTPS and HTTP since firmware code falls back to HTTP
+    mock_aioresponse.get(
+        "https://127.0.0.1/info",
+        exception=_make_client_connector_error("Test timeoutexception"),
+        repeat=True,
+    )
+    mock_aioresponse.get(
+        "http://127.0.0.1/info",
+        exception=_make_client_connector_error("Test timeoutexception"),
+        repeat=True,
+    )
+
+    with pytest.raises(EnvoyFirmwareFatalCheckError):
+        await envoy.setup()
+
+    # verify probe attempts where used
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
+    assert "attempt_number" in stats
+    assert stats["attempt_number"] == MAX_PROBE_REQUEST_ATTEMPTS
+
+    # restore info mock
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/info",
+        status=200,
+        body=await load_fixture(version, "info"),
+        repeat=True,
+    )
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "http://127.0.0.1/info",
+        status=200,
+        body=await load_fixture(version, "info"),
+        repeat=True,
+    )
+    # setup all other mocks
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    await envoy.setup()
+    await envoy.authenticate("username", "password")
+
+    # do initial probe to get updaters identified
+    await envoy.probe()
+
+    # verify DEFAULT_MAX_REQUEST_ATTEMPTS are used for update
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters",
+        exception=asyncio.TimeoutError("Test timeoutexception"),
+        repeat=True,
+    )
+    # remove waits between retries
+    envoy.set_retry_policy(wait_multiplier=0)
+
+    with pytest.raises(EnvoyCommunicationError):
+        await envoy.update()
+
+    # verify custom attempts where used
+    stats = envoy.last_request_statistics
+    assert "attempt_number" in stats
+    assert stats["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS
+
+    # Add second envoy instance
+    mock_aioresponse.get("https://127.0.0.2/auth/check_jwt", status=200, repeat=True)
+    envoy2 = Envoy("127.0.0.2", client=test_client_session)
+    await prep_envoy(mock_aioresponse, "127.0.0.2", version)
+    await envoy2.setup()
+    await envoy2.authenticate("username", "password")
+
+    # disable wait between retries
+    envoy2.set_retry_policy(wait_multiplier=0)
+    data2 = await envoy2.update()
+    assert data2
+
+    # set retry policy to use custom retries on first envoy
+    envoy.set_retry_policy(max_delay=600, max_attempts=8)
+    with pytest.raises(EnvoyCommunicationError):
+        await envoy.update()
+
+    # verify custom attempts where used
+    stats = envoy.last_request_statistics
+    assert "attempt_number" in stats
+    assert stats["attempt_number"] == 8
+
+    # verify default retries are used on second envoy
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.2/ivp/meters",
+        exception=asyncio.TimeoutError("Test timeoutexception"),
+        repeat=True,
+    )
+    with pytest.raises(EnvoyCommunicationError):
+        await envoy2.update()
+
+    # verify default attempts were used on second envoy as well
+    stats2: dict[str, Any] = envoy2.last_request_statistics
+    assert "attempt_number" in stats2
+    assert stats2["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS

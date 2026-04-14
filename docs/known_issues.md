@@ -19,3 +19,11 @@ Issues have been reported with data; these vary by firmware version. Newer firmw
 ## Inverter device data
 
 The [inverter device data](endpoint_json.md#ivppdmdevice_data) includes a `deviceDataLimit` that appears to be fixed at 50. If more inverters are installed, only data for the first `deviceDataLimit` inverters is included, resulting in missing inverter data. When the reported `deviceCount` is greater than or equal to `deviceDataLimit`, data falls back to [/api/v1/production/inverters](endpoint_json.md#apiv1productioninverters) to avoid data loss; device detail data will then be unavailable for all inverters.
+
+## Daily Outage at 11 PM
+
+Each day, shortly after 11 PM local Envoy time, the Envoy performs some internal resets and cleanups. These cause the Envoy to become unresponsive. How long this outage lasts, varies by hardware type and/or firmware version.
+
+Pyenphase uses retries when a request fails. Default retry setup is no more than 240 seconds elapsed, or 6 attempts. Each try uses the timeout specified in {py:class}`pyenphase.Envoy` or a 45 seconds default. With the default timeout of 45 seconds, this results in maximum 6 attempts, 5 retries. Or up to 6 attempts if the failure occurs quicker.
+
+If this 11 PM outage still results in errors, use the {py:meth}`pyenphase.Envoy.set_retry_policy` method to set a more relaxed retry scheme.

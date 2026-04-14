@@ -55,12 +55,17 @@ LOCAL_TIMEOUT = aiohttp.ClientTimeout(
     total=45.0,
     connect=10.0,
     sock_read=45.0,
-)
+)  #: default timeout used for requests
 
-# Requests should no longer retry after max delay (sec) or times since first try
-MAX_REQUEST_DELAY = 120  #: no more request retries after this elapsed time
-MAX_PROBE_REQUEST_DELAY = 50  #: no more probe request retries after this elapsed time
-MAX_REQUEST_ATTEMPTS = 4  #: maximum retry attempts
+# Requests should no longer retry after max delay (sec) or attempts since first try
+# Default is LOCAL_TIMEOUT of 45 sec with some wait time between retries
+# which results in retries after 45-90-135-180. max delay of 120 == 3 tries, 150 == 4
+DEFAULT_MAX_REQUEST_DELAY = 150  #: default maximum request retry time in seconds
+DEFAULT_MAX_REQUEST_ATTEMPTS = 6  #: default maximum request retry attempts
+MAX_REQUEST_DELAY = DEFAULT_MAX_REQUEST_DELAY  #: deprecated alias
+MAX_REQUEST_ATTEMPTS = DEFAULT_MAX_REQUEST_ATTEMPTS  #: deprecated alias
+MAX_PROBE_REQUEST_DELAY = 50  #: maximum elapsed probe retry time in seconds
+MAX_PROBE_REQUEST_ATTEMPTS = 4  #: maximum request probe retry attempts
 
 
 class SupportedFeatures(enum.IntFlag):
