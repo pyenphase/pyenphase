@@ -480,7 +480,7 @@ async def test_token_with_7_6_175_standard(
 
     token = jwt.encode(
         payload={"name": "envoy", "exp": 1707837780, "enphaseUser": "owner"},
-        key="secret",
+        key="useaverylongsecretofatleast32bytestoavoidajwtsecuritywarning",
         algorithm="HS256",
     )
 
