@@ -11,7 +11,7 @@ from .exceptions import (
     EnvoyFirmwareFatalCheckError,
     EnvoyProbeFailed,
 )
-from .models.acb import EnvoyACBPower, EnvoyBatteryAggregate
+from .models.acb import EnvoyACB, EnvoyACBPower, EnvoyBatteryAggregate
 from .models.c6combiner import EnvoyC6CC
 from .models.collar import EnvoyCollar
 from .models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
@@ -43,6 +43,7 @@ __all__ = (
     "EnvoyEnchargeAggregate",
     "EnvoyEnchargePower",
     "EnvoyEnpower",
+    "EnvoyACB",
     "EnvoyACBPower",
     "EnvoyBatteryAggregate",
     "EnvoyDryContactSettings",

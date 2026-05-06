@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<envoy_info>
+  <time>1778085000</time>
+  <device>
+    <sn>123456789013</sn>
+    <pn>800-00654-r06</pn>
+    <software>D8.2.4382</software>
+    <euaid>4c8675</euaid>
+    <seqnum>0</seqnum>
+    <apiver>1</apiver>
+    <imeter>true</imeter>
+  </device>
+  <web-tokens>true</web-tokens>
+  <package name="rootfs">
+    <pn>500-00001-r01</pn>
+    <version>02.00.00</version>
+    <build>1211</build>
+  </package>
+  <package name="kernel">
+    <pn>500-00011-r02</pn>
+    <version>04.04.225</version>
+    <build>08bedf</build>
+  </package>
+  <package name="boot">
+    <pn>590-00019-r01</pn>
+    <version>02.00.01</version>
+    <build>1f421b</build>
+  </package>
+  <package name="app">
+    <pn>500-00002-r01</pn>
+    <version>08.02.4382</version>
+    <build>b5a08f</build>
+  </package>
+</envoy_info>

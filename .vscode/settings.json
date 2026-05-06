@@ -1,0 +1,9 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+  "python.terminal.activateEnvironment": true,
+  "code-runner.runInTerminal": true,
+  "code-runner.fileDirectoryAsCwd": false,
+  "code-runner.executorMap": {
+    "python": "& \"$workspaceRoot\\.venv\\Scripts\\python.exe\" -u"
+  }
+}

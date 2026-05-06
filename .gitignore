@@ -259,6 +259,9 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# VS Code Code Runner
+tempCodeRunnerFile.py
+
 # Environments
 .env
 .venv
@@ -355,3 +358,5 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,pycharm+all,linux,macos,windows
+/private_data
+/Enphase-API-main

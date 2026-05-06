@@ -39,6 +39,7 @@ from .const import (
     LOCAL_TIMEOUT,
     MAX_PROBE_REQUEST_ATTEMPTS,
     MAX_PROBE_REQUEST_DELAY,
+    URL_ACB_CONFIG,
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
     URL_GRID_RELAY,
@@ -679,6 +680,13 @@ class Envoy:
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.acb_batteries_reported
 
+    @property
+    def acb_inventory(self) -> dict[str, Any] | None:
+        """Return per-device ACB battery inventory keyed by serial number."""
+        if self.data is None:
+            return None
+        return self.data.acb_inventory
+
     @cached_property
     def envoy_model(self) -> str:
         """
@@ -1027,6 +1035,89 @@ class Envoy:
             assert self.data is not None  # nosec
         self.data.dry_contact_status[id].status = DryContactStatus.CLOSED
         return result
+
+    async def set_acb_sleep(
+        self, configs: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """
+        Configure sleep mode for one or more ACB (AC Battery) devices.
+
+        PUT {"acb_sleep": [{"serial_num": "...", "sleep_min_soc": x, "sleep_max_soc": y}, ...]}
+        to Envoy to set sleep thresholds per device.
+
+        :param configs: List of dicts, each with keys serial_num (str),
+            sleep_min_soc (int 0-100), sleep_max_soc (int 0-100).
+        :raises EnvoyFeatureNotAvailable: If ACB feature is not available in Envoy
+        :raises ValueError: If configs is empty or any entry has invalid/missing fields.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :return: JSON response of Envoy
+        """
+        if not self.supported_features & SupportedFeatures.ACB:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
+            )
+        if not configs:
+            raise ValueError("configs must not be empty.")
+        acb_sleep = []
+        for i, cfg in enumerate(configs):
+            if "serial_num" not in cfg:
+                raise ValueError(f"configs[{i}] missing required key 'serial_num'.")
+            if "sleep_min_soc" not in cfg:
+                raise ValueError(f"configs[{i}] missing required key 'sleep_min_soc'.")
+            if "sleep_max_soc" not in cfg:
+                raise ValueError(f"configs[{i}] missing required key 'sleep_max_soc'.")
+            min_soc = cfg["sleep_min_soc"]
+            max_soc = cfg["sleep_max_soc"]
+            if not (0 <= min_soc <= 100):
+                raise ValueError(
+                    f"configs[{i}] sleep_min_soc {min_soc} is out of range 0-100."
+                )
+            if not (0 <= max_soc <= 100):
+                raise ValueError(
+                    f"configs[{i}] sleep_max_soc {max_soc} is out of range 0-100."
+                )
+            acb_sleep.append(
+                {
+                    "serial_num": cfg["serial_num"],
+                    "sleep_min_soc": min_soc,
+                    "sleep_max_soc": max_soc,
+                }
+            )
+        return await self._json_request(
+            URL_ACB_CONFIG, {"acb_sleep": acb_sleep}, method="PUT"
+        )
+
+    async def clear_acb_sleep(self, serial_nums: list[str]) -> dict[str, Any]:
+        """
+        Clear sleep mode for one or more ACB (AC Battery) devices.
+
+        DELETE {"acb_sleep": [{"serial_num": "..."}, ...]}
+        to Envoy to cancel sleep or wake specified devices.
+
+        :param serial_nums: List of ACB device serial numbers.
+        :raises EnvoyFeatureNotAvailable: If ACB feature is not available in Envoy
+        :raises ValueError: If serial_nums is empty or contains empty serials.
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :return: JSON response of Envoy
+        """
+        if not self.supported_features & SupportedFeatures.ACB:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
+            )
+        if not serial_nums:
+            raise ValueError("serial_nums must not be empty.")
+
+        acb_sleep = []
+        for i, serial_num in enumerate(serial_nums):
+            if not serial_num:
+                raise ValueError(f"serial_nums[{i}] must not be empty.")
+            acb_sleep.append({"serial_num": serial_num})
+
+        return await self._json_request(
+            URL_ACB_CONFIG, {"acb_sleep": acb_sleep}, method="DELETE"
+        )
 
     async def enable_charge_from_grid(self) -> dict[str, Any]:
         """

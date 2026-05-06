@@ -33,6 +33,7 @@ URL_ENCHARGE_BATTERY = "/ivp/ensemble/power"
 URL_GRID_RELAY = "/ivp/ensemble/relay"
 URL_POWER_EXPORT = "/uvp/ss/pel_settings"
 URL_TARIFF = "/admin/lib/tariff"
+URL_ACB_CONFIG = "/admin/lib/acb_config.json"
 
 # Generator Configuration
 URL_GEN_CONFIG = "/ivp/ss/gen_config"
