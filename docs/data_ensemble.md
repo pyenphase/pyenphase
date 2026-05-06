@@ -15,11 +15,11 @@ The Envoy class provides [go_off_grid](#pyenphase.Envoy.go_off_grid) and [go_on_
 ```python
 status = await envoy.go_off_grid()
 if status["mains_admin_state"] != "open":
-        raise RuntimeError("Failed to go off-grid")
+    raise RuntimeError("Failed to go off-grid")
 
 status = await envoy.go_on_grid()
 if status["mains_admin_state"] != "closed":
-        raise RuntimeError("Failed to go on-grid")
+    raise RuntimeError("Failed to go on-grid")
 ```
 
 [open_dry_contact](#pyenphase.Envoy.open_dry_contact) and [close_dry_contact](#pyenphase.Envoy.close_dry_contact) can be used to control dry contacts.
@@ -37,6 +37,8 @@ Dry contact information is available in [EnvoyData.dry_contact_status](#pyenphas
 [Envoy.update_dry_contact](#pyenphase.Envoy.update_dry_contact) can be used to update settings. Use with care and only if fully aware of the impact.
 
 ```python
+from typing import Any
+
 new_setting: dict[str, Any] = {
         "id": id,
         "load_name": load_name,
@@ -61,8 +63,8 @@ Per-device ACB fields include state and sensor values such as `sleep_enabled`, `
 print(f"ACB count: {envoy.acb_count}")
 
 if envoy.data.acb_inventory:
-        for serial, acb in envoy.data.acb_inventory.items():
-                print(serial, acb.sleep_state, acb.percent_full, acb.last_report_watts)
+    for serial, acb in envoy.data.acb_inventory.items():
+        print(serial, acb.sleep_state, acb.percent_full, acb.last_report_watts)
 ```
 
 ACB sleep control is available with [Envoy.set_acb_sleep](#pyenphase.Envoy.set_acb_sleep) and [Envoy.clear_acb_sleep](#pyenphase.Envoy.clear_acb_sleep).

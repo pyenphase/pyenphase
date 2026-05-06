@@ -9,6 +9,7 @@ from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase.envoy import SupportedFeatures
+from pyenphase.models.acb import EnvoyACB
 from pyenphase.models.envoy import EnvoyData
 
 from .common import (
@@ -675,3 +676,43 @@ async def test_clear_acb_sleep_not_available(
     envoy = await get_mock_envoy(test_client_session)
     with pytest.raises(EnvoyFeatureNotAvailable):
         await envoy.clear_acb_sleep(["122000000001"])
+
+
+def test_acb_sleep_state_variants_and_from_api_without_inverter() -> None:
+    """Cover sleep_state branches and from_api path without inverter data."""
+    asleep = EnvoyACB.from_api(
+        {
+            "serial_num": "122000000010",
+            "sleep_enabled": True,
+            "device_status": ["envoy.cond_flags.pcu_ctrl.sleep-mode"],
+        }
+    )
+    assert asleep.sleep_state == "asleep"
+    assert asleep.last_report_date is None
+    assert asleep.last_report_watts is None
+    assert asleep.max_report_watts is None
+
+    going_to_sleep = EnvoyACB.from_api(
+        {
+            "serial_num": "122000000011",
+            "sleep_enabled": True,
+            "device_status": [],
+        }
+    )
+    assert going_to_sleep.sleep_state == "going_to_sleep"
+
+
+@pytest.mark.asyncio
+async def test_acb_inventory_property_without_data(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Cover Envoy.acb_inventory when no data has been loaded yet."""
+    version = "8.2.4382_ACB_2"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    envoy = await get_mock_envoy(test_client_session)
+    envoy.data = None
+
+    assert envoy.acb_inventory is None

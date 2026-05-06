@@ -78,6 +78,9 @@ from .updaters.tariff import EnvoyTariffUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from .models.acb import EnvoyACB
+
 
 DEFAULT_HEADERS = {
     "Accept": "application/json",
@@ -681,7 +684,7 @@ class Envoy:
         return self._common_properties.acb_batteries_reported
 
     @property
-    def acb_inventory(self) -> dict[str, Any] | None:
+    def acb_inventory(self) -> dict[str, EnvoyACB] | None:
         """Return per-device ACB battery inventory keyed by serial number."""
         if self.data is None:
             return None

@@ -31,11 +31,19 @@ def load_private_defaults() -> dict[str, str]:
 async def read_envoy_json(envoy: Envoy, endpoint: str) -> Any | None:
     """Read arbitrary Envoy endpoint as JSON and return None on failures."""
     try:
-        response = await envoy.request(endpoint)
-        payload = await response.read()
-        return json.loads(payload.decode("utf-8"))
+        async with await envoy.request(endpoint) as response:
+            payload = await response.read()
+            return json.loads(payload.decode("utf-8"))
     except Exception as err:
         print(f"Failed reading {endpoint}: {err}")
+        return None
+
+
+def parse_int(value: Any) -> int | None:
+    """Best-effort conversion to int; return None when conversion fails."""
+    try:
+        return int(str(value))
+    except (TypeError, ValueError):
         return None
 
 
@@ -144,19 +152,18 @@ async def main() -> None:
                 inferred_state = EnvoyACB.from_api(device).sleep_state
                 configured = sleep_requests_by_serial.get(serial)
                 last_rpt_date = device.get("last_rpt_date")
-                report_age_sec: int | None = None
-                try:
-                    report_age_sec = max(0, int(time.time()) - int(str(last_rpt_date)))
-                except (TypeError, ValueError):
-                    report_age_sec = None
+                last_rpt_ts = parse_int(last_rpt_date)
+                report_age_sec = (
+                    max(0, int(time.time()) - last_rpt_ts)
+                    if last_rpt_ts is not None
+                    else None
+                )
 
                 print(f"  - {serial}")
                 print(f"    inferred_state:    {inferred_state}")
                 print(f"    sleep_enabled:     {sleep_enabled}")
                 print(f"    last_report_date:  {last_rpt_date}")
-                print(
-                    f"    last_report_at:    {format_timestamp(int(str(last_rpt_date))) if last_rpt_date is not None else None}"
-                )
+                print(f"    last_report_at:    {format_timestamp(last_rpt_ts)}")
                 print(f"    report_age_sec:    {report_age_sec}")
                 print(f"    device_status:     {device_status}")
                 print(f"    charge_status:     {device.get('charge_status')}")
