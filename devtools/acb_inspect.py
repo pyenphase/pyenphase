@@ -57,7 +57,7 @@ def format_timestamp(ts: int | None) -> str | None:
 async def main() -> None:
     private_defaults = load_private_defaults()
 
-    host = os.getenv("ENVOY_HOST", private_defaults.get("host", ""))
+    host = os.getenv("ENVOY_HOST", private_defaults.get("host", "envoy.local"))
     username = os.getenv("ENVOY_USERNAME", private_defaults.get("username", ""))
     password = os.getenv("ENVOY_PASSWORD", private_defaults.get("password", ""))
     token = os.getenv("ENVOY_TOKEN")

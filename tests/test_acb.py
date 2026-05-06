@@ -562,6 +562,18 @@ async def test_set_acb_sleep_validation(
     with pytest.raises(ValueError, match="serial_num"):
         await envoy.set_acb_sleep([{"sleep_min_soc": 10, "sleep_max_soc": 20}])
 
+    # Empty serial_num
+    with pytest.raises(ValueError, match="must not be empty"):
+        await envoy.set_acb_sleep(
+            [{"serial_num": "", "sleep_min_soc": 10, "sleep_max_soc": 20}]
+        )
+
+    # Blank serial_num
+    with pytest.raises(ValueError, match="must not be empty"):
+        await envoy.set_acb_sleep(
+            [{"serial_num": "   ", "sleep_min_soc": 10, "sleep_max_soc": 20}]
+        )
+
     # Missing sleep_min_soc
     with pytest.raises(ValueError, match="sleep_min_soc"):
         await envoy.set_acb_sleep([{"serial_num": "122000000001", "sleep_max_soc": 20}])

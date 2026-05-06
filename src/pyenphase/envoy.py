@@ -1068,6 +1068,9 @@ class Envoy:
                 raise ValueError(f"configs[{i}] missing required key 'sleep_min_soc'.")
             if "sleep_max_soc" not in cfg:
                 raise ValueError(f"configs[{i}] missing required key 'sleep_max_soc'.")
+            serial_num = str(cfg["serial_num"]).strip()
+            if not serial_num:
+                raise ValueError(f"configs[{i}] serial_num must not be empty.")
             min_soc = cfg["sleep_min_soc"]
             max_soc = cfg["sleep_max_soc"]
             if not (0 <= min_soc <= 100):
@@ -1080,7 +1083,7 @@ class Envoy:
                 )
             acb_sleep.append(
                 {
-                    "serial_num": cfg["serial_num"],
+                    "serial_num": serial_num,
                     "sleep_min_soc": min_soc,
                     "sleep_max_soc": max_soc,
                 }
