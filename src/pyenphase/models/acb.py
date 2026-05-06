@@ -151,7 +151,8 @@ class EnvoyACB:
 
     @property
     def sleep_state(self) -> str:
-        """Return human-readable sleep state based on flags and requested state.
+        """
+        Return human-readable sleep state based on flags and requested state.
 
         Values:
             - awake

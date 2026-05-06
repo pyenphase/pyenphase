@@ -1,15 +1,17 @@
 import asyncio
-from datetime import datetime
 import json
 import os
 import time
-from typing import Any
 from pathlib import Path
+from datetime import datetime
+from typing import Any
 
 from pyenphase import Envoy
 from pyenphase.models.acb import EnvoyACB
 
-DEFAULTS_PATH = Path(__file__).resolve().parents[1] / "private_data" / "envoy_defaults.json"
+DEFAULTS_PATH = (
+    Path(__file__).resolve().parents[1] / "private_data" / "envoy_defaults.json"
+)
 
 
 def load_private_defaults() -> dict[str, str]:
@@ -32,7 +34,7 @@ async def read_envoy_json(envoy: Envoy, endpoint: str) -> Any | None:
         response = await envoy.request(endpoint)
         payload = await response.read()
         return json.loads(payload.decode("utf-8"))
-    except Exception as err:  # noqa: BLE001
+    except Exception as err:
         print(f"Failed reading {endpoint}: {err}")
         return None
 
@@ -56,14 +58,18 @@ async def main() -> None:
 
     try:
         await envoy.setup()
-        print(f"Connected to {envoy.host} | firmware={envoy.firmware} | sn={envoy.serial_number}")
+        print(
+            f"Connected to {envoy.host} | firmware={envoy.firmware} | sn={envoy.serial_number}"
+        )
 
         await envoy.authenticate(username=username, password=password, token=token)
         data = await envoy.update()
 
         production = data.system_production
         if production is None:
-            print("Authenticated, but no system production data is available on this Envoy.")
+            print(
+                "Authenticated, but no system production data is available on this Envoy."
+            )
             return
 
         print("Live data:")
@@ -95,7 +101,9 @@ async def main() -> None:
             if acb.last_report_date is not None:
                 age = max(0, int(time.time()) - acb.last_report_date)
                 print(f"    last_report_date:  {acb.last_report_date}")
-                print(f"    last_report_at:    {format_timestamp(acb.last_report_date)}")
+                print(
+                    f"    last_report_at:    {format_timestamp(acb.last_report_date)}"
+                )
                 print(f"    report_age_sec:    {age}")
             print(f"    percent_full:      {acb.percent_full}")
             print(f"    max_cell_temp:     {acb.max_cell_temp}")
@@ -126,7 +134,9 @@ async def main() -> None:
                     if group.get("type") == "ACB":
                         fallback_devices.extend(group.get("devices", []))
 
-            print(f"\nACB fallback devices from /inventory.json?deleted=1: {len(fallback_devices)}")
+            print(
+                f"\nACB fallback devices from /inventory.json?deleted=1: {len(fallback_devices)}"
+            )
             for device in fallback_devices:
                 serial = str(device.get("serial_num", "unknown"))
                 sleep_enabled = bool(device.get("sleep_enabled", False))
@@ -144,7 +154,9 @@ async def main() -> None:
                 print(f"    inferred_state:    {inferred_state}")
                 print(f"    sleep_enabled:     {sleep_enabled}")
                 print(f"    last_report_date:  {last_rpt_date}")
-                print(f"    last_report_at:    {format_timestamp(int(str(last_rpt_date))) if last_rpt_date is not None else None}")
+                print(
+                    f"    last_report_at:    {format_timestamp(int(str(last_rpt_date))) if last_rpt_date is not None else None}"
+                )
                 print(f"    report_age_sec:    {report_age_sec}")
                 print(f"    device_status:     {device_status}")
                 print(f"    charge_status:     {device.get('charge_status')}")

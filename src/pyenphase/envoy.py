@@ -1036,9 +1036,7 @@ class Envoy:
         self.data.dry_contact_status[id].status = DryContactStatus.CLOSED
         return result
 
-    async def set_acb_sleep(
-        self, configs: list[dict[str, Any]]
-    ) -> dict[str, Any]:
+    async def set_acb_sleep(self, configs: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Configure sleep mode for one or more ACB (AC Battery) devices.
 

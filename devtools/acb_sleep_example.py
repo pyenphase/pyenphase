@@ -1,4 +1,5 @@
-"""Minimal example for sleeping and waking Enphase ACB devices.
+"""
+Minimal example for sleeping and waking Enphase ACB devices.
 
 How to use:
 
@@ -22,6 +23,7 @@ Notes:
 - The sleep action sends PUT /admin/lib/acb_config.json.
 - The wake action sends DELETE /admin/lib/acb_config.json.
 - Values like 95..100 match the ACB sleep-window pattern documented from local testing.
+
 """
 
 import argparse
@@ -32,7 +34,9 @@ from pathlib import Path
 
 from pyenphase import Envoy
 
-DEFAULTS_PATH = Path(__file__).resolve().parents[1] / "private_data" / "envoy_defaults.json"
+DEFAULTS_PATH = (
+    Path(__file__).resolve().parents[1] / "private_data" / "envoy_defaults.json"
+)
 
 
 def load_private_defaults() -> dict[str, str]:

@@ -517,7 +517,11 @@ async def test_set_acb_sleep(
     mock_aioresponse.put(
         f"{full_host}/admin/lib/acb_config.json",
         status=200,
-        payload={"acb_sleep": [{"serial_num": "122000000001", "sleep_min_soc": 10, "sleep_max_soc": 20}]},
+        payload={
+            "acb_sleep": [
+                {"serial_num": "122000000001", "sleep_min_soc": 10, "sleep_max_soc": 20}
+            ]
+        },
         repeat=True,
     )
 
@@ -543,8 +547,6 @@ async def test_set_acb_sleep_validation(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Test set_acb_sleep raises ValueError on invalid inputs."""
-    from pyenphase.exceptions import EnvoyFeatureNotAvailable
-
     version = "8.2.4382_ACB_2"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -645,7 +647,6 @@ async def test_clear_acb_sleep_validation(
     test_client_session: aiohttp.ClientSession,
 ) -> None:
     """Test clear_acb_sleep validation."""
-
     version = "8.2.4382_ACB_2"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
