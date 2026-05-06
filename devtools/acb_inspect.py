@@ -2,8 +2,8 @@ import asyncio
 import json
 import os
 import time
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from pyenphase import Envoy
