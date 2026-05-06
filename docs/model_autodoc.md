@@ -264,6 +264,16 @@
   :member-order: groupwise
 ```
 
+## EnvoyACB
+
+```{eval-rst}
+.. autoclass:: pyenphase.models.acb.EnvoyACB
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: groupwise
+```
+
 ## Envoy Aggregate Battery SOC
 
 ```{eval-rst}
