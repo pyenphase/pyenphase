@@ -594,6 +594,24 @@ async def test_set_acb_sleep_validation(
             [{"serial_num": "122000000001", "sleep_min_soc": 10, "sleep_max_soc": 101}]
         )
 
+    # Non-numeric SOC values
+    with pytest.raises(ValueError, match="must be numeric integers"):
+        await envoy.set_acb_sleep(
+            [
+                {
+                    "serial_num": "122000000001",
+                    "sleep_min_soc": "not-a-number",
+                    "sleep_max_soc": 20,
+                }
+            ]
+        )
+
+    # sleep_min_soc must be <= sleep_max_soc
+    with pytest.raises(ValueError, match="must be <= sleep_max_soc"):
+        await envoy.set_acb_sleep(
+            [{"serial_num": "122000000001", "sleep_min_soc": 80, "sleep_max_soc": 20}]
+        )
+
 
 @pytest.mark.asyncio
 async def test_set_acb_sleep_not_available(

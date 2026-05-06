@@ -1077,10 +1077,10 @@ class Envoy:
             try:
                 min_soc = int(min_soc)
                 max_soc = int(max_soc)
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as err:
                 raise ValueError(
                     f"configs[{i}] sleep_min_soc and sleep_max_soc must be numeric integers."
-                )
+                ) from err
             if not (0 <= min_soc <= 100):
                 raise ValueError(
                     f"configs[{i}] sleep_min_soc {min_soc} is out of range 0-100."
