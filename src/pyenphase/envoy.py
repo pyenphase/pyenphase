@@ -1073,6 +1073,14 @@ class Envoy:
                 raise ValueError(f"configs[{i}] serial_num must not be empty.")
             min_soc = cfg["sleep_min_soc"]
             max_soc = cfg["sleep_max_soc"]
+            # Coerce to integers and validate
+            try:
+                min_soc = int(min_soc)
+                max_soc = int(max_soc)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"configs[{i}] sleep_min_soc and sleep_max_soc must be numeric integers."
+                )
             if not (0 <= min_soc <= 100):
                 raise ValueError(
                     f"configs[{i}] sleep_min_soc {min_soc} is out of range 0-100."
@@ -1080,6 +1088,11 @@ class Envoy:
             if not (0 <= max_soc <= 100):
                 raise ValueError(
                     f"configs[{i}] sleep_max_soc {max_soc} is out of range 0-100."
+                )
+            # Validate that min_soc <= max_soc
+            if min_soc > max_soc:
+                raise ValueError(
+                    f"configs[{i}] sleep_min_soc {min_soc} must be <= sleep_max_soc {max_soc}"
                 )
             acb_sleep.append(
                 {
