@@ -684,7 +684,7 @@ class Envoy:
         return self._common_properties.acb_batteries_reported
 
     @property
-    def acb_inventory(self) -> dict[str, EnvoyACB] | None:
+    def acb_inventory(self) -> "dict[str, EnvoyACB] | None":
         """Return per-device ACB battery inventory keyed by serial number."""
         if self.data is None:
             return None
