@@ -723,6 +723,20 @@ async def test_with_7_x_firmware(
         _cnt, request_data = latest_request(mock_aioresponse, "PUT", URL_TARIFF)
         assert orjson.loads(request_data) == {"tariff": data.tariff.to_api()}
 
+        await envoy.set_storage_mode(
+            EnvoyStorageMode.SELF_CONSUMPTION, disable_optimized_schedules=True
+        )
+        assert data.tariff.storage_settings.mode == EnvoyStorageMode.SELF_CONSUMPTION
+        _cnt, request_data = latest_request(mock_aioresponse, "PUT", URL_TARIFF)
+        assert orjson.loads(request_data) == {"tariff": data.tariff.to_api()}
+        if data.tariff.storage_settings.opt_schedules is not None:
+            assert (
+                orjson.loads(request_data)["tariff"]["storage_settings"][
+                    "opt_schedules"
+                ]
+                is False
+            )
+
         with pytest.raises(TypeError):
             await envoy.set_storage_mode("invalid")  # type: ignore[arg-type]
 
