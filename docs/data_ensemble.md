@@ -76,6 +76,13 @@ The Envoy class provides the methods [Envoy.enable_charge_from_grid](#pyenphase.
         print(f"{envoy.data.tariff.data.tariff.storage_settings.mode}")
         print (status)
 
+```
+
+On firmware where optimised schedules are supported, `set_storage_mode` will also set `opt_schedules` to `False`. This is required because when `opt_schedules` is `True`, the battery controller follows `schedule.batt_mode` instead of `storage_settings.mode`, causing the mode change to be silently ignored.
+
+Note that the Enlighten cloud service may overwrite a locally-set mode within one to two minutes by pushing its own tariff configuration to the gateway. See [Known Issues](./known_issues.md#enlighten-cloud-overwriting-locally-set-battery-mode) for details.
+
+```python
         status = await envoy.set_reserve_soc(value: int)
         print(f"{envoy.data.tariff.storage_settings.reserved_soc}")
         print (status)

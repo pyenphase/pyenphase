@@ -1089,6 +1089,12 @@ class Envoy:
         using PUT. This will update the storage mode setting
         in the Envoy.
 
+        On firmware where optimised schedules are supported, ``opt_schedules``
+        will be set to ``False`` alongside the mode change. This is required
+        because when ``opt_schedules`` is ``True``, the battery controller
+        follows ``schedule.batt_mode`` instead of ``storage_settings.mode``,
+        causing the mode change to be silently ignored.
+
         :param mode: storage mode to set
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
@@ -1105,6 +1111,8 @@ class Envoy:
         if type(mode) is not EnvoyStorageMode:
             raise TypeError("Mode must be of type EnvoyStorageMode")
         self.data.tariff.storage_settings.mode = mode
+        if self.data.tariff.storage_settings.opt_schedules is not None:
+            self.data.tariff.storage_settings.opt_schedules = False
         return await self._json_request(
             URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
         )
