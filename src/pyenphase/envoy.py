@@ -1080,7 +1080,11 @@ class Envoy:
             URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
         )
 
-    async def set_storage_mode(self, mode: EnvoyStorageMode) -> dict[str, Any]:
+    async def set_storage_mode(
+        self,
+        mode: EnvoyStorageMode,
+        disable_optimized_schedules: bool = False,
+    ) -> dict[str, Any]:
         """
         Set the Encharge storage mode.
 
@@ -1089,13 +1093,17 @@ class Envoy:
         using PUT. This will update the storage mode setting
         in the Envoy.
 
-        On firmware where optimised schedules are supported, ``opt_schedules``
-        will be set to ``False`` alongside the mode change. This is required
-        because when ``opt_schedules`` is ``True``, the battery controller
-        follows ``schedule.batt_mode`` instead of ``storage_settings.mode``,
-        causing the mode change to be silently ignored.
+        On firmware where optimised schedules are supported, set
+        ``disable_optimized_schedules=True`` to also set ``opt_schedules``
+        to ``False`` alongside the mode change. When ``opt_schedules`` is
+        ``True``, writes to ``storage_settings.mode`` are accepted by the
+        gateway and return HTTP 200, but are silently ignored by the battery
+        controller. See :ref:`known_issues` for details on cloud reconciliation
+        behaviour when the gateway has internet access.
 
         :param mode: storage mode to set
+        :param disable_optimized_schedules: set ``opt_schedules`` to ``False``
+            alongside the mode change
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
         :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
@@ -1111,7 +1119,10 @@ class Envoy:
         if type(mode) is not EnvoyStorageMode:
             raise TypeError("Mode must be of type EnvoyStorageMode")
         self.data.tariff.storage_settings.mode = mode
-        if self.data.tariff.storage_settings.opt_schedules is not None:
+        if (
+            disable_optimized_schedules
+            and self.data.tariff.storage_settings.opt_schedules is not None
+        ):
             self.data.tariff.storage_settings.opt_schedules = False
         return await self._json_request(
             URL_TARIFF, {"tariff": self.data.tariff.to_api()}, method="PUT"
