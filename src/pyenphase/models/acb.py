@@ -1,11 +1,34 @@
 """Model for the ACB Battery."""
 
 # Data Source: URL_ENSEMBLE_SECCTRL (primary) & URL_PRODUCTION_JSON
+# Per-device: URL_INVENTORY (type "ACB") + URL_PRODUCTION_INVERTERS (devType=11)
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from enum import StrEnum
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .inverter import EnvoyInverter
+
+
+class ACBChargeStatus(StrEnum):
+    """Enumerated charge status reported for ACB devices."""
+
+    CHARGING = "charging"
+    DISCHARGING = "discharging"
+    IDLE = "idle"
+    UNKNOWN = "unknown"
+
+
+class ACBSleepState(StrEnum):
+    """Derived sleep state for ACB devices based on flags and requested mode."""
+
+    AWAKE = "awake"
+    GOING_TO_SLEEP = "going_to_sleep"
+    ASLEEP = "asleep"
+    WAKING = "waking"
 
 
 @dataclass(slots=True)
@@ -106,4 +129,122 @@ class EnvoyACBPower:
             state_of_charge=storage_data["percentFull"],
             state=storage_data["state"],
             batteries=storage_data["activeCount"],
+        )
+
+
+@dataclass(slots=True)
+class EnvoyACB:
+    """Model for a single ACB (AC Battery) device from /inventory."""
+
+    #: Device serial number
+    serial_num: str
+    #: Device part number
+    part_num: str
+    #: Whether sleep mode is enabled on this device
+    sleep_enabled: bool
+    #: Current charge status: charging, discharging, idle, or unknown
+    charge_status: ACBChargeStatus
+    #: Raw device status flags from inventory (e.g. envoy.global.ok,
+    #: envoy.cond_flags.pcu_ctrl.sleep-mode)
+    device_status: list[str]
+    #: Current state of charge as a percentage (0-100)
+    percent_full: int
+    #: Maximum cell temperature in degrees Celsius
+    max_cell_temp: int | None
+    #: Whether this device is currently communicating with the Envoy
+    communicating: bool
+    #: Whether this device is currently operating
+    operating: bool
+    #: Whether this device is currently producing power
+    producing: bool
+    #: Minimum SOC threshold for sleep mode activation
+    sleep_min_soc: int | None
+    #: Maximum SOC threshold for sleep mode deactivation
+    sleep_max_soc: int | None
+    #: Last report timestamp, from /api/v1/production/inverters (devType=11)
+    last_report_date: int | None
+    #: Current power output in watts, from /api/v1/production/inverters (devType=11)
+    last_report_watts: int | None
+    #: Maximum reported power in watts, from /api/v1/production/inverters (devType=11)
+    max_report_watts: int | None
+
+    @property
+    def sleep_state(self) -> ACBSleepState:
+        """
+        Return human-readable sleep state based on flags and requested state.
+
+        Values:
+            - awake
+            - going_to_sleep
+            - asleep
+            - waking
+        """
+        has_sleep_flag = "envoy.cond_flags.pcu_ctrl.sleep-mode" in self.device_status
+        if self.sleep_enabled and has_sleep_flag:
+            return ACBSleepState.ASLEEP
+        if self.sleep_enabled and not has_sleep_flag:
+            return ACBSleepState.GOING_TO_SLEEP
+        if (not self.sleep_enabled) and has_sleep_flag:
+            return ACBSleepState.WAKING
+        return ACBSleepState.AWAKE
+
+    @classmethod
+    def from_api(
+        cls,
+        data: dict[str, Any],
+        inverter: EnvoyInverter | None = None,
+    ) -> EnvoyACB:
+        """
+        Fill per-device ACB data from inventory and inverter report.
+
+        Source data from URL_INVENTORY type "ACB" device entry and
+        (optionally) the matching entry from URL_PRODUCTION_INVERTERS.
+
+            .. code-block:: json
+
+                {
+                    "part_num": "800-00930-r03",
+                    "serial_num": "121917000087",
+                    "sleep_enabled": false,
+                    "percentFull": 0,
+                    "maxCellTemp": 18,
+                    "communicating": true,
+                    "operating": true,
+                    "producing": true,
+                    "sleep_min_soc": 25,
+                    "sleep_max_soc": 30,
+                    "charge_status": "discharging"
+                }
+
+        Args:
+            data (dict[str, Any]): Device entry from URL_INVENTORY type "ACB"
+            inverter (EnvoyInverter | None): Matching inverter record from
+                URL_PRODUCTION_INVERTERS (devType=11), or None if not available.
+
+        Returns:
+            EnvoyACB: Per-device ACB battery data
+
+        """
+        charge_status = str(data.get("charge_status", ACBChargeStatus.UNKNOWN)).lower()
+        try:
+            charge_status_enum = ACBChargeStatus(charge_status)
+        except ValueError:
+            charge_status_enum = ACBChargeStatus.UNKNOWN
+
+        return cls(
+            serial_num=data["serial_num"],
+            part_num=data.get("part_num", ""),
+            sleep_enabled=data.get("sleep_enabled", False),
+            charge_status=charge_status_enum,
+            device_status=[str(x) for x in data.get("device_status", [])],
+            percent_full=data.get("percentFull", 0),
+            max_cell_temp=data.get("maxCellTemp"),
+            communicating=data.get("communicating", False),
+            operating=data.get("operating", False),
+            producing=data.get("producing", False),
+            sleep_min_soc=data.get("sleep_min_soc"),
+            sleep_max_soc=data.get("sleep_max_soc"),
+            last_report_date=inverter.last_report_date if inverter else None,
+            last_report_watts=inverter.last_report_watts if inverter else None,
+            max_report_watts=inverter.max_report_watts if inverter else None,
         )

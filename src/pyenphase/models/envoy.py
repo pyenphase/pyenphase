@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from .acb import EnvoyACBPower, EnvoyBatteryAggregate
+from .acb import EnvoyACB, EnvoyACBPower, EnvoyBatteryAggregate
 from .c6combiner import EnvoyC6CC
 from .collar import EnvoyCollar
 from .dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
@@ -36,6 +36,8 @@ class EnvoyData:
     enpower: EnvoyEnpower | None = None
     #: Power and soc for aggregated ACB batteries
     acb_power: EnvoyACBPower | None = None
+    #: Per-device ACB battery inventory, keyed by serial number
+    acb_inventory: dict[str, EnvoyACB] | None = None
     #: aggregated Enphase and ACB battery SOC and total capacity
     battery_aggregate: EnvoyBatteryAggregate | None = None
     #: IQ Meter collar, only for Envoy with IQ Meter Collar integrated consumption metering installed

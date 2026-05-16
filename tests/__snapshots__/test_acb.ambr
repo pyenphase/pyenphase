@@ -1,6 +1,7 @@
 # serializer version: 1
 # name: test_with_7_x_firmware[4.10.35]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -1014,6 +1015,7 @@
 # ---
 # name: test_with_7_x_firmware[7.3.130]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -1430,6 +1432,7 @@
 # ---
 # name: test_with_7_x_firmware[7.3.130_no_consumption]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -2387,6 +2390,7 @@
 # ---
 # name: test_with_7_x_firmware[7.3.466_with_cts_3phase]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -3568,6 +3572,7 @@
 # ---
 # name: test_with_7_x_firmware[7.3.517]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -4879,6 +4884,7 @@
 # ---
 # name: test_with_7_x_firmware[7.3.517_legacy_savings_mode]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -6190,6 +6196,7 @@
 # ---
 # name: test_with_7_x_firmware[7.3.517_system_2]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -8071,6 +8078,7 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175_with_cts]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -8838,6 +8846,7 @@
 # ---
 # name: test_with_7_x_firmware[7.6.175_with_cts_3phase]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -10019,6 +10028,7 @@
 # ---
 # name: test_with_7_x_firmware[7.6.185_with_cts_and_battery_3t]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -10921,6 +10931,7 @@
 # ---
 # name: test_with_7_x_firmware[8.1.41]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -12492,6 +12503,7 @@
 # ---
 # name: test_with_7_x_firmware[8.2.127_with_3cts_and_battery_split]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -14463,6 +14475,7 @@
 # ---
 # name: test_with_7_x_firmware[8.2.127_with_generator_running]
   dict({
+    'acb_inventory': None,
     'acb_power': None,
     'battery_aggregate': None,
     'c6cc': None,
@@ -16169,6 +16182,7 @@
 # ---
 # name: test_with_7_x_firmware[8.2.4382_ACB]
   dict({
+    'acb_inventory': None,
     'acb_power': dict({
       'batteries': 3,
       'charge_wh': 930,
