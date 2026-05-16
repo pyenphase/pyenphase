@@ -104,6 +104,7 @@ async def main() -> None:
         for serial, acb in acb_inventory.items():
             print(f"  - {serial}")
             print(f"    part_num:          {acb.part_num}")
+            print(f"    sleep_state:       {acb.sleep_state}")
             print(f"    charge_status:     {acb.charge_status}")
             print(f"    sleep_enabled:     {acb.sleep_enabled}")
             if acb.last_report_date is not None:
@@ -113,13 +114,15 @@ async def main() -> None:
                     f"    last_report_at:    {format_timestamp(acb.last_report_date)}"
                 )
                 print(f"    report_age_sec:    {age}")
-            print(f"    percent_full:      {acb.percent_full}")
+            print(f"    current_soc:       {acb.percent_full}")
             print(f"    max_cell_temp:     {acb.max_cell_temp}")
             print(f"    communicating:     {acb.communicating}")
             print(f"    operating:         {acb.operating}")
             print(f"    producing:         {acb.producing}")
-            print(f"    sleep_min_soc:     {acb.sleep_min_soc}")
-            print(f"    sleep_max_soc:     {acb.sleep_max_soc}")
+            print(
+                "    target_sleep_soc:  "
+                f"{acb.sleep_min_soc}..{acb.sleep_max_soc}"
+            )
             print(f"    last_report_watts: {acb.last_report_watts}")
             print(f"    max_report_watts:  {acb.max_report_watts}")
 
@@ -167,10 +170,12 @@ async def main() -> None:
                 print(f"    report_age_sec:    {report_age_sec}")
                 print(f"    device_status:     {device_status}")
                 print(f"    charge_status:     {device.get('charge_status')}")
-                print(f"    percent_full:      {device.get('percentFull')}")
+                print(f"    current_soc:       {device.get('percentFull')}")
                 print(f"    max_cell_temp:     {device.get('maxCellTemp')}")
-                print(f"    sleep_min_soc:     {device.get('sleep_min_soc')}")
-                print(f"    sleep_max_soc:     {device.get('sleep_max_soc')}")
+                print(
+                    "    target_sleep_soc:  "
+                    f"{device.get('sleep_min_soc')}..{device.get('sleep_max_soc')}"
+                )
                 if configured:
                     print(
                         "    requested_sleep:   "
