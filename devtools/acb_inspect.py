@@ -119,10 +119,7 @@ async def main() -> None:
             print(f"    communicating:     {acb.communicating}")
             print(f"    operating:         {acb.operating}")
             print(f"    producing:         {acb.producing}")
-            print(
-                "    target_sleep_soc:  "
-                f"{acb.sleep_min_soc}..{acb.sleep_max_soc}"
-            )
+            print(f"    target_sleep_soc:  {acb.sleep_min_soc}..{acb.sleep_max_soc}")
             print(f"    last_report_watts: {acb.last_report_watts}")
             print(f"    max_report_watts:  {acb.max_report_watts}")
 
