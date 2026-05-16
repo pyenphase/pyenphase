@@ -168,4 +168,3 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
                 if item.get("devices"):
                     c6cc_data = item["devices"][0]
                     envoy_data.c6cc = EnvoyC6CC.from_api(c6cc_data)
-

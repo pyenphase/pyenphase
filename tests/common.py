@@ -367,9 +367,7 @@ async def prep_envoy(
     else:
         mock_aioresponse.get(url("/inventory"), status=404, repeat=True)
         mock_aioresponse.get(url("/inventory.json"), status=404, repeat=True)
-        mock_aioresponse.get(
-            url("/inventory.json?deleted=1"), status=404, repeat=True
-        )
+        mock_aioresponse.get(url("/inventory.json?deleted=1"), status=404, repeat=True)
 
     if "ivp_ensemble_dry_contacts" in files:
         try:

@@ -1167,7 +1167,9 @@ class Envoy:
         try:
             inventory_data = await self._json_request(URL_INVENTORY, None)
         except EnvoyError as err:
-            _LOGGER.debug("Unable to query fallback inventory for ACB validation: %s", err)
+            _LOGGER.debug(
+                "Unable to query fallback inventory for ACB validation: %s", err
+            )
             return set()
 
         serials: set[str] = set()
@@ -1189,7 +1191,9 @@ class Envoy:
         if not known_serials:
             return
 
-        invalid_serials = sorted({serial for serial in serial_nums if serial not in known_serials})
+        invalid_serials = sorted(
+            {serial for serial in serial_nums if serial not in known_serials}
+        )
         if invalid_serials:
             known_sorted = ", ".join(sorted(known_serials))
             invalid_sorted = ", ".join(invalid_serials)
