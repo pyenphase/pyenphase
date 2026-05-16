@@ -344,6 +344,33 @@ async def prep_envoy(
             url_http("/ivp/ensemble/inventory"), status=404, repeat=True
         )
 
+    if "inventory" in files:
+        inventory_data = await load_json_fixture(version, "inventory")
+        mock_aioresponse.get(
+            url("/inventory"),
+            status=200,
+            payload=inventory_data,
+            repeat=True,
+        )
+        mock_aioresponse.get(
+            url("/inventory.json"),
+            status=200,
+            payload=inventory_data,
+            repeat=True,
+        )
+        mock_aioresponse.get(
+            url("/inventory.json?deleted=1"),
+            status=200,
+            payload=inventory_data,
+            repeat=True,
+        )
+    else:
+        mock_aioresponse.get(url("/inventory"), status=404, repeat=True)
+        mock_aioresponse.get(url("/inventory.json"), status=404, repeat=True)
+        mock_aioresponse.get(
+            url("/inventory.json?deleted=1"), status=404, repeat=True
+        )
+
     if "ivp_ensemble_dry_contacts" in files:
         try:
             json_data = await load_json_fixture(version, "ivp_ensemble_dry_contacts")

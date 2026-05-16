@@ -1,0 +1,160 @@
+[
+    {
+        "type": "PCU",
+        "devices": [
+            {
+                "part_num": "800-00630-r02",
+                "installed": "1714670312",
+                "serial_num": "122000010001",
+                "device_status": [
+                    "envoy.global.ok"
+                ],
+                "last_rpt_date": "1778085712",
+                "admin_state": 2,
+                "dev_type": 1,
+                "created_date": "1714670312",
+                "img_load_date": "1750781728",
+                "img_pnum_running": "520-00082-r01-v04.30.32",
+                "ptpn": "540-00134-r01-v04.30.10",
+                "chaneid": 1627390225,
+                "device_control": [
+                    {
+                        "gficlearset": false
+                    }
+                ],
+                "producing": true,
+                "communicating": true,
+                "provisioned": true,
+                "operating": true,
+                "phase": "ph-a"
+            },
+            {
+                "part_num": "800-00630-r02",
+                "installed": "1714670312",
+                "serial_num": "122000010002",
+                "device_status": [
+                    "envoy.global.ok"
+                ],
+                "last_rpt_date": "1778085771",
+                "admin_state": 2,
+                "dev_type": 1,
+                "created_date": "1714670312",
+                "img_load_date": "1750781728",
+                "img_pnum_running": "520-00082-r01-v04.30.32",
+                "ptpn": "540-00134-r01-v04.30.10",
+                "chaneid": 1627390481,
+                "device_control": [
+                    {
+                        "gficlearset": false
+                    }
+                ],
+                "producing": true,
+                "communicating": true,
+                "provisioned": true,
+                "operating": true,
+                "phase": "ph-a"
+            },
+            {
+                "part_num": "800-00630-r02",
+                "installed": "1714670312",
+                "serial_num": "122000010003",
+                "device_status": [
+                    "envoy.global.ok"
+                ],
+                "last_rpt_date": "1778085159",
+                "admin_state": 2,
+                "dev_type": 1,
+                "created_date": "1714670312",
+                "img_load_date": "1750781728",
+                "img_pnum_running": "520-00082-r01-v04.30.32",
+                "ptpn": "540-00134-r01-v04.30.10",
+                "chaneid": 1627390737,
+                "device_control": [
+                    {
+                        "gficlearset": false
+                    }
+                ],
+                "producing": true,
+                "communicating": true,
+                "provisioned": true,
+                "operating": true,
+                "phase": "ph-a"
+            }
+        ]
+    },
+    {
+        "type": "ACB",
+        "devices": [
+            {
+                "part_num": "800-00930-r03",
+                "installed": "1769471087",
+                "serial_num": "122000000001",
+                "device_status": [
+                    "envoy.global.ok"
+                ],
+                "last_rpt_date": "1778085741",
+                "admin_state": 2,
+                "dev_type": 11,
+                "created_date": "1769471087",
+                "img_load_date": "1662811078",
+                "img_pnum_running": "520-00092-r01-v02.13.02",
+                "ptpn": "540-00155-r01-v02.13.01",
+                "chaneid": 1795162385,
+                "device_control": [
+                    {
+                        "gficlearset": false
+                    }
+                ],
+                "producing": true,
+                "communicating": true,
+                "provisioned": true,
+                "operating": true,
+                "sleep_enabled": false,
+                "percentFull": 0,
+                "maxCellTemp": 18,
+                "sleep_min_soc": 25,
+                "sleep_max_soc": 30,
+                "charge_status": "discharging"
+            },
+            {
+                "part_num": "800-00930-r03",
+                "installed": "1769471139",
+                "serial_num": "122000000002",
+                "device_status": [
+                    "envoy.global.ok"
+                ],
+                "last_rpt_date": "1778085772",
+                "admin_state": 2,
+                "dev_type": 11,
+                "created_date": "1769471139",
+                "img_load_date": "1625324297",
+                "img_pnum_running": "520-00092-r01-v02.13.02",
+                "ptpn": "540-00155-r01-v02.13.01",
+                "chaneid": 1795162641,
+                "device_control": [
+                    {
+                        "gficlearset": false
+                    }
+                ],
+                "producing": true,
+                "communicating": true,
+                "provisioned": true,
+                "operating": true,
+                "sleep_enabled": false,
+                "percentFull": 1,
+                "maxCellTemp": 27,
+                "sleep_min_soc": 25,
+                "sleep_max_soc": 30,
+                "charge_status": "discharging"
+            }
+        ]
+    },
+    {
+        "type": "NSRB",
+        "devices": []
+    },
+    {
+        "type": "ESUB",
+        "devices": []
+    }
+]

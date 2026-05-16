@@ -9,7 +9,7 @@ from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase.envoy import SupportedFeatures
-from pyenphase.models.acb import EnvoyACB
+from pyenphase.models.acb import ACBChargeStatus, ACBSleepState, EnvoyACB
 from pyenphase.models.envoy import EnvoyData
 
 from .common import (
@@ -376,7 +376,7 @@ async def test_acb_per_device_inventory(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test per-device ACB inventory parsing from ivp_ensemble_inventory type ACB."""
+    """Test per-device ACB inventory parsing from /inventory endpoint type ACB."""
     version = "8.2.4382_ACB_2"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -409,9 +409,9 @@ async def test_acb_per_device_inventory(
     assert acb0.serial_num == "122000000001"
     assert acb0.part_num == "800-00930-r03"
     assert acb0.sleep_enabled is False
-    assert acb0.charge_status == "discharging"
+    assert acb0.charge_status == ACBChargeStatus.DISCHARGING
     assert acb0.device_status == ["envoy.global.ok"]
-    assert acb0.sleep_state == "awake"
+    assert acb0.sleep_state == ACBSleepState.AWAKE
     assert acb0.percent_full == 0
     assert acb0.max_cell_temp == 18
     assert acb0.communicating is True
@@ -428,7 +428,7 @@ async def test_acb_per_device_inventory(
     acb1 = data.acb_inventory["122000000002"]
     assert acb1.serial_num == "122000000002"
     assert acb1.device_status == ["envoy.global.ok"]
-    assert acb1.sleep_state == "awake"
+    assert acb1.sleep_state == ACBSleepState.AWAKE
     assert acb1.last_report_date == 1778091219
     assert acb1.percent_full == 1
     assert acb1.max_cell_temp == 27
@@ -473,7 +473,7 @@ async def test_acb_per_device_missing_optional_fields(
     override_mock(
         mock_aioresponse,
         "get",
-        f"{full_host}/ivp/ensemble/inventory",
+        f"{full_host}/inventory.json?deleted=1",
         status=200,
         payload=minimal_inventory,
         repeat=True,
@@ -487,9 +487,9 @@ async def test_acb_per_device_missing_optional_fields(
     assert acb.serial_num == "122000000001"
     assert acb.part_num == ""
     assert acb.sleep_enabled is False
-    assert acb.charge_status == "unknown"
+    assert acb.charge_status == ACBChargeStatus.UNKNOWN
     assert acb.device_status == ["envoy.cond_flags.pcu_ctrl.sleep-mode"]
-    assert acb.sleep_state == "waking"
+    assert acb.sleep_state == ACBSleepState.WAKING
     assert acb.percent_full == 0
     assert acb.max_cell_temp is None
     assert acb.communicating is False
@@ -505,7 +505,7 @@ async def test_set_acb_sleep(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test set_acb_sleep sends correct PUT to /admin/lib/acb_config.json."""
+    """Test set_acb_sleep sends correct PUT to /admin/lib/acb_config."""
     import orjson
 
     from .common import latest_request
@@ -516,7 +516,7 @@ async def test_set_acb_sleep(
 
     full_host = endpoint_path(version, "127.0.0.1")
     mock_aioresponse.put(
-        f"{full_host}/admin/lib/acb_config.json",
+        f"{full_host}/admin/lib/acb_config",
         status=200,
         payload={
             "acb_sleep": [
@@ -533,7 +533,7 @@ async def test_set_acb_sleep(
     assert result is not None
 
     _cnt, request_data = latest_request(
-        mock_aioresponse, "PUT", "/admin/lib/acb_config.json"
+        mock_aioresponse, "PUT", "/admin/lib/acb_config"
     )
     assert orjson.loads(request_data) == {
         "acb_sleep": [
@@ -612,6 +612,12 @@ async def test_set_acb_sleep_validation(
             [{"serial_num": "122000000001", "sleep_min_soc": 80, "sleep_max_soc": 20}]
         )
 
+    # Unknown serial should fail early with clear message
+    with pytest.raises(ValueError, match="Unknown ACB serial number"):
+        await envoy.set_acb_sleep(
+            [{"serial_num": "999999999999", "sleep_min_soc": 10, "sleep_max_soc": 20}]
+        )
+
 
 @pytest.mark.asyncio
 async def test_set_acb_sleep_not_available(
@@ -639,7 +645,7 @@ async def test_clear_acb_sleep(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test clear_acb_sleep sends correct DELETE to /admin/lib/acb_config.json."""
+    """Test clear_acb_sleep sends correct DELETE to /admin/lib/acb_config."""
     import orjson
 
     from .common import latest_request
@@ -650,7 +656,7 @@ async def test_clear_acb_sleep(
 
     full_host = endpoint_path(version, "127.0.0.1")
     mock_aioresponse.delete(
-        f"{full_host}/admin/lib/acb_config.json",
+        f"{full_host}/admin/lib/acb_config",
         status=200,
         payload={"message": "success"},
         repeat=True,
@@ -662,7 +668,7 @@ async def test_clear_acb_sleep(
     assert result == {"message": "success"}
 
     _cnt, request_data = latest_request(
-        mock_aioresponse, "DELETE", "/admin/lib/acb_config.json"
+        mock_aioresponse, "DELETE", "/admin/lib/acb_config"
     )
     assert orjson.loads(request_data) == {
         "acb_sleep": [
@@ -689,6 +695,12 @@ async def test_clear_acb_sleep_validation(
 
     with pytest.raises(ValueError, match="must not be empty"):
         await envoy.clear_acb_sleep([""])
+
+    with pytest.raises(ValueError, match="must not be empty"):
+        await envoy.clear_acb_sleep(["   "])
+
+    with pytest.raises(ValueError, match="Unknown ACB serial number"):
+        await envoy.clear_acb_sleep(["999999999999"])
 
 
 @pytest.mark.asyncio
@@ -717,7 +729,7 @@ def test_acb_sleep_state_variants_and_from_api_without_inverter() -> None:
             "device_status": ["envoy.cond_flags.pcu_ctrl.sleep-mode"],
         }
     )
-    assert asleep.sleep_state == "asleep"
+    assert asleep.sleep_state == ACBSleepState.ASLEEP
     assert asleep.last_report_date is None
     assert asleep.last_report_watts is None
     assert asleep.max_report_watts is None
@@ -729,7 +741,7 @@ def test_acb_sleep_state_variants_and_from_api_without_inverter() -> None:
             "device_status": [],
         }
     )
-    assert going_to_sleep.sleep_state == "going_to_sleep"
+    assert going_to_sleep.sleep_state == ACBSleepState.GOING_TO_SLEEP
 
 
 @pytest.mark.asyncio

@@ -43,6 +43,7 @@ from .const import (
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
     URL_GRID_RELAY,
+    URL_INVENTORY,
     URL_TARIFF,
     SupportedFeatures,
 )
@@ -57,6 +58,7 @@ from .exceptions import (
 )
 from .firmware import EnvoyFirmware
 from .json import json_loads
+from .models.acb import EnvoyACB
 from .models.common import CommonProperties
 from .models.envoy import EnvoyData
 from .models.meters import CtType, EnvoyPhaseMode
@@ -68,6 +70,7 @@ from .updaters.base import EnvoyUpdater
 from .updaters.device_data_inverters import EnvoyDeviceDataInvertersUpdater
 from .updaters.ensemble import EnvoyEnembleUpdater
 from .updaters.generator import EnvoyGeneratorUpdater
+from .updaters.inventory import EnvoyInventoryUpdater
 from .updaters.meters import EnvoyMetersUpdater
 from .updaters.production import (
     EnvoyProductionJsonFallbackUpdater,
@@ -77,9 +80,6 @@ from .updaters.production import (
 from .updaters.tariff import EnvoyTariffUpdater
 
 _LOGGER = logging.getLogger(__name__)
-
-if TYPE_CHECKING:
-    from .models.acb import EnvoyACB
 
 
 DEFAULT_HEADERS = {
@@ -95,6 +95,7 @@ UPDATERS: list[type["EnvoyUpdater"]] = [
     EnvoyDeviceDataInvertersUpdater,
     EnvoyApiV1ProductionInvertersUpdater,
     EnvoyEnembleUpdater,
+    EnvoyInventoryUpdater,
     EnvoyTariffUpdater,
     EnvoyGeneratorUpdater,
 ]  #: Ordered list of standard updaters for Envoy data collection
@@ -684,7 +685,7 @@ class Envoy:
         return self._common_properties.acb_batteries_reported
 
     @property
-    def acb_inventory(self) -> "dict[str, EnvoyACB] | None":
+    def acb_inventory(self) -> dict[str, EnvoyACB] | None:
         """Return per-device ACB battery inventory keyed by serial number."""
         if self.data is None:
             return None
@@ -1061,6 +1062,7 @@ class Envoy:
         if not configs:
             raise ValueError("configs must not be empty.")
         acb_sleep = []
+        serial_nums: list[str] = []
         for i, cfg in enumerate(configs):
             if "serial_num" not in cfg:
                 raise ValueError(f"configs[{i}] missing required key 'serial_num'.")
@@ -1094,6 +1096,7 @@ class Envoy:
                 raise ValueError(
                     f"configs[{i}] sleep_min_soc {min_soc} must be <= sleep_max_soc {max_soc}"
                 )
+            serial_nums.append(serial_num)
             acb_sleep.append(
                 {
                     "serial_num": serial_num,
@@ -1101,9 +1104,17 @@ class Envoy:
                     "sleep_max_soc": max_soc,
                 }
             )
-        return await self._json_request(
-            URL_ACB_CONFIG, {"acb_sleep": acb_sleep}, method="PUT"
-        )
+        await self._validate_acb_serials_or_raise(serial_nums)
+        try:
+            return await self._json_request(
+                URL_ACB_CONFIG, {"acb_sleep": acb_sleep}, method="PUT"
+            )
+        except EnvoyHTTPStatusError as err:
+            if err.status_code == HTTPStatus.BAD_REQUEST:
+                raise ValueError(
+                    "Envoy rejected ACB sleep request (HTTP 400). Check serial numbers and SOC values."
+                ) from err
+            raise
 
     async def clear_acb_sleep(self, serial_nums: list[str]) -> dict[str, Any]:
         """
@@ -1127,14 +1138,64 @@ class Envoy:
             raise ValueError("serial_nums must not be empty.")
 
         acb_sleep = []
+        normalized_serials: list[str] = []
         for i, serial_num in enumerate(serial_nums):
-            if not serial_num:
+            serial_num_str = str(serial_num).strip()
+            if not serial_num_str:
                 raise ValueError(f"serial_nums[{i}] must not be empty.")
-            acb_sleep.append({"serial_num": serial_num})
+            normalized_serials.append(serial_num_str)
+            acb_sleep.append({"serial_num": serial_num_str})
 
-        return await self._json_request(
-            URL_ACB_CONFIG, {"acb_sleep": acb_sleep}, method="DELETE"
-        )
+        await self._validate_acb_serials_or_raise(normalized_serials)
+
+        try:
+            return await self._json_request(
+                URL_ACB_CONFIG, {"acb_sleep": acb_sleep}, method="DELETE"
+            )
+        except EnvoyHTTPStatusError as err:
+            if err.status_code == HTTPStatus.BAD_REQUEST:
+                raise ValueError(
+                    "Envoy rejected ACB wake request (HTTP 400). Check serial numbers."
+                ) from err
+            raise
+
+    async def _known_acb_serials(self) -> set[str]:
+        """Return known ACB serials from loaded data or fallback inventory endpoint."""
+        if self.data and self.data.acb_inventory:
+            return set(self.data.acb_inventory)
+
+        try:
+            inventory_data = await self._json_request(URL_INVENTORY, None)
+        except EnvoyError as err:
+            _LOGGER.debug("Unable to query fallback inventory for ACB validation: %s", err)
+            return set()
+
+        serials: set[str] = set()
+        if isinstance(inventory_data, list):
+            for group in inventory_data:
+                if not isinstance(group, dict) or group.get("type") != "ACB":
+                    continue
+                for device in group.get("devices", []):
+                    if not isinstance(device, dict):
+                        continue
+                    serial = str(device.get("serial_num", "")).strip()
+                    if serial:
+                        serials.add(serial)
+        return serials
+
+    async def _validate_acb_serials_or_raise(self, serial_nums: list[str]) -> None:
+        """Validate requested serials against known ACB devices when available."""
+        known_serials = await self._known_acb_serials()
+        if not known_serials:
+            return
+
+        invalid_serials = sorted({serial for serial in serial_nums if serial not in known_serials})
+        if invalid_serials:
+            known_sorted = ", ".join(sorted(known_serials))
+            invalid_sorted = ", ".join(invalid_serials)
+            raise ValueError(
+                f"Unknown ACB serial number(s): {invalid_sorted}. Known ACB serials: {known_sorted}."
+            )
 
     async def enable_charge_from_grid(self) -> dict[str, Any]:
         """

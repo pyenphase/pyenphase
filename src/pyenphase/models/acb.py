@@ -1,15 +1,34 @@
 """Model for the ACB Battery."""
 
 # Data Source: URL_ENSEMBLE_SECCTRL (primary) & URL_PRODUCTION_JSON
-# Per-device: URL_ENSEMBLE_INVENTORY (type "ACB") + URL_PRODUCTION_INVERTERS (devType=11)
+# Per-device: URL_INVENTORY (type "ACB") + URL_PRODUCTION_INVERTERS (devType=11)
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .inverter import EnvoyInverter
+
+
+class ACBChargeStatus(StrEnum):
+    """Enumerated charge status reported for ACB devices."""
+
+    CHARGING = "charging"
+    DISCHARGING = "discharging"
+    IDLE = "idle"
+    UNKNOWN = "unknown"
+
+
+class ACBSleepState(StrEnum):
+    """Derived sleep state for ACB devices based on flags and requested mode."""
+
+    AWAKE = "awake"
+    GOING_TO_SLEEP = "going_to_sleep"
+    ASLEEP = "asleep"
+    WAKING = "waking"
 
 
 @dataclass(slots=True)
@@ -115,7 +134,7 @@ class EnvoyACBPower:
 
 @dataclass(slots=True)
 class EnvoyACB:
-    """Model for a single ACB (AC Battery) device from /ivp/ensemble/inventory."""
+    """Model for a single ACB (AC Battery) device from /inventory."""
 
     #: Device serial number
     serial_num: str
@@ -123,8 +142,8 @@ class EnvoyACB:
     part_num: str
     #: Whether sleep mode is enabled on this device
     sleep_enabled: bool
-    #: Current charge status: charging, discharging, or idle
-    charge_status: str
+    #: Current charge status: charging, discharging, idle, or unknown
+    charge_status: ACBChargeStatus
     #: Raw device status flags from inventory (e.g. envoy.global.ok,
     #: envoy.cond_flags.pcu_ctrl.sleep-mode)
     device_status: list[str]
@@ -150,7 +169,7 @@ class EnvoyACB:
     max_report_watts: int | None
 
     @property
-    def sleep_state(self) -> str:
+    def sleep_state(self) -> ACBSleepState:
         """
         Return human-readable sleep state based on flags and requested state.
 
@@ -162,12 +181,12 @@ class EnvoyACB:
         """
         has_sleep_flag = "envoy.cond_flags.pcu_ctrl.sleep-mode" in self.device_status
         if self.sleep_enabled and has_sleep_flag:
-            return "asleep"
+            return ACBSleepState.ASLEEP
         if self.sleep_enabled and not has_sleep_flag:
-            return "going_to_sleep"
+            return ACBSleepState.GOING_TO_SLEEP
         if (not self.sleep_enabled) and has_sleep_flag:
-            return "waking"
-        return "awake"
+            return ACBSleepState.WAKING
+        return ACBSleepState.AWAKE
 
     @classmethod
     def from_api(
@@ -178,7 +197,7 @@ class EnvoyACB:
         """
         Fill per-device ACB data from inventory and inverter report.
 
-        Source data from URL_ENSEMBLE_INVENTORY type "ACB" device entry and
+        Source data from URL_INVENTORY type "ACB" device entry and
         (optionally) the matching entry from URL_PRODUCTION_INVERTERS.
 
             .. code-block:: json
@@ -198,7 +217,7 @@ class EnvoyACB:
                 }
 
         Args:
-            data (dict[str, Any]): Device entry from URL_ENSEMBLE_INVENTORY type "ACB"
+            data (dict[str, Any]): Device entry from URL_INVENTORY type "ACB"
             inverter (EnvoyInverter | None): Matching inverter record from
                 URL_PRODUCTION_INVERTERS (devType=11), or None if not available.
 
@@ -206,11 +225,17 @@ class EnvoyACB:
             EnvoyACB: Per-device ACB battery data
 
         """
+        charge_status = str(data.get("charge_status", ACBChargeStatus.UNKNOWN)).lower()
+        try:
+            charge_status_enum = ACBChargeStatus(charge_status)
+        except ValueError:
+            charge_status_enum = ACBChargeStatus.UNKNOWN
+
         return cls(
             serial_num=data["serial_num"],
             part_num=data.get("part_num", ""),
             sleep_enabled=data.get("sleep_enabled", False),
-            charge_status=data.get("charge_status", "unknown"),
+            charge_status=charge_status_enum,
             device_status=[str(x) for x in data.get("device_status", [])],
             percent_full=data.get("percentFull", 0),
             max_cell_temp=data.get("maxCellTemp"),

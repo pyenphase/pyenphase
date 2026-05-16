@@ -20,8 +20,8 @@ How to use:
     python devtools/acb_sleep_example.py wake 121917000087 122047098091
 
 Notes:
-- The sleep action sends PUT /admin/lib/acb_config.json.
-- The wake action sends DELETE /admin/lib/acb_config.json.
+- The sleep action sends PUT /admin/lib/acb_config.
+- The wake action sends DELETE /admin/lib/acb_config.
 - Values like 95..100 match the ACB sleep-window pattern documented from local testing.
 
 """
@@ -30,9 +30,11 @@ import argparse
 import asyncio
 import json
 import os
+import sys
 from pathlib import Path
 
 from pyenphase import Envoy
+from pyenphase.exceptions import EnvoyError
 
 DEFAULTS_PATH = (
     Path(__file__).resolve().parents[1] / "private_data" / "envoy_defaults.json"
@@ -60,7 +62,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "action",
         choices=["sleep", "wake"],
-        help="Use 'sleep' to send PUT /admin/lib/acb_config.json or 'wake' to send DELETE.",
+        help="Use 'sleep' to send PUT /admin/lib/acb_config or 'wake' to send DELETE.",
     )
     parser.add_argument(
         "serials",
@@ -122,4 +124,8 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except (ValueError, EnvoyError) as err:
+        print(f"Error: {err}")
+        sys.exit(1)

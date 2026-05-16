@@ -69,6 +69,10 @@ if envoy.data.acb_inventory:
 
 ACB sleep control is available with [Envoy.set_acb_sleep](#pyenphase.Envoy.set_acb_sleep) and [Envoy.clear_acb_sleep](#pyenphase.Envoy.clear_acb_sleep).
 
+When using `sleep_min_soc` and `sleep_max_soc`, the battery will charge or discharge to reach the configured target boundary before entering sleep mode. For example, if current SOC is above `sleep_max_soc`, it will discharge down to that level, and if SOC is below `sleep_min_soc`, it will charge up to that level.
+
+ACB per-device telemetry from `/inventory` is relatively slow-moving on some systems (observed around 10-15 minutes). This is generally fine for metadata and control-state tracking, but fields like `sleep_enabled`, `percent_full`, and `charge_status` may lag by one reporting interval.
+
 ```python
 await envoy.set_acb_sleep(
         [

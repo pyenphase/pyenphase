@@ -360,3 +360,6 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,pycharm+all,linux,macos,windows
 /private_data
 /Enphase-API-main
+
+# Added by ggshield
+.cache_ggshield

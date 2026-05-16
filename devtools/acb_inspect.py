@@ -127,7 +127,7 @@ async def main() -> None:
         # /inventory.json?deleted=1 still contains ACB devices.
         if not acb_inventory:
             inventory_json = await read_envoy_json(envoy, "/inventory.json?deleted=1")
-            acb_config_json = await read_envoy_json(envoy, "/admin/lib/acb_config.json")
+            acb_config_json = await read_envoy_json(envoy, "/admin/lib/acb_config")
 
             sleep_requests_by_serial: dict[str, dict[str, Any]] = {}
             if isinstance(acb_config_json, dict):

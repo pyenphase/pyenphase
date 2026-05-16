@@ -13,7 +13,7 @@ from ..const import (
     SupportedFeatures,
 )
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
-from ..models.acb import EnvoyACB, EnvoyBatteryAggregate
+from ..models.acb import EnvoyBatteryAggregate
 from ..models.c6combiner import EnvoyC6CC
 from ..models.collar import EnvoyCollar
 from ..models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
@@ -67,8 +67,6 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
                     self._supported_features |= SupportedFeatures.COLLAR
                 if item["type"] == "C6 COMBINER CONTROLLER":
                     self._supported_features |= SupportedFeatures.C6CC
-                if item["type"] == "ACB" and item.get("devices"):
-                    self._supported_features |= SupportedFeatures.ACB
 
         return self._supported_features
 
@@ -171,16 +169,3 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
                     c6cc_data = item["devices"][0]
                     envoy_data.c6cc = EnvoyC6CC.from_api(c6cc_data)
 
-        # Parse per-device ACB inventory and cross-reference power from inverters data
-        # (envoy_data.inverters is already populated by EnvoyApiV1ProductionInvertersUpdater
-        # which runs before this updater in the UPDATERS list)
-        acb_inventory: dict[str, EnvoyACB] = {}
-        for item in ensemble_inventory_data:
-            if item["type"] != "ACB":
-                continue
-            for device in item.get("devices", []):
-                serial = device["serial_num"]
-                inverter = envoy_data.inverters.get(serial)
-                acb_inventory[serial] = EnvoyACB.from_api(device, inverter)
-        if acb_inventory:
-            envoy_data.acb_inventory = acb_inventory
