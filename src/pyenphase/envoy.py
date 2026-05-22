@@ -58,7 +58,6 @@ from .exceptions import (
 )
 from .firmware import EnvoyFirmware
 from .json import json_loads
-from .models.acb import EnvoyACB
 from .models.common import CommonProperties
 from .models.envoy import EnvoyData
 from .models.meters import CtType, EnvoyPhaseMode
@@ -684,13 +683,6 @@ class Envoy:
         assert self._common_properties is not None, "Call setup() first"  # nosec
         return self._common_properties.acb_batteries_reported
 
-    @property
-    def acb_inventory(self) -> dict[str, EnvoyACB] | None:
-        """Return per-device ACB battery inventory keyed by serial number."""
-        if self.data is None:
-            return None
-        return self.data.acb_inventory
-
     @cached_property
     def envoy_model(self) -> str:
         """
@@ -1155,35 +1147,17 @@ class Envoy:
         except EnvoyHTTPStatusError as err:
             if err.status_code == HTTPStatus.BAD_REQUEST:
                 raise ValueError(
-                    "Envoy rejected ACB wake request (HTTP 400). Check serial numbers."
+                    "Envoy rejected ACB sleep clear request (HTTP 400). Check serial numbers."
                 ) from err
             raise
 
     async def _known_acb_serials(self) -> set[str]:
-        """Return known ACB serials from loaded data or fallback inventory endpoint."""
-        if self.data and self.data.acb_inventory:
-            return set(self.data.acb_inventory)
-
-        try:
-            inventory_data = await self._json_request(URL_INVENTORY, None)
-        except EnvoyError as err:
-            _LOGGER.debug(
-                "Unable to query fallback inventory for ACB validation: %s", err
-            )
+        """Return known ACB serials from loaded data."""
+        if self.data is None:
+            raise EnvoyError("Envoy data not initialized. Call update() first.")
+        if not self.data.acb_inventory:
             return set()
-
-        serials: set[str] = set()
-        if isinstance(inventory_data, list):
-            for group in inventory_data:
-                if not isinstance(group, dict) or group.get("type") != "ACB":
-                    continue
-                for device in group.get("devices", []):
-                    if not isinstance(device, dict):
-                        continue
-                    serial = str(device.get("serial_num", "")).strip()
-                    if serial:
-                        serials.add(serial)
-        return serials
+        return set(self.data.acb_inventory)
 
     async def _validate_acb_serials_or_raise(self, serial_nums: list[str]) -> None:
         """Validate requested serials against known ACB devices when available."""

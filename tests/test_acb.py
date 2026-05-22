@@ -399,7 +399,6 @@ async def test_acb_per_device_inventory(
 
     # Per-device inventory available
     assert data.acb_inventory is not None
-    assert envoy.acb_inventory is not None
     assert len(data.acb_inventory) == 2
     assert "122000000001" in data.acb_inventory
     assert "122000000002" in data.acb_inventory
@@ -742,19 +741,3 @@ def test_acb_sleep_state_variants_and_from_api_without_inverter() -> None:
         }
     )
     assert going_to_sleep.sleep_state == ACBSleepState.GOING_TO_SLEEP
-
-
-@pytest.mark.asyncio
-async def test_acb_inventory_property_without_data(
-    mock_aioresponse: aioresponses,
-    test_client_session: aiohttp.ClientSession,
-) -> None:
-    """Cover Envoy.acb_inventory when no data has been loaded yet."""
-    version = "8.2.4382_ACB_2"
-    start_7_firmware_mock(mock_aioresponse)
-    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-
-    envoy = await get_mock_envoy(test_client_session)
-    envoy.data = None
-
-    assert envoy.acb_inventory is None

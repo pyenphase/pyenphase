@@ -99,7 +99,7 @@ async def main() -> None:
 
         # Per-device ACB inventory from /ivp/ensemble/inventory (type == ACB),
         # with watts cross-referenced from /api/v1/production/inverters (devType=11).
-        acb_inventory = envoy.acb_inventory or {}
+        acb_inventory = (envoy.data.acb_inventory if envoy.data else None) or {}
         print(f"\nACB devices found: {len(acb_inventory)}")
         for serial, acb in acb_inventory.items():
             print(f"  - {serial}")
