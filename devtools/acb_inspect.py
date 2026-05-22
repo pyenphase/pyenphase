@@ -37,7 +37,12 @@ async def read_envoy_json(envoy: Envoy, endpoint: str) -> Any | None:
         async with await envoy.request(endpoint) as response:
             payload = await response.read()
             return json.loads(payload.decode("utf-8"))
-    except (EnvoyError, aiohttp.ClientError, json.JSONDecodeError, asyncio.TimeoutError) as err:
+    except (
+        EnvoyError,
+        aiohttp.ClientError,
+        json.JSONDecodeError,
+        asyncio.TimeoutError,
+    ) as err:
         print(f"Failed reading {endpoint}: {err}")
         return None
 
