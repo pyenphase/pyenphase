@@ -6,7 +6,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import aiohttp
+
 from pyenphase import Envoy
+from pyenphase.exceptions import EnvoyError
 from pyenphase.models.acb import EnvoyACB
 
 DEFAULTS_PATH = (
@@ -34,7 +37,7 @@ async def read_envoy_json(envoy: Envoy, endpoint: str) -> Any | None:
         async with await envoy.request(endpoint) as response:
             payload = await response.read()
             return json.loads(payload.decode("utf-8"))
-    except Exception as err:
+    except (EnvoyError, aiohttp.ClientError, json.JSONDecodeError, asyncio.TimeoutError) as err:
         print(f"Failed reading {endpoint}: {err}")
         return None
 

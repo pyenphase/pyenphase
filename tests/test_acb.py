@@ -442,6 +442,10 @@ async def test_acb_per_device_inventory(
     assert "122000010002" in data.inverters
     assert "122000010003" in data.inverters
 
+    # ACB devices (devType=11) must NOT appear in the inverters dict
+    assert "122000000001" not in data.inverters
+    assert "122000000002" not in data.inverters
+
 
 @pytest.mark.asyncio
 async def test_acb_per_device_missing_optional_fields(

@@ -3,10 +3,11 @@
 import logging
 from typing import Any
 
-from ..const import URL_INVENTORY, SupportedFeatures
+from ..const import URL_INVENTORY, URL_PRODUCTION_INVERTERS, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.acb import EnvoyACB
 from ..models.envoy import EnvoyData
+from ..models.inverter import EnvoyInverter
 from .base import EnvoyUpdater
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,7 +40,13 @@ class EnvoyInventoryUpdater(EnvoyUpdater):
             return None
 
         for item in inventory_data:
-            if item.get("type") == "ACB" and item.get("devices"):
+            if item.get("type") != "ACB":
+                continue
+            # Only declare ACB support if there is at least one active (non-decommissioned) device
+            if any(
+                isinstance(d, dict) and d.get("admin_state", 0) != 0
+                for d in item.get("devices", [])
+            ):
                 self._supported_features |= SupportedFeatures.ACB
                 return self._supported_features
 
@@ -53,16 +60,31 @@ class EnvoyInventoryUpdater(EnvoyUpdater):
         inventory_data: list[dict[str, Any]] = await self._json_request(URL_INVENTORY)
         envoy_data.raw[URL_INVENTORY] = inventory_data
 
+        # Build per-ACB power lookup from devType=11 entries in the v1 inverters response.
+        # devType=1 (solar microinverters) are filtered out of envoy_data.inverters, so we
+        # read directly from the raw response to avoid polluting the inverters dict.
+        raw_v1_inverters: list[dict[str, Any]] = envoy_data.raw.get(
+            URL_PRODUCTION_INVERTERS, []
+        )
+        acb_power_lookup: dict[str, EnvoyInverter] = {
+            inv["serialNumber"]: EnvoyInverter.from_v1_api(inv)
+            for inv in raw_v1_inverters
+            if isinstance(inv, dict) and inv.get("devType") == 11
+        }
+
         acb_inventory: dict[str, EnvoyACB] = {}
         for item in inventory_data:
             if item.get("type") != "ACB":
                 continue
             for device in item.get("devices", []):
+                # Skip decommissioned devices (admin_state == 0)
+                if not isinstance(device, dict) or device.get("admin_state", 0) == 0:
+                    continue
                 serial = device.get("serial_num")
                 if not serial:
                     continue
                 serial_str = str(serial)
-                inverter = envoy_data.inverters.get(serial_str)
+                inverter = acb_power_lookup.get(serial_str)
                 acb_inventory[serial_str] = EnvoyACB.from_api(device, inverter)
 
         if acb_inventory:

@@ -34,6 +34,8 @@ URL_GRID_RELAY = "/ivp/ensemble/relay"
 URL_POWER_EXPORT = "/uvp/ss/pel_settings"
 URL_TARIFF = "/admin/lib/tariff"
 URL_ACB_CONFIG = "/admin/lib/acb_config"
+# ?deleted=1 requests that the Envoy include decommissioned devices in the response;
+# the updater filters these out by checking admin_state != 0.
 URL_INVENTORY = "/inventory.json?deleted=1"
 
 # Generator Configuration

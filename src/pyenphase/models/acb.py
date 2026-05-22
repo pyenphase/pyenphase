@@ -7,10 +7,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:
-    from .inverter import EnvoyInverter
+from .inverter import EnvoyInverter
 
 
 class ACBChargeStatus(StrEnum):
