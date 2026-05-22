@@ -43,7 +43,6 @@ from .const import (
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
     URL_GRID_RELAY,
-    URL_INVENTORY,
     URL_TARIFF,
     SupportedFeatures,
 )
