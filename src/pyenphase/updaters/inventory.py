@@ -42,9 +42,10 @@ class EnvoyInventoryUpdater(EnvoyUpdater):
         for item in inventory_data:
             if item.get("type") != "ACB":
                 continue
-            # Only declare ACB support if there is at least one active (non-decommissioned) device
+            # Only declare ACB support if there is at least one active (non-decommissioned) device.
+            # admin_state == 0 means decommissioned; absent means active.
             if any(
-                isinstance(d, dict) and d.get("admin_state", 0) != 0
+                isinstance(d, dict) and d.get("admin_state") != 0
                 for d in item.get("devices", [])
             ):
                 self._supported_features |= SupportedFeatures.ACB
@@ -77,8 +78,9 @@ class EnvoyInventoryUpdater(EnvoyUpdater):
             if item.get("type") != "ACB":
                 continue
             for device in item.get("devices", []):
-                # Skip decommissioned devices (admin_state == 0)
-                if not isinstance(device, dict) or device.get("admin_state", 0) == 0:
+                # Skip decommissioned devices (admin_state == 0).
+                # Devices without admin_state are treated as active.
+                if not isinstance(device, dict) or device.get("admin_state") == 0:
                     continue
                 serial = device.get("serial_num")
                 if not serial:
