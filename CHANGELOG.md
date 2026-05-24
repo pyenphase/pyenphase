@@ -1,6 +1,78 @@
 # CHANGELOG
 
 
+## v2.4.9 (2026-05-24)
+
+### Bug Fixes
+
+- Set opt_schedules=False when changing storage mode
+  ([#432](https://github.com/pyenphase/pyenphase/pull/432),
+  [`8b5aa71`](https://github.com/pyenphase/pyenphase/commit/8b5aa7100ce69121653fa3051988fc66b1590541))
+
+### Chores
+
+- **deps**: Bump idna from 3.10 to 3.15 ([#436](https://github.com/pyenphase/pyenphase/pull/436),
+  [`9a2cd16`](https://github.com/pyenphase/pyenphase/commit/9a2cd1623910212a6cd2f41d4a10457206bbe568))
+
+- **deps**: Bump lxml from 6.0.2 to 6.0.4 ([#420](https://github.com/pyenphase/pyenphase/pull/420),
+  [`20934fa`](https://github.com/pyenphase/pyenphase/commit/20934fa64068b5e0f4492a3481fdc719e056f966))
+
+- **deps**: Bump lxml from 6.0.4 to 6.1.0 ([#423](https://github.com/pyenphase/pyenphase/pull/423),
+  [`0bd5fc6`](https://github.com/pyenphase/pyenphase/commit/0bd5fc629a99d061607285ba87c5de1531faee62))
+
+- **deps**: Bump lxml from 6.1.0 to 6.1.1 ([#435](https://github.com/pyenphase/pyenphase/pull/435),
+  [`18c7a38`](https://github.com/pyenphase/pyenphase/commit/18c7a385996e7cb20c1e958a990e5b321888ed64))
+
+- **deps**: Bump orjson from 3.11.8 to 3.11.9
+  ([#430](https://github.com/pyenphase/pyenphase/pull/430),
+  [`f1b76fa`](https://github.com/pyenphase/pyenphase/commit/f1b76fac4adf740f948fffd964c4282671fc4a9a))
+
+- **deps-dev**: Bump pre-commit from 4.5.1 to 4.6.0
+  ([#425](https://github.com/pyenphase/pyenphase/pull/425),
+  [`c5891e6`](https://github.com/pyenphase/pyenphase/commit/c5891e60f2ab2779af5bde9da5ca59bb0be6c4c8))
+
+- **deps-dev**: Bump pytest from 9.0.2 to 9.0.3
+  ([#419](https://github.com/pyenphase/pyenphase/pull/419),
+  [`c03f371`](https://github.com/pyenphase/pyenphase/commit/c03f37128e6e42008103cd9f26f1d1244dbe09ad))
+
+- **deps-dev**: Bump syrupy from 5.1.0 to 5.2.0
+  ([#434](https://github.com/pyenphase/pyenphase/pull/434),
+  [`241123e`](https://github.com/pyenphase/pyenphase/commit/241123e90f3d1b31822b8123e14c2fcaf4e59b3f))
+
+- **deps-dev**: Bump urllib3 from 2.6.3 to 2.7.0
+  ([#429](https://github.com/pyenphase/pyenphase/pull/429),
+  [`350d1f7`](https://github.com/pyenphase/pyenphase/commit/350d1f7c1c687aca4926c14622f594878890f544))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#433](https://github.com/pyenphase/pyenphase/pull/433),
+  [`0b39d40`](https://github.com/pyenphase/pyenphase/commit/0b39d400feb3cecdbf216dc0e9c0d5e124520d96))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#431](https://github.com/pyenphase/pyenphase/pull/431),
+  [`8ef884c`](https://github.com/pyenphase/pyenphase/commit/8ef884ce45c576d60ab9f8c022d109f2fc51631f))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#427](https://github.com/pyenphase/pyenphase/pull/427),
+  [`dcd7200`](https://github.com/pyenphase/pyenphase/commit/dcd72007d3ba198bafa3b87ee89372a8e72ba9e5))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#426](https://github.com/pyenphase/pyenphase/pull/426),
+  [`704aeed`](https://github.com/pyenphase/pyenphase/commit/704aeed76355dfb099280f2d63f799f489057f3d))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#424](https://github.com/pyenphase/pyenphase/pull/424),
+  [`c93eff1`](https://github.com/pyenphase/pyenphase/commit/c93eff11f72118d78871f5150be761f19c806d8d))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#421](https://github.com/pyenphase/pyenphase/pull/421),
+  [`bc293e7`](https://github.com/pyenphase/pyenphase/commit/bc293e7a71b30cc4956230a7079ae762dbbb4437))
+
+### Continuous Integration
+
+- Check out merge ref so release job works for fork PRs
+  ([#437](https://github.com/pyenphase/pyenphase/pull/437),
+  [`4e1335b`](https://github.com/pyenphase/pyenphase/commit/4e1335bbb3725b464e719aba89057cea3b1032f8))
+
+### Testing
+
+- Jwt short key warning in auth test ([#422](https://github.com/pyenphase/pyenphase/pull/422),
+  [`9af767b`](https://github.com/pyenphase/pyenphase/commit/9af767b45340abaf7068a644ef56c23286eb322a))
+
+
 ## v2.4.8 (2026-04-14)
 
 ### Bug Fixes
