@@ -93,7 +93,7 @@ await envoy.set_acb_sleep(
 await envoy.clear_acb_sleep(["122000000001"])
 ```
 
-Both ACB control methods require ACB support on the gateway and validate input ranges before sending requests.
+Both ACB control methods require ACB support on the gateway and validate inputs before sending requests.
 
 ## Envoy Encharge data
 
