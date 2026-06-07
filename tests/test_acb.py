@@ -2,15 +2,21 @@
 
 import logging
 from typing import Any
+from unittest.mock import AsyncMock
 
 import aiohttp
 import pytest
 from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
+from awesomeversion import AwesomeVersion
 
+from pyenphase.const import URL_INVENTORY, URL_PRODUCTION_INVERTERS
 from pyenphase.envoy import SupportedFeatures
+from pyenphase.exceptions import EnvoyAuthenticationRequired, EnvoyHTTPStatusError
+from pyenphase.models.common import CommonProperties
 from pyenphase.models.acb import ACBChargeStatus, ACBSleepState, EnvoyACB
 from pyenphase.models.envoy import EnvoyData
+from pyenphase.updaters.inventory import EnvoyInventoryUpdater
 
 from .common import (
     endpoint_path,
@@ -22,6 +28,146 @@ from .common import (
 )
 
 LOGGER = logging.getLogger(__name__)
+
+
+def _make_inventory_updater() -> EnvoyInventoryUpdater:
+    """Create inventory updater for isolated unit testing."""
+
+    async def _unused_request(_endpoint: str) -> Any:
+        raise AssertionError("Unexpected network call in isolated inventory updater test")
+
+    return EnvoyInventoryUpdater(
+        envoy_version=AwesomeVersion("8.2.4382"),
+        probe_request=_unused_request,
+        request=_unused_request,
+        common_properties=CommonProperties(),
+    )
+
+
+@pytest.mark.asyncio
+async def test_inventory_probe_handles_auth_required() -> None:
+    """Probe should skip inventory when endpoint requires authentication."""
+    updater = _make_inventory_updater()
+    updater._json_probe_request = AsyncMock(
+        side_effect=EnvoyAuthenticationRequired("authentication required")
+    )
+
+    result = await updater.probe(SupportedFeatures.ACB)
+
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_inventory_update_returns_without_acb_feature() -> None:
+    """Update should return early when ACB support was not discovered."""
+    updater = _make_inventory_updater()
+    updater._json_request = AsyncMock()
+
+    envoy_data = EnvoyData()
+    await updater.update(envoy_data)
+
+    updater._json_request.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_inventory_update_handles_inverters_http_error() -> None:
+    """Inventory update should continue with no power details on HTTP error."""
+    updater = _make_inventory_updater()
+    updater._supported_features |= SupportedFeatures.ACB
+    updater._json_request = AsyncMock(
+        side_effect=[
+            [
+                {
+                    "type": "ACB",
+                    "devices": [
+                        {
+                            "serial_num": "122000000001",
+                            "device_status": ["envoy.global.ok"],
+                        }
+                    ],
+                }
+            ],
+            EnvoyHTTPStatusError(404, URL_PRODUCTION_INVERTERS),
+        ]
+    )
+
+    envoy_data = EnvoyData()
+    await updater.update(envoy_data)
+
+    assert URL_INVENTORY in envoy_data.raw
+    assert URL_PRODUCTION_INVERTERS not in envoy_data.raw
+    assert envoy_data.acb_inventory is not None
+    assert "122000000001" in envoy_data.acb_inventory
+
+
+@pytest.mark.asyncio
+async def test_inventory_update_handles_inverters_auth_required() -> None:
+    """Inventory update should continue with no power details on auth error."""
+    updater = _make_inventory_updater()
+    updater._supported_features |= SupportedFeatures.ACB
+    updater._json_request = AsyncMock(
+        side_effect=[
+            [
+                {
+                    "type": "ACB",
+                    "devices": [
+                        {
+                            "serial_num": "122000000001",
+                            "device_status": ["envoy.global.ok"],
+                        }
+                    ],
+                }
+            ],
+            EnvoyAuthenticationRequired("authentication required"),
+        ]
+    )
+
+    envoy_data = EnvoyData()
+    await updater.update(envoy_data)
+
+    assert URL_INVENTORY in envoy_data.raw
+    assert URL_PRODUCTION_INVERTERS not in envoy_data.raw
+    assert envoy_data.acb_inventory is not None
+    assert "122000000001" in envoy_data.acb_inventory
+
+
+@pytest.mark.asyncio
+async def test_inventory_update_with_no_valid_acb_devices_keeps_inventory_none() -> None:
+    """Update should not populate acb_inventory when no valid active ACB devices exist."""
+    updater = _make_inventory_updater()
+    updater._supported_features |= SupportedFeatures.ACB
+    updater._json_request = AsyncMock(
+        return_value=[
+            {"type": "PCU", "devices": [{"serial_num": "122000010001"}]},
+            {
+                "type": "ACB",
+                "devices": [
+                    {"serial_num": "122000000001", "admin_state": 0},
+                    {"admin_state": 1},
+                    "invalid-device-entry",
+                ],
+            },
+        ]
+    )
+
+    envoy_data = EnvoyData(
+        raw={
+            URL_PRODUCTION_INVERTERS: [
+                {
+                    "serialNumber": "122000000001",
+                    "devType": 11,
+                    "lastReportDate": 1778091218,
+                    "lastReportWatts": 10,
+                    "maxReportWatts": 20,
+                }
+            ]
+        }
+    )
+    await updater.update(envoy_data)
+
+    updater._json_request.assert_awaited_once_with(URL_INVENTORY)
+    assert URL_INVENTORY in envoy_data.raw
+    assert envoy_data.acb_inventory is None
 
 
 @pytest.mark.asyncio
