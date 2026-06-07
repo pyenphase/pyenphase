@@ -7,14 +7,14 @@ from unittest.mock import AsyncMock
 import aiohttp
 import pytest
 from aioresponses import aioresponses
-from syrupy.assertion import SnapshotAssertion
 from awesomeversion import AwesomeVersion
+from syrupy.assertion import SnapshotAssertion
 
 from pyenphase.const import URL_INVENTORY, URL_PRODUCTION_INVERTERS
 from pyenphase.envoy import SupportedFeatures
 from pyenphase.exceptions import EnvoyAuthenticationRequired, EnvoyHTTPStatusError
-from pyenphase.models.common import CommonProperties
 from pyenphase.models.acb import ACBChargeStatus, ACBSleepState, EnvoyACB
+from pyenphase.models.common import CommonProperties
 from pyenphase.models.envoy import EnvoyData
 from pyenphase.updaters.inventory import EnvoyInventoryUpdater
 
@@ -34,7 +34,9 @@ def _make_inventory_updater() -> EnvoyInventoryUpdater:
     """Create inventory updater for isolated unit testing."""
 
     async def _unused_request(_endpoint: str) -> Any:
-        raise AssertionError("Unexpected network call in isolated inventory updater test")
+        raise AssertionError(
+            "Unexpected network call in isolated inventory updater test"
+        )
 
     return EnvoyInventoryUpdater(
         envoy_version=AwesomeVersion("8.2.4382"),
@@ -132,7 +134,9 @@ async def test_inventory_update_handles_inverters_auth_required() -> None:
 
 
 @pytest.mark.asyncio
-async def test_inventory_update_with_no_valid_acb_devices_keeps_inventory_none() -> None:
+async def test_inventory_update_with_no_valid_acb_devices_keeps_inventory_none() -> (
+    None
+):
     """Update should not populate acb_inventory when no valid active ACB devices exist."""
     updater = _make_inventory_updater()
     updater._supported_features |= SupportedFeatures.ACB
