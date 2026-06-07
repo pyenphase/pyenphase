@@ -448,6 +448,48 @@ async def test_acb_per_device_inventory(
 
 
 @pytest.mark.asyncio
+async def test_acb_per_device_inventory_with_device_data_present(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Test ACB inventory when /ivp/pdm/device_data is present and preferred for inverters."""
+    version = "8.2.4382_ACB_2"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    full_host = endpoint_path(version, "127.0.0.1")
+    device_data = await load_json_fixture(
+        "8.2.4345_with_device_data", "ivp_pdm_device_data"
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/ivp/pdm/device_data",
+        status=200,
+        payload=device_data,
+        repeat=True,
+    )
+
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+    assert data.acb_inventory is not None
+
+    # Inverters are sourced from /ivp/pdm/device_data, which contains only PCU entries.
+    assert "122344043197" in data.inverters
+    assert "122000000001" not in data.inverters
+    assert "122000000002" not in data.inverters
+
+    # ACB per-device power still comes from raw /api/v1/production/inverters data.
+    acb0 = data.acb_inventory["122000000001"]
+    acb1 = data.acb_inventory["122000000002"]
+    assert acb0.last_report_watts == 0
+    assert acb0.max_report_watts == 140
+    assert acb1.last_report_watts == 0
+    assert acb1.max_report_watts == 272
+
+
+@pytest.mark.asyncio
 async def test_acb_per_device_missing_optional_fields(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
@@ -745,3 +787,234 @@ def test_acb_sleep_state_variants_and_from_api_without_inverter() -> None:
         }
     )
     assert going_to_sleep.sleep_state == ACBSleepState.GOING_TO_SLEEP
+
+
+def test_acb_charge_status_unknown_on_bogus_string() -> None:
+    """Test that an unrecognised charge_status string maps to ACBChargeStatus.UNKNOWN."""
+    acb = EnvoyACB.from_api({"serial_num": "1", "charge_status": "totally_bogus_value"})
+    assert acb.charge_status == ACBChargeStatus.UNKNOWN
+
+
+@pytest.mark.asyncio
+async def test_set_acb_sleep_http_errors(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Test set_acb_sleep HTTP 400 -> ValueError and other status -> EnvoyHTTPStatusError."""
+    from pyenphase.exceptions import EnvoyHTTPStatusError
+
+    version = "8.2.4382_ACB_2"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    full_host = endpoint_path(version, "127.0.0.1")
+    envoy = await get_mock_envoy(test_client_session)
+
+    # HTTP 400 should be translated to a descriptive ValueError
+    mock_aioresponse.put(
+        f"{full_host}/admin/lib/acb_config",
+        status=400,
+        payload={"message": "Bad Request"},
+    )
+    with pytest.raises(ValueError, match="HTTP 400"):
+        await envoy.set_acb_sleep(
+            [{"serial_num": "122000000001", "sleep_min_soc": 10, "sleep_max_soc": 20}]
+        )
+
+    # Non-400 HTTP errors should propagate as EnvoyHTTPStatusError
+    mock_aioresponse.put(
+        f"{full_host}/admin/lib/acb_config",
+        status=500,
+        payload={"message": "Internal Server Error"},
+    )
+    with pytest.raises(EnvoyHTTPStatusError):
+        await envoy.set_acb_sleep(
+            [{"serial_num": "122000000001", "sleep_min_soc": 10, "sleep_max_soc": 20}]
+        )
+
+
+@pytest.mark.asyncio
+async def test_clear_acb_sleep_http_errors(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Test clear_acb_sleep HTTP 400 -> ValueError and other status -> EnvoyHTTPStatusError."""
+    from pyenphase.exceptions import EnvoyHTTPStatusError
+
+    version = "8.2.4382_ACB_2"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    full_host = endpoint_path(version, "127.0.0.1")
+    envoy = await get_mock_envoy(test_client_session)
+
+    # HTTP 400 should be translated to a descriptive ValueError
+    mock_aioresponse.delete(
+        f"{full_host}/admin/lib/acb_config",
+        status=400,
+        payload={"message": "Bad Request"},
+    )
+    with pytest.raises(ValueError, match="HTTP 400"):
+        await envoy.clear_acb_sleep(["122000000001"])
+
+    # Non-400 HTTP errors should propagate as EnvoyHTTPStatusError
+    mock_aioresponse.delete(
+        f"{full_host}/admin/lib/acb_config",
+        status=500,
+        payload={"message": "Internal Server Error"},
+    )
+    with pytest.raises(EnvoyHTTPStatusError):
+        await envoy.clear_acb_sleep(["122000000001"])
+
+
+@pytest.mark.asyncio
+async def test_known_acb_serials_edge_cases(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Test _known_acb_serials branches: data is None and empty inventory."""
+    from pyenphase.exceptions import EnvoyError
+
+    version = "8.2.4382_ACB_2"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    envoy = await get_mock_envoy(test_client_session)
+    assert envoy.data is not None
+
+    # data is None -> raises EnvoyError
+    envoy.data = None
+    with pytest.raises(EnvoyError, match="not initialized"):
+        await envoy._known_acb_serials()
+
+    # acb_inventory is None -> returns empty set (validation skipped)
+    version2 = "8.2.4382_ACB_2"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version2)
+    envoy2 = await get_mock_envoy(test_client_session)
+    assert envoy2.data is not None
+    envoy2.data.acb_inventory = None
+    result = await envoy2._known_acb_serials()
+    assert result == set()
+
+    # _validate_acb_serials_or_raise returns early (no raise) when no known serials
+    await envoy2._validate_acb_serials_or_raise(["any_unknown_serial"])
+
+
+@pytest.mark.asyncio
+async def test_acb_inventory_decommissioned_and_missing_serial_excluded(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Test that admin_state==0 and missing serial devices are excluded from acb_inventory."""
+    version = "8.2.4382_ACB_2"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    full_host = endpoint_path(version, "127.0.0.1")
+    # Mix of: active device, decommissioned device (admin_state=0), device without serial
+    mixed_inventory = [
+        {
+            "type": "ACB",
+            "devices": [
+                {
+                    "serial_num": "122000000001",
+                    "admin_state": 2,
+                    "device_status": [],
+                    "sleep_enabled": False,
+                    "charge_status": "idle",
+                    "percentFull": 50,
+                },
+                {
+                    "serial_num": "122000000099",
+                    "admin_state": 0,  # decommissioned — must be excluded
+                    "device_status": [],
+                },
+                {
+                    # no serial_num — must be excluded
+                    "admin_state": 2,
+                    "device_status": [],
+                },
+            ],
+        }
+    ]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/inventory.json?deleted=1",
+        status=200,
+        payload=mixed_inventory,
+        repeat=True,
+    )
+
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+    assert data.acb_inventory is not None
+
+    # Active device is present
+    assert "122000000001" in data.acb_inventory
+    # Decommissioned device is excluded
+    assert "122000000099" not in data.acb_inventory
+    # Device without serial is excluded (only 1 entry total)
+    assert len(data.acb_inventory) == 1
+
+
+@pytest.mark.asyncio
+async def test_acb_inventory_probe_non_list_response(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Test probe() returns None when inventory returns non-list JSON (covers line 40)."""
+    version = "8.2.4382_ACB_2"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    full_host = endpoint_path(version, "127.0.0.1")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/inventory.json?deleted=1",
+        status=200,
+        payload={"type": "ACB"},  # dict, not a list
+        repeat=True,
+    )
+
+    envoy = await get_mock_envoy(test_client_session)
+    assert envoy.data is not None
+    # Inventory updater probe returned None — acb_inventory stays unpopulated
+    assert envoy.data.acb_inventory is None
+
+
+@pytest.mark.asyncio
+async def test_acb_inventory_probe_all_decommissioned(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Probe returns None when all ACB devices are decommissioned (covers 47->42 and line 54)."""
+    version = "8.2.4382_ACB_2"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    full_host = endpoint_path(version, "127.0.0.1")
+    # ACB item exists but all devices are admin_state=0; plus a non-ACB item to exercise the loop
+    inventory_all_decommissioned = [
+        {
+            "type": "ACB",
+            "devices": [{"serial_num": "122000000099", "admin_state": 0}],
+        },
+        {"type": "PCU", "devices": []},
+    ]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/inventory.json?deleted=1",
+        status=200,
+        payload=inventory_all_decommissioned,
+        repeat=True,
+    )
+
+    envoy = await get_mock_envoy(test_client_session)
+    assert envoy.data is not None
+    # Inventory updater probe found no active ACBs — acb_inventory unpopulated
+    assert envoy.data.acb_inventory is None

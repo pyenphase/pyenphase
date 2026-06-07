@@ -67,6 +67,24 @@ class EnvoyInventoryUpdater(EnvoyUpdater):
         raw_v1_inverters: list[dict[str, Any]] = envoy_data.raw.get(
             URL_PRODUCTION_INVERTERS, []
         )
+        if not raw_v1_inverters:
+            try:
+                raw_v1_inverters = await self._json_request(URL_PRODUCTION_INVERTERS)
+                envoy_data.raw[URL_PRODUCTION_INVERTERS] = raw_v1_inverters
+            except ENDPOINT_PROBE_EXCEPTIONS as err:
+                _LOGGER.debug(
+                    "Unable to fetch %s for ACB power details: %s",
+                    URL_PRODUCTION_INVERTERS,
+                    err,
+                )
+                raw_v1_inverters = []
+            except EnvoyAuthenticationRequired as err:
+                _LOGGER.debug(
+                    "No access to %s for ACB power details: %s",
+                    URL_PRODUCTION_INVERTERS,
+                    err,
+                )
+                raw_v1_inverters = []
         acb_power_lookup: dict[str, EnvoyInverter] = {
             inv["serialNumber"]: EnvoyInverter.from_v1_api(inv)
             for inv in raw_v1_inverters

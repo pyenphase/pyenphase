@@ -50,7 +50,7 @@ print(status)
 
 ## Enphase AC Battery (ACB) data
 
-The ACB integration exposes both aggregate and per-device battery data:
+Both ACB aggregate and per-device battery data are exposed:
 
 - Aggregate ACB power and SOC are available in [EnvoyData.acb_power](#pyenphase.EnvoyData.acb_power), modeled by [EnvoyACBPower](#pyenphase.models.acb.EnvoyACBPower).
 - Combined Encharge + ACB SOC/capacity is available in [EnvoyData.battery_aggregate](#pyenphase.EnvoyData.battery_aggregate), modeled by [EnvoyBatteryAggregate](#pyenphase.models.acb.EnvoyBatteryAggregate).
