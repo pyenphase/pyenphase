@@ -2,7 +2,7 @@
 
 import logging
 from typing import Any
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import aiohttp
 import pytest
@@ -50,11 +50,12 @@ def _make_inventory_updater() -> EnvoyInventoryUpdater:
 async def test_inventory_probe_handles_auth_required() -> None:
     """Probe should skip inventory when endpoint requires authentication."""
     updater = _make_inventory_updater()
-    updater._json_probe_request = AsyncMock(
+    probe_request_mock = AsyncMock(
         side_effect=EnvoyAuthenticationRequired("authentication required")
     )
 
-    result = await updater.probe(SupportedFeatures.ACB)
+    with patch.object(updater, "_json_probe_request", probe_request_mock):
+        result = await updater.probe(SupportedFeatures.ACB)
 
     assert result is None
 
@@ -63,12 +64,13 @@ async def test_inventory_probe_handles_auth_required() -> None:
 async def test_inventory_update_returns_without_acb_feature() -> None:
     """Update should return early when ACB support was not discovered."""
     updater = _make_inventory_updater()
-    updater._json_request = AsyncMock()
+    json_request_mock = AsyncMock()
 
     envoy_data = EnvoyData()
-    await updater.update(envoy_data)
+    with patch.object(updater, "_json_request", json_request_mock):
+        await updater.update(envoy_data)
 
-    updater._json_request.assert_not_called()
+    json_request_mock.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -76,7 +78,7 @@ async def test_inventory_update_handles_inverters_http_error() -> None:
     """Inventory update should continue with no power details on HTTP error."""
     updater = _make_inventory_updater()
     updater._supported_features |= SupportedFeatures.ACB
-    updater._json_request = AsyncMock(
+    json_request_mock = AsyncMock(
         side_effect=[
             [
                 {
@@ -94,7 +96,8 @@ async def test_inventory_update_handles_inverters_http_error() -> None:
     )
 
     envoy_data = EnvoyData()
-    await updater.update(envoy_data)
+    with patch.object(updater, "_json_request", json_request_mock):
+        await updater.update(envoy_data)
 
     assert URL_INVENTORY in envoy_data.raw
     assert URL_PRODUCTION_INVERTERS not in envoy_data.raw
@@ -107,7 +110,7 @@ async def test_inventory_update_handles_inverters_auth_required() -> None:
     """Inventory update should continue with no power details on auth error."""
     updater = _make_inventory_updater()
     updater._supported_features |= SupportedFeatures.ACB
-    updater._json_request = AsyncMock(
+    json_request_mock = AsyncMock(
         side_effect=[
             [
                 {
@@ -125,7 +128,8 @@ async def test_inventory_update_handles_inverters_auth_required() -> None:
     )
 
     envoy_data = EnvoyData()
-    await updater.update(envoy_data)
+    with patch.object(updater, "_json_request", json_request_mock):
+        await updater.update(envoy_data)
 
     assert URL_INVENTORY in envoy_data.raw
     assert URL_PRODUCTION_INVERTERS not in envoy_data.raw
@@ -140,7 +144,7 @@ async def test_inventory_update_with_no_valid_acb_devices_keeps_inventory_none()
     """Update should not populate acb_inventory when no valid active ACB devices exist."""
     updater = _make_inventory_updater()
     updater._supported_features |= SupportedFeatures.ACB
-    updater._json_request = AsyncMock(
+    json_request_mock = AsyncMock(
         return_value=[
             {"type": "PCU", "devices": [{"serial_num": "122000010001"}]},
             {
@@ -167,9 +171,10 @@ async def test_inventory_update_with_no_valid_acb_devices_keeps_inventory_none()
             ]
         }
     )
-    await updater.update(envoy_data)
+    with patch.object(updater, "_json_request", json_request_mock):
+        await updater.update(envoy_data)
 
-    updater._json_request.assert_awaited_once_with(URL_INVENTORY)
+    json_request_mock.assert_awaited_once_with(URL_INVENTORY)
     assert URL_INVENTORY in envoy_data.raw
     assert envoy_data.acb_inventory is None
 
