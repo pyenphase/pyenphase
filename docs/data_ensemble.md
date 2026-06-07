@@ -140,4 +140,3 @@ The MID status is available in the [EnvoyCollar](#pyenphase.models.collar.EnvoyC
 ## C6 Combiner data
 
 The C6 Combiner status is available in the [EnvoyC6CC](#pyenphase.models.c6combiner.EnvoyC6CC) data object.
-
