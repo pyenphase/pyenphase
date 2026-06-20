@@ -119,11 +119,13 @@ def start_7_firmware_mock(mock_aioresponse: aioresponses) -> None:
 
 
 async def get_mock_envoy(
-    client_session: aiohttp.ClientSession | None, update: bool = True
+    client_session: aiohttp.ClientSession | None,
+    update: bool = True,
+    v2_acb_mode: bool = True,
 ) -> Envoy:
     """Return a mock Envoy."""
     host = "127.0.0.1"
-    envoy = Envoy(host, client=client_session)
+    envoy = Envoy(host, client=client_session, v2_acb_mode=v2_acb_mode)
     await envoy.setup()
     await envoy.authenticate("username", "password")
     if update:

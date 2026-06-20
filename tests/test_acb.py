@@ -536,7 +536,8 @@ async def test_acb_per_device_inventory(
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
-    envoy = await get_mock_envoy(test_client_session)
+    # Use v2_acb_mode=False to test v3 behaviour where ACBs are not in inverters
+    envoy = await get_mock_envoy(test_client_session, v2_acb_mode=False)
     data = envoy.data
     assert data is not None
 
