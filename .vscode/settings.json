@@ -1,5 +1,0 @@
-{
-  "python.terminal.activateEnvironment": true,
-  "code-runner.runInTerminal": true,
-  "code-runner.fileDirectoryAsCwd": false
-}
