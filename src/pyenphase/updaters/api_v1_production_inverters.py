@@ -49,5 +49,5 @@ class EnvoyApiV1ProductionInvertersUpdater(EnvoyUpdater):
         envoy_data.inverters = {
             inverter["serialNumber"]: EnvoyInverter.from_v1_api(inverter)
             for inverter in inverters_data
-            if inverter.get("devType", 1) == 1
+            if inverter.get("devType", 1) == 1 or self._common_properties.v2_acb_mode
         }

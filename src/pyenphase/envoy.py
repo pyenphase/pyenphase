@@ -144,6 +144,7 @@ class Envoy:
         host: str,
         client: aiohttp.ClientSession | None = None,
         timeout: float | aiohttp.ClientTimeout | None = None,
+        v2_acb_mode: bool = True,
     ) -> None:
         """
         Class for communicating with an envoy.
@@ -175,6 +176,10 @@ class Envoy:
         :param timeout: aiohttp ClientTimeout to use, if not specified
             10 sec connection and 45 sec read timeouts will be used
             (:any:`LOCAL_TIMEOUT`).
+        :param v2_acb_mode: in v3 acb data is not included in inverter data as it
+            is (incorrectly) in v2. This may break applications. Use this mode to
+            include acb battery data in inverter data. In v3 this defaults to True.
+            In a future version this default will be set to False.
         """
         # We use our own aiohttp client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._timeout = timeout or LOCAL_TIMEOUT
@@ -196,6 +201,7 @@ class Envoy:
         self._request_last_attempts: int = 0
         self._request_last_elapsed: float = 0.0
         self._request_last_endpoint: str = ""
+        self._v2_acb_mode: bool = v2_acb_mode
 
     async def setup(self) -> None:
         """
@@ -751,10 +757,11 @@ class Envoy:
         updaters: list[EnvoyUpdater] = []
         version = self._firmware.version
         metered = self.is_metered
+        v2_acb_mode = self._v2_acb_mode
         self._endpoint_cache.clear()
         cached_probe = partial(self._make_cached_request, self.probe_request)
         cached_request = partial(self._make_cached_request, self.request)
-        self._common_properties.reset_probe_properties(is_metered=metered)
+        self._common_properties.reset_probe_properties(is_metered=metered, v2_acb_mode=v2_acb_mode)
 
         for updater in get_updaters():
             klass = updater(
