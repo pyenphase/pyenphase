@@ -761,7 +761,9 @@ class Envoy:
         self._endpoint_cache.clear()
         cached_probe = partial(self._make_cached_request, self.probe_request)
         cached_request = partial(self._make_cached_request, self.request)
-        self._common_properties.reset_probe_properties(is_metered=metered, v2_acb_mode=v2_acb_mode)
+        self._common_properties.reset_probe_properties(
+            is_metered=metered, v2_acb_mode=v2_acb_mode
+        )
 
         for updater in get_updaters():
             klass = updater(

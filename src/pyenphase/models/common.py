@@ -60,7 +60,9 @@ class CommonProperties:
     #: production updater, number of phases actually reporting phase data
     active_phase_count: int = 0
 
-    def reset_probe_properties(self, is_metered: bool = False, v2_acb_mode: bool = False) -> None:
+    def reset_probe_properties(
+        self, is_metered: bool = False, v2_acb_mode: bool = False
+    ) -> None:
         """
         Reset common properties at start of probe.
 
