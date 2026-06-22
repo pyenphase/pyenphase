@@ -39,6 +39,9 @@ class CommonProperties:
     #: The Ensemble updater should only report combined ACB and Encharge if production reported data
     acb_batteries_reported: int = 0
 
+    #: run in v2 compatibility mode including ACB in inverters list
+    v2_acb_mode: bool = False
+
     #: imeter flag from /info. If true envoy is metered type
     #: used to detect metered without actual CT installed to enable picking correct data
     imeter_info: bool = False
@@ -57,7 +60,9 @@ class CommonProperties:
     #: production updater, number of phases actually reporting phase data
     active_phase_count: int = 0
 
-    def reset_probe_properties(self, is_metered: bool = False) -> None:
+    def reset_probe_properties(
+        self, is_metered: bool = False, v2_acb_mode: bool = False
+    ) -> None:
         """
         Reset common properties at start of probe.
 
@@ -81,3 +86,6 @@ class CommonProperties:
 
         # shared between production and ensemble
         self.acb_batteries_reported = 0
+
+        # pass v2 acb compatibility mode to updaters
+        self.v2_acb_mode = v2_acb_mode

@@ -1,0 +1,1 @@
+{"headers": {"Server": "openresty/1.17.8.1", "Date": "Sat, 20 Jun 2026 21:38:38 GMT", "Content-Type": "application/json", "Content-Length": "750", "Connection": "keep-alive", "Strict-Transport-Security": "max-age=63072000; includeSubdomains", "X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff"}, "code": 200, "duration_seconds": 0.026}

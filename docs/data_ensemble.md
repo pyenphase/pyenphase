@@ -54,6 +54,47 @@ Dry Contact information is available in the [EnvoyData.dry_contact_status](#pyen
 
 ```
 
+## Enphase AC Battery (ACB) data
+
+Both ACB aggregate and per-device battery data are exposed:
+
+- Aggregate ACB power and SOC are available in [EnvoyData.acb_power](#pyenphase.EnvoyData.acb_power), modeled by [EnvoyACBPower](#pyenphase.models.acb.EnvoyACBPower).
+- Combined Encharge + ACB SOC/capacity is available in [EnvoyData.battery_aggregate](#pyenphase.EnvoyData.battery_aggregate), modeled by [EnvoyBatteryAggregate](#pyenphase.models.acb.EnvoyBatteryAggregate).
+- Per-device ACB data is available in [EnvoyData.acb_inventory](#pyenphase.EnvoyData.acb_inventory), keyed by serial number and modeled by [EnvoyACB](#pyenphase.models.acb.EnvoyACB).
+- The number of ACB batteries reported in production storage can be read from [Envoy.acb_count](#pyenphase.Envoy.acb_count).
+
+Per-device ACB fields include state and sensor values such as `sleep_enabled`, `sleep_state`, `sleep_min_soc`, `sleep_max_soc`, `percent_full`, `charge_status`, `communicating`, `operating`, `producing`, `last_report_watts`, `max_report_watts`, and `last_report_date`.
+
+```python
+print(f"ACB count: {envoy.acb_count}")
+
+if envoy.data.acb_inventory:
+    for serial, acb in envoy.data.acb_inventory.items():
+        print(serial, acb.sleep_state, acb.percent_full, acb.last_report_watts)
+```
+
+ACB sleep control is available with [Envoy.set_acb_sleep](#pyenphase.Envoy.set_acb_sleep) and [Envoy.clear_acb_sleep](#pyenphase.Envoy.clear_acb_sleep).
+
+When using `sleep_min_soc` and `sleep_max_soc`, the battery will charge or discharge to reach the configured target boundary before entering sleep mode. For example, if current SOC is above `sleep_max_soc`, it will discharge down to that level, and if SOC is below `sleep_min_soc`, it will charge up to that level.
+
+ACB per-device telemetry from `/inventory` is relatively slow-moving on some systems (observed around 10-15 minutes). This is generally fine for metadata and control-state tracking, but fields like `sleep_enabled`, `percent_full`, and `charge_status` may lag by one reporting interval.
+
+```python
+await envoy.set_acb_sleep(
+        [
+                {
+                        "serial_num": "122000000001",
+                        "sleep_min_soc": 10,
+                        "sleep_max_soc": 20,
+                }
+        ]
+)
+
+await envoy.clear_acb_sleep(["122000000001"])
+```
+
+Both ACB control methods require ACB support on the gateway and validate inputs before sending requests.
+
 ## Envoy Encharge data
 
 The Enphase Encharge controls battery charge and discharge. Information on it can be obtained from [EnvoyEncharge](#pyenphase.models.encharge.EnvoyEncharge) for individual batteries, [EnvoyEnchargePower](#pyenphase.models.encharge.EnvoyEnchargePower) and [EnvoyEnchargeAggregate](#pyenphase.models.encharge.EnvoyEnchargeAggregate) for all batteries aggregated.

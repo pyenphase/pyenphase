@@ -1,0 +1,82 @@
+{
+    "production": [{
+            "type": "inverters",
+            "activeCount": 3,
+            "readingTime": 0,
+            "wNow": 0,
+            "whLifetime": 1708880
+        }, {
+            "type": "eim",
+            "activeCount": 1,
+            "measurementType": "production",
+            "readingTime": 1781991523,
+            "wNow": -4.174,
+            "whLifetime": 1692970.739,
+            "varhLeadLifetime": 8.771,
+            "varhLagLifetime": 883928.085,
+            "vahLifetime": 2425646.663,
+            "rmsCurrent": 0.197,
+            "rmsVoltage": 239.507,
+            "reactPwr": 45.434,
+            "apprntPwr": 47.243,
+            "pwrFactor": -0.14,
+            "whToday": 2797.739,
+            "whLastSevenDays": 30059.739,
+            "vahToday": 3523.663,
+            "varhLeadToday": 0.771,
+            "varhLagToday": 983.085
+        }
+    ],
+    "consumption": [{
+            "type": "eim",
+            "activeCount": 1,
+            "measurementType": "total-consumption",
+            "readingTime": 1781991523,
+            "wNow": 1413.447,
+            "whLifetime": 20842599.591,
+            "varhLeadLifetime": 16614884.619,
+            "varhLagLifetime": -883784.969,
+            "vahLifetime": 29516629.598,
+            "rmsCurrent": 6.942,
+            "rmsVoltage": 239.57,
+            "reactPwr": -578.349,
+            "apprntPwr": 1663.132,
+            "pwrFactor": 0.85,
+            "whToday": 54010.591,
+            "whLastSevenDays": 798.591,
+            "vahToday": 68701.598,
+            "varhLeadToday": 21849.619,
+            "varhLagToday": 0.0
+        }, {
+            "type": "eim",
+            "activeCount": 1,
+            "measurementType": "net-consumption",
+            "readingTime": 1781991523,
+            "wNow": 1417.621,
+            "whLifetime": 19338719.527,
+            "varhLeadLifetime": 16614893.39,
+            "varhLagLifetime": 143.116,
+            "vahLifetime": 29516629.598,
+            "rmsCurrent": 6.745,
+            "rmsVoltage": 239.57,
+            "reactPwr": -623.783,
+            "apprntPwr": 1615.842,
+            "pwrFactor": 0.88,
+            "whToday": 0,
+            "whLastSevenDays": 0,
+            "vahToday": 0,
+            "varhLeadToday": 0,
+            "varhLagToday": 0
+        }
+    ],
+    "storage": [{
+            "type": "acb",
+            "activeCount": 2,
+            "readingTime": 1781991156,
+            "wNow": -2,
+            "whNow": 25,
+            "state": "idle",
+            "percentFull": 1
+        }
+    ]
+}
