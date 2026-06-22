@@ -204,6 +204,8 @@ async def test_with_4_2_27_firmware(
         "acb_count",
         "battery_aggregate",
         "acb_power",
+        "v2_mode",
+        "inverter_count",
     ),
     [
         (
@@ -219,6 +221,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            19,
         ),
         (
             "7.3.130",
@@ -230,6 +234,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            12,
         ),
         (
             "7.3.130_no_consumption",
@@ -242,6 +248,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            15,
         ),
         (
             "7.3.517",
@@ -256,6 +264,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            22,
         ),
         (
             "7.3.517_legacy_savings_mode",
@@ -270,6 +280,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            22,
         ),
         (
             "7.3.517_system_2",
@@ -286,6 +298,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            13,
         ),
         (
             "7.6.175_with_cts",
@@ -299,6 +313,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            7,
         ),
         (
             "7.6.175_with_cts_3phase",
@@ -313,6 +329,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            7,
         ),
         (
             "7.3.466_with_cts_3phase",
@@ -327,6 +345,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            7,
         ),
         (
             "7.6.185_with_cts_and_battery_3t",
@@ -341,6 +361,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            5,
         ),
         (
             "8.1.41",
@@ -354,6 +376,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            44,
         ),
         (
             "8.2.127_with_3cts_and_battery_split",
@@ -370,6 +394,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            5,
         ),
         (
             "8.2.127_with_generator_running",
@@ -387,6 +413,8 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
+            None,
+            26,
         ),
         (
             "8.2.4382_ACB",
@@ -412,6 +440,131 @@ async def test_with_4_2_27_firmware(
                 "state": "discharging",
                 "batteries": 3,
             },
+            None,
+            20,
+        ),
+        (
+            "8.2.4382_ACB",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.ACB,
+            3,
+            {
+                "available_energy": 2820,
+                "max_available_capacity": 7220,
+                "state_of_charge": 39,
+            },
+            {
+                "power": 260,
+                "charge_wh": 930,
+                "state_of_charge": 25,
+                "state": "discharging",
+                "batteries": 3,
+            },
+            False,
+            17,
+        ),
+        (
+            "8.2.4382_ACB",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.ACB,
+            3,
+            {
+                "available_energy": 2820,
+                "max_available_capacity": 7220,
+                "state_of_charge": 39,
+            },
+            {
+                "power": 260,
+                "charge_wh": 930,
+                "state_of_charge": 25,
+                "state": "discharging",
+                "batteries": 3,
+            },
+            True,
+            20,
+        ),
+        (
+            "8.3.5169_ACB_inventory",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.ACB,
+            2,
+            {},
+            {
+                "power": -2,
+                "charge_wh": 25,
+                "state_of_charge": 1,
+                "state": "idle",
+                "batteries": 2,
+            },
+            None,
+            3,
+        ),
+        (
+            "8.3.5169_ACB_inventory",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.ACB,
+            2,
+            {},
+            {
+                "power": -2,
+                "charge_wh": 25,
+                "state_of_charge": 1,
+                "state": "idle",
+                "batteries": 2,
+            },
+            True,
+            3,
+        ),
+        (
+            "8.3.5169_ACB_inventory",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.ACB,
+            2,
+            {},
+            {
+                "power": -2,
+                "charge_wh": 25,
+                "state_of_charge": 1,
+                "state": "idle",
+                "batteries": 2,
+            },
+            False,
+            3,
         ),
     ],
     ids=[
@@ -429,6 +582,11 @@ async def test_with_4_2_27_firmware(
         "8.2.127_with_3cts_and_battery_split",
         "8.2.127_with_generator_running",
         "8.2.4382_ACB",
+        "8.2.4382_ACB_v2",
+        "8.2.4382_ACB_v3",
+        "8.3.5169_ACB_inventory",
+        "8.3.5169_ACB_inventory_v2",
+        "8.3.5169_ACB_inventory_v3",
     ],
 )
 @pytest.mark.asyncio
@@ -442,6 +600,8 @@ async def test_with_7_x_firmware(
     acb_power: dict[str, dict[str, Any]],
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
+    v2_mode: bool | None,
+    inverter_count: int,
 ) -> None:
     """
     Verify with 7.x firmware.
@@ -454,13 +614,20 @@ async def test_with_7_x_firmware(
 
     caplog.set_level(logging.DEBUG)
 
-    envoy = await get_mock_envoy(test_client_session)
+    envoy = (
+        await get_mock_envoy(test_client_session)
+        if v2_mode is None
+        else await get_mock_envoy(test_client_session, v2_acb_mode=v2_mode)
+    )
     full_host = endpoint_path(version, envoy.host)
     data = envoy.data
     assert data
     assert data == snapshot
 
     assert envoy.acb_count == acb_count
+
+    # verify inverter count, v3 does not include ACB batteries as inverters
+    assert len(data.inverters) == inverter_count
 
     # verify both have ACB or both don't have it
     assert not (
