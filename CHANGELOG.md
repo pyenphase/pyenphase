@@ -1,6 +1,76 @@
 # CHANGELOG
 
 
+## v3.0.0 (2026-06-22)
+
+### Chores
+
+- **ci**: Bump snok/install-poetry from 1.4.1 to 1.4.2 in the github-actions group
+  ([#445](https://github.com/pyenphase/pyenphase/pull/445),
+  [`0641fbb`](https://github.com/pyenphase/pyenphase/commit/0641fbbc5a32e5726a6c805845d7f09beed8e873))
+
+- **ci**: Bump snok/install-poetry in the github-actions group
+  ([#445](https://github.com/pyenphase/pyenphase/pull/445),
+  [`0641fbb`](https://github.com/pyenphase/pyenphase/commit/0641fbbc5a32e5726a6c805845d7f09beed8e873))
+
+- **deps**: Bump aiohttp from 3.13.5 to 3.14.0
+  ([#443](https://github.com/pyenphase/pyenphase/pull/443),
+  [`6af17dd`](https://github.com/pyenphase/pyenphase/commit/6af17dd2353f76987deebd9d9f179fc87daa7bce))
+
+- **deps**: Bump aiohttp from 3.14.0 to 3.14.1
+  ([#447](https://github.com/pyenphase/pyenphase/pull/447),
+  [`cb2806a`](https://github.com/pyenphase/pyenphase/commit/cb2806ab694ec75dc3e174820ca2fc635a6faefe))
+
+- **deps**: Bump pyjwt from 2.12.1 to 2.13.0
+  ([#438](https://github.com/pyenphase/pyenphase/pull/438),
+  [`af2a76c`](https://github.com/pyenphase/pyenphase/commit/af2a76c7a14c1da24656745cfcead2bced17dd7a))
+
+- **deps**: Bump zeroconf from 0.143.0 to 0.149.7
+  ([#440](https://github.com/pyenphase/pyenphase/pull/440),
+  [`13e728d`](https://github.com/pyenphase/pyenphase/commit/13e728dd5f4a1d35c5f4dbd0acfb9c42d42c004e))
+
+- **deps**: Bump zeroconf from 0.149.7 to 0.149.12
+  ([#449](https://github.com/pyenphase/pyenphase/pull/449),
+  [`9787354`](https://github.com/pyenphase/pyenphase/commit/978735493efedf0eff66dbb1f6593579be7c10c7))
+
+- **deps-dev**: Bump pytest from 9.0.3 to 9.1.1
+  ([#451](https://github.com/pyenphase/pyenphase/pull/451),
+  [`6447306`](https://github.com/pyenphase/pyenphase/commit/6447306588384cb5794bfc3c985870230191eef1))
+
+- **deps-dev**: Bump pytest-asyncio from 1.3.0 to 1.4.0
+  ([#442](https://github.com/pyenphase/pyenphase/pull/442),
+  [`75b9e4e`](https://github.com/pyenphase/pyenphase/commit/75b9e4e21f5d31d764d52944c08693f935638740))
+
+- **deps-dev**: Bump syrupy from 5.2.0 to 5.3.1
+  ([#444](https://github.com/pyenphase/pyenphase/pull/444),
+  [`bc5964b`](https://github.com/pyenphase/pyenphase/commit/bc5964b740016c2dcc96196915a18e7975dc878e))
+
+- **deps-dev**: Bump syrupy from 5.3.1 to 5.3.2
+  ([#450](https://github.com/pyenphase/pyenphase/pull/450),
+  [`eb10d53`](https://github.com/pyenphase/pyenphase/commit/eb10d53b5e28894c4b65db43e616fbe0b7422869))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#448](https://github.com/pyenphase/pyenphase/pull/448),
+  [`b381a14`](https://github.com/pyenphase/pyenphase/commit/b381a1406de8a3cd2223479e6751fbd4e9d8a4f8))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#441](https://github.com/pyenphase/pyenphase/pull/441),
+  [`c24aa27`](https://github.com/pyenphase/pyenphase/commit/c24aa271a7b954d425bae9a13d4d99e693b44bb3))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#439](https://github.com/pyenphase/pyenphase/pull/439),
+  [`6744a05`](https://github.com/pyenphase/pyenphase/commit/6744a05dcb244d4cea174058fc21c3e0bd80c035))
+
+### Continuous Integration
+
+- Scope release env and OIDC permissions to main
+  ([#452](https://github.com/pyenphase/pyenphase/pull/452),
+  [`88950ad`](https://github.com/pyenphase/pyenphase/commit/88950adb87a0e81ee9a4998f4d07f0f76c1cc227))
+
+### Features
+
+- Add per-device ACB inventory, sleep control, and devtools
+  ([#428](https://github.com/pyenphase/pyenphase/pull/428),
+  [`9b8c559`](https://github.com/pyenphase/pyenphase/commit/9b8c55942a1c3a33f8286b1b9fc594332d2bb889))
+
+
 ## v2.4.9 (2026-05-24)
 
 ### Bug Fixes
