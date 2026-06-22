@@ -1,0 +1,30 @@
+[
+    {
+        "channels": [
+            {
+                "phase": "L1",
+                "activePower": 1419.382,
+                "reactivePower": -622.658,
+                "voltage": 239.916,
+                "current": 6.752,
+                "freq": 49.938
+            },
+            {
+                "phase": "L2",
+                "activePower": -0.000,
+                "reactivePower": 0.000,
+                "voltage": 6.124,
+                "current": 0.000,
+                "freq": 49.938
+            },
+            {
+                "phase": "L3",
+                "activePower": 0.037,
+                "reactivePower": 0.000,
+                "voltage": 6.351,
+                "current": 0.033,
+                "freq": 49.938
+            }
+        ]
+    }
+]
