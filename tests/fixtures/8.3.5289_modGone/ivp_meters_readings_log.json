@@ -1,0 +1,13 @@
+{
+    "headers": {
+        "Server": "openresty/1.17.8.1",
+        "Date": "Thu, 25 Jun 2026 06:12:40 GMT",
+        "Content-Length": "7035",
+        "Connection": "keep-alive",
+        "Set-Cookie": "sessionId=REDACTEDSESSIONID00000000000; Secure; HttpOnly; path=/",
+        "Strict-Transport-Security": "max-age=63072000; includeSubdomains",
+        "X-Frame-Options": "DENY",
+        "X-Content-Type-Options": "nosniff"
+    },
+    "code": 200
+}
