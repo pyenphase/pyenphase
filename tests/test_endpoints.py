@@ -917,7 +917,7 @@ async def test_with_7_x_firmware(
         for key in data.inverters:
             assert data.inverters[key].ac_frequency is None
 
-        # json_data = await load_json_fixture(version, "ivp_pdm_device_data")
+        json_data = await load_json_fixture(version, "ivp_pdm_device_data")
 
         # empty lastReading of first active inverter channels, should cause switch to production inverters
         inv_key = "nosuchkey"
