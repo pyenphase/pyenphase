@@ -20,6 +20,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             for id, inverter in inverters_data.items()
             if id not in ("deviceCount", "deviceDataLimit")
             and inverter["devName"] == "pcu"
+            and inverter["active"]
         }
 
     async def probe(
@@ -76,7 +77,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                 for sn, inverter in filtered_inverters.items()
             }
 
-        except KeyError as e:
+        except (KeyError, IndexError) as e:
             # if any inverter returned None there's something messed by json format, fall back to production
             _LOGGER.debug(
                 "Disabling inverters device data endpoint "
