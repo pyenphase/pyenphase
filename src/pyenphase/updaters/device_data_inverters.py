@@ -72,6 +72,13 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         # verify minimal data set to replace inverter production data is present
         try:
             filtered_inverters = self._filter_inverters(inverters_data)
+            if not filtered_inverters:
+                _LOGGER.debug(
+                    "Disabling inverters device data endpoint "
+                    "as no active PCU devices were found %s",
+                    URL_DEVICE_DATA,
+                )
+                return None
             _ = {
                 sn: EnvoyInverter.from_device_data(inverter)
                 for sn, inverter in filtered_inverters.items()
