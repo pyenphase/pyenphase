@@ -1,6 +1,36 @@
 # CHANGELOG
 
 
+## v3.0.1 (2026-06-29)
+
+### Bug Fixes
+
+- Do not fall back to v1 inverter data if device data includes removed inverters
+  ([#455](https://github.com/pyenphase/pyenphase/pull/455),
+  [`00a8ed5`](https://github.com/pyenphase/pyenphase/commit/00a8ed5be62abc2bc05af935da41d847baa34edc))
+
+### Chores
+
+- **deps**: Bump zeroconf from 0.149.12 to 0.149.16
+  ([#459](https://github.com/pyenphase/pyenphase/pull/459),
+  [`023a18a`](https://github.com/pyenphase/pyenphase/commit/023a18a21c067db434d2c5e913a646308b6ea136))
+
+- **deps-dev**: Bump aioresponses from 0.7.8 to 0.7.9
+  ([#457](https://github.com/pyenphase/pyenphase/pull/457),
+  [`86a3dcb`](https://github.com/pyenphase/pyenphase/commit/86a3dcb7fb86403cbff38a137b48b49c35d2ae16))
+
+- **deps-dev**: Bump python-jsonpath from 2.0.2 to 2.1.0
+  ([#456](https://github.com/pyenphase/pyenphase/pull/456),
+  [`3c30d1d`](https://github.com/pyenphase/pyenphase/commit/3c30d1d3570fdb64ff82a21e01db0aa20bae9019))
+
+- **deps-dev**: Bump syrupy from 5.3.2 to 5.3.4
+  ([#458](https://github.com/pyenphase/pyenphase/pull/458),
+  [`7ce28ba`](https://github.com/pyenphase/pyenphase/commit/7ce28ba599389c0aeb150a4d360c97a3dcb3a836))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#453](https://github.com/pyenphase/pyenphase/pull/453),
+  [`aef34ae`](https://github.com/pyenphase/pyenphase/commit/aef34ae4ceabfdec3eb262bb01f10427fc9140dc))
+
+
 ## v3.0.0 (2026-06-22)
 
 ### Chores
