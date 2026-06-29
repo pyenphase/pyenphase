@@ -119,6 +119,71 @@ async def test_metered_noct(
     assert data.system_production.watt_hours_lifetime == watt_hours_lifetime
 
 
+@pytest.mark.parametrize(
+    (
+        "version",
+        "updaters",
+        "inverter_count",
+    ),
+    [
+        (
+            "8.2.4345_with_device_data",
+            {
+                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+                | SupportedFeatures.DETAILED_INVERTERS,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
+                | SupportedFeatures.ENPOWER,
+                "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+            },
+            15,
+        ),
+        (
+            "8.3.5289_modGone",
+            {
+                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+                | SupportedFeatures.DETAILED_INVERTERS,
+                "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+            },
+            12,
+        ),
+    ],
+    ids=[
+        "8.2.4345_with_device_data",
+        "8.3.5289_modGone",
+    ],
+)
+@pytest.mark.asyncio
+async def test_removed_inverter_devices(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    updaters: dict[str, SupportedFeatures],
+    caplog: pytest.LogCaptureFixture,
+    inverter_count: int,
+) -> None:
+    """Test removed inverters in device data still allow use of device data and set SupportedFeatures.DETAILED_INVERTERS"""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+
+    # verify found inverter count
+    assert len(data.inverters) == inverter_count
+    # we should use DETAILED_INVERTERS data
+    assert envoy.supported_features & SupportedFeatures.DETAILED_INVERTERS
+
+
 @pytest.mark.asyncio
 async def test_multiple_inverter_sources(
     mock_aioresponse: aioresponses,

@@ -20,6 +20,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             for id, inverter in inverters_data.items()
             if id not in ("deviceCount", "deviceDataLimit")
             and inverter["devName"] == "pcu"
+            and inverter["active"]
         }
 
     async def probe(
@@ -71,12 +72,19 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         # verify minimal data set to replace inverter production data is present
         try:
             filtered_inverters = self._filter_inverters(inverters_data)
+            if not filtered_inverters:
+                _LOGGER.debug(
+                    "Disabling inverters device data endpoint "
+                    "as no active PCU devices were found %s",
+                    URL_DEVICE_DATA,
+                )
+                return None
             _ = {
                 sn: EnvoyInverter.from_device_data(inverter)
                 for sn, inverter in filtered_inverters.items()
             }
 
-        except KeyError as e:
+        except (KeyError, IndexError) as e:
             # if any inverter returned None there's something messed by json format, fall back to production
             _LOGGER.debug(
                 "Disabling inverters device data endpoint "

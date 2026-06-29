@@ -626,6 +626,27 @@ LOGGER = logging.getLogger(__name__)
             {},
             {},
         ),
+        (
+            "8.3.5289_modGone",
+            "800-00554-r03",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.DETAILED_INVERTERS,
+            {
+                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+                | SupportedFeatures.DETAILED_INVERTERS,
+                "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+            },
+            1,
+            {},
+            {},
+        ),
     ],
     ids=[
         "5.0.62",
@@ -650,6 +671,7 @@ LOGGER = logging.getLogger(__name__)
         "8.2.4286_with_3cts_and_battery_split",
         "8.2.4264_metered_noct",
         "8.2.4345_with_device_data",
+        "8.3.5289_modGone",
     ],
 )
 @pytest.mark.asyncio
@@ -828,17 +850,25 @@ async def test_with_7_x_firmware(
         files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
         await envoy.probe()
 
-        # verify we have inverter and inverter details details
+        # verify we have inverter and inverter details
         assert envoy.supported_features & (
             SupportedFeatures.DETAILED_INVERTERS | SupportedFeatures.INVERTERS
         )
+
         json_data = await load_json_fixture(version, "ivp_pdm_device_data")
 
-        # remove channels from first inverter, should cause switch to production inverter data
+        # make first active inverter inactive, it should be skipped from inverters
+        inv_key: str = "nosuchkey"
         for key in json_data:
-            if key not in ("deviceCount", "deviceDataLimit"):
-                del json_data[key]["channels"]
+            if (
+                key not in ("deviceCount", "deviceDataLimit")
+                and json_data[key]["devName"] == "pcu"
+                and json_data[key]["active"]
+            ):
+                json_data[key]["active"] = False
+                inv_key = key
                 break
+        assert inv_key != "nosuchkey"
 
         override_mock(
             mock_aioresponse,
@@ -846,29 +876,119 @@ async def test_with_7_x_firmware(
             f"{full_host}/ivp/pdm/device_data",
             status=200,
             payload=json_data,
+            repeat=2,
+        )
+        await envoy.probe()
+        # verify we have inverter and inverter details
+        assert envoy.supported_features & (
+            SupportedFeatures.DETAILED_INVERTERS | SupportedFeatures.INVERTERS
+        )
+        data = await envoy.update()
+        assert inv_key not in data.inverters
+
+        json_data = await load_json_fixture(version, "ivp_pdm_device_data")
+
+        # make all inverter inactive, it should be skipped switch to production inverter data
+        for key in json_data:
+            if (
+                key not in ("deviceCount", "deviceDataLimit")
+                and json_data[key]["devName"] == "pcu"
+                and json_data[key]["active"]
+            ):
+                json_data[key]["active"] = False
+
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}/ivp/pdm/device_data",
+            status=200,
+            payload=json_data,
+            repeat=2,
         )
         await envoy.probe()
         # verify we have production inverter data only
         assert envoy.supported_features & SupportedFeatures.INVERTERS
+        assert not (envoy.supported_features & SupportedFeatures.DETAILED_INVERTERS)
         data = await envoy.update()
         for key in data.inverters:
             assert data.inverters[key].ac_frequency is None
 
-        # rebuild default data setup
-        files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-        await envoy.probe()
-
-        # verify we have inverter and inverter details details
-        assert envoy.supported_features & (
-            SupportedFeatures.DETAILED_INVERTERS | SupportedFeatures.INVERTERS
-        )
         json_data = await load_json_fixture(version, "ivp_pdm_device_data")
 
-        # remove lastReading from first inverter channel, should cause switch to production inverter data
+        # remove watts from first active inverter channels, should cause switch to production inverter data
+        inv_key = "nosuchkey"
         for key in json_data:
-            if key not in ("deviceCount", "deviceDataLimit"):
+            if (
+                key not in ("deviceCount", "deviceDataLimit")
+                and json_data[key]["devName"] == "pcu"
+                and json_data[key]["active"]
+            ):
+                del json_data[key]["channels"][0]["watts"]
+                inv_key = key
+                break
+        assert inv_key != "nosuchkey"
+
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}/ivp/pdm/device_data",
+            status=200,
+            payload=json_data,
+            repeat=2,
+        )
+        await envoy.probe()
+        # verify we have production inverter data only
+        assert envoy.supported_features & SupportedFeatures.INVERTERS
+        assert not (envoy.supported_features & SupportedFeatures.DETAILED_INVERTERS)
+        data = await envoy.update()
+        for key in data.inverters:
+            assert data.inverters[key].ac_frequency is None
+
+        json_data = await load_json_fixture(version, "ivp_pdm_device_data")
+
+        # empty lastReading of first active inverter channels, should cause switch to production inverters
+        inv_key = "nosuchkey"
+        for key in json_data:
+            if (
+                key not in ("deviceCount", "deviceDataLimit")
+                and json_data[key]["devName"] == "pcu"
+                and json_data[key]["active"]
+            ):
+                json_data[key]["channels"][0]["lastReading"] = {}
+                inv_key = key
+                break
+        assert inv_key != "nosuchkey"
+
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}/ivp/pdm/device_data",
+            status=200,
+            payload=json_data,
+            repeat=2,
+        )
+        await envoy.probe()
+        # verify we have production inverter data only
+        assert envoy.supported_features & SupportedFeatures.INVERTERS
+        assert not (envoy.supported_features & SupportedFeatures.DETAILED_INVERTERS)
+        data = await envoy.update()
+        for key in data.inverters:
+            assert data.inverters[key].ac_frequency is None
+
+        json_data = await load_json_fixture(version, "ivp_pdm_device_data")
+
+        # remove lastReading of first active inverter channels, should cause to use production inverter
+        inv_key = "nosuchkey"
+        for key in json_data:
+            if (
+                key not in ("deviceCount", "deviceDataLimit")
+                and json_data[key]["devName"] == "pcu"
+                and json_data[key]["active"]
+            ):
                 del json_data[key]["channels"][0]["lastReading"]
+                inv_key = key
                 break
+        assert inv_key != "nosuchkey"
 
         override_mock(
             mock_aioresponse,
@@ -876,22 +996,47 @@ async def test_with_7_x_firmware(
             f"{full_host}/ivp/pdm/device_data",
             status=200,
             payload=json_data,
+            repeat=2,
         )
         await envoy.probe()
         # verify we have production inverter data only
         assert envoy.supported_features & SupportedFeatures.INVERTERS
+        assert not (envoy.supported_features & SupportedFeatures.DETAILED_INVERTERS)
         data = await envoy.update()
         for key in data.inverters:
             assert data.inverters[key].ac_frequency is None
 
-        # rebuild default data setup
-        files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-        await envoy.probe()
+        json_data = await load_json_fixture(version, "ivp_pdm_device_data")
 
-        # verify we have inverter and inverter details
-        assert envoy.supported_features & (
-            SupportedFeatures.DETAILED_INVERTERS | SupportedFeatures.INVERTERS
+        # empty channels in first active inverter, should cause to skip this inverter
+        inv_key = "nosuchkey"
+        for key in json_data:
+            if (
+                key not in ("deviceCount", "deviceDataLimit")
+                and json_data[key]["devName"] == "pcu"
+                and json_data[key]["active"]
+            ):
+                json_data[key]["channels"] = []
+                inv_key = key
+                break
+        assert inv_key != "nosuchkey"
+
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}/ivp/pdm/device_data",
+            status=200,
+            payload=json_data,
+            repeat=2,
         )
+        await envoy.probe()
+        # verify we have production inverter data only
+        assert envoy.supported_features & SupportedFeatures.INVERTERS
+        assert not (envoy.supported_features & SupportedFeatures.DETAILED_INVERTERS)
+        data = await envoy.update()
+        for key in data.inverters:
+            assert data.inverters[key].ac_frequency is None
+
         json_data = await load_json_fixture(version, "ivp_pdm_device_data")
 
         # set deviceCount equal to deviceDataLimit, should cause switch to production inverter data
@@ -903,26 +1048,17 @@ async def test_with_7_x_firmware(
             f"{full_host}/ivp/pdm/device_data",
             status=200,
             payload=json_data,
+            repeat=2,
         )
         await envoy.probe()
         # verify we have production inverter data only
         assert envoy.supported_features & SupportedFeatures.INVERTERS
+        assert not (envoy.supported_features & SupportedFeatures.DETAILED_INVERTERS)
         data = await envoy.update()
         for key in data.inverters:
             assert data.inverters[key].ac_frequency is None
 
-        # rebuild default data setup
-        files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-        await envoy.probe()
-
-        # verify we have inverter and inverter details
-        assert envoy.supported_features & (
-            SupportedFeatures.DETAILED_INVERTERS | SupportedFeatures.INVERTERS
-        )
         json_data = await load_json_fixture(version, "ivp_pdm_device_data")
-
-        # set deviceCount equal to deviceDataLimit, should cause switch to production inverter data
-        json_data["deviceCount"] = json_data["deviceDataLimit"]
 
         # remove deviceCount key, should cause switch to production inverter data
         del json_data["deviceCount"]
@@ -933,6 +1069,7 @@ async def test_with_7_x_firmware(
             f"{full_host}/ivp/pdm/device_data",
             status=200,
             payload=json_data,
+            repeat=2,
         )
         await envoy.probe()
         # verify we have production inverter data only
@@ -942,20 +1079,19 @@ async def test_with_7_x_firmware(
         for key in data.inverters:
             assert data.inverters[key].ac_frequency is None
 
-        # rebuild default data setup
-        files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-        await envoy.probe()
-
-        # verify we have inverter and inverter details details
-        assert envoy.supported_features & (
-            SupportedFeatures.DETAILED_INVERTERS | SupportedFeatures.INVERTERS
-        )
         json_data = await load_json_fixture(version, "ivp_pdm_device_data")
 
-        # remove lifetime from first channel of inverters, should cause lifetime to be None
+        # remove lifetime, duration, joulesProduced from first channel of inverters,
+        # should cause lifetime, duration, joulesProduced to be None
         for key in json_data:
-            if key not in ("deviceCount", "deviceDataLimit"):
+            if (
+                key not in ("deviceCount", "deviceDataLimit")
+                and json_data[key]["devName"] == "pcu"
+                and json_data[key]["active"]
+            ):
                 del json_data[key]["channels"][0]["lifetime"]
+                del json_data[key]["channels"][0]["lastReading"]["duration"]
+                del json_data[key]["channels"][0]["lastReading"]["joulesProduced"]
 
         override_mock(
             mock_aioresponse,
@@ -974,6 +1110,8 @@ async def test_with_7_x_firmware(
         data = await envoy.update()
         for key in data.inverters:
             assert data.inverters[key].lifetime_energy is None
+            assert data.inverters[key].last_report_duration is None
+            assert data.inverters[key].energy_produced is None
             assert data.inverters[key].last_report_watts is not None
 
     else:
@@ -984,3 +1122,6 @@ async def test_with_7_x_firmware(
         data = await envoy.update()
         for key in data.inverters:
             assert data.inverters[key].ac_frequency is None
+
+    # for future tests, rebuild default data setup
+    files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)

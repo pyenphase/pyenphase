@@ -1,0 +1,86 @@
+{
+    "production": [
+        {
+            "type": "inverters",
+            "activeCount": 12,
+            "readingTime": 1782367944,
+            "wNow": 1498,
+            "whLifetime": 10023493
+        },
+        {
+            "type": "eim",
+            "activeCount": 1,
+            "measurementType": "production",
+            "readingTime": 1782367959,
+            "wNow": 1636.043,
+            "whLifetime": 10251323.603,
+            "varhLeadLifetime": 95.26,
+            "varhLagLifetime": 5267500.537,
+            "vahLifetime": 13926798.221,
+            "rmsCurrent": 7.014,
+            "rmsVoltage": 235.684,
+            "reactPwr": 201.153,
+            "apprntPwr": 1653.652,
+            "pwrFactor": 0.99,
+            "whToday": 2120.603,
+            "whLastSevenDays": 136491.603,
+            "vahToday": 3149.221,
+            "varhLeadToday": 0.26,
+            "varhLagToday": 1336.537
+        }
+    ],
+    "consumption": [
+        {
+            "type": "eim",
+            "activeCount": 0,
+            "measurementType": "total-consumption",
+            "readingTime": 1782367959,
+            "wNow": 1633.28,
+            "whLifetime": 11346074.293,
+            "varhLeadLifetime": 7357346.447,
+            "varhLagLifetime": -5251860.126,
+            "vahLifetime": 13384263.132,
+            "rmsCurrent": 6.77,
+            "rmsVoltage": 235.728,
+            "reactPwr": 201.153,
+            "apprntPwr": 1595.894,
+            "pwrFactor": 1.0,
+            "whToday": 11346074.293,
+            "whLastSevenDays": 11346074.293,
+            "vahToday": 13384263.132,
+            "varhLeadToday": 7357346.447,
+            "varhLagToday": 0.0
+        },
+        {
+            "type": "eim",
+            "activeCount": 0,
+            "measurementType": "net-consumption",
+            "readingTime": 1782367959,
+            "wNow": -2.763,
+            "whLifetime": 1094750.69,
+            "varhLeadLifetime": 7357441.708,
+            "varhLagLifetime": 15640.411,
+            "vahLifetime": 13384263.132,
+            "rmsCurrent": -0.244,
+            "rmsVoltage": 235.728,
+            "reactPwr": -0.0,
+            "apprntPwr": -57.542,
+            "pwrFactor": -1.0,
+            "whToday": 0,
+            "whLastSevenDays": 0,
+            "vahToday": 0,
+            "varhLeadToday": 0,
+            "varhLagToday": 0
+        }
+    ],
+    "storage": [
+        {
+            "type": "acb",
+            "activeCount": 0,
+            "readingTime": 0,
+            "wNow": 0,
+            "whNow": 0,
+            "state": "idle"
+        }
+    ]
+}
