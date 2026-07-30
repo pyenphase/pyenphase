@@ -211,6 +211,16 @@ async def test_generator_partial_endpoint_support(
     assert URL_GEN_SCHEDULE not in data.raw
     assert URL_GEN_MODE not in data.raw
 
+    # mode control still works without gen_mode data; the preemptive
+    # local update is skipped as there is no generator_mode to update
+    mock_aioresponse.post(
+        f"{full_host}{URL_GEN_MODE}", status=200, payload={}, repeat=True
+    )
+    await envoy.set_generator_mode("auto")
+    _cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GEN_MODE)
+    assert orjson.loads(request_data) == {"gen_cmd": "auto"}
+    assert data.generator_mode is None
+
 
 @pytest.mark.asyncio
 async def test_set_generator_mode(
