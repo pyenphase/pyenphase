@@ -222,6 +222,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '122002010484': dict({
@@ -1043,6 +1044,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '202218023114': dict({
@@ -1561,6 +1563,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '202302072076': dict({
@@ -2684,6 +2687,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '121212121201': dict({
@@ -3816,6 +3820,7 @@
     }),
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '202042084581': dict({
@@ -5131,6 +5136,7 @@
     }),
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '202042084581': dict({
@@ -6642,6 +6648,7 @@
     }),
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '122004027913': dict({
@@ -8186,6 +8193,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '121823030072': dict({
@@ -9155,6 +9163,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '121823030072': dict({
@@ -10180,6 +10189,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '482243033093': dict({
@@ -11164,6 +11174,7 @@
     }),
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '202314050286': dict({
@@ -13120,6 +13131,7 @@
     }),
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '482243033093': dict({
@@ -14905,6 +14917,7 @@
       'start_method': 'Auto',
       'warm_up_mins': 0,
     }),
+    'generator_mode': None,
     'generator_schedule': dict({
       'default_start_soc': 30,
       'default_stop_soc': 70,
@@ -16437,6 +16450,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '122050064150': dict({
@@ -17586,6 +17600,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '122050064150': dict({
@@ -18687,6 +18702,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '122050064150': dict({
@@ -19833,6 +19849,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '12122012100000': dict({
@@ -21315,6 +21332,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '12122012100000': dict({
@@ -22797,6 +22815,7 @@
     'enpower': None,
     'generator': None,
     'generator_config': None,
+    'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
       '12122012100000': dict({

@@ -1,7 +1,7 @@
 """Model for a standby generator connected to the Enpower/IQ System Controller."""
 
-# Data Source: URL_GENERATOR (status), URL_GEN_CONFIG (configuration)
-# & URL_GEN_SCHEDULE (schedule)
+# Data Source: URL_GENERATOR (status), URL_GEN_CONFIG (configuration),
+# URL_GEN_SCHEDULE (schedule) & URL_GEN_MODE (operation mode)
 
 from __future__ import annotations
 
@@ -74,6 +74,23 @@ class EnvoyGeneratorConfig:
             last_updated_by=config["last_updated_by"],
             generator_id=config["generator_id"],
             charge_from_generator=config["charge_from_generator"],
+        )
+
+
+@dataclass(slots=True)
+class EnvoyGeneratorMode:
+    """Model for the generator operation mode."""
+
+    #: Requested generator mode, one of "off", "on" or "auto"
+    gen_cmd: str
+    last_updated_by: str
+
+    @classmethod
+    def from_api(cls, mode: dict[str, Any]) -> EnvoyGeneratorMode:
+        """Initialize from the API."""
+        return cls(
+            gen_cmd=mode["gen_cmd"],
+            last_updated_by=mode["last_updated_by"],
         )
 
 

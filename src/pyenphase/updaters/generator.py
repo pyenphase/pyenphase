@@ -4,6 +4,7 @@ from typing import Any
 from ..const import (
     ENSEMBLE_MIN_VERSION,
     URL_GEN_CONFIG,
+    URL_GEN_MODE,
     URL_GEN_SCHEDULE,
     URL_GENERATOR,
     SupportedFeatures,
@@ -13,6 +14,7 @@ from ..models.envoy import EnvoyData
 from ..models.generator import (
     EnvoyGenerator,
     EnvoyGeneratorConfig,
+    EnvoyGeneratorMode,
     EnvoyGeneratorSchedule,
 )
 from .base import EnvoyUpdater
@@ -22,6 +24,9 @@ _LOGGER = logging.getLogger(__name__)
 
 class EnvoyGeneratorUpdater(EnvoyUpdater):
     """Class to handle updates for Generator information."""
+
+    #: Whether the Envoy exposes the gen_mode endpoint, set during probe
+    _gen_mode_available: bool = False
 
     async def probe(
         self, discovered_features: SupportedFeatures
@@ -48,6 +53,17 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
 
             self._supported_features |= SupportedFeatures.GENERATOR
 
+            # The generator operation mode lives in a separate endpoint that
+            # is not present on all generator-capable firmware, probe for it.
+            try:
+                mode_result = await self._json_probe_request(URL_GEN_MODE)
+            except ENDPOINT_PROBE_EXCEPTIONS as e:
+                _LOGGER.debug("Generator mode endpoint not found: %s", e)
+            else:
+                self._gen_mode_available = bool(mode_result) and (
+                    "gen_cmd" in mode_result
+                )
+
         return self._supported_features
 
     async def update(self, envoy_data: EnvoyData) -> None:
@@ -69,3 +85,8 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
         envoy_data.generator_schedule = EnvoyGeneratorSchedule.from_api(
             generator_schedule_data
         )
+
+        if self._gen_mode_available:
+            generator_mode_data: dict[str, Any] = await self._json_request(URL_GEN_MODE)
+            envoy_data.raw[URL_GEN_MODE] = generator_mode_data
+            envoy_data.generator_mode = EnvoyGeneratorMode.from_api(generator_mode_data)

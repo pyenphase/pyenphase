@@ -3,14 +3,23 @@
 import logging
 
 import aiohttp
+import orjson
 import pytest
 from aioresponses import aioresponses
 
-from pyenphase.const import URL_GEN_CONFIG, URL_GEN_SCHEDULE, URL_GENERATOR
+from pyenphase.const import (
+    URL_GEN_CONFIG,
+    URL_GEN_MODE,
+    URL_GEN_SCHEDULE,
+    URL_GENERATOR,
+)
 from pyenphase.envoy import SupportedFeatures
+from pyenphase.exceptions import EnvoyFeatureNotAvailable
 
 from .common import (
+    endpoint_path,
     get_mock_envoy,
+    latest_request,
     load_json_fixture,
     prep_envoy,
     start_7_firmware_mock,
@@ -116,6 +125,17 @@ async def test_generator_data(
     )
     assert data.generator_schedule.last_updated_by == schedule_json["last_updated_by"]
 
+    # gen_mode is a separate endpoint not present on all generator firmware
+    if version == "8.3.5169_with_generator":
+        mode_json = await load_json_fixture(version, "ivp_ss_gen_mode")
+        assert data.generator_mode is not None
+        assert data.generator_mode.gen_cmd == mode_json["gen_cmd"]
+        assert data.generator_mode.last_updated_by == mode_json["last_updated_by"]
+        assert data.raw[URL_GEN_MODE] == mode_json
+    else:
+        assert data.generator_mode is None
+        assert URL_GEN_MODE not in data.raw
+
     # raw data for all three endpoints should be available
     assert data.raw[URL_GENERATOR] == generator_json
     assert data.raw[URL_GEN_CONFIG] == config_json
@@ -143,5 +163,52 @@ async def test_no_generator_data(
     assert data.generator is None
     assert data.generator_config is None
     assert data.generator_schedule is None
+    assert data.generator_mode is None
     assert URL_GENERATOR not in data.raw
     assert URL_GEN_SCHEDULE not in data.raw
+    assert URL_GEN_MODE not in data.raw
+
+    # generator mode control is feature gated
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.set_generator_mode("auto")
+
+
+@pytest.mark.asyncio
+async def test_set_generator_mode(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify setting the generator mode sends the expected request."""
+    version = "8.3.5169_with_generator"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+
+    assert envoy.supported_features & SupportedFeatures.GENERATOR
+
+    full_host = endpoint_path(version, envoy.host)
+    mock_aioresponse.post(
+        f"{full_host}{URL_GEN_MODE}", status=200, payload={}, repeat=True
+    )
+
+    for mode in ("off", "on", "auto"):
+        await envoy.set_generator_mode(mode)
+        _cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GEN_MODE)
+        assert orjson.loads(request_data) == {"gen_cmd": mode}
+
+    # input is normalized to lowercase before sending
+    await envoy.set_generator_mode("AUTO")
+    _cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GEN_MODE)
+    assert orjson.loads(request_data) == {"gen_cmd": "auto"}
+
+    # internal data is preemptively updated with the new mode
+    assert envoy.data is not None
+    assert envoy.data.generator_mode is not None
+    assert envoy.data.generator_mode.gen_cmd == "auto"
+
+    # invalid modes are rejected without sending a request
+    with pytest.raises(ValueError):
+        await envoy.set_generator_mode("standby")

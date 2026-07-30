@@ -36,12 +36,14 @@ from .const import (
     DEFAULT_MAX_REQUEST_ATTEMPTS,
     DEFAULT_MAX_REQUEST_DELAY,
     ENDPOINT_URL_HOME,
+    GENERATOR_MODES,
     LOCAL_TIMEOUT,
     MAX_PROBE_REQUEST_ATTEMPTS,
     MAX_PROBE_REQUEST_DELAY,
     URL_ACB_CONFIG,
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
+    URL_GEN_MODE,
     URL_GRID_RELAY,
     URL_TARIFF,
     SupportedFeatures,
@@ -1038,6 +1040,43 @@ class Envoy:
         if TYPE_CHECKING:
             assert self.data is not None  # nosec
         self.data.dry_contact_status[id].status = DryContactStatus.CLOSED
+        return result
+
+    async def set_generator_mode(self, mode: str) -> dict[str, Any]:
+        """
+        Set the standby generator operation mode.
+
+        POST {"gen_cmd": mode} to /ivp/ss/gen_mode to set the generator
+        mode. Accepted modes are "off", "on" and "auto"; input is
+        normalized to lowercase before sending, matching the casing the
+        endpoint reports on live firmware (D8.3.5169 reports e.g.
+        ``{"gen_cmd": "on"}``). Requires a system with an Enpower and
+        standby generator installed. Upon successful POST, update the
+        generator mode in internal data as the Envoy needs some time to
+        implement the change and have status updated.
+
+        :param mode: generator mode to set, one of "off", "on" or "auto"
+        :raises EnvoyFeatureNotAvailable: If GENERATOR feature is not available in Envoy
+        :raises ValueError: If mode is not one of "off", "on" or "auto"
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :return: JSON returned by Envoy
+        """
+        if not self.supported_features & SupportedFeatures.GENERATOR:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
+            )
+        gen_cmd = mode.lower()
+        if gen_cmd not in GENERATOR_MODES:
+            raise ValueError(
+                f"Invalid generator mode: {mode}. "
+                f"Valid modes: {', '.join(sorted(GENERATOR_MODES))}"
+            )
+        result = await self._json_request(URL_GEN_MODE, {"gen_cmd": gen_cmd})
+        # The Envoy takes a few seconds before it will reflect the new mode
+        # so we preemptively update it
+        if self.data and self.data.generator_mode:
+            self.data.generator_mode.gen_cmd = gen_cmd
         return result
 
     async def set_acb_sleep(self, configs: list[dict[str, Any]]) -> dict[str, Any]:

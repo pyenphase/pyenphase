@@ -466,6 +466,17 @@ async def prep_envoy(
     else:
         mock_aioresponse.get(url("/ivp/ss/gen_schedule"), status=404, repeat=True)
 
+    if "ivp_ss_gen_mode" in files:
+        try:
+            json_data = await load_json_fixture(version, "ivp_ss_gen_mode")
+        except json.decoder.JSONDecodeError:
+            json_data = {}
+        mock_aioresponse.get(
+            url("/ivp/ss/gen_mode"), status=200, payload=json_data, repeat=True
+        )
+    else:
+        mock_aioresponse.get(url("/ivp/ss/gen_mode"), status=404, repeat=True)
+
     if "ivp_ensemble_generator" in files:
         try:
             json_data = await load_json_fixture(version, "ivp_ensemble_generator")

@@ -21,6 +21,7 @@ from .models.envoy import EnvoyData
 from .models.generator import (
     EnvoyGenerator,
     EnvoyGeneratorConfig,
+    EnvoyGeneratorMode,
     EnvoyGeneratorSchedule,
 )
 from .models.inverter import EnvoyInverter
@@ -50,6 +51,7 @@ __all__ = (
     "EnvoyEnpower",
     "EnvoyGenerator",
     "EnvoyGeneratorConfig",
+    "EnvoyGeneratorMode",
     "EnvoyGeneratorSchedule",
     "EnvoyACB",
     "EnvoyACBPower",

@@ -44,6 +44,9 @@ URL_GEN_CONFIG = "/ivp/ss/gen_config"
 URL_GEN_MODE = "/ivp/ss/gen_mode"
 URL_GEN_SCHEDULE = "/ivp/ss/gen_schedule"
 
+#: Valid generator modes for :any:`Envoy.set_generator_mode`
+GENERATOR_MODES: frozenset[str] = frozenset({"off", "on", "auto"})
+
 # Meters data
 ENDPOINT_URL_METERS = "/ivp/meters"
 ENDPOINT_URL_METERS_READINGS = "/ivp/meters/readings"
