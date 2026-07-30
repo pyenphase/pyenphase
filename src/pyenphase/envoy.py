@@ -1118,7 +1118,12 @@ class Envoy:
             short day name "Mon" through "Sun", any case
         :param start: exercise start time in minutes after
             midnight (0-1439)
-        :param duration: exercise duration in minutes, 1 or greater
+        :param duration: exercise duration in minutes, 10-60 in steps
+            of 10, matching the official Enphase app. Firmware accepts
+            and persists intermediate values (25 verified live on
+            D8.3.5169) but the Enlighten UI renders them as a blank
+            duration field, so the library enforces the vendor domain
+            to avoid writing values the official app cannot display.
         :raises EnvoyFeatureNotAvailable: If GENERATOR feature is not available in Envoy
         :raises EnvoyFeatureNotAvailable: If this firmware does not expose the gen_schedule endpoint
         :raises ValueError: If update was attempted before first data was requested from Envoy
@@ -1141,8 +1146,10 @@ class Envoy:
             )
         if not 0 <= start <= 1439:
             raise ValueError("start must be between 0 and 1439 minutes after midnight")
-        if duration < 1:
-            raise ValueError("duration must be 1 or greater")
+        if not 10 <= duration <= 60 or duration % 10 != 0:
+            raise ValueError(
+                "duration must be between 10 and 60 minutes in steps of 10"
+            )
         if not (data := self.data):
             raise ValueError(
                 "Tried to set generator exercise schedule before the Envoy was queried."

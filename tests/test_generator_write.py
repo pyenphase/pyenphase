@@ -52,7 +52,10 @@ async def test_set_generator_exercise_schedule(
     )
 
     await envoy.set_generator_exercise_schedule(
-        freq_in_weeks=2, day="mon", start=840, duration=20
+        freq_in_weeks=2,
+        day="mon",
+        start=840,
+        duration=20,
     )
 
     # payload is the full GET shape with only exercise_config replaced,
@@ -95,7 +98,18 @@ async def test_set_generator_exercise_schedule(
         )
     with pytest.raises(ValueError):
         await envoy.set_generator_exercise_schedule(
-            freq_in_weeks=1, day="Mon", start=840, duration=0
+            freq_in_weeks=1, day="Mon", start=840, duration=5
+        )
+    with pytest.raises(ValueError):
+        await envoy.set_generator_exercise_schedule(
+            freq_in_weeks=1, day="Mon", start=840, duration=65
+        )
+    # firmware accepts and persists intermediate values like 25 (verified
+    # live on D8.3.5169) but the Enlighten UI renders them as a blank
+    # duration field, so the library enforces the vendor step-10 domain
+    with pytest.raises(ValueError):
+        await envoy.set_generator_exercise_schedule(
+            freq_in_weeks=1, day="Mon", start=840, duration=25
         )
 
     # setting the schedule before the first data update is rejected
