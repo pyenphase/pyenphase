@@ -21,6 +21,7 @@ from .common import (
     get_mock_envoy,
     latest_request,
     load_json_fixture,
+    override_mock,
     prep_envoy,
     start_7_firmware_mock,
 )
@@ -171,6 +172,44 @@ async def test_no_generator_data(
     # generator mode control is feature gated
     with pytest.raises(EnvoyFeatureNotAvailable):
         await envoy.set_generator_mode("auto")
+
+
+@pytest.mark.asyncio
+async def test_generator_partial_endpoint_support(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify generator data degrades per-endpoint when only gen_config exists."""
+    version = "8.3.5169_with_generator"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+
+    # Simulate a firmware variant that reports gen_config but exposes none
+    # of the other generator endpoints
+    full_host = endpoint_path(version, "127.0.0.1")
+    for path in (URL_GENERATOR, URL_GEN_SCHEDULE, URL_GEN_MODE):
+        override_mock(
+            mock_aioresponse, "get", f"{full_host}{path}", status=404, repeat=True
+        )
+
+    envoy = await get_mock_envoy(test_client_session)
+
+    # gen_config alone still flags generator support
+    assert envoy.supported_features & SupportedFeatures.GENERATOR
+
+    data = envoy.data
+    assert data is not None
+    # config is populated, all other generator fields degrade to None
+    assert data.generator_config is not None
+    assert URL_GEN_CONFIG in data.raw
+    assert data.generator is None
+    assert data.generator_schedule is None
+    assert data.generator_mode is None
+    assert URL_GENERATOR not in data.raw
+    assert URL_GEN_SCHEDULE not in data.raw
+    assert URL_GEN_MODE not in data.raw
 
 
 @pytest.mark.asyncio
