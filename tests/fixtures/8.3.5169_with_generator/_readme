@@ -1,0 +1,13 @@
+8.3.5169_with_generator
+
+Captured from a live Envoy (IQ Gateway) firmware D8.3.5169 with an
+IQ System Controller 2 (Enpower), no Enphase batteries, and a two-wire
+start Generac 22kW standby generator (start_method auto, weekly
+exercise schedule configured).
+
+Generator idle/standby snapshot: /ivp/ensemble/generator reports
+present=1 with admin_state/oper_state open and an active exercise
+schedule in /ivp/ss/gen_schedule.
+
+Serial numbers have been altered. HTML-only endpoints (/home,
+/inventory, /production) and /ivp/pdm/device_data were omitted.

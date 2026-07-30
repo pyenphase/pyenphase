@@ -1,0 +1,30 @@
+{
+    "production": {
+        "pcu": {
+            "wattHoursToday": 2238,
+            "wattHoursSevenDays": 236166,
+            "wattHoursLifetime": 11730420,
+            "wattsNow": 772
+        },
+        "rgm": {
+            "wattHoursToday": 0,
+            "wattHoursSevenDays": 0,
+            "wattHoursLifetime": 0,
+            "wattsNow": 0
+        },
+        "eim": {
+            "wattHoursToday": 2363,
+            "wattHoursSevenDays": 232540,
+            "wattHoursLifetime": 11534234,
+            "wattsNow": 1044
+        }
+    },
+    "consumption": {
+        "eim": {
+            "wattHoursToday": 47563,
+            "wattHoursSevenDays": 336450,
+            "wattHoursLifetime": 42511431,
+            "wattsNow": 1663
+        }
+    }
+}

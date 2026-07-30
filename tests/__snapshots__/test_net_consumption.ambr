@@ -220,6 +220,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '122002010484': dict({
         'ac_current': None,
@@ -1038,6 +1041,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '121547055830': dict({
         'ac_current': None,
@@ -2044,6 +2050,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '202218023114': dict({
         'ac_current': None,
@@ -2559,6 +2568,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '202302072076': dict({
         'ac_current': None,
@@ -3419,6 +3431,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '121823030072': dict({
         'ac_current': None,
@@ -4211,6 +4226,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '121212121201': dict({
         'ac_current': None,
@@ -5340,6 +5358,9 @@
       'temperature_unit': 'F',
       'zigbee_dongle_fw_version': '100B',
     }),
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '202042084581': dict({
         'ac_current': None,
@@ -6652,6 +6673,9 @@
       'temperature_unit': 'F',
       'zigbee_dongle_fw_version': '100B',
     }),
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '202042084581': dict({
         'ac_current': None,
@@ -8160,6 +8184,9 @@
       'temperature_unit': 'F',
       'zigbee_dongle_fw_version': '100B',
     }),
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '122004027913': dict({
         'ac_current': None,
@@ -9639,6 +9666,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '482305021663': dict({
         'ac_current': None,
@@ -9989,6 +10019,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '122146075749': dict({
         'ac_current': None,
@@ -10339,6 +10372,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '122218040027': dict({
         'ac_current': None,
@@ -10942,6 +10978,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '122107025358': dict({
         'ac_current': None,
@@ -11707,6 +11746,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '121823030072': dict({
         'ac_current': None,
@@ -12673,6 +12715,9 @@
     'encharge_inventory': None,
     'encharge_power': None,
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '121823030072': dict({
         'ac_current': None,
@@ -13695,6 +13740,9 @@
       }),
     }),
     'enpower': None,
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '482243033093': dict({
         'ac_current': None,
@@ -14676,6 +14724,9 @@
       'temperature_unit': 'F',
       'zigbee_dongle_fw_version': None,
     }),
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '202314050286': dict({
         'ac_current': None,
@@ -16629,6 +16680,9 @@
       'temperature_unit': 'F',
       'zigbee_dongle_fw_version': None,
     }),
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '482243033093': dict({
         'ac_current': None,
@@ -18387,6 +18441,41 @@
       'temperature_unit': 'F',
       'zigbee_dongle_fw_version': None,
     }),
+    'generator': dict({
+      'admin_mode': 2,
+      'admin_state': 'close',
+      'exc_on': 0,
+      'oper_state': 'close',
+      'present': True,
+      'schedule': 1,
+      'start_soc': 100,
+      'stop_soc': -1,
+      'type': 1,
+    }),
+    'generator_config': dict({
+      'charge_from_generator': True,
+      'cool_down_mins': 0,
+      'gen_type': 'Standby',
+      'generator_id': '',
+      'last_updated_by': 'ITK',
+      'manufacturer': 'Generac',
+      'max_cont_gen_amps': 58.3,
+      'max_gen_efficiency_perc': 100,
+      'min_gen_loading_perc': 5,
+      'model': 'G007223-0, G007224-0, G007225-0 (14kW)',
+      'name_plate_rating_wat': 14.0,
+      'start_method': 'Auto',
+      'warm_up_mins': 0,
+    }),
+    'generator_schedule': dict({
+      'default_start_soc': 30,
+      'default_stop_soc': 70,
+      'exercise_day': 'Sun',
+      'exercise_duration': 30,
+      'exercise_freq_in_weeks': 1,
+      'exercise_start': 750,
+      'last_updated_by': 'ITK',
+    }),
     'inverters': dict({
       '482218039091': dict({
         'ac_current': None,
@@ -19197,6 +19286,17 @@
           }),
         ]),
       }),
+      '/ivp/ensemble/generator': dict({
+        'admin_mode': 2,
+        'admin_state': 'close',
+        'exc_on': 0,
+        'oper_state': 'close',
+        'present': 1,
+        'schedule': 1,
+        'start_soc': 100,
+        'stop_soc': -1,
+        'type': 1,
+      }),
       '/ivp/ensemble/inventory': list([
         dict({
           'devices': list([
@@ -19566,6 +19666,44 @@
         'start_method': 'Auto',
         'warm_up_mins': 0,
       }),
+      '/ivp/ss/gen_schedule': dict({
+        'default_soc': dict({
+          'start_soc': 30,
+          'stop_soc': 70,
+        }),
+        'exercise_config': dict({
+          'day': 'Sun',
+          'duration': 30,
+          'freq_in_weeks': 1,
+          'start': 750,
+        }),
+        'last_updated_by': 'ITK',
+        'schedule': dict({
+          'default': list([
+            dict({
+              'days': list([
+                dict({
+                  'id': 'all_days',
+                  'periods': list([
+                    dict({
+                      'duration': 1440.0,
+                      'id': 'normal_1',
+                      'setting': 'AON',
+                      'start': 0.0,
+                      'start_soc': 100.0,
+                      'stop_soc': -1.0,
+                    }),
+                  ]),
+                  'week_days': 'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+                }),
+              ]),
+              'end': '12/31',
+              'id': 'always_on',
+              'start': '1/1',
+            }),
+          ]),
+        }),
+      }),
       '/production.json?details=1': dict({
         'consumption': list([
           dict({
@@ -19931,6 +20069,9 @@
       'temperature_unit': 'F',
       'zigbee_dongle_fw_version': None,
     }),
+    'generator': None,
+    'generator_config': None,
+    'generator_schedule': None,
     'inverters': dict({
       '122344043197': dict({
         'ac_current': 1.049,

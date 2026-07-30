@@ -1,0 +1,15 @@
+{
+    "max_cont_gen_amps": 60.0,
+    "min_gen_loading_perc": 5,
+    "max_gen_efficiency_perc": 100,
+    "name_plate_rating_wat": 22.0,
+    "start_method": "auto",
+    "warm_up_mins": 5,
+    "cool_down_mins": 5,
+    "gen_type": "Standby",
+    "model": "G007042-3, G007043-3 (22kW)",
+    "manufacturer": "Generac",
+    "last_updated_by": "ITK",
+    "generator_id": "3019990001",
+    "charge_from_generator": true
+}
