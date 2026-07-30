@@ -18,6 +18,11 @@ from .models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .models.encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from .models.enpower import EnvoyEnpower
 from .models.envoy import EnvoyData
+from .models.generator import (
+    EnvoyGenerator,
+    EnvoyGeneratorConfig,
+    EnvoyGeneratorSchedule,
+)
 from .models.inverter import EnvoyInverter
 from .models.system_consumption import EnvoySystemConsumption
 from .models.system_production import EnvoySystemProduction
@@ -43,6 +48,9 @@ __all__ = (
     "EnvoyEnchargeAggregate",
     "EnvoyEnchargePower",
     "EnvoyEnpower",
+    "EnvoyGenerator",
+    "EnvoyGeneratorConfig",
+    "EnvoyGeneratorSchedule",
     "EnvoyACB",
     "EnvoyACBPower",
     "EnvoyBatteryAggregate",
