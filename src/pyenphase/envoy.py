@@ -1113,7 +1113,9 @@ class Envoy:
             the sibling /ivp/ss/ write endpoints (gen_mode,
             dry_contact_settings).
 
-        :param freq_in_weeks: exercise interval in weeks, 1 or greater
+        :param freq_in_weeks: exercise interval in weeks, 1-4, matching
+            the official Enphase app's every-1-4-weeks domain (vendor UI
+            domain; firmware behavior for larger values untested)
         :param day: day of the week the exercise runs on,
             short day name "Mon" through "Sun", any case
         :param start: exercise start time in minutes after
@@ -1136,8 +1138,8 @@ class Envoy:
             raise EnvoyFeatureNotAvailable(
                 "This feature is not available on this Envoy."
             )
-        if freq_in_weeks < 1:
-            raise ValueError("freq_in_weeks must be 1 or greater")
+        if not 1 <= freq_in_weeks <= 4:
+            raise ValueError("freq_in_weeks must be between 1 and 4 weeks")
         exercise_day = day.capitalize()
         if exercise_day not in GENERATOR_EXERCISE_DAYS:
             raise ValueError(

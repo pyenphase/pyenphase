@@ -84,6 +84,11 @@ async def test_set_generator_exercise_schedule(
         await envoy.set_generator_exercise_schedule(
             freq_in_weeks=0, day="Mon", start=840, duration=20
         )
+    # the official app's frequency domain is every 1-4 weeks
+    with pytest.raises(ValueError):
+        await envoy.set_generator_exercise_schedule(
+            freq_in_weeks=5, day="Mon", start=840, duration=20
+        )
     with pytest.raises(ValueError):
         await envoy.set_generator_exercise_schedule(
             freq_in_weeks=1, day="Monday", start=840, duration=20
