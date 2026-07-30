@@ -1107,11 +1107,14 @@ class Envoy:
         change and have status updated.
 
         .. note::
-            The request body shape is derived from the GET response shape
-            observed on live firmware (D8.2.127 and D8.3.5169) and has
-            not yet been verified against hardware. POST is used to match
-            the sibling /ivp/ss/ write endpoints (gen_mode,
-            dry_contact_settings).
+            The POST body shape round-trips the GET response shape and
+            was verified live on firmware D8.3.5169 (2026-07-30): writes
+            are accepted, persisted at the controller and synced to
+            Enlighten. POST matches the sibling /ivp/ss/ write endpoints
+            (gen_mode, dry_contact_settings). Writing the schedule also
+            (re)applies the echoed default_soc block as the ACTIVE
+            generator start/stop SOC settings — relevant on systems with
+            Enphase batteries.
 
         :param freq_in_weeks: exercise interval in weeks, 1-4, matching
             the official Enphase app's every-1-4-weeks domain (vendor UI
@@ -1199,11 +1202,15 @@ class Envoy:
         needs some time to implement the change and have status updated.
 
         .. note::
-            The request body shape is derived from the GET response shape
-            observed on live firmware (D8.2.127 and D8.3.5169) and has
-            not yet been verified against hardware. POST is used to match
-            the sibling /ivp/ss/ write endpoints (gen_mode,
-            dry_contact_settings).
+            The POST body shape round-trips the GET response shape and
+            matches the sibling /ivp/ss/ write endpoints (gen_mode,
+            dry_contact_settings). Verified live on firmware D8.3.5169
+            (2026-07-30): on systems without Enphase batteries the
+            firmware accepts the write (HTTP 200) but silently
+            normalizes charge_from_generator back to true. The response
+            body echoes the resulting EFFECTIVE configuration, so
+            callers can compare response to request to detect an
+            accepted-but-ignored write.
 
         :param charge_from_generator: True to allow charging batteries
             from the generator, False to disallow
