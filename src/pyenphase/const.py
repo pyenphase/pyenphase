@@ -47,6 +47,18 @@ URL_GEN_SCHEDULE = "/ivp/ss/gen_schedule"
 #: Valid generator modes for :any:`Envoy.set_generator_mode`
 GENERATOR_MODES: frozenset[str] = frozenset({"off", "on", "auto"})
 
+#: Valid exercise days for :any:`Envoy.set_generator_exercise_schedule`,
+#: in the capitalized short-day-name form the generator firmware reports
+GENERATOR_EXERCISE_DAYS: tuple[str, ...] = (
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun",
+)
+
 # Meters data
 ENDPOINT_URL_METERS = "/ivp/meters"
 ENDPOINT_URL_METERS_READINGS = "/ivp/meters/readings"

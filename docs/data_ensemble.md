@@ -63,7 +63,7 @@ Systems with an Enpower and a standby generator installed report generator data.
 - The generator exercise schedule and default state-of-charge settings are available in [EnvoyData.generator_schedule](#pyenphase.EnvoyData.generator_schedule), modeled by [EnvoyGeneratorSchedule](#pyenphase.models.generator.EnvoyGeneratorSchedule).
 - The generator operation mode ("off", "on" or "auto") is available in [EnvoyData.generator_mode](#pyenphase.EnvoyData.generator_mode), modeled by [EnvoyGeneratorMode](#pyenphase.models.generator.EnvoyGeneratorMode), on firmware exposing the `/ivp/ss/gen_mode` endpoint.
 
-The Envoy class provides the method [Envoy.set_generator_mode](#pyenphase.Envoy.set_generator_mode) to control the generator operation mode.
+The Envoy class provides the method [Envoy.set_generator_mode](#pyenphase.Envoy.set_generator_mode) to control the generator operation mode, [Envoy.set_generator_exercise_schedule](#pyenphase.Envoy.set_generator_exercise_schedule) to change the exercise schedule, and [Envoy.set_generator_charge_from_generator](#pyenphase.Envoy.set_generator_charge_from_generator) to allow or disallow charging batteries from the generator.
 
 ```python
 if envoy.data.generator:

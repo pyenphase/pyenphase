@@ -4,6 +4,7 @@ import asyncio
 import logging
 import time
 from collections.abc import Awaitable, Callable
+from copy import deepcopy
 from dataclasses import replace
 from functools import cached_property, partial
 from http import HTTPStatus
@@ -36,6 +37,7 @@ from .const import (
     DEFAULT_MAX_REQUEST_ATTEMPTS,
     DEFAULT_MAX_REQUEST_DELAY,
     ENDPOINT_URL_HOME,
+    GENERATOR_EXERCISE_DAYS,
     GENERATOR_MODES,
     LOCAL_TIMEOUT,
     MAX_PROBE_REQUEST_ATTEMPTS,
@@ -43,7 +45,9 @@ from .const import (
     URL_ACB_CONFIG,
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
+    URL_GEN_CONFIG,
     URL_GEN_MODE,
+    URL_GEN_SCHEDULE,
     URL_GRID_RELAY,
     URL_TARIFF,
     SupportedFeatures,
@@ -1077,6 +1081,150 @@ class Envoy:
         # so we preemptively update it
         if self.data and self.data.generator_mode:
             self.data.generator_mode.gen_cmd = gen_cmd
+        return result
+
+    async def set_generator_exercise_schedule(
+        self,
+        *,
+        freq_in_weeks: int,
+        day: str,
+        start: int,
+        duration: int,
+    ) -> dict[str, Any]:
+        """
+        Set the standby generator exercise schedule.
+
+        POST the gen_schedule data as last read from the Envoy to
+        /ivp/ss/gen_schedule with the exercise_config fields
+        (freq_in_weeks, day, start, duration) replaced by the specified
+        values. All other blocks of the schedule data (default_soc,
+        schedule) are sent back unchanged, as partial updates may not be
+        supported. The day input is case-insensitive and normalized to
+        the capitalized short day name the firmware reports (e.g. "Thu").
+        Requires a system with an Enpower and standby generator
+        installed. Upon successful POST, update the exercise schedule in
+        internal data as the Envoy needs some time to implement the
+        change and have status updated.
+
+        .. note::
+            The request body shape is derived from the GET response shape
+            observed on live firmware (D8.2.127 and D8.3.5169) and has
+            not yet been verified against hardware. POST is used to match
+            the sibling /ivp/ss/ write endpoints (gen_mode,
+            dry_contact_settings).
+
+        :param freq_in_weeks: exercise interval in weeks, 1 or greater
+        :param day: day of the week the exercise runs on,
+            short day name "Mon" through "Sun", any case
+        :param start: exercise start time in minutes after
+            midnight (0-1439)
+        :param duration: exercise duration in minutes, 1 or greater
+        :raises EnvoyFeatureNotAvailable: If GENERATOR feature is not available in Envoy
+        :raises EnvoyFeatureNotAvailable: If this firmware does not expose the gen_schedule endpoint
+        :raises ValueError: If update was attempted before first data was requested from Envoy
+        :raises ValueError: If freq_in_weeks, day, start or duration is out of range
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :return: JSON returned by Envoy
+        """
+        if not self.supported_features & SupportedFeatures.GENERATOR:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
+            )
+        if freq_in_weeks < 1:
+            raise ValueError("freq_in_weeks must be 1 or greater")
+        exercise_day = day.capitalize()
+        if exercise_day not in GENERATOR_EXERCISE_DAYS:
+            raise ValueError(
+                f"Invalid exercise day: {day}. "
+                f"Valid days: {', '.join(GENERATOR_EXERCISE_DAYS)}"
+            )
+        if not 0 <= start <= 1439:
+            raise ValueError("start must be between 0 and 1439 minutes after midnight")
+        if duration < 1:
+            raise ValueError("duration must be 1 or greater")
+        if not (data := self.data):
+            raise ValueError(
+                "Tried to set generator exercise schedule before the Envoy was queried."
+            )
+        if (current_schedule := data.raw.get(URL_GEN_SCHEDULE)) is None:
+            raise EnvoyFeatureNotAvailable(
+                "The generator schedule endpoint is not available on this Envoy."
+            )
+        new_schedule: dict[str, Any] = deepcopy(current_schedule)
+        new_schedule["exercise_config"] = {
+            **new_schedule["exercise_config"],
+            "freq_in_weeks": freq_in_weeks,
+            "day": exercise_day,
+            "start": start,
+            "duration": duration,
+        }
+        result = await self._json_request(URL_GEN_SCHEDULE, new_schedule)
+        # The Envoy takes a few seconds before it will reflect the new
+        # schedule so we preemptively update it. When raw gen_schedule
+        # data is present the model was populated from it in the same
+        # update cycle.
+        if TYPE_CHECKING:
+            assert data.generator_schedule is not None  # nosec
+        data.generator_schedule.exercise_freq_in_weeks = freq_in_weeks
+        data.generator_schedule.exercise_day = exercise_day
+        data.generator_schedule.exercise_start = start
+        data.generator_schedule.exercise_duration = duration
+        return result
+
+    async def set_generator_charge_from_generator(
+        self, charge_from_generator: bool
+    ) -> dict[str, Any]:
+        """
+        Enable or disable battery charging from the standby generator.
+
+        POST the gen_config data as last read from the Envoy to
+        /ivp/ss/gen_config with only charge_from_generator replaced by
+        the specified value, as partial updates may not be supported.
+        Other gen_config fields (name plate rating, max continuous amps,
+        generator type/model/manufacturer, start method) are
+        installer-grade settings and are intentionally not settable
+        through this library. Requires a system with an Enpower and
+        standby generator installed. Upon successful POST, update the
+        charge from generator setting in internal data as the Envoy
+        needs some time to implement the change and have status updated.
+
+        .. note::
+            The request body shape is derived from the GET response shape
+            observed on live firmware (D8.2.127 and D8.3.5169) and has
+            not yet been verified against hardware. POST is used to match
+            the sibling /ivp/ss/ write endpoints (gen_mode,
+            dry_contact_settings).
+
+        :param charge_from_generator: True to allow charging batteries
+            from the generator, False to disallow
+        :raises EnvoyFeatureNotAvailable: If GENERATOR feature is not available in Envoy
+        :raises TypeError: If charge_from_generator is not of type bool
+        :raises ValueError: If update was attempted before first data was requested from Envoy
+        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :return: JSON returned by Envoy
+        """
+        if not self.supported_features & SupportedFeatures.GENERATOR:
+            raise EnvoyFeatureNotAvailable(
+                "This feature is not available on this Envoy."
+            )
+        if type(charge_from_generator) is not bool:
+            raise TypeError("charge_from_generator must be of type bool")
+        if not (data := self.data):
+            raise ValueError(
+                "Tried to set charge from generator before the Envoy was queried."
+            )
+        # gen_config is the GENERATOR detection gate and is always
+        # fetched during update, so raw data and model are present here
+        new_config: dict[str, Any] = deepcopy(data.raw[URL_GEN_CONFIG])
+        new_config["charge_from_generator"] = charge_from_generator
+        result = await self._json_request(URL_GEN_CONFIG, new_config)
+        # The Envoy takes a few seconds before it will reflect the new
+        # setting so we preemptively update it
+        if TYPE_CHECKING:
+            assert data.generator_config is not None  # nosec
+        data.generator_config.charge_from_generator = charge_from_generator
         return result
 
     async def set_acb_sleep(self, configs: list[dict[str, Any]]) -> dict[str, Any]:
