@@ -126,21 +126,58 @@ async def test_generator_data(
     )
     assert data.generator_schedule.last_updated_by == schedule_json["last_updated_by"]
 
-    # gen_mode is a separate endpoint not present on all generator firmware
-    if version == "8.3.5169_with_generator":
-        mode_json = await load_json_fixture(version, "ivp_ss_gen_mode")
-        assert data.generator_mode is not None
-        assert data.generator_mode.gen_cmd == mode_json["gen_cmd"]
-        assert data.generator_mode.last_updated_by == mode_json["last_updated_by"]
-        assert data.raw[URL_GEN_MODE] == mode_json
-    else:
-        assert data.generator_mode is None
-        assert URL_GEN_MODE not in data.raw
-
     # raw data for all three endpoints should be available
     assert data.raw[URL_GENERATOR] == generator_json
     assert data.raw[URL_GEN_CONFIG] == config_json
     assert data.raw[URL_GEN_SCHEDULE] == schedule_json
+
+
+@pytest.mark.asyncio
+async def test_generator_mode_data(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify the generator mode model for firmware with the gen_mode endpoint."""
+    version = "8.3.5169_with_generator"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+
+    assert envoy.supported_features & SupportedFeatures.GENERATOR
+
+    data = envoy.data
+    assert data is not None
+
+    mode_json = await load_json_fixture(version, "ivp_ss_gen_mode")
+    assert data.generator_mode is not None
+    assert data.generator_mode.gen_cmd == mode_json["gen_cmd"]
+    assert data.generator_mode.last_updated_by == mode_json["last_updated_by"]
+    assert data.raw[URL_GEN_MODE] == mode_json
+
+
+@pytest.mark.asyncio
+async def test_generator_mode_not_supported(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify no generator mode is reported for firmware without the endpoint."""
+    version = "8.2.127_with_generator_running"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+
+    assert envoy.supported_features & SupportedFeatures.GENERATOR
+
+    data = envoy.data
+    assert data is not None
+    assert data.generator_mode is None
+    assert URL_GEN_MODE not in data.raw
 
 
 @pytest.mark.asyncio
