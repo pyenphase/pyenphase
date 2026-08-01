@@ -1,6 +1,54 @@
 # CHANGELOG
 
 
+## v3.1.0 (2026-08-01)
+
+### Chores
+
+- **ci**: Bump the github-actions group with 3 updates
+  ([#461](https://github.com/pyenphase/pyenphase/pull/461),
+  [`9876e3e`](https://github.com/pyenphase/pyenphase/commit/9876e3e8b1d1e6b490c7ff8e60cf97021ab59d03))
+
+- **ci**: Bump the github-actions group with 4 updates
+  ([#475](https://github.com/pyenphase/pyenphase/pull/475),
+  [`410d128`](https://github.com/pyenphase/pyenphase/commit/410d128aed2952481e46fef4581cbe16aafe94a4))
+
+- **deps**: Bump aiohttp from 3.14.1 to 3.14.3
+  ([#468](https://github.com/pyenphase/pyenphase/pull/468),
+  [`2fe25e7`](https://github.com/pyenphase/pyenphase/commit/2fe25e75bfe899e1a9b056975f681c5bb509f360))
+
+- **deps-dev**: Bump pre-commit from 4.6.0 to 4.6.1
+  ([#469](https://github.com/pyenphase/pyenphase/pull/469),
+  [`cc3ebb0`](https://github.com/pyenphase/pyenphase/commit/cc3ebb004ecd4c3c656187aac8fecf7172bedb98))
+
+- **deps-dev**: Bump python-jsonpath from 2.1.0 to 2.2.1
+  ([#465](https://github.com/pyenphase/pyenphase/pull/465),
+  [`65d9911`](https://github.com/pyenphase/pyenphase/commit/65d9911b4109477e259c2ca55ac891191bf55eb3))
+
+- **deps-dev**: Bump syrupy from 5.3.4 to 5.5.3
+  ([#464](https://github.com/pyenphase/pyenphase/pull/464),
+  [`214e0f7`](https://github.com/pyenphase/pyenphase/commit/214e0f7d673f08ae250850f19dfd3d247f0e79b5))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#470](https://github.com/pyenphase/pyenphase/pull/470),
+  [`e7bc244`](https://github.com/pyenphase/pyenphase/commit/e7bc2448918bf0ea8ca99a8df8dfc054d8ec4e29))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#466](https://github.com/pyenphase/pyenphase/pull/466),
+  [`16b5298`](https://github.com/pyenphase/pyenphase/commit/16b52984a4977fabbcc4f1e3402401e5aafb6e4e))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#460](https://github.com/pyenphase/pyenphase/pull/460),
+  [`536010d`](https://github.com/pyenphase/pyenphase/commit/536010dea397f6a019e4dffb75ed7e0b1cc0c846))
+
+### Features
+
+- Add typed generator models (status, config, schedule)
+  ([#472](https://github.com/pyenphase/pyenphase/pull/472),
+  [`2ed27dc`](https://github.com/pyenphase/pyenphase/commit/2ed27dcdabed748fa856fb80a6ca2a3ec5bc9520))
+
+- **generator**: Add typed generator status, config and schedule models
+  ([#472](https://github.com/pyenphase/pyenphase/pull/472),
+  [`2ed27dc`](https://github.com/pyenphase/pyenphase/commit/2ed27dcdabed748fa856fb80a6ca2a3ec5bc9520))
+
+
 ## v3.0.1 (2026-06-29)
 
 ### Bug Fixes
