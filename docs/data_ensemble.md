@@ -65,6 +65,8 @@ Systems with an Enpower and a standby generator installed report generator data.
 
 The Envoy class provides the method [Envoy.set_generator_mode](#pyenphase.Envoy.set_generator_mode) to control the generator operation mode, [Envoy.set_generator_exercise_schedule](#pyenphase.Envoy.set_generator_exercise_schedule) to change the exercise schedule, and [Envoy.set_generator_charge_from_generator](#pyenphase.Envoy.set_generator_charge_from_generator) to allow or disallow charging batteries from the generator.
 
+On systems without Enphase batteries the gateway accepts a `charge_from_generator` write with HTTP 200 but normalizes the value back to `true`; do not assume `false` persisted. The response body echoes the resulting effective configuration, so it can be compared with the request to detect this. Writing the exercise schedule also (re)applies the default start/stop state of charge, which matters on systems that do have batteries.
+
 ```python
 if envoy.data.generator:
     print(f"Generator relay: {envoy.data.generator.oper_state}")
