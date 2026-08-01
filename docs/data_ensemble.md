@@ -58,7 +58,7 @@ Dry Contact information is available in the [EnvoyData.dry_contact_status](#pyen
 
 Systems with an Enpower and a standby generator installed report generator data. Availability is signaled by the {py:attr}`pyenphase.const.SupportedFeatures.GENERATOR` supported feature flag.
 
-- Generator status (admin/operational relay state, admin mode, schedule state, generator present) is available in [EnvoyData.generator](#pyenphase.EnvoyData.generator), modeled by [EnvoyGenerator](#pyenphase.models.generator.EnvoyGenerator).
+- Generator status (admin, operational relay state, admin mode, schedule state, generator present) is available in [EnvoyData.generator](#pyenphase.EnvoyData.generator), modeled by [EnvoyGenerator](#pyenphase.models.generator.EnvoyGenerator).
 - Generator configuration (name plate rating, manufacturer, model, start method, warm-up/cool-down minutes) is available in [EnvoyData.generator_config](#pyenphase.EnvoyData.generator_config), modeled by [EnvoyGeneratorConfig](#pyenphase.models.generator.EnvoyGeneratorConfig).
 - The generator exercise schedule and default state-of-charge settings are available in [EnvoyData.generator_schedule](#pyenphase.EnvoyData.generator_schedule), modeled by [EnvoyGeneratorSchedule](#pyenphase.models.generator.EnvoyGeneratorSchedule).
 - The generator operation mode ("off", "on" or "auto") is available in [EnvoyData.generator_mode](#pyenphase.EnvoyData.generator_mode), modeled by [EnvoyGeneratorMode](#pyenphase.models.generator.EnvoyGeneratorMode), on firmware exposing the `/ivp/ss/gen_mode` endpoint.

@@ -13,14 +13,23 @@ from typing import Any
 class EnvoyGenerator:
     """Model for the generator status."""
 
+    #: Administrative state of the generator relay, e.g. "open" or "closed"
     admin_state: str
+    #: Operational state of the generator relay, e.g. "open" or "closed"
     oper_state: str
+    #: Configured generator operation mode as a numeric code
     admin_mode: int
+    #: Whether an exercise schedule is active
     schedule: int
+    #: Battery state of charge at which the generator starts
     start_soc: int
+    #: Battery state of charge at which the generator stops
     stop_soc: int
+    #: Whether a generator exercise run is currently active
     exc_on: int
+    #: Whether a generator is present in the system
     present: bool
+    #: Generator type as a numeric code
     type: int
 
     @classmethod
@@ -43,18 +52,31 @@ class EnvoyGenerator:
 class EnvoyGeneratorConfig:
     """Model for the generator configuration."""
 
+    #: Maximum continuous generator output current in amps
     max_cont_gen_amps: float
+    #: Minimum generator loading as a percentage of its rating
     min_gen_loading_perc: int
+    #: Maximum generator efficiency as a percentage
     max_gen_efficiency_perc: int
+    #: Generator name plate power rating, as reported by the Envoy
     name_plate_rating_wat: float
+    #: How the generator is started, e.g. "auto" for two-wire start
     start_method: str
+    #: Generator warm-up time in minutes
     warm_up_mins: int
+    #: Generator cool-down time in minutes
     cool_down_mins: int
+    #: Generator type, e.g. "Standby"
     gen_type: str
+    #: Generator model as configured at installation
     model: str
+    #: Generator manufacturer as configured at installation
     manufacturer: str
+    #: Source of the last configuration update
     last_updated_by: str
+    #: Generator identification as configured at installation
     generator_id: str
+    #: Whether batteries may be charged from the generator
     charge_from_generator: bool
 
     @classmethod

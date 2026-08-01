@@ -166,6 +166,7 @@ async def test_no_generator_data(
     assert data.generator_schedule is None
     assert data.generator_mode is None
     assert URL_GENERATOR not in data.raw
+    assert URL_GEN_CONFIG not in data.raw
     assert URL_GEN_SCHEDULE not in data.raw
     assert URL_GEN_MODE not in data.raw
 
