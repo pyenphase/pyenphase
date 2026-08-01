@@ -2,12 +2,23 @@
 
 Captured from a live Envoy (IQ Gateway) firmware D8.3.5169 with an
 IQ System Controller 2 (Enpower), no Enphase batteries, and a two-wire
-start Generac 22kW standby generator (start_method auto, weekly
-exercise schedule configured).
+start Generac 22kW standby generator (start_method auto, exercise
+schedule configured).
+
+Complete, uncurated set: every endpoint in the DEFAULT_ENDPOINTS list of
+devtools/fixture_collector.py was captured in a single pass, plus
+/ivp/ss/gen_mode (not yet in the collector list). All endpoints returned
+HTTP 200 and JSON, including /home, /inventory and /ivp/pdm/device_data.
 
 Generator idle/standby snapshot: /ivp/ensemble/generator reports
 present=1 with admin_state/oper_state open and an active exercise
 schedule in /ivp/ss/gen_schedule.
 
-Serial numbers have been altered. HTML-only endpoints (/home,
-/inventory, /production) and /ivp/pdm/device_data were omitted.
+Redactions (format preserving, consistently applied across all files):
+- Envoy, IQ System Controller, submodule and inverter serial numbers
+- the generator_id in /ivp/ss/gen_config
+- in /home only: the cellular WAN address (replaced with a TEST-NET-3
+  address) and the ethernet/wifi MAC addresses (Enphase OUI kept, device
+  portion altered)
+Part numbers, model names, firmware versions and all measurement data
+are unaltered.

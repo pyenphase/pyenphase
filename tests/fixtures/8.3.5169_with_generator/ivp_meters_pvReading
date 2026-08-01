@@ -3,16 +3,16 @@
         "channels": [
             {
                 "phase": "L1",
-                "activePower": 686.703,
-                "voltage": 123.924,
-                "current": 7.166,
+                "activePower": 1442.471,
+                "voltage": 123.809,
+                "current": 14.789,
                 "freq": 60.000
             },
             {
                 "phase": "L2",
-                "activePower": 688.797,
-                "voltage": 124.222,
-                "current": 7.168,
+                "activePower": 1453.084,
+                "voltage": 124.619,
+                "current": 14.784,
                 "freq": 60.000
             },
             {

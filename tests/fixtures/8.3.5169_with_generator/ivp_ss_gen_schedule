@@ -1,9 +1,9 @@
 {
     "exercise_config": {
-        "freq_in_weeks": 1,
-        "start": 810,
-        "duration": 10,
-        "day": "Thu"
+        "freq_in_weeks": 3,
+        "start": 945,
+        "duration": 20,
+        "day": "Sat"
     },
     "default_soc": {
         "start_soc": 30,

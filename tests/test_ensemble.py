@@ -378,6 +378,7 @@ LOGGER = logging.getLogger(__name__)
         (
             "8.3.5169_with_generator",
             SupportedFeatures.INVERTERS
+            | SupportedFeatures.DETAILED_INVERTERS
             | SupportedFeatures.METERING
             | SupportedFeatures.TOTAL_CONSUMPTION
             | SupportedFeatures.NET_CONSUMPTION
@@ -389,7 +390,8 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.CTMETERS
             | SupportedFeatures.GENERATOR,
             {
-                "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+                | SupportedFeatures.DETAILED_INVERTERS,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
                 | SupportedFeatures.ENPOWER,
                 "EnvoyProductionJsonUpdater": SupportedFeatures.METERING

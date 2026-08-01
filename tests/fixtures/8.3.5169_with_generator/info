@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <envoy_info>
-	<time>1785423933</time>
+	<time>1785593316</time>
 	<device>
 		<sn>202439990001</sn>
 		<pn>800-00647-r11</pn>
 		<software>D8.3.5169</software>
-		<euaid>4c9999</euaid>
+		<euaid>4c8675</euaid>
 		<seqnum>0</seqnum>
 		<apiver>1</apiver>
 		<imeter>true</imeter>
@@ -93,3 +93,4 @@
 		<release_ver>02.00.1514</release_ver>
 	</build_info>
 </envoy_info>
+
