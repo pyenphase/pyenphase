@@ -1,0 +1,30 @@
+8.3.5169_with_generator
+
+Captured from a live Envoy (IQ Gateway) firmware D8.3.5169 with an
+IQ System Controller 2 (Enpower), no Enphase batteries, and a two-wire
+start Generac 22kW standby generator (start_method auto, exercise
+schedule configured).
+
+Complete, uncurated set: every endpoint in the DEFAULT_ENDPOINTS list of
+devtools/fixture_collector.py was captured in a single pass, plus
+/ivp/ss/gen_mode (not yet in the collector list). All endpoints returned
+HTTP 200 and JSON, including /home, /inventory and /ivp/pdm/device_data.
+
+Generator idle/standby snapshot: /ivp/ensemble/generator reports
+present=1 with admin_state/oper_state open and an active exercise
+schedule in /ivp/ss/gen_schedule.
+
+Redactions (format preserving, consistently applied across all files).
+Every redacted identifier is a deterministic synthetic value: marker
+digits 99 in a fixed position followed by a sequential suffix.
+- Envoy: 202439990001
+- IQ System Controller (Enpower): 202411990001,
+  its submodules: 2024109900NN
+- inverters: 4822089900NN (NN = 01..20)
+- generator_id in /ivp/ss/gen_config: 3019990001
+- in /home only: the cellular WAN address (replaced with a TEST-NET-3
+  address) and the ethernet/wifi MAC addresses (Enphase OUI kept, device
+  portion altered)
+None of these are real device identifiers; the 9900/999 marker makes
+them recognizable as synthetic at a glance. Part numbers, model names,
+firmware versions and all measurement data are unaltered.

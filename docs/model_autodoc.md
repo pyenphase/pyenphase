@@ -159,6 +159,17 @@
 
 ```
 
+## EnvoyGenerator
+
+```{eval-rst}
+.. automodule:: pyenphase.updaters.generator
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: alphabetical
+
+```
+
 ## EnvoyTariff
 
 ```{eval-rst}
@@ -308,6 +319,16 @@
 
 ```{eval-rst}
 .. automodule:: pyenphase.models.dry_contacts
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: groupwise
+```
+
+## Envoy Generator
+
+```{eval-rst}
+.. automodule:: pyenphase.models.generator
   :members:
   :undoc-members:
   :show-inheritance:

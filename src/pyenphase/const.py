@@ -39,9 +39,13 @@ URL_ACB_CONFIG = "/admin/lib/acb_config"
 URL_INVENTORY = "/inventory.json?deleted=1"
 
 # Generator Configuration
+URL_GENERATOR = "/ivp/ensemble/generator"
 URL_GEN_CONFIG = "/ivp/ss/gen_config"
 URL_GEN_MODE = "/ivp/ss/gen_mode"
 URL_GEN_SCHEDULE = "/ivp/ss/gen_schedule"
+
+#: Valid generator modes for :any:`Envoy.set_generator_mode`
+GENERATOR_MODES: frozenset[str] = frozenset({"off", "on", "auto"})
 
 # Meters data
 ENDPOINT_URL_METERS = "/ivp/meters"

@@ -376,6 +376,35 @@ LOGGER = logging.getLogger(__name__)
             },
         ),
         (
+            "8.3.5169_with_generator",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.DETAILED_INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.ENPOWER
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.DUALPHASE
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.GENERATOR,
+            {
+                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+                | SupportedFeatures.DETAILED_INVERTERS,
+                "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
+                | SupportedFeatures.ENPOWER,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE
+                | SupportedFeatures.CTMETERS,
+                "EnvoyGeneratorUpdater": SupportedFeatures.GENERATOR,
+            },
+        ),
+        (
             "8.2.4286_with_3cts_and_battery_split",
             SupportedFeatures.INVERTERS
             | SupportedFeatures.METERING
@@ -484,6 +513,7 @@ LOGGER = logging.getLogger(__name__)
         "8.1.41",
         "8.2.127_with_3cts_and_battery_split",
         "8.2.127_with_generator_running",
+        "8.3.5169_with_generator",
         "8.2.4286_with_3cts_and_battery_split",
         "8.2.4264_metered_noct",
         "8.2.4345_with_device_data",

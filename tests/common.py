@@ -455,6 +455,39 @@ async def prep_envoy(
             url("/ivp/ss/gen_config"), status=200, payload={}, repeat=True
         )
 
+    if "ivp_ss_gen_schedule" in files:
+        try:
+            json_data = await load_json_fixture(version, "ivp_ss_gen_schedule")
+        except json.decoder.JSONDecodeError:
+            json_data = {}
+        mock_aioresponse.get(
+            url("/ivp/ss/gen_schedule"), status=200, payload=json_data, repeat=True
+        )
+    else:
+        mock_aioresponse.get(url("/ivp/ss/gen_schedule"), status=404, repeat=True)
+
+    if "ivp_ss_gen_mode" in files:
+        try:
+            json_data = await load_json_fixture(version, "ivp_ss_gen_mode")
+        except json.decoder.JSONDecodeError:
+            json_data = {}
+        mock_aioresponse.get(
+            url("/ivp/ss/gen_mode"), status=200, payload=json_data, repeat=True
+        )
+    else:
+        mock_aioresponse.get(url("/ivp/ss/gen_mode"), status=404, repeat=True)
+
+    if "ivp_ensemble_generator" in files:
+        try:
+            json_data = await load_json_fixture(version, "ivp_ensemble_generator")
+        except json.decoder.JSONDecodeError:
+            json_data = {}
+        mock_aioresponse.get(
+            url("/ivp/ensemble/generator"), status=200, payload=json_data, repeat=True
+        )
+    else:
+        mock_aioresponse.get(url("/ivp/ensemble/generator"), status=404, repeat=True)
+
     if "home" in files:
         mock_aioresponse.get(
             url("/home"),

@@ -9,6 +9,12 @@ from .collar import EnvoyCollar
 from .dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from .enpower import EnvoyEnpower
+from .generator import (
+    EnvoyGenerator,
+    EnvoyGeneratorConfig,
+    EnvoyGeneratorMode,
+    EnvoyGeneratorSchedule,
+)
 from .inverter import EnvoyInverter
 from .meters import EnvoyMeterData
 from .system_consumption import EnvoySystemConsumption
@@ -34,6 +40,15 @@ class EnvoyData:
     encharge_aggregate: EnvoyEnchargeAggregate | None = None
     #: EnchargePower device information
     enpower: EnvoyEnpower | None = None
+    #: Standby generator status, only for systems with an Enpower and generator installed
+    generator: EnvoyGenerator | None = None
+    #: Standby generator configuration, only for systems with an Enpower and generator installed
+    generator_config: EnvoyGeneratorConfig | None = None
+    #: Standby generator exercise and SOC schedule, only for systems with an Enpower and generator installed
+    generator_schedule: EnvoyGeneratorSchedule | None = None
+    #: Standby generator operation mode, only for systems with an Enpower and generator
+    #: installed on firmware exposing the gen_mode endpoint
+    generator_mode: EnvoyGeneratorMode | None = None
     #: Power and soc for aggregated ACB batteries
     acb_power: EnvoyACBPower | None = None
     #: Per-device ACB battery inventory, keyed by serial number
