@@ -2,6 +2,7 @@
 
 import logging
 from copy import deepcopy
+from typing import Any
 
 import aiohttp
 import orjson
@@ -15,7 +16,7 @@ from pyenphase.const import (
     URL_GENERATOR,
 )
 from pyenphase.envoy import SupportedFeatures
-from pyenphase.exceptions import EnvoyFeatureNotAvailable
+from pyenphase.exceptions import EnvoyCommunicationError, EnvoyFeatureNotAvailable
 
 from .common import (
     endpoint_path,
@@ -155,32 +156,6 @@ async def test_update_generator_schedule_twice_before_update(
 
 
 @pytest.mark.asyncio
-async def test_update_generator_schedule_reply_without_schedule(
-    caplog: pytest.LogCaptureFixture,
-    mock_aioresponse: aioresponses,
-    test_client_session: aiohttp.ClientSession,
-) -> None:
-    """Verify data is updated from the request if the Envoy returns no schedule."""
-    start_7_firmware_mock(mock_aioresponse)
-    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
-    caplog.set_level(logging.DEBUG)
-
-    envoy = await get_mock_envoy(test_client_session)
-    full_host = endpoint_path(VERSION, envoy.host)
-    mock_aioresponse.post(
-        f"{full_host}{URL_GEN_SCHEDULE}", status=200, payload={}, repeat=True
-    )
-
-    result = await envoy.update_generator_schedule({"exercise_duration": 50})
-
-    assert result == {}
-    assert envoy.data is not None
-    assert envoy.data.generator_schedule is not None
-    assert envoy.data.generator_schedule.exercise_duration == 50
-    assert envoy.data.raw[URL_GEN_SCHEDULE]["exercise_config"]["duration"] == 50
-
-
-@pytest.mark.asyncio
 async def test_update_generator_schedule_validation(
     caplog: pytest.LogCaptureFixture,
     mock_aioresponse: aioresponses,
@@ -207,9 +182,24 @@ async def test_update_generator_schedule_validation(
         {"default_start_soc": 101},
         {"default_stop_soc": -1},
         {"exercise_days": "Mon"},
+        # the generator starts at the low SOC and stops at the high one
+        {"default_start_soc": 80},
+        {"default_stop_soc": 20},
+        {"default_start_soc": 60, "default_stop_soc": 40},
+        {"default_start_soc": 50, "default_stop_soc": 50},
     ):
         with pytest.raises(ValueError):
             await envoy.update_generator_schedule(invalid)
+
+    # a valid pair is accepted, verified against the stored value for the
+    # setting that is not changed
+    assert envoy.data is not None
+    assert envoy.data.generator_schedule is not None
+    assert envoy.data.generator_schedule.default_stop_soc == 70
+    validated = envoy._validated_generator_schedule(
+        {"default_start_soc": 40}, envoy.data.generator_schedule
+    )
+    assert validated == {"default_start_soc": 40}
 
     # nothing was sent to the Envoy
     cnt, _data = latest_request(mock_aioresponse, "POST", URL_GEN_SCHEDULE)
@@ -288,31 +278,6 @@ async def test_set_generator_charge_from_generator(
 
 
 @pytest.mark.asyncio
-async def test_set_generator_charge_from_generator_reply_without_config(
-    caplog: pytest.LogCaptureFixture,
-    mock_aioresponse: aioresponses,
-    test_client_session: aiohttp.ClientSession,
-) -> None:
-    """Verify data is updated from the request if the Envoy returns no config."""
-    start_7_firmware_mock(mock_aioresponse)
-    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
-    caplog.set_level(logging.DEBUG)
-
-    envoy = await get_mock_envoy(test_client_session)
-    full_host = endpoint_path(VERSION, envoy.host)
-    mock_aioresponse.post(
-        f"{full_host}{URL_GEN_CONFIG}", status=200, payload={}, repeat=True
-    )
-
-    await envoy.set_generator_charge_from_generator(False)
-
-    assert envoy.data is not None
-    assert envoy.data.generator_config is not None
-    assert envoy.data.generator_config.charge_from_generator is False
-    assert envoy.data.raw[URL_GEN_CONFIG]["charge_from_generator"] is False
-
-
-@pytest.mark.asyncio
 async def test_generator_write_actions_without_generator(
     caplog: pytest.LogCaptureFixture,
     mock_aioresponse: aioresponses,
@@ -358,3 +323,184 @@ async def test_update_generator_schedule_without_gen_schedule(
 
     with pytest.raises(EnvoyFeatureNotAvailable):
         await envoy.update_generator_schedule({"exercise_duration": 20})
+
+
+@pytest.mark.parametrize(
+    ("reply", "reason"),
+    [
+        ([], "not a document"),
+        ({}, "sentinel key missing"),
+        ({"exercise_config": {"freq_in_weeks": 1}}, "document incomplete"),
+    ],
+    ids=["not_a_document", "sentinel_missing", "incomplete"],
+)
+@pytest.mark.asyncio
+async def test_update_generator_schedule_incomplete_reply(
+    reply: Any,
+    reason: str,
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify stored data is kept if the Envoy returns no complete schedule."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+    schedule_json = await load_json_fixture(VERSION, "ivp_ss_gen_schedule")
+    full_host = endpoint_path(VERSION, envoy.host)
+    mock_aioresponse.post(
+        f"{full_host}{URL_GEN_SCHEDULE}", status=200, payload=reply, repeat=True
+    )
+
+    with pytest.raises(EnvoyCommunicationError):
+        await envoy.update_generator_schedule({"exercise_duration": 50})
+
+    # data is left at the last known state, not at an optimistic one
+    assert envoy.data is not None
+    assert envoy.data.generator_schedule is not None
+    assert (
+        envoy.data.generator_schedule.exercise_duration
+        == schedule_json["exercise_config"]["duration"]
+    )
+    assert envoy.data.raw[URL_GEN_SCHEDULE] == schedule_json
+
+
+@pytest.mark.parametrize(
+    ("reply", "reason"),
+    [
+        ([], "not a document"),
+        ({}, "sentinel key missing"),
+        ({"charge_from_generator": False}, "document incomplete"),
+    ],
+    ids=["not_a_document", "sentinel_missing", "incomplete"],
+)
+@pytest.mark.asyncio
+async def test_set_generator_charge_from_generator_incomplete_reply(
+    reply: Any,
+    reason: str,
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify stored data is kept if the Envoy returns no complete configuration."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+    config_json = await load_json_fixture(VERSION, "ivp_ss_gen_config")
+    full_host = endpoint_path(VERSION, envoy.host)
+    mock_aioresponse.post(
+        f"{full_host}{URL_GEN_CONFIG}", status=200, payload=reply, repeat=True
+    )
+
+    with pytest.raises(EnvoyCommunicationError):
+        await envoy.set_generator_charge_from_generator(False)
+
+    assert envoy.data is not None
+    assert envoy.data.generator_config is not None
+    assert envoy.data.generator_config.charge_from_generator is True
+    assert envoy.data.raw[URL_GEN_CONFIG] == config_json
+
+
+@pytest.mark.asyncio
+async def test_generator_write_refresh(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify refresh re-reads the document before merging the changes."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+    schedule_json = await load_json_fixture(VERSION, "ivp_ss_gen_schedule")
+    config_json = await load_json_fixture(VERSION, "ivp_ss_gen_config")
+    full_host = endpoint_path(VERSION, envoy.host)
+
+    # something else changed the SOC settings since the last data update
+    changed = deepcopy(schedule_json)
+    changed["default_soc"] = {"start_soc": 45, "stop_soc": 85}
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_SCHEDULE}",
+        status=200,
+        payload=changed,
+        repeat=True,
+    )
+    sent_back = deepcopy(changed)
+    sent_back["exercise_config"]["duration"] = 50
+    mock_aioresponse.post(
+        f"{full_host}{URL_GEN_SCHEDULE}", status=200, payload=sent_back, repeat=True
+    )
+
+    await envoy.update_generator_schedule({"exercise_duration": 50}, refresh=True)
+
+    # the re-read values are sent, not the stale ones
+    _cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GEN_SCHEDULE)
+    assert orjson.loads(request_data)["default_soc"] == {
+        "start_soc": 45,
+        "stop_soc": 85,
+    }
+
+    # same for the generator configuration
+    changed_config = deepcopy(config_json)
+    changed_config["warm_up_mins"] = 7
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_CONFIG}",
+        status=200,
+        payload=changed_config,
+        repeat=True,
+    )
+    config_reply = deepcopy(changed_config)
+    config_reply["charge_from_generator"] = False
+    mock_aioresponse.post(
+        f"{full_host}{URL_GEN_CONFIG}", status=200, payload=config_reply, repeat=True
+    )
+
+    await envoy.set_generator_charge_from_generator(False, refresh=True)
+
+    _cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GEN_CONFIG)
+    assert orjson.loads(request_data)["warm_up_mins"] == 7
+
+
+@pytest.mark.asyncio
+async def test_generator_write_refresh_incomplete(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify no update is sent if the refresh returns an incomplete document."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+    full_host = endpoint_path(VERSION, envoy.host)
+
+    for path in (URL_GEN_SCHEDULE, URL_GEN_CONFIG):
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}{path}",
+            status=200,
+            payload={"incomplete": True},
+            repeat=True,
+        )
+
+    with pytest.raises(EnvoyCommunicationError):
+        await envoy.update_generator_schedule({"exercise_duration": 50}, refresh=True)
+    with pytest.raises(EnvoyCommunicationError):
+        await envoy.set_generator_charge_from_generator(False, refresh=True)
+
+    # nothing was sent
+    cnt, _data = latest_request(mock_aioresponse, "POST", URL_GEN_SCHEDULE)
+    assert cnt == 0
+    cnt, _data = latest_request(mock_aioresponse, "POST", URL_GEN_CONFIG)
+    assert cnt == 0

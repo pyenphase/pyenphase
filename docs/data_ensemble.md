@@ -65,15 +65,23 @@ Systems with an Enpower and a standby generator installed report generator data.
 
 The Envoy class provides the method [Envoy.set_generator_mode](#pyenphase.Envoy.set_generator_mode) to control the generator operation mode, [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) to change the exercise schedule and default state-of-charge settings, and [Envoy.set_generator_charge_from_generator](#pyenphase.Envoy.set_generator_charge_from_generator) to allow or disallow charging batteries from the generator.
 
-Both methods send the whole document to the Envoy, as these endpoints do not support partial updates. The document is built from the data in [EnvoyData](#pyenphase.EnvoyData), with only the specified settings changed. [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) takes a dict of settings to change, so a single setting can be changed without specifying the others:
+[Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) and [Envoy.set_generator_charge_from_generator](#pyenphase.Envoy.set_generator_charge_from_generator) send the whole document to the Envoy, as these endpoints do not support partial updates. The document is built from the data in [EnvoyData](#pyenphase.EnvoyData), with only the specified settings changed. ([Envoy.set_generator_mode](#pyenphase.Envoy.set_generator_mode) is a single command endpoint and does not work this way.) [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) takes a dict of settings to change, so a single setting can be changed without specifying the others:
 
 ```python
 await envoy.update_generator_schedule({"exercise_day": "Sat", "exercise_start": 945})
 ```
 
-Both methods return the reply from the Envoy, which is the resulting document. The stored data is updated from it as well, so either can be used to verify what was applied.
+Both return the reply from the Envoy, which is the resulting document. The stored data is updated from it as well, so either can be used to verify what was applied. If the Envoy does not return a complete document, the stored data is left at the last known state instead of an optimistic one and `EnvoyCommunicationError` is raised; the update was sent in that case, so use [Envoy.update](#pyenphase.Envoy.update) to establish the actual state.
 
-On systems with Enphase batteries, note that `default_start_soc` and `default_stop_soc` are always part of the schedule document and are applied by the firmware as the active generator start/stop state of charge, as reported in [EnvoyData.generator](#pyenphase.EnvoyData.generator). Values held in [EnvoyData.generator_schedule](#pyenphase.EnvoyData.generator_schedule) at the time of the call are sent, so if another application changed them since the last data collection, the update will set them back. Use [Envoy.update](#pyenphase.Envoy.update) first, or include the wanted SOC values in the settings to change.
+Both also accept `refresh`, which re-reads the document from the Envoy right before the changes are merged into it:
+
+```python
+await envoy.update_generator_schedule({"exercise_day": "Sat"}, refresh=True)
+```
+
+Use it when the Enphase cloud or app may have changed settings since the last data collection, so values from stale data are not sent back.
+
+On systems with Enphase batteries, note that `default_start_soc` and `default_stop_soc` are always part of the schedule document and are applied by the firmware as the active generator start/stop state of charge, as reported in [EnvoyData.generator](#pyenphase.EnvoyData.generator). Values held in [EnvoyData.generator_schedule](#pyenphase.EnvoyData.generator_schedule) at the time of the call are sent, so if another application changed them since the last data collection, the update will set them back. Use `refresh=True`, call [Envoy.update](#pyenphase.Envoy.update) first, or include the wanted SOC values in the settings to change. The generator starts at `default_start_soc` and stops at `default_stop_soc`, so the start value must be lower than the stop value; the resulting pair is validated against the stored values for whichever of the two is not being changed.
 
 On systems without Enphase batteries the Envoy accepts a `charge_from_generator` write with HTTP 200 but normalizes the value back to `true`; do not assume `false` persisted. The returned document and the updated [EnvoyData.generator_config](#pyenphase.EnvoyData.generator_config) report the effective value.
 
