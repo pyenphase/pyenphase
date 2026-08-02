@@ -269,7 +269,12 @@ async def test_set_generator_charge_from_generator(
     )
     result = await envoy.set_generator_charge_from_generator(False)
     assert result["charge_from_generator"] is True
-    assert envoy.data.generator_config.charge_from_generator is True
+    # re-read the stored config after the write rather than asserting on
+    # envoy.data.generator_config again: the narrowing from the earlier
+    # is False assertion sticks to that expression, which would make the
+    # rest of this test statically unreachable
+    effective_config = envoy.data.generator_config
+    assert effective_config.charge_from_generator is True
 
     # non-bool values are rejected without sending a request
     with pytest.raises(TypeError):
