@@ -63,9 +63,19 @@ Systems with an Enpower and a standby generator installed report generator data.
 - The generator exercise schedule and default state-of-charge settings are available in [EnvoyData.generator_schedule](#pyenphase.EnvoyData.generator_schedule), modeled by [EnvoyGeneratorSchedule](#pyenphase.models.generator.EnvoyGeneratorSchedule).
 - The generator operation mode ("off", "on" or "auto") is available in [EnvoyData.generator_mode](#pyenphase.EnvoyData.generator_mode), modeled by [EnvoyGeneratorMode](#pyenphase.models.generator.EnvoyGeneratorMode), on firmware exposing the `/ivp/ss/gen_mode` endpoint.
 
-The Envoy class provides the method [Envoy.set_generator_mode](#pyenphase.Envoy.set_generator_mode) to control the generator operation mode, [Envoy.set_generator_exercise_schedule](#pyenphase.Envoy.set_generator_exercise_schedule) to change the exercise schedule, and [Envoy.set_generator_charge_from_generator](#pyenphase.Envoy.set_generator_charge_from_generator) to allow or disallow charging batteries from the generator.
+The Envoy class provides the method [Envoy.set_generator_mode](#pyenphase.Envoy.set_generator_mode) to control the generator operation mode, [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) to change the exercise schedule and default state-of-charge settings, and [Envoy.set_generator_charge_from_generator](#pyenphase.Envoy.set_generator_charge_from_generator) to allow or disallow charging batteries from the generator.
 
-On systems without Enphase batteries the gateway accepts a `charge_from_generator` write with HTTP 200 but normalizes the value back to `true`; do not assume `false` persisted. The response body echoes the resulting effective configuration, so it can be compared with the request to detect this. Writing the exercise schedule also (re)applies the default start/stop state of charge, which matters on systems that do have batteries.
+Both methods send the whole document to the Envoy, as these endpoints do not support partial updates. The document is built from the data in [EnvoyData](#pyenphase.EnvoyData), with only the specified settings changed. [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) takes a dict of settings to change, so a single setting can be changed without specifying the others:
+
+```python
+await envoy.update_generator_schedule({"exercise_day": "Sat", "exercise_start": 945})
+```
+
+Both methods return the reply from the Envoy, which is the resulting document. The stored data is updated from it as well, so either can be used to verify what was applied.
+
+On systems with Enphase batteries, note that `default_start_soc` and `default_stop_soc` are always part of the schedule document and are applied by the firmware as the active generator start/stop state of charge, as reported in [EnvoyData.generator](#pyenphase.EnvoyData.generator). Values held in [EnvoyData.generator_schedule](#pyenphase.EnvoyData.generator_schedule) at the time of the call are sent, so if another application changed them since the last data collection, the update will set them back. Use [Envoy.update](#pyenphase.Envoy.update) first, or include the wanted SOC values in the settings to change.
+
+On systems without Enphase batteries the Envoy accepts a `charge_from_generator` write with HTTP 200 but normalizes the value back to `true`; do not assume `false` persisted. The returned document and the updated [EnvoyData.generator_config](#pyenphase.EnvoyData.generator_config) report the effective value.
 
 ```python
 if envoy.data.generator:

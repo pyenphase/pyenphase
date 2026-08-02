@@ -33,12 +33,12 @@ VERSION = "8.3.5169_with_generator"
 
 
 @pytest.mark.asyncio
-async def test_set_generator_exercise_schedule(
+async def test_update_generator_schedule(
     caplog: pytest.LogCaptureFixture,
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Verify setting the exercise schedule sends the round-tripped payload."""
+    """Verify updating single and multiple generator schedule settings."""
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
     caplog.set_level(logging.DEBUG)
@@ -46,84 +46,180 @@ async def test_set_generator_exercise_schedule(
     envoy = await get_mock_envoy(test_client_session)
     assert envoy.supported_features & SupportedFeatures.GENERATOR
 
+    schedule_json = await load_json_fixture(VERSION, "ivp_ss_gen_schedule")
+    full_host = endpoint_path(VERSION, envoy.host)
+
+    # The Envoy replies with the resulting schedule
+    expected = deepcopy(schedule_json)
+    expected["exercise_config"]["day"] = "Mon"
+    mock_aioresponse.post(
+        f"{full_host}{URL_GEN_SCHEDULE}", status=200, payload=expected, repeat=True
+    )
+
+    # a single setting can be changed without passing the others
+    result = await envoy.update_generator_schedule({"exercise_day": "mon"})
+
+    _cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GEN_SCHEDULE)
+    assert orjson.loads(request_data) == expected
+
+    # the reply is returned and used to update both raw and typed data
+    assert result == expected
+    assert envoy.data is not None
+    assert envoy.data.raw[URL_GEN_SCHEDULE] == expected
+    assert envoy.data.generator_schedule is not None
+    assert envoy.data.generator_schedule.exercise_day == "Mon"
+    # untouched settings keep their value
+    assert (
+        envoy.data.generator_schedule.exercise_start
+        == schedule_json["exercise_config"]["start"]
+    )
+    assert (
+        envoy.data.generator_schedule.default_start_soc
+        == schedule_json["default_soc"]["start_soc"]
+    )
+
+    # all settings can still be changed in one go
+    all_settings = deepcopy(expected)
+    all_settings["exercise_config"] = {
+        "freq_in_weeks": 2,
+        "start": 840,
+        "duration": 30,
+        "day": "Sun",
+    }
+    all_settings["default_soc"] = {"start_soc": 35, "stop_soc": 75}
+    override_mock(
+        mock_aioresponse,
+        "post",
+        f"{full_host}{URL_GEN_SCHEDULE}",
+        status=200,
+        payload=all_settings,
+        repeat=True,
+    )
+    await envoy.update_generator_schedule(
+        {
+            "exercise_freq_in_weeks": 2,
+            "exercise_start": 840,
+            "exercise_duration": 30,
+            "exercise_day": "Sun",
+            "default_start_soc": 35,
+            "default_stop_soc": 75,
+        }
+    )
+    _cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GEN_SCHEDULE)
+    assert orjson.loads(request_data) == all_settings
+    assert envoy.data.generator_schedule.exercise_duration == 30
+    assert envoy.data.generator_schedule.default_stop_soc == 75
+
+
+@pytest.mark.asyncio
+async def test_update_generator_schedule_twice_before_update(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify a second update builds on the first one, not on stale data."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+    schedule_json = await load_json_fixture(VERSION, "ivp_ss_gen_schedule")
+    full_host = endpoint_path(VERSION, envoy.host)
+
+    first = deepcopy(schedule_json)
+    first["exercise_config"]["day"] = "Mon"
+    mock_aioresponse.post(
+        f"{full_host}{URL_GEN_SCHEDULE}", status=200, payload=first, repeat=True
+    )
+    await envoy.update_generator_schedule({"exercise_day": "Mon"})
+
+    second = deepcopy(first)
+    second["exercise_config"]["duration"] = 40
+    override_mock(
+        mock_aioresponse,
+        "post",
+        f"{full_host}{URL_GEN_SCHEDULE}",
+        status=200,
+        payload=second,
+        repeat=True,
+    )
+    await envoy.update_generator_schedule({"exercise_duration": 40})
+
+    # without an intermediate Envoy.update the second request must still
+    # carry the day set by the first one
+    _cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GEN_SCHEDULE)
+    sent = orjson.loads(request_data)
+    assert sent["exercise_config"]["day"] == "Mon"
+    assert sent["exercise_config"]["duration"] == 40
+    assert sent == second
+
+
+@pytest.mark.asyncio
+async def test_update_generator_schedule_reply_without_schedule(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify data is updated from the request if the Envoy returns no schedule."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
     full_host = endpoint_path(VERSION, envoy.host)
     mock_aioresponse.post(
         f"{full_host}{URL_GEN_SCHEDULE}", status=200, payload={}, repeat=True
     )
 
-    await envoy.set_generator_exercise_schedule(
-        freq_in_weeks=2,
-        day="mon",
-        start=840,
-        duration=20,
-    )
+    result = await envoy.update_generator_schedule({"exercise_duration": 50})
 
-    # payload is the full GET shape with only exercise_config replaced,
-    # day normalized to the capitalized short name
-    schedule_json = await load_json_fixture(VERSION, "ivp_ss_gen_schedule")
-    expected = deepcopy(schedule_json)
-    expected["exercise_config"] = {
-        "freq_in_weeks": 2,
-        "day": "Mon",
-        "start": 840,
-        "duration": 20,
-    }
-    _cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GEN_SCHEDULE)
-    assert orjson.loads(request_data) == expected
-
-    # internal data is preemptively updated
+    assert result == {}
     assert envoy.data is not None
     assert envoy.data.generator_schedule is not None
-    assert envoy.data.generator_schedule.exercise_freq_in_weeks == 2
-    assert envoy.data.generator_schedule.exercise_day == "Mon"
-    assert envoy.data.generator_schedule.exercise_start == 840
-    assert envoy.data.generator_schedule.exercise_duration == 20
+    assert envoy.data.generator_schedule.exercise_duration == 50
+    assert envoy.data.raw[URL_GEN_SCHEDULE]["exercise_config"]["duration"] == 50
 
-    # out of range values are rejected without sending a request
-    with pytest.raises(ValueError):
-        await envoy.set_generator_exercise_schedule(
-            freq_in_weeks=0, day="Mon", start=840, duration=20
-        )
-    # the official app's frequency domain is every 1-4 weeks
-    with pytest.raises(ValueError):
-        await envoy.set_generator_exercise_schedule(
-            freq_in_weeks=5, day="Mon", start=840, duration=20
-        )
-    with pytest.raises(ValueError):
-        await envoy.set_generator_exercise_schedule(
-            freq_in_weeks=1, day="Monday", start=840, duration=20
-        )
-    with pytest.raises(ValueError):
-        await envoy.set_generator_exercise_schedule(
-            freq_in_weeks=1, day="Mon", start=-1, duration=20
-        )
-    with pytest.raises(ValueError):
-        await envoy.set_generator_exercise_schedule(
-            freq_in_weeks=1, day="Mon", start=1440, duration=20
-        )
-    with pytest.raises(ValueError):
-        await envoy.set_generator_exercise_schedule(
-            freq_in_weeks=1, day="Mon", start=840, duration=5
-        )
-    with pytest.raises(ValueError):
-        await envoy.set_generator_exercise_schedule(
-            freq_in_weeks=1, day="Mon", start=840, duration=65
-        )
-    # firmware accepts and persists intermediate values like 25 (verified
-    # live on D8.3.5169) but the Enlighten UI renders them as a blank
-    # duration field, so the library enforces the vendor step-10 domain
-    with pytest.raises(ValueError):
-        await envoy.set_generator_exercise_schedule(
-            freq_in_weeks=1, day="Mon", start=840, duration=25
-        )
 
-    # setting the schedule before the first data update is rejected
+@pytest.mark.asyncio
+async def test_update_generator_schedule_validation(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify generator schedule settings are validated before sending."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+
+    for invalid in (
+        {"exercise_freq_in_weeks": 0},
+        {"exercise_freq_in_weeks": 5},
+        {"exercise_day": "Monday"},
+        {"exercise_start": -1},
+        {"exercise_start": 1440},
+        {"exercise_duration": 5},
+        {"exercise_duration": 65},
+        # firmware accepts intermediate durations but Enlighten can not
+        # display them, so the vendor step-10 domain is enforced
+        {"exercise_duration": 25},
+        {"default_start_soc": 101},
+        {"default_stop_soc": -1},
+        {"exercise_days": "Mon"},
+    ):
+        with pytest.raises(ValueError):
+            await envoy.update_generator_schedule(invalid)
+
+    # nothing was sent to the Envoy
+    cnt, _data = latest_request(mock_aioresponse, "POST", URL_GEN_SCHEDULE)
+    assert cnt == 0
+
+    # updating before the first data update is rejected
     bad_envoy = await get_mock_envoy(test_client_session, update=False)
     await bad_envoy.probe()
     with pytest.raises(ValueError):
-        await bad_envoy.set_generator_exercise_schedule(
-            freq_in_weeks=1, day="Mon", start=840, duration=20
-        )
+        await bad_envoy.update_generator_schedule({"exercise_duration": 20})
 
 
 @pytest.mark.asyncio
@@ -132,7 +228,7 @@ async def test_set_generator_charge_from_generator(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Verify setting charge from generator sends the round-tripped payload."""
+    """Verify setting charge from generator sends the full configuration."""
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
     caplog.set_level(logging.DEBUG)
@@ -140,27 +236,40 @@ async def test_set_generator_charge_from_generator(
     envoy = await get_mock_envoy(test_client_session)
     assert envoy.supported_features & SupportedFeatures.GENERATOR
 
-    full_host = endpoint_path(VERSION, envoy.host)
-    mock_aioresponse.post(
-        f"{full_host}{URL_GEN_CONFIG}", status=200, payload={}, repeat=True
-    )
-
     config_json = await load_json_fixture(VERSION, "ivp_ss_gen_config")
     assert config_json["charge_from_generator"] is True
+    full_host = endpoint_path(VERSION, envoy.host)
 
-    for new_value in (False, True):
-        await envoy.set_generator_charge_from_generator(new_value)
+    disabled = deepcopy(config_json)
+    disabled["charge_from_generator"] = False
+    mock_aioresponse.post(
+        f"{full_host}{URL_GEN_CONFIG}", status=200, payload=disabled, repeat=True
+    )
 
-        # payload is the full GET shape with only charge_from_generator replaced
-        expected = deepcopy(config_json)
-        expected["charge_from_generator"] = new_value
-        _cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GEN_CONFIG)
-        assert orjson.loads(request_data) == expected
+    result = await envoy.set_generator_charge_from_generator(False)
 
-        # internal data is preemptively updated
-        assert envoy.data is not None
-        assert envoy.data.generator_config is not None
-        assert envoy.data.generator_config.charge_from_generator == new_value
+    # the whole configuration is sent with only the one field changed
+    _cnt, request_data = latest_request(mock_aioresponse, "POST", URL_GEN_CONFIG)
+    assert orjson.loads(request_data) == disabled
+
+    assert result == disabled
+    assert envoy.data is not None
+    assert envoy.data.raw[URL_GEN_CONFIG] == disabled
+    assert envoy.data.generator_config is not None
+    assert envoy.data.generator_config.charge_from_generator is False
+
+    # a system that normalizes the value back reports the effective value
+    override_mock(
+        mock_aioresponse,
+        "post",
+        f"{full_host}{URL_GEN_CONFIG}",
+        status=200,
+        payload=config_json,
+        repeat=True,
+    )
+    result = await envoy.set_generator_charge_from_generator(False)
+    assert result["charge_from_generator"] is True
+    assert envoy.data.generator_config.charge_from_generator is True
 
     # non-bool values are rejected without sending a request
     with pytest.raises(TypeError):
@@ -171,6 +280,31 @@ async def test_set_generator_charge_from_generator(
     await bad_envoy.probe()
     with pytest.raises(ValueError):
         await bad_envoy.set_generator_charge_from_generator(False)
+
+
+@pytest.mark.asyncio
+async def test_set_generator_charge_from_generator_reply_without_config(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify data is updated from the request if the Envoy returns no config."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+    full_host = endpoint_path(VERSION, envoy.host)
+    mock_aioresponse.post(
+        f"{full_host}{URL_GEN_CONFIG}", status=200, payload={}, repeat=True
+    )
+
+    await envoy.set_generator_charge_from_generator(False)
+
+    assert envoy.data is not None
+    assert envoy.data.generator_config is not None
+    assert envoy.data.generator_config.charge_from_generator is False
+    assert envoy.data.raw[URL_GEN_CONFIG]["charge_from_generator"] is False
 
 
 @pytest.mark.asyncio
@@ -189,20 +323,18 @@ async def test_generator_write_actions_without_generator(
     assert not envoy.supported_features & SupportedFeatures.GENERATOR
 
     with pytest.raises(EnvoyFeatureNotAvailable):
-        await envoy.set_generator_exercise_schedule(
-            freq_in_weeks=1, day="Mon", start=840, duration=20
-        )
+        await envoy.update_generator_schedule({"exercise_duration": 20})
     with pytest.raises(EnvoyFeatureNotAvailable):
         await envoy.set_generator_charge_from_generator(True)
 
 
 @pytest.mark.asyncio
-async def test_set_generator_exercise_schedule_without_gen_schedule(
+async def test_update_generator_schedule_without_gen_schedule(
     caplog: pytest.LogCaptureFixture,
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Verify the schedule setter rejects firmware without the gen_schedule endpoint."""
+    """Verify the schedule update rejects firmware without the gen_schedule endpoint."""
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
     caplog.set_level(logging.DEBUG)
@@ -220,6 +352,4 @@ async def test_set_generator_exercise_schedule_without_gen_schedule(
     assert envoy.data.generator_schedule is None
 
     with pytest.raises(EnvoyFeatureNotAvailable):
-        await envoy.set_generator_exercise_schedule(
-            freq_in_weeks=1, day="Mon", start=840, duration=20
-        )
+        await envoy.update_generator_schedule({"exercise_duration": 20})

@@ -10297,6 +10297,31 @@
       'exercise_freq_in_weeks': 1,
       'exercise_start': 750,
       'last_updated_by': 'ITK',
+      'schedule': dict({
+        'default': list([
+          dict({
+            'days': list([
+              dict({
+                'id': 'all_days',
+                'periods': list([
+                  dict({
+                    'duration': 1440.0,
+                    'id': 'normal_1',
+                    'setting': 'AON',
+                    'start': 0.0,
+                    'start_soc': 100.0,
+                    'stop_soc': -1.0,
+                  }),
+                ]),
+                'week_days': 'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+              }),
+            ]),
+            'end': '12/31',
+            'id': 'always_on',
+            'start': '1/1',
+          }),
+        ]),
+      }),
     }),
     'inverters': dict({
       '482218039091': dict({
