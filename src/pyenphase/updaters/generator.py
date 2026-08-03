@@ -33,7 +33,12 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
     _gen_mode_available: bool = False
 
     async def _optional_endpoint_available(self, end_point: str) -> bool:
-        """Probe an optional generator endpoint and report its availability."""
+        """
+        Probe an optional generator endpoint and report its availability.
+
+        :param end_point: Envoy endpoint to probe
+        :return: True if the endpoint returned usable data
+        """
         try:
             result = await self._json_probe_request(end_point)
         except ENDPOINT_PROBE_EXCEPTIONS as e:
