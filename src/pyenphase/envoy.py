@@ -1123,12 +1123,17 @@ class Envoy:
 
         The default_start_soc and default_stop_soc are applied by the
         firmware as the active generator start/stop SOC, as reported in
-        /ivp/ensemble/generator. They are always sent, so a schedule
-        update also (re)applies the SOC values held in
-        :any:`EnvoyData.generator_schedule` at the time of the call.
-        On systems with Enphase batteries, call :any:`Envoy.update`
-        first if another application may have changed them since the
-        last data collection.
+        /ivp/ensemble/generator. They are part of the schedule document
+        and are always sent, so an update also (re)applies the SOC
+        values held in :any:`EnvoyData.generator_schedule` at the time
+        of the call. On systems with Enphase batteries this matters
+        when the Enphase app or cloud changed them since the last data
+        collection, as the update would set them back to the values in
+        the stored data. Handle this in one of three ways: specify
+        refresh to re-read the schedule from the Envoy right before the
+        settings are merged into it, use :any:`Envoy.update` before the
+        call, or include the wanted SOC values in the settings to
+        change.
 
         The Envoy returns the resulting generator schedule, which is
         used to update :any:`EnvoyData.generator_schedule` and the raw
@@ -1138,11 +1143,6 @@ class Envoy:
         known state rather than at an optimistic one and
         EnvoyCommunicationError is raised. The update was sent in that
         case, use :any:`Envoy.update` to establish the actual state.
-
-        Specify refresh to re-read the schedule from the Envoy right
-        before the settings are merged into it. Use this when the
-        Enphase cloud or app may have changed settings since the last
-        data collection, to avoid sending values from stale data.
 
         :param new_data: dict of settings to change
         :param refresh: re-read the schedule from the Envoy before
@@ -1238,7 +1238,10 @@ class Envoy:
         are returned normalized where applicable.
 
         :param new_data: dict of settings to change
+        :param current: current generator schedule to validate the
+            settings to change against
         :raises ValueError: If an unknown setting is specified or a value is out of range
+        :raises ValueError: If the resulting default_start_soc is not lower than default_stop_soc
         :return: validated and normalized settings to change
         """
         if unknown := set(new_data) - GENERATOR_SCHEDULE_SETTINGS:
@@ -1313,11 +1316,14 @@ class Envoy:
         that case, use :any:`Envoy.update` to establish the actual
         state.
 
-        Specify refresh to re-read the configuration from the Envoy
-        right before the setting is changed in it. Use this when the
-        Enphase cloud or app may have changed the configuration since
-        the last data collection, to avoid sending values from stale
-        data.
+        The configuration is sent as a whole, so the values held in
+        :any:`EnvoyData.generator_config` at the time of the call are
+        sent along with the changed setting. If the Enphase app or
+        cloud changed the configuration since the last data collection,
+        the update would set it back to the values in the stored data.
+        Handle this by specifying refresh to re-read the configuration
+        from the Envoy right before the setting is changed in it, or by
+        using :any:`Envoy.update` before the call.
 
         :param charge_from_generator: True to allow charging batteries
             from the generator, False to disallow
