@@ -98,6 +98,24 @@ class EnvoyGeneratorConfig:
             charge_from_generator=config["charge_from_generator"],
         )
 
+    def to_api(self) -> dict[str, Any]:
+        """Convert to API format."""
+        return {
+            "max_cont_gen_amps": self.max_cont_gen_amps,
+            "min_gen_loading_perc": self.min_gen_loading_perc,
+            "max_gen_efficiency_perc": self.max_gen_efficiency_perc,
+            "name_plate_rating_wat": self.name_plate_rating_wat,
+            "start_method": self.start_method,
+            "warm_up_mins": self.warm_up_mins,
+            "cool_down_mins": self.cool_down_mins,
+            "gen_type": self.gen_type,
+            "model": self.model,
+            "manufacturer": self.manufacturer,
+            "last_updated_by": self.last_updated_by,
+            "generator_id": self.generator_id,
+            "charge_from_generator": self.charge_from_generator,
+        }
+
 
 @dataclass(slots=True)
 class EnvoyGeneratorMode:
@@ -128,9 +146,14 @@ class EnvoyGeneratorSchedule:
     exercise_duration: int
     #: Day of the week the exercise runs on
     exercise_day: str
+    #: Battery state of charge at which the generator starts by default
     default_start_soc: int
+    #: Battery state of charge at which the generator stops by default
     default_stop_soc: int
+    #: Source of the last schedule update
     last_updated_by: str
+    #: Generator operation schedule, passed through unmodified
+    schedule: dict[str, Any]
 
     @classmethod
     def from_api(cls, schedule: dict[str, Any]) -> EnvoyGeneratorSchedule:
@@ -145,4 +168,22 @@ class EnvoyGeneratorSchedule:
             default_start_soc=default_soc["start_soc"],
             default_stop_soc=default_soc["stop_soc"],
             last_updated_by=schedule["last_updated_by"],
+            schedule=schedule["schedule"],
         )
+
+    def to_api(self) -> dict[str, Any]:
+        """Convert to API format."""
+        return {
+            "exercise_config": {
+                "freq_in_weeks": self.exercise_freq_in_weeks,
+                "start": self.exercise_start,
+                "duration": self.exercise_duration,
+                "day": self.exercise_day,
+            },
+            "default_soc": {
+                "start_soc": self.default_start_soc,
+                "stop_soc": self.default_stop_soc,
+            },
+            "schedule": self.schedule,
+            "last_updated_by": self.last_updated_by,
+        }
