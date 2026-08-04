@@ -1,6 +1,24 @@
 # CHANGELOG
 
 
+## v3.2.0 (2026-08-04)
+
+### Chores
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#476](https://github.com/pyenphase/pyenphase/pull/476),
+  [`f17d3c2`](https://github.com/pyenphase/pyenphase/commit/f17d3c260b0acbdf75feff4d51ed7421c9e35027))
+
+### Features
+
+- Add generator exercise-schedule and charge-from-generator write actions
+  ([#473](https://github.com/pyenphase/pyenphase/pull/473),
+  [`3c3b7d5`](https://github.com/pyenphase/pyenphase/commit/3c3b7d53ecd3aa8389b9b0f8454b7af15ea8adc7))
+
+- **generator**: Add generator exercise schedule and charge-from-generator write actions
+  ([#473](https://github.com/pyenphase/pyenphase/pull/473),
+  [`3c3b7d5`](https://github.com/pyenphase/pyenphase/commit/3c3b7d53ecd3aa8389b9b0f8454b7af15ea8adc7))
+
+
 ## v3.1.0 (2026-08-01)
 
 ### Chores
