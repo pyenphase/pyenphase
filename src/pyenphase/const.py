@@ -10,6 +10,7 @@ LEGACY_ENVOY_VERSION = AwesomeVersion("3.9.0")
 ENSEMBLE_MIN_VERSION = AwesomeVersion("5.0.0")
 AUTH_TOKEN_MIN_VERSION = AwesomeVersion("7.0.0")
 METERED_NOCT_FALLBACK_TO_INVERTERS = AwesomeVersion("8.2.4264")
+PRODUCTION_TOTAL_IS_NET_CONSUMPTION = AwesomeVersion("8.3.5433")
 
 # Include in docs from here
 

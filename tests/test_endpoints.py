@@ -647,6 +647,59 @@ LOGGER = logging.getLogger(__name__)
             {},
             {},
         ),
+        (
+            "8.3.5433_tot_is_net_cons",
+            "800-00555-r03",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.DUALPHASE
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.DETAILED_INVERTERS,
+            {
+                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+                | SupportedFeatures.DETAILED_INVERTERS,
+                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+                | SupportedFeatures.TOTAL_CONSUMPTION
+                | SupportedFeatures.NET_CONSUMPTION
+                | SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+                "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE
+                | SupportedFeatures.CTMETERS,
+            },
+            2,
+            {
+                PhaseNames.PHASE_1: {
+                    "watt_hours_lifetime": 7201352,
+                    "watt_hours_last_7_days": 7201352,
+                    "watt_hours_today": 7201352,
+                    "watts_now": 175,
+                },
+                PhaseNames.PHASE_2: {
+                    "watt_hours_lifetime": 7204113,
+                    "watt_hours_last_7_days": 7204113,
+                    "watt_hours_today": 7204113,
+                    "watts_now": 183,
+                },
+            },
+            {
+                PhaseNames.PHASE_1: {
+                    "watt_hours_lifetime": 3507434 + 7201352,
+                    "watt_hours_last_7_days": 3507434,
+                    "watt_hours_today": 3507434,
+                    "watts_now": 249 + 175,
+                },
+                PhaseNames.PHASE_2: {
+                    "watt_hours_lifetime": 2141968 + 7204113,
+                    "watt_hours_last_7_days": 2141968,
+                    "watt_hours_today": 2141968,
+                    "watts_now": 179 + 183,
+                },
+            },
+        ),
     ],
     ids=[
         "5.0.62",
@@ -672,6 +725,7 @@ LOGGER = logging.getLogger(__name__)
         "8.2.4264_metered_noct",
         "8.2.4345_with_device_data",
         "8.3.5289_modGone",
+        "8.3.5433_tot_is_net_cons",
     ],
 )
 @pytest.mark.asyncio

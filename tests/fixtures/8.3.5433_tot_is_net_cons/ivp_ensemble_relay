@@ -1,0 +1,11 @@
+{
+  "mains_admin_state": "closed",
+  "mains_oper_state": "closed",
+  "srt12_state": "open",
+  "srt13_state": "open",
+  "der1_state": 0,
+  "der2_state": 0,
+  "der3_state": 0,
+  "Enchg_grid_mode": "unknown",
+  "Solar_grid_mode": "unknown"
+}
