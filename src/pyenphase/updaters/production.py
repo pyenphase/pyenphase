@@ -109,7 +109,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                         self._supported_features |= SupportedFeatures.METERING
                         self._supported_features |= SupportedFeatures.PRODUCTION
                         if lines := type_.get("lines"):
-                            active_phase_count = get_active_phase_count(lines)
+                            active_phase_count = max(
+                                active_phase_count, get_active_phase_count(lines)
+                            )
                         break
                     if (
                         self.allow_inverters_fallback
@@ -134,7 +136,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 if not discovered_net_consumption and meter_type == "net-consumption":
                     self._supported_features |= SupportedFeatures.NET_CONSUMPTION
                 if lines := meter.get("lines"):
-                    active_phase_count = get_active_phase_count(lines)
+                    active_phase_count = max(
+                        active_phase_count, get_active_phase_count(lines)
+                    )
 
         acb_storage: list[dict[str, Any]] | None = production_json.get("storage")
         # if storage segment is present and activeCount > 0 then signal as detected
