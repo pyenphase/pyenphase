@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v3.2.1 (2026-08-05)
+
+### Bug Fixes
+
+- 8.3.5433 firmware overwrites tot consumption with net-consumption
+  ([#477](https://github.com/pyenphase/pyenphase/pull/477),
+  [`d525786`](https://github.com/pyenphase/pyenphase/commit/d525786be6c0421695777872d29a967e2f84b58e))
+
+
 ## v3.2.0 (2026-08-04)
 
 ### Chores
