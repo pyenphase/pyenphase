@@ -258,30 +258,24 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             # correct phases as well
             if (
                 phase_count > 1
-                and envoy_data.system_production_phases is not None
-                and envoy_data.system_consumption_phases is not None
-                and envoy_data.system_net_consumption_phases is not None
+                and (sys_prod := envoy_data.system_production_phases) is not None
+                and (sys_cons := envoy_data.system_consumption_phases) is not None
+                and (sys_net_cons := envoy_data.system_net_consumption_phases)
+                is not None
             ):
-                for cons_phase in envoy_data.system_consumption_phases:
+                phases = set(sys_prod) & set(sys_cons) & set(sys_net_cons)
+                # phase is strEnum, mypy: expression has type "str", variable has type "int"
+                for phase in phases:  # type: ignore[assignment]
                     if (
-                        (total_data := envoy_data.system_consumption_phases[cons_phase])
-                        and (
-                            net_data := envoy_data.system_net_consumption_phases[
-                                cons_phase
-                            ]
-                        )
-                        and (
-                            prod_data := envoy_data.system_production_phases[cons_phase]
-                        )
-                        and (
-                            total_data.watt_hours_lifetime
-                            == net_data.watt_hours_lifetime
-                        )
-                        and (total_data.watts_now == net_data.watts_now)
+                        (cons := sys_cons[phase]) is not None  # type: ignore[index]
+                        and (net_cons := sys_net_cons[phase]) is not None  # type: ignore[index]
+                        and (prod := sys_prod[phase]) is not None  # type: ignore[index]
+                        and (cons.watt_hours_lifetime == net_cons.watt_hours_lifetime)
+                        and (cons.watts_now == net_cons.watts_now)
                     ):
                         # Add production to net-consumption to get total-consumption
-                        total_data.watt_hours_lifetime += prod_data.watt_hours_lifetime
-                        total_data.watts_now += prod_data.watts_now
+                        cons.watt_hours_lifetime += prod.watt_hours_lifetime
+                        cons.watts_now += prod.watts_now
 
 
 class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):
