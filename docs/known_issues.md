@@ -4,17 +4,18 @@ Issues have been reported with data; these vary by firmware version. Newer firmw
 
 ## Production & Consumption data
 
-| data                | envoy <br> type [^1] | issue                                    | in firmware |
-| ------------------- | -------------------- | ---------------------------------------- | ----------- |
-| whToday             | Mtr                  | late reset some time after midnight      |             |
-|                     |                      | reset to non-zero value                  |             |
-|                     |                      | sudden value step changes                |             |
-| whLastSevenDays     | Mtr                  | sudden value step changes                |             |
-| watt_hours_lifetime | NoCT                 | reset to zero when reaching 1.19 MWh     | \<8.x       |
-|                     | Std                  | 1.19 MWh value stepdown                  |             |
-| all                 | NoCT                 | stalled values in V1 Production Endpoint | >= 8.2.4264 |
+| data                | envoy <br> type [^1] | issue                                              | in firmware   |
+| ------------------- | -------------------- | -------------------------------------------------- | ------------- |
+| whToday             | Mtr                  | late reset some time after midnight                |               |
+|                     |                      | reset to non-zero value                            |               |
+|                     |                      | sudden value step changes                          |               |
+| whLastSevenDays     | Mtr                  | sudden value step changes                          |               |
+| watt_hours_lifetime | NoCT                 | reset to zero when reaching 1.19 MWh               | \<8.x         |
+|                     | Std                  | 1.19 MWh value stepdown                            |               |
+| all                 | NoCT                 | stalled values in V1 Production Endpoint           | >= 8.2.4264   |
+| consumption data    | Mtr, (tot-ct ?)      | consumption values are <br>net-consumption values. | (>=) 8.3.5433 |
 
-[^1]: Std: Envoy standard (not metered). Mtr: Envoy metered. NoCT: Envoy metered without installed and configured CTs.
+[^1]: Std: Envoy standard (not metered). Mtr: Envoy metered. NoCT: Envoy metered without installed and configured CTs. tot-ct: TOTAL-CONSUMPTION CT installed.
 
 ## Inverter device data
 
@@ -35,3 +36,7 @@ If this 11 PM outage still results in errors, use the {py:meth}`pyenphase.Envoy.
 The IQ Gateway maintains a persistent outbound connection to the Enlighten cloud service, which periodically uses this connection to push tariff configuration to the gateway. When a local API write via {py:meth}`pyenphase.Envoy.set_storage_mode` sets a mode that differs from the cloud-held configuration, the cloud will typically overwrite it within one to two minutes. The overwrite is identifiable in the tariff response: the `date` field is updated to a timestamp that was not written by the local PUT request, `opt_schedules` is restored to `true`, and the mode reverts to `self-consumption`. Enphase have confirmed this behaviour is intentional.
 
 Blocking the IQ Gateway's outbound internet access at the network level prevents the cloud push and causes locally-set modes to persist. Note that this also prevents the Enlighten platform from receiving monitoring data from the gateway, and may lead to unexpected behaviour when sustained over long periods of time.
+
+## Consumption data set to net consumption data in 8.3.5433
+
+In 8.3.5433 firmware, the production report has (total-)consumption data equal to net-consumption data. This is reported for metered Envoy with TOTAL-CONSUMPTION CT installed. It is not (yet) clear is this is the case as well for NET-CONSUMPTION CT installations. Pyenphase now checks values of lifetime energy and power of both consumption types and if equal, adds production values to the consumption values to obtain correct data.
