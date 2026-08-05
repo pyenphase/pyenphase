@@ -1,0 +1,174 @@
+{
+  "tariff": {
+    "currency": {
+      "code": "USD"
+    },
+    "logger": "mylogger",
+    "date": "1709030577",
+    "storage_settings": {
+      "mode": "self-consumption",
+      "operation_mode_sub_type": "",
+      "reserved_soc": 0.0,
+      "very_low_soc": 5,
+      "charge_from_grid": false,
+      "date": "1780079822",
+      "opt_schedules": true
+    },
+    "single_rate": {
+      "rate": 0.151078999042511,
+      "sell": 0.151078999042511
+    },
+    "seasons": [
+      {
+        "id": "season_1",
+        "start": "5/1",
+        "days": [],
+        "tiers": [
+          {
+            "id": "tier_1",
+            "limit": 500,
+            "rate": 0.151078999042511
+          },
+          {
+            "id": "tier_2",
+            "limit": 659,
+            "rate": 0.16833800077438355
+          },
+          {
+            "id": "tier_3",
+            "limit": 1000,
+            "rate": 0.15483799576759339
+          },
+          {
+            "id": "tier_4",
+            "limit": -1,
+            "rate": 0.1611669957637787
+          }
+        ]
+      },
+      {
+        "id": "season_2",
+        "start": "10/1",
+        "days": [],
+        "tiers": [
+          {
+            "id": "tier_1",
+            "limit": 500,
+            "rate": 0.151078999042511
+          },
+          {
+            "id": "tier_2",
+            "limit": 659,
+            "rate": 0.16833800077438355
+          },
+          {
+            "id": "tier_3",
+            "limit": 1000,
+            "rate": 0.15483799576759339
+          },
+          {
+            "id": "tier_4",
+            "limit": -1,
+            "rate": 0.1611669957637787
+          }
+        ]
+      }
+    ],
+    "seasons_sell": [
+      {
+        "id": "season_1",
+        "start": "5/1",
+        "days": []
+      },
+      {
+        "id": "season_2",
+        "start": "10/1",
+        "days": []
+      }
+    ]
+  },
+  "schedule": {
+    "filename": "",
+    "source": "",
+    "date": "2026-07-29 13:47:37 UTC",
+    "version": "",
+    "reserved_soc": 30.0,
+    "very_low_soc": 10,
+    "charge_from_grid": false,
+    "batt_mode": "self-consumption",
+    "battery_mode": "self-consumption",
+    "operation_mode_sub_type": "",
+    "opt_schedules": false,
+    "override": false,
+    "override_backup_soc": 30.0,
+    "override_chg_dischg_rate": 0.0,
+    "override_tou_mode": "StorageTouMode_DEFAULT_TOU_MODE",
+    "schedule": {
+      "Disable": [
+        {
+          "Sun": [
+            {
+              "start": 0,
+              "duration": 1440,
+              "setting": "ID"
+            }
+          ]
+        },
+        {
+          "Mon": [
+            {
+              "start": 0,
+              "duration": 1440,
+              "setting": "ID"
+            }
+          ]
+        },
+        {
+          "Tue": [
+            {
+              "start": 0,
+              "duration": 1440,
+              "setting": "ID"
+            }
+          ]
+        },
+        {
+          "Wed": [
+            {
+              "start": 0,
+              "duration": 1440,
+              "setting": "ID"
+            }
+          ]
+        },
+        {
+          "Thu": [
+            {
+              "start": 0,
+              "duration": 1440,
+              "setting": "ID"
+            }
+          ]
+        },
+        {
+          "Fri": [
+            {
+              "start": 0,
+              "duration": 1440,
+              "setting": "ID"
+            }
+          ]
+        },
+        {
+          "Sat": [
+            {
+              "start": 0,
+              "duration": 1440,
+              "setting": "ID"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

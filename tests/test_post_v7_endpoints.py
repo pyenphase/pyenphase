@@ -1,11 +1,13 @@
 """Test specific envoy firmware issues post v7."""
 
 import logging
+from typing import Any
 
 import aiohttp
 import pytest
 from aioresponses import aioresponses
 
+from pyenphase.const import PhaseNames
 from pyenphase.envoy import UPDATERS, Envoy, SupportedFeatures, register_updater
 from pyenphase.exceptions import EnvoyAuthenticationRequired
 from pyenphase.updaters.api_v1_production_inverters import (
@@ -14,7 +16,9 @@ from pyenphase.updaters.api_v1_production_inverters import (
 from pyenphase.updaters.device_data_inverters import EnvoyDeviceDataInvertersUpdater
 
 from .common import (
+    endpoint_path,
     get_mock_envoy,
+    load_json_fixture,
     override_mock,
     prep_envoy,
     start_7_firmware_mock,
@@ -351,3 +355,174 @@ async def test_early_v7_with_all_401(
         "EnvoyApiV1ProductionUpdater": SupportedFeatures.PRODUCTION,
         "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE | SupportedFeatures.CTMETERS,
     }
+
+
+@pytest.mark.parametrize(
+    (
+        "version",
+        "cons_watts_now",
+        "cons_watt_hours_today",
+        "cons_watt_hours_last_7_days",
+        "cons_watt_hours_lifetime",
+    ),
+    [
+        (
+            "8.3.5433_tot_is_net_cons",
+            428 + 357,
+            5649402,
+            5649402,
+            5649402 + 14405465,
+        ),
+        (
+            "8.3.5167_3rd-pv",
+            325,
+            8958,
+            0,
+            253002,
+        ),
+        (
+            "8.2.4345_with_device_data",
+            1009,
+            14567,
+            136896,
+            1008081,
+        ),
+        (
+            "8.2.4286_with_3cts_and_battery_split",
+            8885,
+            0,
+            0,
+            15113474,
+        ),
+        (
+            "7.6.175_with_cts",
+            477,
+            19904,
+            5,
+            5145154,
+        ),
+    ],
+    ids=[
+        "8.3.5433_tot_is_net_cons",
+        "8.3.5167_3rd-pv",
+        "8.2.4345_with_device_data",
+        "8.2.4286_with_3cts_and_battery_split",
+        "7.6.175_with_cts",
+    ],
+)
+@pytest.mark.asyncio
+async def test_metered_cons_is_not_net(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    cons_watts_now: int,
+    cons_watt_hours_today: int,
+    cons_watt_hours_last_7_days: int,
+    cons_watt_hours_lifetime: int,
+) -> None:
+    """Verify consumption data is correct, 8.3.5433 needs correction. Phase data is tested in test_endpoints."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+
+    assert data.system_consumption
+    assert envoy.consumption_meter_type
+    assert data.system_production
+    assert data.system_consumption.watts_now == cons_watts_now
+    assert data.system_consumption.watt_hours_today == cons_watt_hours_today
+    assert data.system_consumption.watt_hours_last_7_days == cons_watt_hours_last_7_days
+    assert data.system_consumption.watt_hours_lifetime == cons_watt_hours_lifetime
+
+
+@pytest.mark.parametrize(
+    "version",
+    [
+        "8.3.5433_tot_is_net_cons",
+    ],
+    ids=[
+        "8.3.5433_tot_is_net_cons",
+    ],
+)
+@pytest.mark.asyncio
+async def test_cons_is_not_net_full_phase_cov(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+) -> None:
+    """Finalize COV for metered 8.3.5433 force phase skipped paths."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    full_host = endpoint_path(version, "127.0.0.1")
+
+    # force difference in one phase so it;s skipped
+    production_json = await load_json_fixture(version, "production.json")
+    production_json["consumption"][0]["lines"][1]["wNow"] = 27000
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/production.json",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/production.json?details=1",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+    assert data.system_consumption is not None
+    assert data.system_net_consumption is not None
+    assert data.system_production is not None
+    assert data.system_consumption_phases is not None
+    assert data.system_net_consumption_phases is not None
+    assert data.system_production_phases is not None
+    assert (
+        data.system_consumption.watts_now
+        == data.system_net_consumption.watts_now + data.system_production.watts_now
+    )
+    assert (
+        data.system_consumption_phases[PhaseNames.PHASE_1].watts_now  # type: ignore
+        == data.system_net_consumption_phases[PhaseNames.PHASE_1].watts_now  # type: ignore
+        + data.system_production_phases[PhaseNames.PHASE_1].watts_now  # type: ignore
+    )
+    assert data.system_consumption_phases[PhaseNames.PHASE_2].watts_now == 27000  # type: ignore
+
+    # run test with single phase active, should skip phase part
+    meter_json: Any = await load_json_fixture(version, "ivp_meters")
+    meter_json[0]["phaseCount"] = 1
+    meter_json[1]["phaseCount"] = 1
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/ivp/meters",
+        status=200,
+        payload=meter_json,
+        repeat=True,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+
+    assert data.system_consumption
+    assert data.system_net_consumption
+    assert data.system_production
+    # validate agg data is now different
+    assert (
+        data.system_consumption.watts_now
+        == data.system_net_consumption.watts_now + data.system_production.watts_now
+    )
+    assert data.system_consumption_phases is None
+    assert data.system_net_consumption_phases is None
+    assert data.system_production_phases is None

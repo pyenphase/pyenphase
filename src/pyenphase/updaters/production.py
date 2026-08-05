@@ -3,7 +3,13 @@
 import logging
 from typing import Any
 
-from ..const import PHASENAMES, URL_PRODUCTION, URL_PRODUCTION_JSON, SupportedFeatures
+from ..const import (
+    PHASENAMES,
+    PRODUCTION_TOTAL_IS_NET_CONSUMPTION,
+    URL_PRODUCTION,
+    URL_PRODUCTION_JSON,
+    SupportedFeatures,
+)
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.acb import EnvoyACBPower
 from ..models.envoy import EnvoyData
@@ -12,6 +18,14 @@ from ..models.system_production import EnvoySystemProduction
 from .base import EnvoyUpdater
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def get_active_phase_count(lines: list[dict[str, Any]]) -> int:
+    """Determine how many phases are active."""
+    # recent firmware version return always 3 phases with
+    # inactive phase data all zero. Which results in wrong
+    # value when using len(lines). Correct for all zero data
+    return sum(1 for line in lines if any(line.values()))
 
 
 class EnvoyProductionUpdater(EnvoyUpdater):
@@ -95,7 +109,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                         self._supported_features |= SupportedFeatures.METERING
                         self._supported_features |= SupportedFeatures.PRODUCTION
                         if lines := type_.get("lines"):
-                            active_phase_count = len(lines)
+                            active_phase_count = max(
+                                active_phase_count, get_active_phase_count(lines)
+                            )
                         break
                     if (
                         self.allow_inverters_fallback
@@ -120,7 +136,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 if not discovered_net_consumption and meter_type == "net-consumption":
                     self._supported_features |= SupportedFeatures.NET_CONSUMPTION
                 if lines := meter.get("lines"):
-                    active_phase_count = len(lines)
+                    active_phase_count = max(
+                        active_phase_count, get_active_phase_count(lines)
+                    )
 
         acb_storage: list[dict[str, Any]] | None = production_json.get("storage")
         # if storage segment is present and activeCount > 0 then signal as detected
@@ -212,6 +230,54 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         if self._supported_features & SupportedFeatures.ACB:
             envoy_data.acb_power = EnvoyACBPower.from_production(production_data)
+
+        # starting with fw 8.3.5433 total-consumption whLifetime and wNow are overwritten
+        # by net-consumption values for metered envoy (with assumed) TOTAL-CONSUMPTION
+        # CT installed. Repair by calculating TOTAL-CONSUMPTION as
+        # NET-CONSUMPTION + PRODUCTION values.
+        if (
+            self._envoy_version >= PRODUCTION_TOTAL_IS_NET_CONSUMPTION
+            and SupportedFeatures.METERING in self._supported_features
+            and envoy_data.system_production is not None
+            and envoy_data.system_consumption is not None
+            and envoy_data.system_net_consumption is not None
+            and (
+                envoy_data.system_consumption.watt_hours_lifetime
+                == envoy_data.system_net_consumption.watt_hours_lifetime
+            )
+            and (
+                envoy_data.system_consumption.watts_now
+                == envoy_data.system_net_consumption.watts_now
+            )
+        ):
+            # Add production to net-consumption to get total-consumption
+            # we're only here if net = tot consumption so we can use either
+            envoy_data.system_consumption.watt_hours_lifetime += (
+                envoy_data.system_production.watt_hours_lifetime
+            )
+            envoy_data.system_consumption.watts_now += (
+                envoy_data.system_production.watts_now
+            )
+
+            # correct phases as well
+            if (
+                phase_count > 1
+                and (sys_prod := envoy_data.system_production_phases) is not None
+                and (sys_cons := envoy_data.system_consumption_phases) is not None
+                and (sys_net_cons := envoy_data.system_net_consumption_phases)
+                is not None
+            ):
+                for phase_name in set(sys_prod) & set(sys_cons) & set(sys_net_cons):
+                    if (
+                        (cons := sys_cons[phase_name]) is not None
+                        and (net_cons := sys_net_cons[phase_name]) is not None
+                        and (prod := sys_prod[phase_name]) is not None
+                        and (cons.watt_hours_lifetime == net_cons.watt_hours_lifetime)
+                        and (cons.watts_now == net_cons.watts_now)
+                    ):
+                        # Add production to net-consumption to get total-consumption
+                        cons.watt_hours_lifetime += prod.watt_hours_lifetime
+                        cons.watts_now += prod.watts_now
 
 
 class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):

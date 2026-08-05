@@ -1,0 +1,86 @@
+{
+  "production": [
+    {
+      "type": "inverters",
+      "activeCount": 12,
+      "readingTime": 1785332625,
+      "wNow": 304,
+      "whLifetime": 9791640
+    },
+    {
+      "type": "eim",
+      "activeCount": 1,
+      "measurementType": "production",
+      "readingTime": 1785332851,
+      "wNow": 370.185,
+      "whLifetime": 14405464.86,
+      "varhLeadLifetime": 2287906.777,
+      "varhLagLifetime": 50583.799,
+      "vahLifetime": 0.012,
+      "rmsCurrent": 3.841,
+      "rmsVoltage": 242.763,
+      "reactPwr": 229.624,
+      "apprntPwr": 466.324,
+      "pwrFactor": 1.587,
+      "whToday": 14405464.86,
+      "whLastSevenDays": 14405464.86,
+      "vahToday": 0.012,
+      "varhLeadToday": 2287906.777,
+      "varhLagToday": 50583.799
+    }
+  ],
+  "consumption": [
+    {
+      "type": "eim",
+      "activeCount": 1,
+      "measurementType": "total-consumption",
+      "readingTime": 1785332851,
+      "wNow": 408.942,
+      "whLifetime": 5649402.127,
+      "varhLeadLifetime": -2183881.301,
+      "varhLagLifetime": 6865499.381,
+      "vahLifetime": 0.011,
+      "rmsCurrent": -3.385,
+      "rmsVoltage": 242.728,
+      "reactPwr": -283.319,
+      "apprntPwr": 246.114,
+      "pwrFactor": 1.781,
+      "whToday": 5649402.127,
+      "whLastSevenDays": 5649402.127,
+      "vahToday": 0.011,
+      "varhLeadToday": 0.0,
+      "varhLagToday": 6865499.381
+    },
+    {
+      "type": "eim",
+      "activeCount": 1,
+      "measurementType": "net-consumption",
+      "readingTime": 1785332851,
+      "wNow": 408.942,
+      "whLifetime": 5649402.127,
+      "varhLeadLifetime": -2183881.301,
+      "varhLagLifetime": 6865499.381,
+      "vahLifetime": 0.011,
+      "rmsCurrent": -3.385,
+      "rmsVoltage": 242.728,
+      "reactPwr": -283.319,
+      "apprntPwr": 246.114,
+      "pwrFactor": 1.781,
+      "whToday": 0,
+      "whLastSevenDays": 0,
+      "vahToday": 0,
+      "varhLeadToday": 0,
+      "varhLagToday": 0
+    }
+  ],
+  "storage": [
+    {
+      "type": "acb",
+      "activeCount": 0,
+      "readingTime": 0,
+      "wNow": 0,
+      "whNow": 0,
+      "state": "idle"
+    }
+  ]
+}
