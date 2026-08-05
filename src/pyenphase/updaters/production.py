@@ -25,7 +25,7 @@ def get_active_phase_count(lines: list[dict[str, Any]]) -> int:
     # recent firmware version return always 3 phases with
     # inactive phase data all zero. Which results in wrong
     # value when using len(lines). Correct for all zero data
-    return sum(bool(not x) for x in [not any(line.values()) for line in lines])
+    return sum(1 for line in lines if any(line.values()))
 
 
 class EnvoyProductionUpdater(EnvoyUpdater):
