@@ -263,13 +263,11 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 and (sys_net_cons := envoy_data.system_net_consumption_phases)
                 is not None
             ):
-                phases = set(sys_prod) & set(sys_cons) & set(sys_net_cons)
-                # phase is strEnum, mypy: expression has type "str", variable has type "int"
-                for phase in phases:  # type: ignore[assignment]
+                for phase_name in set(sys_prod) & set(sys_cons) & set(sys_net_cons):
                     if (
-                        (cons := sys_cons[phase]) is not None  # type: ignore[index]
-                        and (net_cons := sys_net_cons[phase]) is not None  # type: ignore[index]
-                        and (prod := sys_prod[phase]) is not None  # type: ignore[index]
+                        (cons := sys_cons[phase_name]) is not None
+                        and (net_cons := sys_net_cons[phase_name]) is not None
+                        and (prod := sys_prod[phase_name]) is not None
                         and (cons.watt_hours_lifetime == net_cons.watt_hours_lifetime)
                         and (cons.watts_now == net_cons.watts_now)
                     ):
