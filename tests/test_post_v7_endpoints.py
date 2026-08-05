@@ -7,6 +7,7 @@ import aiohttp
 import pytest
 from aioresponses import aioresponses
 
+from pyenphase.const import PhaseNames
 from pyenphase.envoy import UPDATERS, Envoy, SupportedFeatures, register_updater
 from pyenphase.exceptions import EnvoyAuthenticationRequired
 from pyenphase.updaters.api_v1_production_inverters import (
@@ -414,7 +415,6 @@ async def test_metered_cons_is_not_net(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     version: str,
-    caplog: pytest.LogCaptureFixture,
     cons_watts_now: int,
     cons_watt_hours_today: int,
     cons_watt_hours_last_7_days: int,
@@ -423,7 +423,6 @@ async def test_metered_cons_is_not_net(
     """Verify consumption data is correct, 8.3.5433 needs correction. Phase data is tested in test_endpoints."""
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-    caplog.set_level(logging.DEBUG)
 
     envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
@@ -448,16 +447,14 @@ async def test_metered_cons_is_not_net(
     ],
 )
 @pytest.mark.asyncio
-async def test_cons_is_not_net_full_cov(
+async def test_cons_is_not_net_full_phase_cov(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     version: str,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Finalize COV for metered 8.3.5433 force phase skipped paths."""
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-    caplog.set_level(logging.DEBUG)
 
     full_host = endpoint_path(version, "127.0.0.1")
 
@@ -487,9 +484,20 @@ async def test_cons_is_not_net_full_cov(
     assert data is not None
     assert data.system_consumption is not None
     assert data.system_net_consumption is not None
+    assert data.system_production is not None
     assert data.system_consumption_phases is not None
     assert data.system_net_consumption_phases is not None
-    assert data.system_consumption.watts_now != data.system_net_consumption.watts_now
+    assert data.system_production_phases is not None
+    assert (
+        data.system_consumption.watts_now
+        == data.system_net_consumption.watts_now + data.system_production.watts_now
+    )
+    assert (
+        data.system_consumption_phases[PhaseNames.PHASE_1].watts_now  # type: ignore
+        == data.system_net_consumption_phases[PhaseNames.PHASE_1].watts_now  # type: ignore
+        + data.system_production_phases[PhaseNames.PHASE_1].watts_now  # type: ignore
+    )
+    assert data.system_consumption_phases[PhaseNames.PHASE_2].watts_now == 27000  # type: ignore
 
     # run test with single phase active, should skip phase part
     meter_json: Any = await load_json_fixture(version, "ivp_meters")
@@ -509,5 +517,12 @@ async def test_cons_is_not_net_full_cov(
 
     assert data.system_consumption
     assert data.system_net_consumption
+    assert data.system_production
     # validate agg data is now different
-    assert data.system_consumption.watts_now != data.system_net_consumption.watts_now
+    assert (
+        data.system_consumption.watts_now
+        == data.system_net_consumption.watts_now + data.system_production.watts_now
+    )
+    assert data.system_consumption_phases is None
+    assert data.system_net_consumption_phases is None
+    assert data.system_production_phases is None
