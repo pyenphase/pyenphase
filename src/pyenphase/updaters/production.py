@@ -233,7 +233,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         # starting with fw 8.3.5433 total-consumption whLifetime and wNow are overwritten
         # by net-consumption values for metered envoy (with assumed) TOTAL-CONSUMPTION
-        # CT installed. Repair by calculatting TOTAL-CONSUMPTION as
+        # CT installed. Repair by calculating TOTAL-CONSUMPTION as
         # NET-CONSUMPTION + PRODUCTION values.
         if (
             self._envoy_version >= PRODUCTION_TOTAL_IS_NET_CONSUMPTION

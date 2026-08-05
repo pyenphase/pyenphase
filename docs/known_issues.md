@@ -39,4 +39,6 @@ Blocking the IQ Gateway's outbound internet access at the network level prevents
 
 ## Consumption data set to net consumption data in 8.3.5433
 
-In 8.3.5433 firmware, the production report has (total-)consumption data equal to net-consumption data. This is reported for metered Envoy with TOTAL-CONSUMPTION CT installed. It is not (yet) clear is this is the case as well for NET-CONSUMPTION CT installations. Pyenphase now checks values of lifetime energy and power of both consumption types and if equal, adds production values to the consumption values to obtain correct data.
+In 8.3.5433 firmware, the production report has (total-)consumption data equal to net-consumption data. This is reported for metered Envoy with TOTAL-CONSUMPTION CT installed. It is not (yet) clear whether this is the case as well for NET-CONSUMPTION CT installations. Pyenphase now checks values of lifetime energy and power of both consumption types and if equal, adds production values to the consumption values to obtain correct data.
+
+For anyone already running 8.3.5433, the consumption total has previously dropped to the net value. Upgrading to this pyenphase version makes it jump back up in a single reading. For example Home Assistant's total_increasing energy statistics interpret a jump as real consumption, so users can see a large one-off spike in their energy dashboard on the update that lands this fix. Nothing in the library can avoid this, this is not another bug, but rather the repair of the issue that came with firmware 8.3.5433.
