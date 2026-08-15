@@ -43,14 +43,14 @@ class EnvoySystemProduction:
 
     @classmethod
     def from_production(
-        cls, data: dict[str, Any], metered: bool = True
+        cls, data: dict[str, Any], metered: bool = False
     ) -> EnvoySystemProduction | None:
         """
         Initialize from the production API.
 
         :param data: JSON reply from /production endpoint
-        :param has_ctmeters: signal Envoy is equipped with active CT,
-            don't fallback to the inverter data section. Default is True
+        :param metered: signal Envoy is equipped with configured CT meters,
+            don't fallback to the inverter data section. Default is False
         :return: Lifetime, last seven days, todays energy and current power for solar production
         """
         all_production = data["production"]
