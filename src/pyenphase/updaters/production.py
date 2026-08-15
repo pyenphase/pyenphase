@@ -94,6 +94,16 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         active_phase_count = 0
         phase_count = self._common_properties.phase_count
 
+        # As of fw 5.3.5528 (and maybe earlier) metered envoy with CT intermittently
+        # report bogus data in /production type=eim, recognizable by activeCount: 0
+        # For metered Envoy with active CT, do NOT fallback to any of the
+        #   EnvoyProductionUpdater
+        #   EnvoyApiV1ProductionUpdater
+        #   EnvoyProductionJsonFallbackUpdater
+        # updaters, these report different values as the production segment.
+        # Instead register this updater for production.
+        ct_count = self._common_properties.ct_meter_count
+
         # if endpoint is not in the list of successful endpoints yet, add it.
         if (
             self.end_point not in working_endpoints
@@ -105,7 +115,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             production: list[dict[str, Any]] | None = production_json.get("production")
             if production:
                 for type_ in production:
-                    if type_["type"] == "eim" and type_["activeCount"]:
+                    # fw 5.3.5528, if metered with CT do not fall back to other production updaters
+                    if type_["type"] == "eim" and (
+                        type_["activeCount"] or ct_count > 0
+                    ):
                         self._supported_features |= SupportedFeatures.METERING
                         self._supported_features |= SupportedFeatures.PRODUCTION
                         if lines := type_.get("lines"):
@@ -177,8 +190,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         phase_count = self._common_properties.phase_count
 
         if self._supported_features & SupportedFeatures.PRODUCTION:
+            # fw 5.3.5528, signal we have active CT
             envoy_data.system_production = EnvoySystemProduction.from_production(
-                production_data
+                production_data, self._common_properties.ct_meter_count > 0
             )
             # get production phase data if more then 1 phase is found
             phase_production: dict[str, EnvoySystemProduction | None] = {}

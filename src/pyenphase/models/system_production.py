@@ -42,17 +42,34 @@ class EnvoySystemProduction:
         )
 
     @classmethod
-    def from_production(cls, data: dict[str, Any]) -> EnvoySystemProduction:
+    def from_production(
+        cls, data: dict[str, Any], metered: bool = True
+    ) -> EnvoySystemProduction | None:
         """
         Initialize from the production API.
 
         :param data: JSON reply from /production endpoint
+        :param has_ctmeters: signal Envoy is equipped with active CT,
+            don't fallback to the inverter data section. Default is True
         :return: Lifetime, last seven days, todays energy and current power for solar production
         """
         all_production = data["production"]
 
         eim = find_dict_by_key(all_production, "eim")
         inverters = find_dict_by_key(all_production, "inverters")
+
+        # As of fw 5.3.5528 (and maybe earlier) metered envoy with CT intermittently
+        # report bogus data in /production type=eim, recognizable by activeCount: 0.
+        # A silent fallback from production to inverters data of /production happens
+        # because activecount (and potentially other values as well) being 0. The
+        # inverter segment data for this and others firmwares has different values
+        # as the eim segment and would result in step changes in the value.
+        #
+        # Don't fallback to the inverters section for metered with ct. Return None
+        # instead so HA data will keep last value or show as unavailable.
+        # Caller can tell through metered param if envoy is metered with active CT or not.
+        if metered and not eim["activeCount"]:
+            return None
 
         # This is backwards compatible with envoy_reader
         # envoy metered without configured CT has whLifetime and wNow in inverters
