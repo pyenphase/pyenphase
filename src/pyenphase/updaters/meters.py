@@ -242,7 +242,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 ):
                     zero_phase = (
                         PhaseNames.PHASE_1
-                        if l2_data.active_power == agg_data.active_power
+                        if l1_data.energy_delivered == 0
                         else PhaseNames.PHASE_2
                     )
                     _LOGGER.debug(
