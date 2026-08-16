@@ -202,9 +202,11 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                     and self._common_properties.phase_count == 2
                     # with actual data in agg and phases
                     and (agg_data := envoy_data.ctmeters[CtType.STORAGE])
-                    and (phase_data := envoy_data.ctmeters_phases[CtType.STORAGE])
-                    and (l1_data := phase_data[PhaseNames.PHASE_1])
-                    and (l2_data := phase_data[PhaseNames.PHASE_2])
+                    and (
+                        storage_phases := envoy_data.ctmeters_phases.get(CtType.STORAGE)
+                    )
+                    and (l1_data := storage_phases.get(PhaseNames.PHASE_1))
+                    and (l2_data := storage_phases.get(PhaseNames.PHASE_2))
                     # one phase all zero active_power, other phase not and equal to aggregated
                     and (
                         # L1 all zero, L2 data
