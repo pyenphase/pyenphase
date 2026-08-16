@@ -200,51 +200,8 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                     and self._common_properties.phase_mode == EnvoyPhaseMode.SPLIT
                     # with dual phase setup
                     and self._common_properties.phase_count == 2
-                    # with actual data in agg and phases
-                    and (agg_data := envoy_data.ctmeters[CtType.STORAGE])
-                    and (
-                        storage_phases := envoy_data.ctmeters_phases.get(CtType.STORAGE)
-                    )
-                    and (l1_data := storage_phases.get(PhaseNames.PHASE_1))
-                    and (l2_data := storage_phases.get(PhaseNames.PHASE_2))
-                    # one phase all zero active_power, other phase not and equal to aggregated
-                    and (
-                        # L1 all zero, L2 data
-                        (
-                            # zero phase power agg power equal other phase
-                            l1_data.active_power == 0
-                            and l2_data.active_power == agg_data.active_power
-                            # one phase all zero energy delivered, other phase not and equal to aggregated
-                            and l1_data.energy_delivered == 0
-                            and l2_data.energy_delivered != 0
-                            and l2_data.energy_delivered == agg_data.energy_delivered
-                            # one phase all zero energy received, other phase not and equal to aggregated
-                            and l1_data.energy_received == 0
-                            and l2_data.energy_received != 0
-                            and l2_data.energy_received == agg_data.energy_received
-                        )
-                        or
-                        # L1 data, L2 all zero
-                        (
-                            # zero phase power agg power equal other phase
-                            l2_data.active_power == 0
-                            and l1_data.active_power == agg_data.active_power
-                            # one phase all zero energy delivered, other phase not and equal to aggregated
-                            and l2_data.energy_delivered == 0
-                            and l1_data.energy_delivered != 0
-                            and l1_data.energy_delivered == agg_data.energy_delivered
-                            # one phase all zero energy received, other phase not and equal to aggregated
-                            and l2_data.energy_received == 0
-                            and l1_data.energy_received != 0
-                            and l1_data.energy_received == agg_data.energy_received
-                        )
-                    )
+                    and (zero_phase := _find_zero_phase_for_storage_anomaly(envoy_data))
                 ):
-                    zero_phase = (
-                        PhaseNames.PHASE_1
-                        if l1_data.energy_delivered == 0
-                        else PhaseNames.PHASE_2
-                    )
                     _LOGGER.debug(
                         "Storage CT one phase all zero, returning None for aggregate and zero phase %s",
                         zero_phase,
@@ -292,3 +249,52 @@ def _meter_data_for_phases(
         if (data := EnvoyMeterData.from_phase(meter, ct_data, phase_idx))
     }
     return meter_data_by_phase
+
+
+def _verify_zero_phase_for_storage_anomaly(
+    agg_data: EnvoyMeterData,
+    impacted_data: EnvoyMeterData,
+    unimpacted_data: EnvoyMeterData,
+) -> bool:
+    """
+    Identify if zero data is present for impacted data and agg data is equal
+    to unimpacted data. Verify for active power, energy delivered and received.
+    """
+    return (
+        impacted_data.active_power == 0
+        and unimpacted_data.active_power == agg_data.active_power
+        and impacted_data.energy_delivered == 0
+        and unimpacted_data.energy_delivered != 0
+        and unimpacted_data.energy_delivered == agg_data.energy_delivered
+        and impacted_data.energy_received == 0
+        and unimpacted_data.energy_received != 0
+        and unimpacted_data.energy_received == agg_data.energy_received
+    )
+
+
+def _find_zero_phase_for_storage_anomaly(envoy_data: EnvoyData) -> PhaseNames | None:
+    """
+    Identify which phase has the storage ct anomaly, if any.
+    Zero data in one phase and non-zero in other, aggregate
+    values equal to non-zero phase.
+
+    :returns: phasename with zeros if phase anomaly was identified, or None if not
+    """
+    if (
+        # return None if not all data is present, doesn't meet anomaly
+        not (agg_data := envoy_data.ctmeters[CtType.STORAGE])
+        or not (storage_phases := envoy_data.ctmeters_phases.get(CtType.STORAGE))
+        or not (l1_data := storage_phases.get(PhaseNames.PHASE_1))
+        or not (l2_data := storage_phases.get(PhaseNames.PHASE_2))
+    ):
+        return None
+
+    l1_impacted = _verify_zero_phase_for_storage_anomaly(agg_data, l1_data, l2_data)
+    l2_impacted = _verify_zero_phase_for_storage_anomaly(agg_data, l2_data, l1_data)
+
+    # If Neither or both impacted return None
+    # all data is fine or all data is zero
+    if (l1_impacted and l2_impacted) or (not l1_impacted and not l2_impacted):
+        return None
+
+    return PhaseNames.PHASE_1 if l1_impacted else PhaseNames.PHASE_2

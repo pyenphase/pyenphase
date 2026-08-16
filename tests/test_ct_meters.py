@@ -1,5 +1,6 @@
 """Test envoy metered with enabled and disabled CT"""
 
+import copy
 import logging
 from typing import Any
 
@@ -25,7 +26,10 @@ from pyenphase.models.meters import (
 )
 from pyenphase.models.system_consumption import EnvoySystemConsumption
 from pyenphase.models.system_production import EnvoySystemProduction
-from pyenphase.updaters.meters import EnvoyMetersUpdater
+from pyenphase.updaters.meters import (
+    EnvoyMetersUpdater,
+    _find_zero_phase_for_storage_anomaly,
+)
 
 from .common import (
     get_mock_envoy,
@@ -1211,6 +1215,78 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     # if param block_zero is false we are testing a fw that will actually
     # pass the zero values when testing. This is ok as these fw version are not suffering from
     # the issue, use the logic to verify the code is actually not applying the correction
+
+    # Test storagect intermittent  one phase zero anomaly detection function
+    # full data, should get None
+    assert data is not None
+    result = _find_zero_phase_for_storage_anomaly(data)
+    assert result is None
+
+    # no agg data for storage, should get None
+    save_agg_data = copy.deepcopy(data.ctmeters[CtType.STORAGE])
+    data.ctmeters[CtType.STORAGE] = None
+    result = _find_zero_phase_for_storage_anomaly(data)
+    assert result is None
+    data.ctmeters[CtType.STORAGE] = save_agg_data
+
+    # no phase data for storage, should get None
+    phase_data = copy.deepcopy(data.ctmeters_phases[CtType.STORAGE])
+    del data.ctmeters_phases[CtType.STORAGE]
+    result = _find_zero_phase_for_storage_anomaly(data)
+    assert result is None
+    data.ctmeters_phases[CtType.STORAGE] = phase_data
+
+    # one phase to none, should get None
+    phase1_data = copy.deepcopy(
+        data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1]
+    )
+    data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1] = None
+    result = _find_zero_phase_for_storage_anomaly(data)
+    assert result is None
+    data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1] = phase1_data
+
+    # one phase to none, should get None
+    phase2_data = copy.deepcopy(
+        data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2]
+    )
+    data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2] = None
+    result = _find_zero_phase_for_storage_anomaly(data)
+    assert result is None
+    data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2] = phase2_data
+
+    # one phase zero but agg is not equal to non-zero phase, should get None
+    assert data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2] is not None
+    data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2].active_power = 0  # type: ignore[union-attr]
+    data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2].energy_delivered = 0  # type: ignore[union-attr]
+    data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2].energy_received = 0  # type: ignore[union-attr]
+
+    result = _find_zero_phase_for_storage_anomaly(data)
+    assert result is None
+
+    # set agg data equal to non-zero phase, should get zero phase 2 reported
+    p1_data = data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1]
+    data.ctmeters[CtType.STORAGE].active_power = p1_data.active_power  # type: ignore[union-attr]
+    data.ctmeters[CtType.STORAGE].energy_delivered = p1_data.energy_delivered  # type: ignore[union-attr]
+    data.ctmeters[CtType.STORAGE].energy_received = p1_data.energy_received  # type: ignore[union-attr]
+
+    result = _find_zero_phase_for_storage_anomaly(data)
+    assert result == PhaseNames.PHASE_2
+
+    # both phases to zero, but agg not, should get None
+    data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1].active_power = 0  # type: ignore[union-attr]
+    data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1].energy_delivered = 0  # type: ignore[union-attr]
+    data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1].energy_received = 0  # type: ignore[union-attr]
+
+    result = _find_zero_phase_for_storage_anomaly(data)
+    assert result is None
+
+    # both phases and agg to zero,all zero, should get None
+    data.ctmeters[CtType.STORAGE].active_power = 0  # type: ignore[union-attr]
+    data.ctmeters[CtType.STORAGE].energy_delivered = 0  # type: ignore[union-attr]
+    data.ctmeters[CtType.STORAGE].energy_received = 0  # type: ignore[union-attr]
+
+    result = _find_zero_phase_for_storage_anomaly(data)
+    assert result is None
 
     meter_data_json = await load_json_list_fixture(
         version_to_patch, "ivp_meters_readings"
