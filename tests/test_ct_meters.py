@@ -1252,16 +1252,13 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert data.ctmeters_phases is not None
     # Storage CT L1 phase should have been set to None if fw is eligible for correction
     # otherwise l1 phase data should have zeros set in the test
-    # assert (
-    #     PhaseNames.PHASE_1 not in data.ctmeters_phases[CtType.STORAGE]
-    # )
-    assert (
-        data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1] is None
-    ) == block_zero or (
-        l1_data.active_power == 0
-        and l1_data.energy_received == 0
-        and l1_data.energy_delivered == 0
-    )
+    zeroed_l1 = data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1]
+    assert (zeroed_l1 is None) == block_zero
+    if not block_zero:
+        assert zeroed_l1 is not None
+        assert zeroed_l1.active_power == 0
+        assert zeroed_l1.energy_delivered == 0
+        assert zeroed_l1.energy_received == 0
 
     # In this test Storage CT L2 data should be returned as usual
     assert (
@@ -1315,13 +1312,10 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
 
     # Storage CT L2 phase should have been set to None if fw is eligible for correction
     # otherwise l2 phase data should show zeros set in the test
-    # assert (
-    #     PhaseNames.PHASE_2 not in data.ctmeters_phases[CtType.STORAGE]
-    # )
-    assert (
-        data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2] is None
-    ) == block_zero or (
-        l2_data.active_power == 0
-        and l2_data.energy_received == 0
-        and l2_data.energy_delivered == 0
-    )
+    zeroed_l2 = data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2]
+    assert (zeroed_l2 is None) == block_zero
+    if not block_zero:
+        assert zeroed_l2 is not None
+        assert zeroed_l2.active_power == 0
+        assert zeroed_l2.energy_received == 0
+        assert zeroed_l2.energy_delivered == 0
