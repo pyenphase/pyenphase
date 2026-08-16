@@ -1092,7 +1092,6 @@ BASE_FIXTURE_VALUES_L2 = {
 @pytest.mark.parametrize(
     (
         "version",  # firmware version pyenphase gets passed
-        "version_to_patch",  # fixture name to use for base data to patch
         "aggregate_data",  # aggregate storage CT values to expect for active_power, energy_received and energy_delivered
         "phase_l1_data",  # L1 phase storage CT values to expect
         "phase_l2_data",  # L2 phase storage CT values to expect
@@ -1101,7 +1100,6 @@ BASE_FIXTURE_VALUES_L2 = {
     [
         (
             "8.3.6087",
-            "8.2.4286_with_3cts_and_battery_split",
             BASE_FIXTURE_VALUES_AGG,
             BASE_FIXTURE_VALUES_L1,
             BASE_FIXTURE_VALUES_L2,
@@ -1109,7 +1107,6 @@ BASE_FIXTURE_VALUES_L2 = {
         ),
         (
             "8.3.6088",
-            "8.2.4286_with_3cts_and_battery_split",
             BASE_FIXTURE_VALUES_AGG,
             BASE_FIXTURE_VALUES_L1,
             BASE_FIXTURE_VALUES_L2,
@@ -1117,7 +1114,6 @@ BASE_FIXTURE_VALUES_L2 = {
         ),
         (
             "8.4.0000",
-            "8.2.4286_with_3cts_and_battery_split",
             BASE_FIXTURE_VALUES_AGG,
             BASE_FIXTURE_VALUES_L1,
             BASE_FIXTURE_VALUES_L2,
@@ -1125,7 +1121,6 @@ BASE_FIXTURE_VALUES_L2 = {
         ),
         (
             "8.2.4286",
-            "8.2.4286_with_3cts_and_battery_split",
             BASE_FIXTURE_VALUES_AGG,
             BASE_FIXTURE_VALUES_L1,
             BASE_FIXTURE_VALUES_L2,
@@ -1144,7 +1139,6 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     version: str,
-    version_to_patch: str,
     aggregate_data: dict[str, Any],
     phase_l1_data: dict[str, Any],
     phase_l2_data: dict[str, Any],
@@ -1247,7 +1241,6 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert data
     assert data.ctmeters is not None
     # Storage data should have been set to None if fw is eligible for correction
-    # assert (CtType.STORAGE not in data.ctmeters) == block_zero
     assert (data.ctmeters[CtType.STORAGE] is None) == block_zero
     assert data.ctmeters_phases is not None
     # Storage CT L1 phase should have been set to None if fw is eligible for correction
@@ -1298,7 +1291,6 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert data
     assert data.ctmeters is not None
     # Storage data should have been set to None if fw is eligible for correction
-    # assert (CtType.STORAGE not in data.ctmeters) == block_zero
     assert (data.ctmeters[CtType.STORAGE] is None) == block_zero
 
     # In this test Storage CT L1 data should be returned as usual
