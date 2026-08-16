@@ -7,11 +7,13 @@ import aiohttp
 import jsonpath
 import pytest
 from aioresponses import aioresponses
+from lxml import etree  # nosec
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase import register_updater
 from pyenphase.const import (
     PHASENAMES,
+    PhaseNames,
     SupportedFeatures,
 )
 from pyenphase.envoy import UPDATERS
@@ -567,9 +569,10 @@ async def test_yet_unknown_ct_with_8_2_127_with_3cts_and_battery_split(
 
     # verify yet unknown type is now in ct list and has data with this label
     assert yet_unknown_ct_type in envoy.ct_meter_list
-    assert data.ctmeters[yet_unknown_ct_type]
-    assert data.ctmeters[yet_unknown_ct_type].state == meter["state"]
-    assert data.ctmeters[yet_unknown_ct_type].eid == meter["eid"]
+    yet_unknown_ct = data.ctmeters[yet_unknown_ct_type]
+    assert yet_unknown_ct
+    assert yet_unknown_ct.state == meter["state"]
+    assert yet_unknown_ct.eid == meter["eid"]
     assert envoy.meter_type(yet_unknown_ct_type) == yet_unknown_ct_type
 
     # last one in original list was storage ct. Should not be there anymore
@@ -825,6 +828,7 @@ async def test_current_transformers(
         meter_data = meters_data[0]
         cttype = meter["measurementType"]
         ctdata = data.ctmeters[cttype]
+        assert ctdata
         assert ctdata.energy_delivered == round(meter_data["actEnergyDlvd"])
         assert ctdata.energy_received == round(meter_data["actEnergyRcvd"])
         assert ctdata.active_power == round(meter_data["activePower"])
@@ -862,6 +866,7 @@ async def test_current_transformers(
             )[i]
             assert data.ctmeters_phases[cttype].get(PHASENAMES[i]) is not None
             ctdata_phase = data.ctmeters_phases[cttype][PHASENAMES[i]]
+            assert ctdata_phase
             assert ctdata_phase.energy_delivered == round(phase_data["actEnergyDlvd"])
             assert ctdata_phase.energy_received == round(phase_data["actEnergyRcvd"])
             assert ctdata_phase.active_power == round(phase_data["activePower"])
@@ -1064,3 +1069,259 @@ async def test_without_current_transformers(
     assert has_meter == meter_in_model
 
     # end backward compatibility test
+
+
+BASE_FIXTURE_VALUES_AGG = {
+    "active_power": -7084,
+    "energy_received": 5409935,
+    "energy_delivered": 4073871,
+}
+BASE_FIXTURE_VALUES_L1 = {
+    "active_power": -3538,
+    "energy_received": 2703734,
+    "energy_delivered": 2036140,
+}
+
+BASE_FIXTURE_VALUES_L2 = {
+    "active_power": -3545,
+    "energy_received": 2706201,
+    "energy_delivered": 2037731,
+}
+
+
+@pytest.mark.parametrize(
+    (
+        "version",  # firmware version pyenphase gets passed
+        "version_to_patch",  # fixture name to use for base data to patch
+        "aggregate_data",  # aggregate storage CT values to expect for active_power, energy_received and energy_delivered
+        "phase_l1_data",  # L1 phase storage CT values to expect
+        "phase_l2_data",  # L2 phase storage CT values to expect
+        "block_zero",  # firmware will detect zero values and return None for aggregate and phase
+    ),
+    [
+        (
+            "8.3.6087",
+            "8.2.4286_with_3cts_and_battery_split",
+            BASE_FIXTURE_VALUES_AGG,
+            BASE_FIXTURE_VALUES_L1,
+            BASE_FIXTURE_VALUES_L2,
+            True,
+        ),
+        (
+            "8.3.6088",
+            "8.2.4286_with_3cts_and_battery_split",
+            BASE_FIXTURE_VALUES_AGG,
+            BASE_FIXTURE_VALUES_L1,
+            BASE_FIXTURE_VALUES_L2,
+            True,
+        ),
+        (
+            "8.4.0000",
+            "8.2.4286_with_3cts_and_battery_split",
+            BASE_FIXTURE_VALUES_AGG,
+            BASE_FIXTURE_VALUES_L1,
+            BASE_FIXTURE_VALUES_L2,
+            True,
+        ),
+        (
+            "8.2.4286",
+            "8.2.4286_with_3cts_and_battery_split",
+            BASE_FIXTURE_VALUES_AGG,
+            BASE_FIXTURE_VALUES_L1,
+            BASE_FIXTURE_VALUES_L2,
+            False,
+        ),
+    ],
+    ids=[
+        "8.3.6087",
+        "8.3.6088",
+        "8.4.0000",
+        "8.2.4286",
+    ],
+)
+@pytest.mark.asyncio
+async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    version_to_patch: str,
+    aggregate_data: dict[str, Any],
+    phase_l1_data: dict[str, Any],
+    phase_l2_data: dict[str, Any],
+    block_zero: bool,
+) -> None:
+    """
+    Test envoy metered with storage ct and intermitted 1 phase zero values.
+
+    Envoy firmware D8.3.6087, /ivp/meters/readings for split, 2 phase storage CT
+    intermittently reports zero values on one phase. Aggregated data then
+    drops to the other phase values resulting in incorrect storage data.
+    Test meters updates return None in the storage CT and storage CT L1 Phase data
+    if this scenario applies
+    """
+    # actual firmware version to test with doesn't matter as we patch the fixture
+    # data, as long as the used fixture has a storage CT
+    version_to_patch = "8.2.4286_with_3cts_and_battery_split"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version_to_patch)
+
+    # patch fw version to test target
+    xml_data = etree.fromstring(
+        bytes(await load_fixture(version_to_patch, "info"), encoding="utf8")
+    )
+    xml_data.find("device").find("software").text = f"D{version}"
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/info",
+        status=200,
+        body=etree.tostring(xml_data),
+        repeat=True,
+    )
+
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+    assert envoy._supported_features is not None
+
+    # Verify storage CT data is present
+    assert envoy._supported_features & SupportedFeatures.CTMETERS
+    assert envoy.meter_type(CtType.STORAGE) == CtType.STORAGE
+    assert data.ctmeters is not None
+    assert (agg_data := data.ctmeters[CtType.STORAGE]) is not None
+    assert data.ctmeters_phases is not None
+
+    # Test without phase data zero issue
+    assert agg_data.active_power == aggregate_data["active_power"]
+    assert agg_data.energy_received == aggregate_data["energy_received"]
+    assert agg_data.energy_delivered == aggregate_data["energy_delivered"]
+    assert (
+        l1_data := data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1]
+    ) is not None
+    assert l1_data.active_power == phase_l1_data["active_power"]
+    assert l1_data.energy_received == phase_l1_data["energy_received"]
+    assert l1_data.energy_delivered == phase_l1_data["energy_delivered"]
+    assert (
+        l2_data := data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2]
+    ) is not None
+    assert l2_data.active_power == phase_l2_data["active_power"]
+    assert l2_data.energy_received == phase_l2_data["energy_received"]
+    assert l2_data.energy_delivered == phase_l2_data["energy_delivered"]
+
+    # For D8.3.6087, /ivp/meters/readings started intermittently reporting incorrect storage
+    # CT lifetime energy values on split-phase system.  One storage channel reports all
+    # zeros and the aggregate value becomes equal to the remaining non-zero channel.
+    # test with zero l1 channel, with fw  D8.3.6087
+    # pyenphase code will correct for D8.3.6087 and newer, should have None for aggregate and L1
+
+    # if param block_zero is false we are testing a fw that will actually
+    # pass the zero values when testing. This is ok as these fw version are not suffering from
+    # the issue, use the logic to verify the code is actually not applying the correction
+
+    meter_data_json = await load_json_list_fixture(
+        version_to_patch, "ivp_meters_readings"
+    )
+    items = [
+        item
+        for item in meter_data_json[2]["channels"][1]
+        if item not in ("eid", "timestamp")
+    ]
+    for item in items:
+        # patch 3th entry which is the storage CT, first phase value to zero
+        meter_data_json[2]["channels"][0][item] = 0
+        # patch aggregate values of storage CT to second phase values
+        meter_data_json[2][item] = meter_data_json[2]["channels"][1][item]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters/readings",
+        status=200,
+        payload=meter_data_json,
+        repeat=True,
+    )
+    await envoy.update()
+    data = envoy.data
+
+    # Aggregate and L1 data not be reported, L2 regular if applicable
+    assert data
+    assert data.ctmeters is not None
+    # Storage data should have been set to None if fw is eligible for correction
+    # assert (CtType.STORAGE not in data.ctmeters) == block_zero
+    assert (data.ctmeters[CtType.STORAGE] is None) == block_zero
+    assert data.ctmeters_phases is not None
+    # Storage CT L1 phase should have been set to None if fw is eligible for correction
+    # otherwise l1 phase data should have zeros set in the test
+    # assert (
+    #     PhaseNames.PHASE_1 not in data.ctmeters_phases[CtType.STORAGE]
+    # )
+    assert (
+        data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1] is None
+    ) == block_zero or (
+        l1_data.active_power == 0
+        and l1_data.energy_received == 0
+        and l1_data.energy_delivered == 0
+    )
+
+    # In this test Storage CT L2 data should be returned as usual
+    assert (
+        l2_data := data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2]
+    ) is not None
+    assert l2_data.active_power == phase_l2_data["active_power"]
+    assert l2_data.energy_received == phase_l2_data["energy_received"]
+    assert l2_data.energy_delivered == phase_l2_data["energy_delivered"]
+
+    # same test for other phase being 0
+    meter_data_json = await load_json_list_fixture(
+        version_to_patch, "ivp_meters_readings"
+    )
+    items = [
+        item
+        for item in meter_data_json[2]["channels"][1]
+        if item not in ("eid", "timestamp")
+    ]
+    for item in items:
+        # patch 3th entry which is the storage CT, second phase value to zero
+        meter_data_json[2]["channels"][1][item] = 0
+        # patch aggregate values of storage CT to second phase values
+        meter_data_json[2][item] = meter_data_json[2]["channels"][0][item]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters/readings",
+        status=200,
+        payload=meter_data_json,
+        repeat=True,
+    )
+    await envoy.update()
+    data = envoy.data
+
+    # Aggregate and L2 data should be None, L1 regular if applicable
+    assert data
+    assert data.ctmeters is not None
+    # Storage data should have been set to None if fw is eligible for correction
+    # assert (CtType.STORAGE not in data.ctmeters) == block_zero
+    assert (data.ctmeters[CtType.STORAGE] is None) == block_zero
+
+    # In this test Storage CT L1 data should be returned as usual
+    assert data.ctmeters_phases is not None
+    assert (
+        l1_data := data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1]
+    ) is not None
+    assert l1_data.active_power == phase_l1_data["active_power"]
+    assert l1_data.energy_received == phase_l1_data["energy_received"]
+    assert l1_data.energy_delivered == phase_l1_data["energy_delivered"]
+
+    # Storage CT L2 phase should have been set to None if fw is eligible for correction
+    # otherwise l2 phase data should show zeros set in the test
+    # assert (
+    #     PhaseNames.PHASE_2 not in data.ctmeters_phases[CtType.STORAGE]
+    # )
+    assert (
+        data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2] is None
+    ) == block_zero or (
+        l2_data.active_power == 0
+        and l2_data.energy_received == 0
+        and l2_data.energy_delivered == 0
+    )

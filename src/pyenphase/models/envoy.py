@@ -79,10 +79,12 @@ class EnvoyData:
     )
     #: CT power & energy values, only for Envoy metered with CT installed.
     #: Keyed by :any:`CtType`
-    ctmeters: dict[str, EnvoyMeterData] = field(default_factory=dict)
+    ctmeters: dict[str, EnvoyMeterData | None] = field(default_factory=dict)
     #: CT power & energy phase values, only for Envoy metered with CT installed.
     #: Keyed by :any:`CtType` and  :any:`PhaseNames`
-    ctmeters_phases: dict[str, dict[str, EnvoyMeterData]] = field(default_factory=dict)
+    ctmeters_phases: dict[str, dict[str, EnvoyMeterData | None]] = field(
+        default_factory=dict
+    )
     # these are still here for backward compatibility
     #: Production CT power & energy values, only for Envoy metered with production CT installed
     #:
@@ -104,19 +106,19 @@ class EnvoyData:
     #:
     #: May be deprecated in a future version, use :any:`ctmeters_phases` [:any:`CtType.PRODUCTION`] instead
     #:
-    ctmeter_production_phases: dict[str, EnvoyMeterData] | None = None
+    ctmeter_production_phases: dict[str, EnvoyMeterData | None] | None = None
     #: Individual phase consumption CT power & energy values, keyed by :any:`PhaseNames`,
     #: only for Envoy metered with consumption installed
     #:
     #: May be deprecated in a future version, use :any:`ctmeters_phases` [:any:`CtType.TOTAL_CONSUMPTION`] or :any:`ctmeters_phases` [:any:`CtType.NET_CONSUMPTION`] instead
     #:
-    ctmeter_consumption_phases: dict[str, EnvoyMeterData] | None = None
+    ctmeter_consumption_phases: dict[str, EnvoyMeterData | None] | None = None
     #: Individual phase storage CT power & energy values, keyed by :any:`PhaseNames`,
     #: only for Envoy metered with storage CT installed
     #:
     #: May be deprecated in a future version, use :any:`ctmeters_phases` [:any:`CtType.STORAGE`] instead
     #:
-    ctmeter_storage_phases: dict[str, EnvoyMeterData] | None = None
+    ctmeter_storage_phases: dict[str, EnvoyMeterData | None] | None = None
     #: dict of Dry contact relay status, keyed by relay ID
     dry_contact_status: dict[str, EnvoyDryContactStatus] = field(default_factory=dict)
     #: dict of Dry contact relay settings, keyed by relay ID

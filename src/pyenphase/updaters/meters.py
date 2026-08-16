@@ -7,6 +7,8 @@ from ..const import (
     ENDPOINT_URL_METERS,
     ENDPOINT_URL_METERS_READINGS,
     PHASENAMES,
+    STORAGE_CT_FALLBACK_TO_ONE_CHANNEL,
+    PhaseNames,
     SupportedFeatures,
 )
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
@@ -140,6 +142,13 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         For backward compatibility, ctmeter_production/ctmeter_consumption/ctmeter_storage
         and their phase equivalents are still set to reference the corresponding entries in
         ctmeters[CtType] and ctmeters_phases[CtType].
+
+        Envoy firmware D8.3.6087, /ivp/meters/readings for split, 2 phase storage CT
+        intermittently reports zero values on one (L1) phase. Aggregated data then
+        drops to the other phase (L2) values resulting in incorrect storage data.
+        In this case, return None in the storage CT and storage CT L1 Phase data to
+        avoid callers processing incorrect data.
+
         :param envoy_data: EnvoyData structure to store data to
         """
         # get the meter status and readings from the envoy
@@ -173,6 +182,75 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 if phase_data := _meter_data_for_phases(phase_range, meter, ct_status):
                     envoy_data.ctmeters_phases[meter_type] = phase_data
 
+                # As of D8.3.6087, /ivp/meters/readings is intermittently reporting incorrect storage
+                # CT lifetime energy values on split-phase system. One storage channel reports all
+                # zeros and the aggregate value becomes equal to the other non-zero channel.
+                # if
+                #   meter type is storage,
+                #   phaseMode == "split",
+                #   phaseCount == 2,
+                #   one channel reports all zeros,
+                #   the aggregate lifetime value suddenly drops to approximately other channel value.
+                if (
+                    # as of fw D8.3.6087
+                    self._envoy_version >= STORAGE_CT_FALLBACK_TO_ONE_CHANNEL
+                    # only for storage CT
+                    and meter_type == CtType.STORAGE
+                    # in split mode phase operation
+                    and self._common_properties.phase_mode == EnvoyPhaseMode.SPLIT
+                    # with dual phase setup
+                    and self._common_properties.phase_count == 2
+                    # with actual data in agg and phases
+                    and (agg_data := envoy_data.ctmeters[CtType.STORAGE])
+                    and (phase_data := envoy_data.ctmeters_phases[CtType.STORAGE])
+                    and (l1_data := phase_data[PhaseNames.PHASE_1])
+                    and (l2_data := phase_data[PhaseNames.PHASE_2])
+                    # one phase all zero active_power, other phase not and equal to aggregated
+                    and (
+                        # L1 all zero, L2 data
+                        (
+                            # zero phase power agg power equal other phase
+                            l1_data.active_power == 0
+                            and l2_data.active_power == agg_data.active_power
+                            # one phase all zero energy delivered, other phase not and equal to aggregated
+                            and l1_data.energy_delivered == 0
+                            and l2_data.energy_delivered != 0
+                            and l2_data.energy_delivered == agg_data.energy_delivered
+                            # one phase all zero energy received, other phase not and equal to aggregated
+                            and l1_data.energy_received == 0
+                            and l2_data.energy_received != 0
+                            and l2_data.energy_received == agg_data.energy_received
+                        )
+                        or
+                        # L1 data, L2 all zero
+                        (
+                            # zero phase power agg power equal other phase
+                            l2_data.active_power == 0
+                            and l1_data.active_power == agg_data.active_power
+                            # one phase all zero energy delivered, other phase not and equal to aggregated
+                            and l2_data.energy_delivered == 0
+                            and l1_data.energy_delivered != 0
+                            and l1_data.energy_delivered == agg_data.energy_delivered
+                            # one phase all zero energy received, other phase not and equal to aggregated
+                            and l2_data.energy_received == 0
+                            and l1_data.energy_received != 0
+                            and l1_data.energy_received == agg_data.energy_received
+                        )
+                    )
+                ):
+                    zero_phase = (
+                        PhaseNames.PHASE_1
+                        if l2_data.active_power == agg_data.active_power
+                        else PhaseNames.PHASE_2
+                    )
+                    _LOGGER.debug(
+                        "Storage CT one phase all zero, returning None for aggregate and zero phase %s",
+                        zero_phase,
+                    )
+                    # Return None for aggregate and L1 phase
+                    envoy_data.ctmeters[CtType.STORAGE] = None
+                    envoy_data.ctmeters_phases[CtType.STORAGE][zero_phase] = None
+
                 # Next part is for backward compatibility
                 # May plan to remove in some future breaking change version
                 if meter_type == CtType.PRODUCTION:
@@ -190,9 +268,12 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                         envoy_data.ctmeter_consumption_phases = (
                             envoy_data.ctmeters_phases[meter_type]
                         )
-                elif meter_type == CtType.STORAGE:
+                elif (
+                    meter_type == CtType.STORAGE
+                    and CtType.STORAGE in envoy_data.ctmeters
+                ):
                     envoy_data.ctmeter_storage = envoy_data.ctmeters[meter_type]
-                    if phase_data:
+                    if phase_data and CtType.STORAGE in envoy_data.ctmeters_phases:
                         envoy_data.ctmeter_storage_phases = envoy_data.ctmeters_phases[
                             meter_type
                         ]
@@ -201,9 +282,9 @@ class EnvoyMetersUpdater(EnvoyUpdater):
 
 def _meter_data_for_phases(
     phase_range: int, meter: dict[str, Any], ct_data: CtMeterData
-) -> dict[str, EnvoyMeterData]:
+) -> dict[str, EnvoyMeterData | None]:
     """Build a dictionary of phase data for multi-phase setups."""
-    meter_data_by_phase: dict[str, EnvoyMeterData] = {
+    meter_data_by_phase: dict[str, EnvoyMeterData | None] = {
         PHASENAMES[phase_idx]: data
         for phase_idx in range(phase_range)
         if (data := EnvoyMeterData.from_phase(meter, ct_data, phase_idx))
