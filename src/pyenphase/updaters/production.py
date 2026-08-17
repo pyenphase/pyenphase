@@ -178,13 +178,17 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         if self._supported_features & SupportedFeatures.PRODUCTION:
             envoy_data.system_production = EnvoySystemProduction.from_production(
-                production_data
+                production_data, self._common_properties.ct_meter_count > 0
             )
             # get production phase data if more then 1 phase is found
             phase_production: dict[str, EnvoySystemProduction | None] = {}
             for phase in range(phase_count if phase_count > 1 else 0):
                 production: EnvoySystemProduction | None = (
-                    EnvoySystemProduction.from_production_phase(production_data, phase)
+                    EnvoySystemProduction.from_production_phase(
+                        production_data,
+                        phase,
+                        self._common_properties.ct_meter_count > 0,
+                    )
                 )
                 # exclude None phases that are expected but not actually in production report
                 if production:

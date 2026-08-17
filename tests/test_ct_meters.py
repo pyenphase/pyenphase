@@ -230,14 +230,14 @@ async def test_ct_data_structures_with_7_3_466_with_cts_3phase(
         # test exception handling for phase data in production using wrong phase
         production_data = data.raw["/production.json?details=1"]
         production_no_phase_data = EnvoySystemProduction.from_production_phase(
-            production_data, 3
+            production_data, 3, True
         )
         assert production_no_phase_data is None
 
         # test exception handling for phase data if key is missing
         del production_data["production"][1]["type"]
         with pytest.raises(ValueError):
-            EnvoySystemProduction.from_production_phase(production_data, 0)
+            EnvoySystemProduction.from_production_phase(production_data, 0, True)
 
         # test exception handling for phase data in consumption using wrong phase
         consumption_data = data.raw["/production.json?details=1"]
@@ -359,7 +359,7 @@ async def test_ct_data_structures_with_7_6_175_with_cts_3phase(
         production_data = data.raw["/production.json?details=1"]
         del production_data["production"][1]["type"]
         with pytest.raises(ValueError):
-            EnvoySystemProduction.from_production_phase(production_data, 0)
+            EnvoySystemProduction.from_production_phase(production_data, 0, True)
     finally:
         # Restore the original updaters
         UPDATERS.clear()
