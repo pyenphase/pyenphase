@@ -1,6 +1,27 @@
 # CHANGELOG
 
 
+## v3.2.2 (2026-08-18)
+
+### Bug Fixes
+
+- 8.3.5422 non-metered envoy all zeros in v1 production endpoint
+  ([#482](https://github.com/pyenphase/pyenphase/pull/482),
+  [`692a206`](https://github.com/pyenphase/pyenphase/commit/692a206fa9f70e41641fd973bf21227b85a17477))
+
+### Chores
+
+- **deps-dev**: Bump pre-commit from 4.6.1 to 4.6.2
+  ([#483](https://github.com/pyenphase/pyenphase/pull/483),
+  [`abbada5`](https://github.com/pyenphase/pyenphase/commit/abbada5f975b713019d946a516b1f93132f3a29a))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#484](https://github.com/pyenphase/pyenphase/pull/484),
+  [`e4ec025`](https://github.com/pyenphase/pyenphase/commit/e4ec02588218a8a919c07922677e4eab443a0ab6))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#479](https://github.com/pyenphase/pyenphase/pull/479),
+  [`044288d`](https://github.com/pyenphase/pyenphase/commit/044288dbd4135f58b02130954f548677ca08912b))
+
+
 ## v3.2.1 (2026-08-05)
 
 ### Bug Fixes

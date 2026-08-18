@@ -4,16 +4,17 @@ Issues have been reported with data; these vary by firmware version. Newer firmw
 
 ## Production & Consumption data
 
-| data                | envoy <br> type [^1] | issue                                              | in firmware   |
-| ------------------- | -------------------- | -------------------------------------------------- | ------------- |
-| whToday             | Mtr                  | late reset some time after midnight                |               |
-|                     |                      | reset to non-zero value                            |               |
-|                     |                      | sudden value step changes                          |               |
-| whLastSevenDays     | Mtr                  | sudden value step changes                          |               |
-| watt_hours_lifetime | NoCT                 | reset to zero when reaching 1.19 MWh               | \<8.x         |
-|                     | Std                  | 1.19 MWh value stepdown                            |               |
-| all                 | NoCT                 | stalled values in V1 Production Endpoint           | >= 8.2.4264   |
-| consumption data    | Mtr, (tot-ct ?)      | consumption values are <br>net-consumption values. | (>=) 8.3.5433 |
+| data                | envoy <br> type [^1] | issue                                              | in firmware                                                              |
+| ------------------- | -------------------- | -------------------------------------------------- | ------------------------------------------------------------------------ |
+| whToday             | Mtr                  | late reset some time after midnight                |                                                                          |
+|                     |                      | reset to non-zero value                            |                                                                          |
+|                     |                      | sudden value step changes                          |                                                                          |
+| whLastSevenDays     | Mtr                  | sudden value step changes                          |                                                                          |
+| watt_hours_lifetime | NoCT                 | reset to zero when reaching 1.19 MWh               | \<8.x                                                                    |
+|                     | Std                  | 1.19 MWh value stepdown                            |                                                                          |
+| all production      | NoCT                 | stalled values in V1 Production Endpoint           | >= 8.2.4264                                                              |
+| all production      | Std                  | zero values V1 Production Endpoint                 | [>= 8.3.5422](#standard-envoy-not-metered-zero-data-in-835422)           |
+| consumption data    | Mtr, (tot-ct ?)      | consumption values are <br>net-consumption values. | [(>=) 8.3.5433](#consumption-data-set-to-net-consumption-data-in-835433) |
 
 [^1]: Std: Envoy standard (not metered). Mtr: Envoy metered. NoCT: Envoy metered without installed and configured CTs. tot-ct: TOTAL-CONSUMPTION CT installed.
 
@@ -42,3 +43,7 @@ Blocking the IQ Gateway's outbound internet access at the network level prevents
 In 8.3.5433 firmware, the production report has (total-)consumption data equal to net-consumption data. This is reported for metered Envoy with TOTAL-CONSUMPTION CT installed. It is not (yet) clear whether this is the case as well for NET-CONSUMPTION CT installations. Pyenphase now checks values of lifetime energy and power of both consumption types and if equal, adds production values to the consumption values to obtain correct data.
 
 For anyone already running 8.3.5433, the consumption total has previously dropped to the net value. Upgrading to this pyenphase version makes it jump back up in a single reading. For example Home Assistant's total_increasing energy statistics interpret a jump as real consumption, so users can see a large one-off spike in their energy dashboard on the update that lands this fix. Nothing in the library can avoid this, this is not another bug, but rather the repair of the issue that came with firmware 8.3.5433.
+
+## Standard Envoy (not-metered) zero data in 8.3.5422
+
+As of 8.3.5422, the Standard Envoy, not-metered type, reports all zeros in its /api/v1/production endpoint. The library detects the situation and switches to using the inverters data section of the /production endpoint. The inverters section is lacking Today and Last 7 days values, these will be set to zero.

@@ -77,11 +77,26 @@ LOGGER = logging.getLogger(__name__)
             111093,
             702919,
         ),
+        (
+            "8.3.5422_standard-no-eim",
+            "800-00656-r06",
+            {
+                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+                | SupportedFeatures.DETAILED_INVERTERS,
+                "EnvoyProductionJsonFallbackUpdater": SupportedFeatures.PRODUCTION,
+                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+            },
+            51,
+            0,
+            0,
+            651725,
+        ),
     ],
     ids=[
         "8.2.4264_metered_noct",
         "7.6.114_without_cts",
         "7.3.466_metered_disabled_cts",
+        "8.3.5422_standard-no-eim",
     ],
 )
 @pytest.mark.asyncio

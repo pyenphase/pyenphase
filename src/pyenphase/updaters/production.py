@@ -198,7 +198,11 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             phase_production: dict[str, EnvoySystemProduction | None] = {}
             for phase in range(phase_count if phase_count > 1 else 0):
                 production: EnvoySystemProduction | None = (
-                    EnvoySystemProduction.from_production_phase(production_data, phase)
+                    EnvoySystemProduction.from_production_phase(
+                        production_data,
+                        phase,
+                        self._common_properties.ct_meter_count > 0,
+                    )
                 )
                 # exclude None phases that are expected but not actually in production report
                 if production:
