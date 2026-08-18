@@ -136,7 +136,7 @@ class EnvoySystemProduction:
         # /production endpoint. return none if no eim present at all
         if (
             not eim
-            or not eim["activeCount"]
+            or (has_production_ct and not eim["activeCount"])
             or not (phases := eim.get("lines"))
             or phase >= len(phases)
         ):

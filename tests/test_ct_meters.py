@@ -1512,3 +1512,8 @@ async def test_intermittent_activeCount_without_production_ct(
     assert data.system_production.watt_hours_today == 5113
     assert data.system_production.watt_hours_last_7_days == 69492
     assert data.system_production.watt_hours_lifetime == 4339764
+
+    assert data.system_production_phases is not None
+    assert len(data.system_production_phases) == 3
+    for phase in data.system_production_phases:
+        assert data.system_production_phases[phase] is not None
