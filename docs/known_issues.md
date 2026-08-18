@@ -14,10 +14,10 @@ Issues have been reported with data; these vary by firmware version. Newer firmw
 |                     | Std                  | 1.19 MWh value stepdown                            |                                                                                              |
 | all production      | NoCT                 | stalled values in V1 Production Endpoint           | >= 8.2.4264                                                                                  |
 | all production      | Std                  | zero values V1 Production Endpoint                 | [>= 8.3.5422](#standard-envoy-not-metered-zero-data-in-835422)                               |
-| all production      | Mtr                  | silent fallback to /production inverter values     | [>= 5.3.5528](#envoy-metered-silently-falls-back-to-inverter-data-from-production-in-535528) |
+| all production      | Mtr with prod-ct     | silent fallback to /production inverter values     | [>= 5.3.5528](#envoy-metered-silently-falls-back-to-inverter-data-from-production-in-535528) |
 | consumption data    | Mtr, (tot-ct ?)      | consumption values are <br>net-consumption values. | [(>=) 8.3.5433](#consumption-data-set-to-net-consumption-data-in-835433)                     |
 
-[^1]: Std: Envoy standard (not metered). Mtr: Envoy metered. NoCT: Envoy metered without installed and configured CTs. tot-ct: TOTAL-CONSUMPTION CT installed.
+[^1]: Std: Envoy standard (not metered). Mtr: Envoy metered. NoCT: Envoy metered without installed and configured CTs. tot-ct: TOTAL-CONSUMPTION CT installed. prod-ct: PRODUCTION CT installed
 
 ## Inverter device data
 
@@ -51,7 +51,7 @@ As of 8.3.5422, the Standard Envoy, not-metered type, reports all zeros in its /
 
 ## Envoy metered silently falls back to inverter data from /production in 5.3.5528
 
-As of firmware 5.3.5528 (and maybe earlier) metered envoy with CT, intermittently report bogus data in /production type=eim section, recognizable by activeCount: 0.
+As of firmware 5.3.5528 (and maybe earlier) metered envoy with production CT installed, intermittently report bogus data in /production type=eim section, recognizable by activeCount: 0.
 
 A silent fallback from production to inverters data section of /production then happens because of the activecount (and potentially other values as well) being 0. The inverter data segment for this and others firmwares has incorrect values that differ from the eim segment. This results in step changes in the value, from the original type=eim values to the wrong type=inverters value and back.
 
