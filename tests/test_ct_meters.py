@@ -1280,3 +1280,132 @@ async def test_intermittent_activeCount_at_probe(
         envoy.envoy_model
         == "Envoy, phases: 3, phase mode: three, production CT, net-consumption CT"
     )
+
+
+@pytest.mark.asyncio
+async def test_intermittant_activecount_regression_total_is_net_consumption(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """
+    Test envoy metered with ct and intermitted activeCount 0 in /production not
+    falling back to type=inverters when activeCount is zero at probe and
+    earlier fix for total_consumption = net_consumption remains active
+    """
+    # pick a version beyond fw guard of total_is_net_consumption issue
+    version = "8.3.5433_tot_is_net_cons"
+    # Start with all normal data
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    envoy = await get_mock_envoy(test_client_session)
+
+    # All features should be there, only production data will be None until activeCount restores
+    data = envoy.data
+    assert data is not None
+    assert envoy._supported_features is not None
+
+    assert envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
+    assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
+    assert envoy._supported_features & SupportedFeatures.PRODUCTION
+    assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert envoy._supported_features & SupportedFeatures.METERING
+    assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert envoy._supported_features & SupportedFeatures.CTMETERS
+    assert updater_features(envoy._updaters) == {
+        "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+        | SupportedFeatures.DETAILED_INVERTERS,
+        "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+        | SupportedFeatures.TOTAL_CONSUMPTION
+        | SupportedFeatures.NET_CONSUMPTION
+        | SupportedFeatures.PRODUCTION,
+        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS | SupportedFeatures.DUALPHASE,
+        "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+    }
+
+    # With CT active /production data should be from type=eim and not from type=inverters
+    assert data.system_production is not None
+    assert data.system_production_phases is not None
+    assert data.system_production.watts_now == 357
+    assert data.system_production.watt_hours_today == 14405465
+    assert data.system_production.watt_hours_last_7_days == 14405465
+    assert data.system_production.watt_hours_lifetime == 14405465
+
+    assert data.system_consumption is not None
+    assert data.system_consumption.watts_now == 428 + 357
+    assert data.system_consumption.watt_hours_today == 5649402
+    assert data.system_consumption.watt_hours_last_7_days == 5649402
+    assert data.system_consumption.watt_hours_lifetime == 5649402 + 14405465
+
+    assert (
+        envoy.envoy_model
+        == "Envoy, phases: 2, phase mode: split, production CT, total-consumption CT"
+    )
+
+    production_json = await load_json_fixture(version, "production.json")
+    production_json["production"][1]["activeCount"] = 0
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json?details=1",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+
+    # envoy = await get_mock_envoy(test_client_session)
+    await envoy.update()
+
+    # All features should be there, only production data will be None until activeCount restores
+    data = envoy.data
+    assert data is not None
+
+    # production data should be none
+    assert data.system_production is None
+    assert data.system_production_phases is None
+
+    # consumption data should be none as we have no reliable production values
+    assert data.system_consumption is None
+    assert data.system_consumption_phases is None
+
+    # test update of envoy with activeCount = 1. Should restore production and consumption data
+    production_json["production"][1]["activeCount"] = 1
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json?details=1",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data is not None
+
+    assert data.system_production is not None
+    assert data.system_production_phases is not None
+    assert data.system_production.watts_now == 357
+    assert data.system_production.watt_hours_today == 14405465
+    assert data.system_production.watt_hours_last_7_days == 14405465
+    assert data.system_production.watt_hours_lifetime == 14405465
+
+    assert data.system_consumption is not None
+    assert data.system_consumption.watts_now == 428 + 357
+    assert data.system_consumption.watt_hours_today == 5649402
+    assert data.system_consumption.watt_hours_last_7_days == 5649402
+    assert data.system_consumption.watt_hours_lifetime == 5649402 + 14405465

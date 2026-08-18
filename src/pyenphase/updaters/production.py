@@ -259,7 +259,6 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         if (
             self._envoy_version >= PRODUCTION_TOTAL_IS_NET_CONSUMPTION
             and SupportedFeatures.METERING in self._supported_features
-            and envoy_data.system_production is not None
             and envoy_data.system_consumption is not None
             and envoy_data.system_net_consumption is not None
             and (
@@ -271,34 +270,44 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 == envoy_data.system_net_consumption.watts_now
             )
         ):
-            # Add production to net-consumption to get total-consumption
-            # we're only here if net = tot consumption so we can use either
-            envoy_data.system_consumption.watt_hours_lifetime += (
-                envoy_data.system_production.watt_hours_lifetime
-            )
-            envoy_data.system_consumption.watts_now += (
-                envoy_data.system_production.watts_now
-            )
+            if envoy_data.system_production is None:
+                # 8.3.5428+ may return intermittently activeCount=0 in production
+                # this will result in system_production becoming None
+                # eim production report rejected; total-consumption cannot be repaired,
+                # do not publish raw net-consumption values as total-consumption
+                envoy_data.system_consumption = None
+                envoy_data.system_consumption_phases = None
+            else:
+                # Add production to net-consumption to get total-consumption
+                # we're only here if net = tot consumption so we can use either
+                envoy_data.system_consumption.watt_hours_lifetime += (
+                    envoy_data.system_production.watt_hours_lifetime
+                )
+                envoy_data.system_consumption.watts_now += (
+                    envoy_data.system_production.watts_now
+                )
 
-            # correct phases as well
-            if (
-                phase_count > 1
-                and (sys_prod := envoy_data.system_production_phases) is not None
-                and (sys_cons := envoy_data.system_consumption_phases) is not None
-                and (sys_net_cons := envoy_data.system_net_consumption_phases)
-                is not None
-            ):
-                for phase_name in set(sys_prod) & set(sys_cons) & set(sys_net_cons):
-                    if (
-                        (cons := sys_cons[phase_name]) is not None
-                        and (net_cons := sys_net_cons[phase_name]) is not None
-                        and (prod := sys_prod[phase_name]) is not None
-                        and (cons.watt_hours_lifetime == net_cons.watt_hours_lifetime)
-                        and (cons.watts_now == net_cons.watts_now)
-                    ):
-                        # Add production to net-consumption to get total-consumption
-                        cons.watt_hours_lifetime += prod.watt_hours_lifetime
-                        cons.watts_now += prod.watts_now
+                # correct phases as well
+                if (
+                    phase_count > 1
+                    and (sys_prod := envoy_data.system_production_phases) is not None
+                    and (sys_cons := envoy_data.system_consumption_phases) is not None
+                    and (sys_net_cons := envoy_data.system_net_consumption_phases)
+                    is not None
+                ):
+                    for phase_name in set(sys_prod) & set(sys_cons) & set(sys_net_cons):
+                        if (
+                            (cons := sys_cons[phase_name]) is not None
+                            and (net_cons := sys_net_cons[phase_name]) is not None
+                            and (prod := sys_prod[phase_name]) is not None
+                            and (
+                                cons.watt_hours_lifetime == net_cons.watt_hours_lifetime
+                            )
+                            and (cons.watts_now == net_cons.watts_now)
+                        ):
+                            # Add production to net-consumption to get total-consumption
+                            cons.watt_hours_lifetime += prod.watt_hours_lifetime
+                            cons.watts_now += prod.watts_now
 
 
 class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):
