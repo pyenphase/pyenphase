@@ -1446,6 +1446,7 @@ async def test_intermittent_activeCount_without_production_ct(
         payload=meters_json,
         repeat=True,
     )
+
     envoy = await get_mock_envoy(test_client_session)
 
     data = envoy.data
@@ -1517,3 +1518,37 @@ async def test_intermittent_activeCount_without_production_ct(
     assert len(data.system_production_phases) == 3
     for phase in data.system_production_phases:
         assert data.system_production_phases[phase] is not None
+
+    # probe with activeCount = 0
+    envoy = await get_mock_envoy(test_client_session)
+
+    data = envoy.data
+    assert data is not None
+    assert envoy._supported_features is not None
+
+    assert envoy._supported_features & SupportedFeatures.TOTAL_CONSUMPTION
+    assert envoy._supported_features & SupportedFeatures.NET_CONSUMPTION
+    assert envoy._supported_features & SupportedFeatures.PRODUCTION
+    assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert envoy._supported_features & SupportedFeatures.METERING
+    assert envoy._supported_features & SupportedFeatures.INVERTERS
+    assert envoy._supported_features & SupportedFeatures.CTMETERS
+    assert updater_features(envoy._updaters) == {
+        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+        "EnvoyProductionUpdater": SupportedFeatures.METERING
+        | SupportedFeatures.PRODUCTION,
+        "EnvoyProductionJsonUpdater": SupportedFeatures.TOTAL_CONSUMPTION
+        | SupportedFeatures.NET_CONSUMPTION,
+        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS | SupportedFeatures.THREEPHASE,
+        "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+    }
+
+    assert (
+        envoy.envoy_model == "Envoy, phases: 3, phase mode: three, net-consumption CT"
+    )
+    assert data.system_production is not None
+    # data should be from type=eim and not from type=inverters
+    assert data.system_production.watts_now == -6
+    assert data.system_production.watt_hours_today == 5113
+    assert data.system_production.watt_hours_last_7_days == 69492
+    assert data.system_production.watt_hours_lifetime == 4351113

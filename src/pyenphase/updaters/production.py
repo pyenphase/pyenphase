@@ -271,9 +271,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             )
         ):
             if envoy_data.system_production is None:
-                # 8.3.5428+ may return intermittently activeCount=0 in production
-                # this will result in system_production becoming None
-                # eim production report rejected; total-consumption cannot be repaired,
+                # as of 8.3.5428 envoy may return intermittently activeCount=0 in
+                # production eim seg,emt this will result in system_production becoming None
+                # this will prevent fixing the 8.3.5433 total-consumption = net-consumption
+                # repair as eim production report is rejected; total-consumption cannot be repaired,
                 # do not publish raw net-consumption values as total-consumption
                 envoy_data.system_consumption = None
                 envoy_data.system_consumption_phases = None
