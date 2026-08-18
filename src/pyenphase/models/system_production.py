@@ -130,7 +130,12 @@ class EnvoySystemProduction:
         # 8.3.5422 on Envoy non-metered /api/v1/production returns all zeros and
         # needs to use inverters section while type=eim is not present in its
         # /production endpoint. return none if no eim present at all
-        if not eim or not (phases := eim.get("lines")) or phase >= len(phases):
+        if (
+            not eim
+            or not eim["activeCount"]
+            or not (phases := eim.get("lines"))
+            or phase >= len(phases)
+        ):
             return None
 
         phase_data = phases[phase]

@@ -1087,7 +1087,7 @@ async def test_intermittent_activeCount(
     """
     # pick a version with CT's enabled, we'll patch the data for testing
     # there's no FW version guard in the code, so any will do
-    version = "7.6.175_with_cts"
+    version = "7.6.175_with_cts_3phase"
     start_7_firmware_mock(mock_aioresponse)
     # start with all normal data
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -1110,7 +1110,7 @@ async def test_intermittent_activeCount(
         | SupportedFeatures.TOTAL_CONSUMPTION
         | SupportedFeatures.NET_CONSUMPTION
         | SupportedFeatures.PRODUCTION,
-        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS | SupportedFeatures.THREEPHASE,
         "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
     }
 
@@ -1118,13 +1118,14 @@ async def test_intermittent_activeCount(
     # phase data is not included in test as iverters section has no phase data and no
     # fallback is possible for these
     assert data.system_production is not None
-    assert data.system_production.watts_now == 488
-    assert data.system_production.watt_hours_today == 4425
-    assert data.system_production.watt_hours_last_7_days == 111093
-    assert data.system_production.watt_hours_lifetime == 3183793
+    assert data.system_production_phases is not None
+    assert data.system_production.watts_now == -6
+    assert data.system_production.watt_hours_today == 5113
+    assert data.system_production.watt_hours_last_7_days == 69492
+    assert data.system_production.watt_hours_lifetime == 4351113
     assert (
         envoy.envoy_model
-        == "Envoy, phases: 1, phase mode: three, production CT, net-consumption CT"
+        == "Envoy, phases: 3, phase mode: three, production CT, net-consumption CT"
     )
 
     # Now activeCount = 0 case during regular operation
@@ -1152,6 +1153,7 @@ async def test_intermittent_activeCount(
     data = envoy.data
     assert data
     assert data.system_production is None
+    assert data.system_production_phases is None
 
 
 @pytest.mark.asyncio
@@ -1160,7 +1162,7 @@ async def test_intermittent_activeCount_at_probe(
 ) -> None:
     """
     Test envoy metered with ct and intermitted activeCount 0 in /production not
-    falling back to type=inverters.
+    falling back to type=inverters when activeCount is zero at probe.
 
     As of fw 5.3.5528 (and maybe earlier) metered envoy with CT intermittently
     report bogus data in /production type=eim, recognizable by activeCount: 0.
@@ -1171,12 +1173,12 @@ async def test_intermittent_activeCount_at_probe(
 
     The inverter segment data has different values as the eim segment and would
     result in step changes in the value. Test there's no fallback to the inverters
-    section for metered with ct. Test return of None instead of faulty data if
-    activeCount is received  in the midst of normal operation.
+    section for metered with ct at probe and data is restored when activeCount is
+    non-zaro again during update.
     """
     # pick a version with CT's enabled, we'll patch the data for testing
     # there's no FW version guard in the code, so any will do
-    version = "7.6.175_with_cts"
+    version = "7.6.175_with_cts_3phase"
     # Start with all normal data
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -1220,11 +1222,12 @@ async def test_intermittent_activeCount_at_probe(
         | SupportedFeatures.TOTAL_CONSUMPTION
         | SupportedFeatures.NET_CONSUMPTION
         | SupportedFeatures.PRODUCTION,
-        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS | SupportedFeatures.THREEPHASE,
         "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
     }
 
     assert data.system_production is None
+    assert data.system_production_phases is None
 
     # test update of envoy with activeCount = 1. Should restore production data
     production_json["production"][1]["activeCount"] = 1
@@ -1262,17 +1265,18 @@ async def test_intermittent_activeCount_at_probe(
         | SupportedFeatures.TOTAL_CONSUMPTION
         | SupportedFeatures.NET_CONSUMPTION
         | SupportedFeatures.PRODUCTION,
-        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS | SupportedFeatures.THREEPHASE,
         "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
     }
 
     # With CT active /production data should be from type=eim and not from type=inverters
     assert data.system_production is not None
-    assert data.system_production.watts_now == 488
-    assert data.system_production.watt_hours_today == 4425
-    assert data.system_production.watt_hours_last_7_days == 111093
-    assert data.system_production.watt_hours_lifetime == 3183793
+    assert data.system_production_phases is not None
+    assert data.system_production.watts_now == -6
+    assert data.system_production.watt_hours_today == 5113
+    assert data.system_production.watt_hours_last_7_days == 69492
+    assert data.system_production.watt_hours_lifetime == 4351113
     assert (
         envoy.envoy_model
-        == "Envoy, phases: 1, phase mode: three, production CT, net-consumption CT"
+        == "Envoy, phases: 3, phase mode: three, production CT, net-consumption CT"
     )
