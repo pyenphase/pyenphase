@@ -8,9 +8,17 @@ from typing import Any
 
 
 def find_dict_by_key(
-    all_production: list[dict[str, Any]], key: str, metered: bool = False
+    all_production: list[dict[str, Any]], key: str, required: bool = True
 ) -> dict[str, Any]:
-    """Find a dict by key."""
+    """
+    Find a dict by key presence in list of dicts.
+
+    :param all_production: production segment of /production json
+    :param key: key to find in production segment list of dicts
+    :param required: if True key must be present
+    :raises valueError: if key is required to be present and not found
+    :returns: dict with key if found, empty dict if not found and not required, raises otherwise
+    """
     for production in all_production:
         if production.get("type") == key:
             return production
@@ -18,8 +26,9 @@ def find_dict_by_key(
     # as of 8.3.5422 on Envoy non-metered, /api/v1/production returns all zeros
     # and we need to fallback to type=inverters of production section in /production.
     # The non metered Envoy /production has no type=eim in the production section
-    # and this test would raise. If not metered return empty dict
-    if not metered:
+    # and this test would raise. If not metered return empty dict by setting
+    # required to False
+    if not required:
         return {}
 
     raise ValueError(f"{key} is missing")
