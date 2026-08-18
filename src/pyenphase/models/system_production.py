@@ -62,21 +62,22 @@ class EnvoySystemProduction:
 
     @classmethod
     def from_production(
-        cls, data: dict[str, Any], metered: bool = True
+        cls, data: dict[str, Any], has_production_ct: bool = True
     ) -> EnvoySystemProduction | None:
         """
         Initialize from the production API.
 
         :param data: JSON reply from /production endpoint
-        :param metered: signal Envoy is equipped with configured CT meters,
-            don't fallback to the inverter data section. Default is True
+        :param has_production_ct: signal Envoy has an enabled PRODUCTION CT;
+            when True do not fall back to the inverter data section and
+            return None if activeCount is zero
         :return: Lifetime, last seven days, todays energy and current power for solar production or None if metered and activeCount is zero.
         """
         all_production = data["production"]
 
         # if metered envoy, eim key must be present
         # for non-metered envoy not
-        eim = find_dict_by_key(all_production, "eim", metered)
+        eim = find_dict_by_key(all_production, "eim", has_production_ct)
         # inverters key must be present for both metered and not metered
         inverters = find_dict_by_key(all_production, "inverters", True)
 
@@ -90,7 +91,7 @@ class EnvoySystemProduction:
         # Don't fallback to the inverters section for metered with ct. Return None
         # instead so HA data will keep last value or show as unavailable.
         # Caller can tell through metered param if envoy is metered with active CT or not.
-        if metered and not eim["activeCount"]:
+        if has_production_ct and not eim["activeCount"]:
             return None
 
         # This is backwards compatible with envoy_reader
@@ -113,18 +114,21 @@ class EnvoySystemProduction:
 
     @classmethod
     def from_production_phase(
-        cls, data: dict[str, Any], phase: int, metered: bool = True
+        cls, data: dict[str, Any], phase: int, has_production_ct: bool = True
     ) -> EnvoySystemProduction | None:
         """
         Initialize from the production API phase data.
 
         :param data: JSON reply from /production endpoint
         :param phase: Index (0-2) in [lines] segment for which to return data
-        :param metered: signal Envoy is equipped with configured CT meters, default True
+        :param has_production_ct: signal Envoy has an enabled PRODUCTION CT;
+            when True do not fall back to the inverter data section and
+            return None if activeCount is zero
         :return: Lifetime, last seven days, todays energy and current power for production phase
+            or None if activeCount is zero, lines or phases are missing
         """
         all_production = data["production"]
-        eim = find_dict_by_key(all_production, "eim", metered)
+        eim = find_dict_by_key(all_production, "eim", has_production_ct)
 
         # if {production[type=eim]{Lines[]} or phase is missing return None
         # 8.3.5422 on Envoy non-metered /api/v1/production returns all zeros and
