@@ -74,8 +74,11 @@ class EnvoySystemProduction:
         """
         all_production = data["production"]
 
+        # if metered envoy, eim key must be present
+        # for non-metered envoy not
         eim = find_dict_by_key(all_production, "eim", metered)
-        inverters = find_dict_by_key(all_production, "inverters", metered)
+        # inverters key must be present for both metered and not metered
+        inverters = find_dict_by_key(all_production, "inverters", True)
 
         # This is backwards compatible with envoy_reader
         # envoy metered without configured CT has whLifetime and wNow in inverters
