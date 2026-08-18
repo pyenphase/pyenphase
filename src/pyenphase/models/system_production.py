@@ -70,7 +70,7 @@ class EnvoySystemProduction:
         :param data: JSON reply from /production endpoint
         :param metered: signal Envoy is equipped with configured CT meters,
             don't fallback to the inverter data section. Default is True
-        :return: Lifetime, last seven days, todays energy and current power for solar production
+        :return: Lifetime, last seven days, todays energy and current power for solar production or None if metered and activeCount is zero.
         """
         all_production = data["production"]
 

@@ -46,6 +46,8 @@ The data is provided by one of the [updaters](updaters.md) below, ordered in the
 
 This data set is identified by the {py:class}`pyenphase.const.SupportedFeatures` flag {py:attr}`~pyenphase.const.SupportedFeatures.PRODUCTION`. First updater probe that returns the feature flag will be used.
 
+Data may be returned as None, see [known issues for metered Envoy with CT](known_issues.md#envoy-metered-silently-falls-back-to-inverter-data-from-production-in-535528).
+
 ### {py:class}`~pyenphase.updaters.production.EnvoyProductionJsonUpdater`
 
 This is the default updater for production data. It provides data for aggregated phases and individual phases. Data is measured/calculated by the Envoy.
