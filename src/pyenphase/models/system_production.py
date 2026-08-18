@@ -62,14 +62,14 @@ class EnvoySystemProduction:
 
     @classmethod
     def from_production(
-        cls, data: dict[str, Any], metered: bool = False
+        cls, data: dict[str, Any], metered: bool = True
     ) -> EnvoySystemProduction:
         """
         Initialize from the production API.
 
         :param data: JSON reply from /production endpoint
         :param metered: signal Envoy is equipped with configured CT meters,
-            don't fallback to the inverter data section. Default is False
+            don't fallback to the inverter data section. Default is True
         :return: Lifetime, last seven days, todays energy and current power for solar production
         """
         all_production = data["production"]
@@ -100,13 +100,14 @@ class EnvoySystemProduction:
 
     @classmethod
     def from_production_phase(
-        cls, data: dict[str, Any], phase: int, metered: bool = False
+        cls, data: dict[str, Any], phase: int, metered: bool = True
     ) -> EnvoySystemProduction | None:
         """
         Initialize from the production API phase data.
 
         :param data: JSON reply from /production endpoint
         :param phase: Index (0-2) in [lines] segment for which to return data
+        :param metered: signal Envoy is equipped with configured CT meters, default True
         :return: Lifetime, last seven days, todays energy and current power for production phase
         """
         all_production = data["production"]
