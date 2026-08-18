@@ -1174,7 +1174,7 @@ async def test_intermittent_activeCount_at_probe(
     The inverter segment data has different values as the eim segment and would
     result in step changes in the value. Test there's no fallback to the inverters
     section for metered with ct at probe and data is restored when activeCount is
-    non-zaro again during update.
+    non-zero again during update.
     """
     # pick a version with CT's enabled, we'll patch the data for testing
     # there's no FW version guard in the code, so any will do
@@ -1288,8 +1288,8 @@ async def test_intermittant_activecount_regression_total_is_net_consumption(
 ) -> None:
     """
     Test envoy metered with ct and intermitted activeCount 0 in /production not
-    falling back to type=inverters when activeCount is zero at probe and
-    earlier fix for total_consumption = net_consumption remains active
+    falling back to type=inverters when activeCount becomes zero during update
+    and the earlier fix for total_consumption = net_consumption remains active
     """
     # pick a version beyond fw guard of total_is_net_consumption issue
     version = "8.3.5433_tot_is_net_cons"
@@ -1360,7 +1360,6 @@ async def test_intermittant_activecount_regression_total_is_net_consumption(
         repeat=True,
     )
 
-    # envoy = await get_mock_envoy(test_client_session)
     await envoy.update()
 
     # All features should be there, only production data will be None until activeCount restores
@@ -1426,10 +1425,9 @@ async def test_intermittent_activeCount_without_production_ct(
     inverter segment data for this and others firmwares has different values
     as the eim segment and would result in step changes in the value.
 
-    The inverter segment data has different values as the eim segment and would
-    result in step changes in the value. Test there's no fallback to the inverters
-    section for metered with ct at probe and data is restored when activeCount is
-    non-zaro again during update.
+    Without an enabled production CT the previous behavior must remain: the
+    values are taken from a mix of the inverters and eim sections when
+    activeCount is zero during update.
     """
     # pick a version with CT's enabled, we'll patch the data for testing
     # there's no FW version guard in the code, so any will do
@@ -1450,7 +1448,6 @@ async def test_intermittent_activeCount_without_production_ct(
     )
     envoy = await get_mock_envoy(test_client_session)
 
-    # All features should be there, only production data will be None until activeCount restores
     data = envoy.data
     assert data is not None
     assert envoy._supported_features is not None
