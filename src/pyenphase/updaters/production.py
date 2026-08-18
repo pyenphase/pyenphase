@@ -13,6 +13,7 @@ from ..const import (
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.acb import EnvoyACBPower
 from ..models.envoy import EnvoyData
+from ..models.meters import CtType
 from ..models.system_consumption import EnvoySystemConsumption
 from ..models.system_production import EnvoySystemProduction
 from .base import EnvoyUpdater
@@ -102,7 +103,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         #   EnvoyProductionJsonFallbackUpdater
         # updaters, these report different values as the production segment.
         # Instead register this updater for production.
-        ct_count = self._common_properties.ct_meter_count
+        has_production_ct = CtType.PRODUCTION in self._common_properties.meter_types
 
         # if endpoint is not in the list of successful endpoints yet, add it.
         if (
@@ -117,7 +118,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 for type_ in production:
                     # fw 5.3.5528, if metered with CT do not fall back to other production updaters
                     if type_["type"] == "eim" and (
-                        type_["activeCount"] or ct_count > 0
+                        type_["activeCount"] or has_production_ct
                     ):
                         self._supported_features |= SupportedFeatures.METERING
                         self._supported_features |= SupportedFeatures.PRODUCTION
@@ -191,8 +192,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         if self._supported_features & SupportedFeatures.PRODUCTION:
             # fw 5.3.5528, signal we have active CT
+            has_production_ct = CtType.PRODUCTION in self._common_properties.meter_types
             envoy_data.system_production = EnvoySystemProduction.from_production(
-                production_data, self._common_properties.ct_meter_count > 0
+                production_data,
+                has_production_ct,
             )
             # get production phase data if more then 1 phase is found
             phase_production: dict[str, EnvoySystemProduction | None] = {}
@@ -201,7 +204,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     EnvoySystemProduction.from_production_phase(
                         production_data,
                         phase,
-                        self._common_properties.ct_meter_count > 0,
+                        has_production_ct,
                     )
                 )
                 # exclude None phases that are expected but not actually in production report
