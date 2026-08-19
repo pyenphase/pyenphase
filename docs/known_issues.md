@@ -55,6 +55,6 @@ As of firmware 5.3.5528 (and maybe earlier) metered envoy with production CT ins
 
 A silent fallback from production to inverters data section of /production then happens because of the activecount (and potentially other values as well) being 0. The inverter data segment for this and others firmwares has incorrect values that differ from the eim segment. This results in step changes in the value, from the original type=eim values to the wrong type=inverters value and back.
 
-The library detects the situation and will not fallback to the faulty data, instead it will return None in the system_production data record.
+The library detects the situation and will not fallback to the faulty data, instead it will return None in the system_production data record. None will be returned as long as activeCount remains zero. In prior versions (incorrect) data from the /api/v1/production endpoint was returned.
 
 If the Envoy firmware is also [reporting total consumption as net-consumption](#consumption-data-set-to-net-consumption-data-in-835433), consumption data for aggregate and phase data will be reported as None as well. This because no reliable production data is available to apply the needed correction.
