@@ -8,7 +8,6 @@ import aiohttp
 import jsonpath
 import pytest
 from aioresponses import aioresponses
-from lxml import etree  # nosec
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase import register_updater
@@ -1603,38 +1602,46 @@ BASE_FIXTURE_VALUES_L2 = {
     ),
     [
         (
-            "8.3.6087",
-            BASE_FIXTURE_VALUES_AGG,
-            BASE_FIXTURE_VALUES_L1,
-            BASE_FIXTURE_VALUES_L2,
+            "8.3.6087_storage_ct_drops",
+            {
+                "active_power": 0,
+                "energy_received": 2425361,
+                "energy_delivered": 343300,
+            },
+            {
+                "active_power": 0,
+                "energy_received": 1212681,
+                "energy_delivered": 171650,
+            },
+            {
+                "active_power": 0,
+                "energy_received": 1212681,
+                "energy_delivered": 171650,
+            },
             True,
         ),
         (
-            "8.3.6088",
-            BASE_FIXTURE_VALUES_AGG,
-            BASE_FIXTURE_VALUES_L1,
-            BASE_FIXTURE_VALUES_L2,
-            True,
-        ),
-        (
-            "8.4.0000",
-            BASE_FIXTURE_VALUES_AGG,
-            BASE_FIXTURE_VALUES_L1,
-            BASE_FIXTURE_VALUES_L2,
-            True,
-        ),
-        (
-            "8.2.4286",
-            BASE_FIXTURE_VALUES_AGG,
-            BASE_FIXTURE_VALUES_L1,
-            BASE_FIXTURE_VALUES_L2,
+            "8.2.4286_with_3cts_and_battery_split",
+            {
+                "active_power": -7084,
+                "energy_received": 5409935,
+                "energy_delivered": 4073871,
+            },
+            {
+                "active_power": -3538,
+                "energy_received": 2703734,
+                "energy_delivered": 2036140,
+            },
+            {
+                "active_power": -3545,
+                "energy_received": 2706201,
+                "energy_delivered": 2037731,
+            },
             False,
         ),
     ],
     ids=[
         "8.3.6087",
-        "8.3.6088",
-        "8.4.0000",
         "8.2.4286",
     ],
 )
@@ -1655,27 +1662,10 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     intermittently reports zero values on one phase. Aggregated data then
     drops to the other phase values resulting in incorrect storage data.
     Test meters updates return None in the storage CT and storage CT L1 Phase data
-    if this scenario applies
+    if this scenario applies.
     """
-    # actual firmware version to test with doesn't matter as we patch the fixture
-    # data, as long as the used fixture has a storage CT
-    version_to_patch = "8.2.4286_with_3cts_and_battery_split"
     start_7_firmware_mock(mock_aioresponse)
-    await prep_envoy(mock_aioresponse, "127.0.0.1", version_to_patch)
-
-    # patch fw version to test target
-    xml_data = etree.fromstring(
-        bytes(await load_fixture(version_to_patch, "info"), encoding="utf8")
-    )
-    xml_data.find("device").find("software").text = f"D{version}"
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/info",
-        status=200,
-        body=etree.tostring(xml_data),
-        repeat=True,
-    )
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
 
     envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
@@ -1706,23 +1696,13 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert l2_data.energy_received == phase_l2_data["energy_received"]
     assert l2_data.energy_delivered == phase_l2_data["energy_delivered"]
 
-    # For D8.3.6087, /ivp/meters/readings started intermittently reporting incorrect storage
-    # CT lifetime energy values on split-phase system.  One storage channel reports all
-    # zeros and the aggregate value becomes equal to the remaining non-zero channel.
-    # test with zero l1 channel, with fw  D8.3.6087
-    # pyenphase code will correct for D8.3.6087 and newer, should have None for aggregate and L1
-
-    # if param block_zero is false we are testing a fw that will actually
-    # pass the zero values when testing. This is ok as these fw version are not suffering from
-    # the issue, use the logic to verify the code is actually not applying the correction
-
-    # Test storagect intermittent  one phase zero anomaly detection function
-    # full data, should get None
+    # Test storagect intermittent one phase zero anomaly detection function
+    # operational data without zero phase, should return None
     assert data is not None
     result = _find_zero_phase_for_storage_anomaly(data)
     assert result is None
 
-    # no agg data for storage, should get None
+    # no aggregate data for storage, should get None
     save_agg_data = copy.deepcopy(data.ctmeters[CtType.STORAGE])
     data.ctmeters[CtType.STORAGE] = None
     result = _find_zero_phase_for_storage_anomaly(data)
@@ -1736,7 +1716,7 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert result is None
     data.ctmeters_phases[CtType.STORAGE] = phase_data
 
-    # one phase to none, should get None
+    # only phase 1 to none, should get None
     phase1_data = copy.deepcopy(
         data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1]
     )
@@ -1745,7 +1725,7 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert result is None
     data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1] = phase1_data
 
-    # one phase to none, should get None
+    # only phase 2 to none, should get None
     phase2_data = copy.deepcopy(
         data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2]
     )
@@ -1754,7 +1734,7 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert result is None
     data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2] = phase2_data
 
-    # one phase zero but agg is not equal to non-zero phase, should get None
+    # one phase zero but aggregate is not equal to non-zero phase, should get None
     assert data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2] is not None
     data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2].active_power = 0  # type: ignore[union-attr]
     data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2].energy_delivered = 0  # type: ignore[union-attr]
@@ -1763,7 +1743,7 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     result = _find_zero_phase_for_storage_anomaly(data)
     assert result is None
 
-    # set agg data equal to non-zero phase, should get zero phase 2 reported
+    # set aggregate data equal to non-zero phase, should get zero phase 2 reported
     p1_data = data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1]
     data.ctmeters[CtType.STORAGE].active_power = p1_data.active_power  # type: ignore[union-attr]
     data.ctmeters[CtType.STORAGE].energy_delivered = p1_data.energy_delivered  # type: ignore[union-attr]
@@ -1772,7 +1752,7 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     result = _find_zero_phase_for_storage_anomaly(data)
     assert result == PhaseNames.PHASE_2
 
-    # both phases to zero, but agg not, should get None
+    # both phases to zero, but aggregate not, should get None
     data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1].active_power = 0  # type: ignore[union-attr]
     data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1].energy_delivered = 0  # type: ignore[union-attr]
     data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1].energy_received = 0  # type: ignore[union-attr]
@@ -1780,7 +1760,7 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     result = _find_zero_phase_for_storage_anomaly(data)
     assert result is None
 
-    # both phases and agg to zero,all zero, should get None
+    # both phases and aggregate to zero,all zero, should get None
     data.ctmeters[CtType.STORAGE].active_power = 0  # type: ignore[union-attr]
     data.ctmeters[CtType.STORAGE].energy_delivered = 0  # type: ignore[union-attr]
     data.ctmeters[CtType.STORAGE].energy_received = 0  # type: ignore[union-attr]
@@ -1788,9 +1768,15 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     result = _find_zero_phase_for_storage_anomaly(data)
     assert result is None
 
-    meter_data_json = await load_json_list_fixture(
-        version_to_patch, "ivp_meters_readings"
-    )
+    # For D8.3.6087, /ivp/meters/readings started intermittently reporting incorrect storage
+    # CT lifetime energy values on split-phase system.  One storage channel reports all
+    # zeros and the aggregate value becomes equal to the remaining non-zero channel.
+
+    # test with zero l1 channel and aggregate equal to L2 data
+    # for D8.3.6087 and newer, should have None for aggregate and L1.
+    # For older fw aggregate has L2 values and L1 zeros.
+
+    meter_data_json = await load_json_list_fixture(version, "ivp_meters_readings")
     items = [
         item
         for item in meter_data_json[2]["channels"][1]
@@ -1813,12 +1799,14 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     await envoy.update()
     data = envoy.data
 
-    # Aggregate and L1 data not be reported, L2 regular if applicable
+    # block_zero true is signal to expect Aggregate and L1 data not be reported
+    # L2 regular if applicable.
+    # If False expect zero in L1 and Aggretae == L2
     assert data
     assert data.ctmeters is not None
+    assert data.ctmeters_phases is not None
     # Storage data should have been set to None if fw is eligible for correction
     assert (data.ctmeters[CtType.STORAGE] is None) == block_zero
-    assert data.ctmeters_phases is not None
     # Storage CT L1 phase should have been set to None if fw is eligible for correction
     # otherwise l1 phase data should have zeros set in the test
     zeroed_l1 = data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1]
@@ -1838,9 +1826,7 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert l2_data.energy_delivered == phase_l2_data["energy_delivered"]
 
     # same test for other phase being 0
-    meter_data_json = await load_json_list_fixture(
-        version_to_patch, "ivp_meters_readings"
-    )
+    meter_data_json = await load_json_list_fixture(version, "ivp_meters_readings")
     items = [
         item
         for item in meter_data_json[2]["channels"][1]

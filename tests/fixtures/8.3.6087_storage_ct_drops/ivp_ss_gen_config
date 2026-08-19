@@ -1,0 +1,15 @@
+{
+    "max_cont_gen_amps": 50.0,
+    "min_gen_loading_perc": 5,
+    "max_gen_efficiency_perc": 60,
+    "name_plate_rating_wat": 18.0,
+    "start_method": "auto",
+    "warm_up_mins": 0,
+    "cool_down_mins": 1,
+    "gen_type": "Standby",
+    "model": "G007226-0, G007228-0 (18kW)",
+    "manufacturer": "Generac",
+    "last_updated_by": "ITK",
+    "generator_id": "3011946296",
+    "charge_from_generator": true
+}

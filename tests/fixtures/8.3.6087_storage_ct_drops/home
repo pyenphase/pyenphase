@@ -1,0 +1,88 @@
+{
+    "software_build_epoch": 1784018176,
+    "timezone": "US/Pacific",
+    "current_date": "08/08/2026",
+    "current_time": "12:59",
+    "network": {
+        "web_comm": true,
+        "ever_reported_to_enlighten": true,
+        "last_enlighten_report_time": 1786219050,
+        "primary_interface": "wlan0",
+        "interfaces": [
+            {
+                "signal_strength": 27,
+                "signal_strength_max": 31,
+                "network": true,
+                "type": "cellular",
+                "interface": "ppp0",
+                "dhcp": true,
+                "ip": "100.73.40.88",
+                "carrier": true
+            },
+            {
+                "type": "ethernet",
+                "interface": "eth0",
+                "mac": "00:1D:C0:BE:2A:2E",
+                "dhcp": true,
+                "ip": "169.254.120.1",
+                "signal_strength": 0,
+                "signal_strength_max": 1,
+                "carrier": false
+            },
+            {
+                "signal_strength": 3,
+                "signal_strength_max": 5,
+                "type": "wifi",
+                "interface": "wlan0",
+                "mac": "90:48:46:7F:3D:A2",
+                "dhcp": true,
+                "ip": "192.168.1.105",
+                "carrier": true,
+                "supported": true,
+                "present": true,
+                "configured": true,
+                "status": "connected"
+            }
+        ],
+        "enho_connectivity": {
+            "connected": false
+        }
+    },
+    "tariff": "none",
+    "comm": {
+        "num": 40,
+        "level": 5,
+        "pcu": {
+            "num": 39,
+            "level": 5
+        },
+        "acb": {
+            "num": 0,
+            "level": 0
+        },
+        "nsrb": {
+            "num": 0,
+            "level": 0
+        },
+        "esub": {
+            "num": 1,
+            "level": 5
+        },
+        "encharge": [
+            {
+                "num": 6,
+                "level": 0,
+                "level_24g": 0,
+                "level_subg": 0
+            }
+        ]
+    },
+    "wireless_connection": [
+        {
+            "signal_strength": 0,
+            "signal_strength_max": 0,
+            "type": "BLE",
+            "connected": true
+        }
+    ]
+}

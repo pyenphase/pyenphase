@@ -1,0 +1,40 @@
+{
+    "devices:": [
+        {
+            "serial_num": "492320000111",
+            "real_power_mw": 8000,
+            "apparent_power_mva": 8000,
+            "soc": 100
+        },
+        {
+            "serial_num": "492320000123",
+            "real_power_mw": 8000,
+            "apparent_power_mva": 8000,
+            "soc": 100
+        },
+        {
+            "serial_num": "492320000125",
+            "real_power_mw": 8000,
+            "apparent_power_mva": 8000,
+            "soc": 100
+        },
+        {
+            "serial_num": "492320000127",
+            "real_power_mw": 8000,
+            "apparent_power_mva": 8000,
+            "soc": 100
+        },
+        {
+            "serial_num": "492320000129",
+            "real_power_mw": 8000,
+            "apparent_power_mva": 8000,
+            "soc": 100
+        },
+        {
+            "serial_num": "492320000131",
+            "real_power_mw": 8000,
+            "apparent_power_mva": 8000,
+            "soc": 100
+        }
+    ]
+}
