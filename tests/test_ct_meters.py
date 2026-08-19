@@ -811,8 +811,6 @@ async def test_current_transformers(
     assert has_meter == meter_type_present
     assert has_meter == meter_in_model
 
-    # end backward compatibility test
-
     # verify meter data
     meter_json = await load_json_fixture(version, "ivp_meters")
     meter_data_json = await load_json_fixture(version, "ivp_meters_readings")
@@ -1070,8 +1068,6 @@ async def test_without_current_transformers(
     meter_in_model = bool(str(envoy.storage_meter_type) in envoy.envoy_model)
     assert has_meter == meter_type_present
     assert has_meter == meter_in_model
-
-    # end backward compatibility test
 
     # end backward compatibility test
 
@@ -1696,8 +1692,10 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert l2_data.energy_received == phase_l2_data["energy_received"]
     assert l2_data.energy_delivered == phase_l2_data["energy_delivered"]
 
+    # start backward compatibility test
     assert data.ctmeter_storage is data.ctmeters[CtType.STORAGE]
     assert data.ctmeter_storage_phases is data.ctmeters_phases[CtType.STORAGE]
+    # end backward compatibility test
 
     # Test storagect intermittent one phase zero anomaly detection function
     # operational data without zero phase, should return None
@@ -1828,8 +1826,10 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert l2_data.energy_received == phase_l2_data["energy_received"]
     assert l2_data.energy_delivered == phase_l2_data["energy_delivered"]
 
+    # start backward compatibility test
     assert data.ctmeter_storage is data.ctmeters[CtType.STORAGE]
     assert data.ctmeter_storage_phases is data.ctmeters_phases[CtType.STORAGE]
+    # end backward compatibility test
 
     # same test for other phase being 0
     meter_data_json = await load_json_list_fixture(version, "ivp_meters_readings")
@@ -1880,8 +1880,10 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
         assert zeroed_l2.energy_received == 0
         assert zeroed_l2.energy_delivered == 0
 
+    # start backward compatibility test
     assert data.ctmeter_storage is data.ctmeters[CtType.STORAGE]
     assert data.ctmeter_storage_phases is data.ctmeters_phases[CtType.STORAGE]
+    # end backward compatibility test
 
     # Test with issue at probe time
     envoy = await get_mock_envoy(test_client_session)
@@ -1917,8 +1919,10 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
         assert zeroed_l2.energy_received == 0
         assert zeroed_l2.energy_delivered == 0
 
+    # start backward compatibility test
     assert data.ctmeter_storage is data.ctmeters[CtType.STORAGE]
     assert data.ctmeter_storage_phases is data.ctmeters_phases[CtType.STORAGE]
+    # end backward compatibility test
 
     # restore zero L2 and aggregate to original values
     meter_data_json = await load_json_list_fixture(version, "ivp_meters_readings")
@@ -1956,5 +1960,7 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert l2_data.energy_received == phase_l2_data["energy_received"]
     assert l2_data.energy_delivered == phase_l2_data["energy_delivered"]
 
+    # start backward compatibility test
     assert data.ctmeter_storage is data.ctmeters[CtType.STORAGE]
     assert data.ctmeter_storage_phases is data.ctmeters_phases[CtType.STORAGE]
+    # end backward compatibility test
