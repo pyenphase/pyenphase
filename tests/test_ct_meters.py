@@ -1696,6 +1696,9 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert l2_data.energy_received == phase_l2_data["energy_received"]
     assert l2_data.energy_delivered == phase_l2_data["energy_delivered"]
 
+    assert data.ctmeter_storage is data.ctmeters[CtType.STORAGE]
+    assert data.ctmeter_storage_phases is data.ctmeters_phases[CtType.STORAGE]
+
     # Test storagect intermittent one phase zero anomaly detection function
     # operational data without zero phase, should return None
     assert data is not None
@@ -1825,6 +1828,9 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert l2_data.energy_received == phase_l2_data["energy_received"]
     assert l2_data.energy_delivered == phase_l2_data["energy_delivered"]
 
+    assert data.ctmeter_storage is data.ctmeters[CtType.STORAGE]
+    assert data.ctmeter_storage_phases is data.ctmeters_phases[CtType.STORAGE]
+
     # same test for other phase being 0
     meter_data_json = await load_json_list_fixture(version, "ivp_meters_readings")
     items = [
@@ -1874,6 +1880,9 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
         assert zeroed_l2.energy_received == 0
         assert zeroed_l2.energy_delivered == 0
 
+    assert data.ctmeter_storage is data.ctmeters[CtType.STORAGE]
+    assert data.ctmeter_storage_phases is data.ctmeters_phases[CtType.STORAGE]
+
     # Test with issue at probe time
     envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
@@ -1908,6 +1917,9 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
         assert zeroed_l2.energy_received == 0
         assert zeroed_l2.energy_delivered == 0
 
+    assert data.ctmeter_storage is data.ctmeters[CtType.STORAGE]
+    assert data.ctmeter_storage_phases is data.ctmeters_phases[CtType.STORAGE]
+
     # restore zero L2 and aggregate to original values
     meter_data_json = await load_json_list_fixture(version, "ivp_meters_readings")
     override_mock(
@@ -1922,6 +1934,9 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     data = envoy.data
 
     assert data is not None
+    assert data.ctmeters is not None
+    assert (agg_data := data.ctmeters[CtType.STORAGE]) is not None
+    assert agg_data is not None
     assert data.ctmeters_phases is not None
 
     # All data should be available again
@@ -1940,3 +1955,6 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     assert l2_data.active_power == phase_l2_data["active_power"]
     assert l2_data.energy_received == phase_l2_data["energy_received"]
     assert l2_data.energy_delivered == phase_l2_data["energy_delivered"]
+
+    assert data.ctmeter_storage is data.ctmeters[CtType.STORAGE]
+    assert data.ctmeter_storage_phases is data.ctmeters_phases[CtType.STORAGE]
