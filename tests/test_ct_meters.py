@@ -1873,3 +1873,70 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
         assert zeroed_l2.active_power == 0
         assert zeroed_l2.energy_received == 0
         assert zeroed_l2.energy_delivered == 0
+
+    # Test with issue at probe time
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+
+    # Verify storage CT data is present
+    assert envoy._supported_features is not None
+    assert envoy._supported_features & SupportedFeatures.CTMETERS
+    assert envoy.meter_type(CtType.STORAGE) == CtType.STORAGE
+
+    # Aggregate and L2 data should be None, L1 regular if applicable
+    assert data
+    assert data.ctmeters is not None
+    # Storage data should have been set to None if fw is eligible for correction
+    assert (data.ctmeters[CtType.STORAGE] is None) == block_zero
+
+    # In this test Storage CT L1 data should be returned as usual
+    assert data.ctmeters_phases is not None
+    assert (
+        l1_data := data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1]
+    ) is not None
+    assert l1_data.active_power == phase_l1_data["active_power"]
+    assert l1_data.energy_received == phase_l1_data["energy_received"]
+    assert l1_data.energy_delivered == phase_l1_data["energy_delivered"]
+
+    # Storage CT L2 phase should have been set to None if fw is eligible for correction
+    # otherwise l2 phase data should show zeros set in the test
+    zeroed_l2 = data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2]
+    assert (zeroed_l2 is None) == block_zero
+    if not block_zero:
+        assert zeroed_l2 is not None
+        assert zeroed_l2.active_power == 0
+        assert zeroed_l2.energy_received == 0
+        assert zeroed_l2.energy_delivered == 0
+
+    # restore zero L2 and aggregate to original values
+    meter_data_json = await load_json_list_fixture(version, "ivp_meters_readings")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/ivp/meters/readings",
+        status=200,
+        payload=meter_data_json,
+        repeat=True,
+    )
+    await envoy.update()
+    data = envoy.data
+
+    assert data is not None
+    assert data.ctmeters_phases is not None
+
+    # All data should be available again
+    assert agg_data.active_power == aggregate_data["active_power"]
+    assert agg_data.energy_received == aggregate_data["energy_received"]
+    assert agg_data.energy_delivered == aggregate_data["energy_delivered"]
+    assert (
+        l1_data := data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_1]
+    ) is not None
+    assert l1_data.active_power == phase_l1_data["active_power"]
+    assert l1_data.energy_received == phase_l1_data["energy_received"]
+    assert l1_data.energy_delivered == phase_l1_data["energy_delivered"]
+    assert (
+        l2_data := data.ctmeters_phases[CtType.STORAGE][PhaseNames.PHASE_2]
+    ) is not None
+    assert l2_data.active_power == phase_l2_data["active_power"]
+    assert l2_data.energy_received == phase_l2_data["energy_received"]
+    assert l2_data.energy_delivered == phase_l2_data["energy_delivered"]
