@@ -11,12 +11,18 @@ ctmeters: dict[str, EnvoyMeterData | None] = field(default_factory=dict)
 ctmeters_phases: dict[str, dict[str, EnvoyMeterData | None]] = field(default_factory=dict)
 ```
 
-This is also done for the to be deprecated storage data record, if these are still used one should switch to the ctmeters data records. Deprecation may happen shortly.
+This is also done for the to be deprecated production, consumption and storage data record, if these are still used one should switch to the ctmeters data records. Deprecation may happen shortly. The aggregate records could retun None already, while this is added for the phase records
 
 ```
+ctmeter_production: EnvoyMeterData | None = None
+ctmeter_consumption: EnvoyMeterData | None = None
+ctmeter_storage: EnvoyMeterData | None = None
+ctmeter_production_phases: dict[str, EnvoyMeterData | None] | None = None
 ctmeter_consumption_phases: dict[str, EnvoyMeterData | None] | None = None
 ctmeter_storage_phases: dict[str, EnvoyMeterData | None] | None = None
 ```
+
+
 
 **_NOTE:_**  
 
