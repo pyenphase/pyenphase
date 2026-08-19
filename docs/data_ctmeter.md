@@ -23,23 +23,26 @@ There are multiple CT types that can be installed. The CT meter types are enumer
 
     production_ct = data.ctmeters[CtType.PRODUCTION]
 
-    print(f'eid: {production_ct.eid}')
-    print(f'timestamp: {production_ct.timestamp}')
-    print(f'energy_delivered: {production_ct.energy_delivered}')
-    print(f'energy_received: {production_ct.energy_received}')
-    print(f'power_factor: {production_ct.power_factor}')
-    print(f'active_power: {production_ct.active_power}')
-    print(f'voltage: {production_ct.voltage}')
-    print(f'current: {production_ct.current}')
-    print(f'frequency: {production_ct.frequency}')
-    print(f'state: {production_ct.state}')
-    print(f'measurement_type: {production_ct.measurement_type}')
-    print(f'metering_status: {production_ct.metering_status}')
-    print(f'status_flags: {production_ct.status_flags}')
+    if production_ct: # Might be None
+        print(f'eid: {production_ct.eid}')
+        print(f'timestamp: {production_ct.timestamp}')
+        print(f'energy_delivered: {production_ct.energy_delivered}')
+        print(f'energy_received: {production_ct.energy_received}')
+        print(f'power_factor: {production_ct.power_factor}')
+        print(f'active_power: {production_ct.active_power}')
+        print(f'voltage: {production_ct.voltage}')
+        print(f'current: {production_ct.current}')
+        print(f'frequency: {production_ct.frequency}')
+        print(f'state: {production_ct.state}')
+        print(f'measurement_type: {production_ct.measurement_type}')
+        print(f'metering_status: {production_ct.metering_status}')
+        print(f'status_flags: {production_ct.status_flags}')
 
 ```
 
 To detect how many CTs are installed, use the Envoy property {py:attr}`~pyenphase.Envoy.ct_meter_count`. You can identify which CT meters are available via {py:attr}`pyenphase.Envoy.ct_meter_list`. To test presence of individual CT meters use {py:meth}`pyenphase.Envoy.meter_type` with a {py:class}`~pyenphase.models.meters.CtType` argument.
+
+Be aware that with this release ctmeter data may be none for a meter of a meter phase.
 
 The consumption CT can be either `net-consumption` (installed at the grid boundary) or `total-consumption` (measuring house load); see [ct-model](#ct-model) below. Which one is installed, is available in {py:attr}`pyenphase.Envoy.consumption_meter_type`. The IQ Metered collar includes an embedded `net-consumption` CT.
 
@@ -68,12 +71,15 @@ In `net-consumption` mode, {py:attr}`~pyenphase.models.meters.EnvoyMeterData.ene
 
 ```python
 
-if (cttype := data.consumption_meter_type) == CtType.NET_CONSUMPTION:
+if (
+    (cttype := data.consumption_meter_type) == CtType.NET_CONSUMPTION
+    and data.ctmeters[cttype]
+):
     grid_import = data.ctmeters[cttype].energy_delivered
     grid_export = data.ctmeters[cttype].energy_received
     grid_power = data.ctmeters[cttype].active_power
 else:
-    print("No net consumption CT installed")
+    print("Net consumption CT not installed or returned None")
 ```
 
 ## Production CT Options

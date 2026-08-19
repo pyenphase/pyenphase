@@ -39,6 +39,14 @@ The IQ Gateway maintains a persistent outbound connection to the Enlighten cloud
 
 Blocking the IQ Gateway's outbound internet access at the network level prevents the cloud push and causes locally-set modes to persist. Note that this also prevents the Enlighten platform from receiving monitoring data from the gateway, and may lead to unexpected behaviour when sustained over long periods of time.
 
+(storage-ct-zero-phase_and-agg-drop)=
+
+## intermittent storage CT zero phase data and agggerate value drop in 8.3.6087
+
+In, or as of 8.3.6087 metered envoy running with storage CT in split mode, 2 phase configuration, intermittently reports data of one phase with all zero values and the aggregate values drop to the values of the other phase that still has data, typically 50% of normal value. As a result the aggregate values which are the sum of the 2 phases, switch between the sum of both and the value of the single non-zero phase.
+
+This version detects this issue and returns None instead of the incorrect aggregate and phase storage CT values in {py:attr}`~pyenphase.EnvoyData.ctmeters` and {py:attr}`~pyenphase.EnvoyData.ctmeters_phases`. As a breaking change, None has been added to the envoy data model for ctmeters and ctmeters_phases.
+
 ## Consumption data set to net consumption data in 8.3.5433
 
 In 8.3.5433 firmware, the production report has (total-)consumption data equal to net-consumption data. This is reported for metered Envoy with TOTAL-CONSUMPTION CT installed. It is not (yet) clear whether this is the case as well for NET-CONSUMPTION CT installations. Pyenphase now checks values of lifetime energy and power of both consumption types and if equal, adds production values to the consumption values to obtain correct data.
