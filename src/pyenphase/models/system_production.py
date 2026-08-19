@@ -74,11 +74,11 @@ class EnvoySystemProduction:
         :param has_production_ct: signal Envoy has an enabled PRODUCTION CT;
             when True do not fall back to the inverter data section and
             return None if activeCount is zero
-        :return: Lifetime, last seven days, todays energy and current power for solar production or None if metered and activeCount is zero.
+        :return: Lifetime, last seven days, todays energy and current power for solar production or None if the Envoy has an enabled production CT and activeCount is zero
         """
         all_production = data["production"]
 
-        # if metered envoy, eim key must be present
+        # if metered envoy with production CT active, eim key must be present
         # for non-metered envoy not
         eim = find_dict_by_key(all_production, "eim", has_production_ct)
         # inverters key must be present for both metered and not metered
@@ -91,9 +91,10 @@ class EnvoySystemProduction:
         # inverter segment data for this and others firmwares has different values
         # as the eim segment and would result in step changes in the value.
         #
-        # Don't fallback to the inverters section for metered with ct. Return None
-        # instead so HA data will keep last value or show as unavailable.
-        # Caller can tell through metered param if envoy is metered with active CT or not.
+        # Don't fallback to the inverters section for metered with production ct.
+        # Return None instead so HA data will keep last value or show as unavailable.
+        # Caller can tell through has_production_ct param if envoy is metered with
+        # active production CT or not.
         if has_production_ct and not eim["activeCount"]:
             _LOGGER.debug(
                 "Envoy with Production CT but activeCount is zero, returning None for production data"
