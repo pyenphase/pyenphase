@@ -276,6 +276,9 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 # this will prevent fixing the 8.3.5433 total-consumption = net-consumption
                 # repair as eim production report is rejected; total-consumption cannot be repaired,
                 # do not publish raw net-consumption values as total-consumption
+                _LOGGER.debug(
+                    "No reliable production data found, cannot correct consumption data, returning None."
+                )
                 envoy_data.system_consumption = None
                 envoy_data.system_consumption_phases = None
             else:

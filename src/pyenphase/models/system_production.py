@@ -3,8 +3,11 @@
 # Data Source: URL_PRODUCTION
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def find_dict_by_key(
@@ -92,6 +95,9 @@ class EnvoySystemProduction:
         # instead so HA data will keep last value or show as unavailable.
         # Caller can tell through metered param if envoy is metered with active CT or not.
         if has_production_ct and not eim["activeCount"]:
+            _LOGGER.debug(
+                "Envoy with Production CT but activeCount is zero, returning None for production data"
+            )
             return None
 
         # This is backwards compatible with envoy_reader
