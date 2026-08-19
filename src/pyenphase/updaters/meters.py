@@ -144,10 +144,11 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         ctmeters[CtType] and ctmeters_phases[CtType].
 
         Envoy firmware D8.3.6087, /ivp/meters/readings for split, 2 phase storage CT
-        intermittently reports zero values on one (L1) phase. Aggregated data then
-        drops to the other phase (L2) values resulting in incorrect storage data.
-        In this case, return None in the storage CT and storage CT L1 Phase data to
-        avoid callers processing incorrect data.
+        intermittently reports zero values on one phase. Aggregated data then
+        drops to the other phase values resulting in incorrect storage data.
+        In this case, return None in the storage CT and storage CT zero Phase data to
+        avoid callers processing incorrect data. This has been reported for L1 phase
+        being zero, Code also tests for the reverse case of L2 being zero.
 
         :param envoy_data: EnvoyData structure to store data to
         """
@@ -190,7 +191,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 #   phaseMode == "split",
                 #   phaseCount == 2,
                 #   one channel reports all zeros,
-                #   the aggregate lifetime value suddenly drops to approximately other channel value.
+                #   the aggregate lifetime value suddenly drops to other channel value.
                 if (
                     # as of fw D8.3.6087
                     self._envoy_version >= STORAGE_CT_FALLBACK_TO_ONE_CHANNEL
@@ -258,12 +259,13 @@ def _verify_zero_phase_for_storage_anomaly(
 ) -> bool:
     """
     Identify if zero data is present for impacted data and agg data is equal
-    to unimpacted data. Verify for active power, energy delivered and received.
+    to unimpacted data. Verify for energy delivered and received.
+    Do not verify activePower, even though reports state all values are zero,
+    testing lifetime energy values is sufficient detection and rule out
+    any case of issue data sample taken during idle battery state.
     """
     return (
-        impacted_data.active_power == 0
-        and unimpacted_data.active_power == agg_data.active_power
-        and impacted_data.energy_delivered == 0
+        impacted_data.energy_delivered == 0
         and unimpacted_data.energy_delivered != 0
         and unimpacted_data.energy_delivered == agg_data.energy_delivered
         and impacted_data.energy_received == 0

@@ -78,10 +78,14 @@ class EnvoyData:
         None
     )
     #: CT power & energy values, only for Envoy metered with CT installed.
-    #: Keyed by :any:`CtType`
+    #: Keyed by :any:`CtType`.
+    #: An entry may be None when the library judges the reading invalid,
+    #: see :ref:`battery-mode-overwritten`
     ctmeters: dict[str, EnvoyMeterData | None] = field(default_factory=dict)
     #: CT power & energy phase values, only for Envoy metered with CT installed.
     #: Keyed by :any:`CtType` and  :any:`PhaseNames`
+    #: An phase entry may be None when the library judges the reading invalid,
+    #: see :ref:`battery-mode-overwritten`
     ctmeters_phases: dict[str, dict[str, EnvoyMeterData | None]] = field(
         default_factory=dict
     )
