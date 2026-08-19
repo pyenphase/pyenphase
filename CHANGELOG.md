@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v3.2.3 (2026-08-19)
+
+### Bug Fixes
+
+- Intermittent activeCount 0 causes fallback to inverters section of production endpoint
+  ([#480](https://github.com/pyenphase/pyenphase/pull/480),
+  [`ab07c04`](https://github.com/pyenphase/pyenphase/commit/ab07c04e3c1ee3cef85c6dc56485cfa7b802792c))
+
+
 ## v3.2.2 (2026-08-18)
 
 ### Bug Fixes

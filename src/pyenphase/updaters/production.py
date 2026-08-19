@@ -13,6 +13,7 @@ from ..const import (
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.acb import EnvoyACBPower
 from ..models.envoy import EnvoyData
+from ..models.meters import CtType
 from ..models.system_consumption import EnvoySystemConsumption
 from ..models.system_production import EnvoySystemProduction
 from .base import EnvoyUpdater
@@ -94,6 +95,16 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         active_phase_count = 0
         phase_count = self._common_properties.phase_count
 
+        # As of fw 5.3.5528 (and maybe earlier) metered envoy with CT intermittently
+        # report bogus data in /production type=eim, recognizable by activeCount: 0
+        # For metered Envoy with active CT, do NOT fallback to any of the
+        #   EnvoyProductionUpdater
+        #   EnvoyApiV1ProductionUpdater
+        #   EnvoyProductionJsonFallbackUpdater
+        # updaters, these report different values as the production segment.
+        # Instead register this updater for production.
+        has_production_ct = CtType.PRODUCTION in self._common_properties.meter_types
+
         # if endpoint is not in the list of successful endpoints yet, add it.
         if (
             self.end_point not in working_endpoints
@@ -105,7 +116,10 @@ class EnvoyProductionUpdater(EnvoyUpdater):
             production: list[dict[str, Any]] | None = production_json.get("production")
             if production:
                 for type_ in production:
-                    if type_["type"] == "eim" and type_["activeCount"]:
+                    # fw 5.3.5528, if metered with CT do not fall back to other production updaters
+                    if type_["type"] == "eim" and (
+                        type_["activeCount"] or has_production_ct
+                    ):
                         self._supported_features |= SupportedFeatures.METERING
                         self._supported_features |= SupportedFeatures.PRODUCTION
                         if lines := type_.get("lines"):
@@ -177,8 +191,11 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         phase_count = self._common_properties.phase_count
 
         if self._supported_features & SupportedFeatures.PRODUCTION:
+            # fw 5.3.5528, signal we have active CT
+            has_production_ct = CtType.PRODUCTION in self._common_properties.meter_types
             envoy_data.system_production = EnvoySystemProduction.from_production(
-                production_data, self._common_properties.ct_meter_count > 0
+                production_data,
+                has_production_ct,
             )
             # get production phase data if more then 1 phase is found
             phase_production: dict[str, EnvoySystemProduction | None] = {}
@@ -187,7 +204,7 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     EnvoySystemProduction.from_production_phase(
                         production_data,
                         phase,
-                        self._common_properties.ct_meter_count > 0,
+                        has_production_ct,
                     )
                 )
                 # exclude None phases that are expected but not actually in production report
@@ -242,7 +259,6 @@ class EnvoyProductionUpdater(EnvoyUpdater):
         if (
             self._envoy_version >= PRODUCTION_TOTAL_IS_NET_CONSUMPTION
             and SupportedFeatures.METERING in self._supported_features
-            and envoy_data.system_production is not None
             and envoy_data.system_consumption is not None
             and envoy_data.system_net_consumption is not None
             and (
@@ -254,34 +270,48 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                 == envoy_data.system_net_consumption.watts_now
             )
         ):
-            # Add production to net-consumption to get total-consumption
-            # we're only here if net = tot consumption so we can use either
-            envoy_data.system_consumption.watt_hours_lifetime += (
-                envoy_data.system_production.watt_hours_lifetime
-            )
-            envoy_data.system_consumption.watts_now += (
-                envoy_data.system_production.watts_now
-            )
+            if envoy_data.system_production is None:
+                # as of 8.3.5528 envoy may return intermittently activeCount=0 in
+                # production eim segment, this will result in system_production becoming None
+                # this will prevent fixing the 8.3.5433 total-consumption = net-consumption
+                # repair as eim production report is rejected; total-consumption cannot be repaired,
+                # do not publish raw net-consumption values as total-consumption
+                _LOGGER.debug(
+                    "No reliable production data found, cannot correct consumption data, returning None."
+                )
+                envoy_data.system_consumption = None
+                envoy_data.system_consumption_phases = None
+            else:
+                # Add production to net-consumption to get total-consumption
+                # we're only here if net = tot consumption so we can use either
+                envoy_data.system_consumption.watt_hours_lifetime += (
+                    envoy_data.system_production.watt_hours_lifetime
+                )
+                envoy_data.system_consumption.watts_now += (
+                    envoy_data.system_production.watts_now
+                )
 
-            # correct phases as well
-            if (
-                phase_count > 1
-                and (sys_prod := envoy_data.system_production_phases) is not None
-                and (sys_cons := envoy_data.system_consumption_phases) is not None
-                and (sys_net_cons := envoy_data.system_net_consumption_phases)
-                is not None
-            ):
-                for phase_name in set(sys_prod) & set(sys_cons) & set(sys_net_cons):
-                    if (
-                        (cons := sys_cons[phase_name]) is not None
-                        and (net_cons := sys_net_cons[phase_name]) is not None
-                        and (prod := sys_prod[phase_name]) is not None
-                        and (cons.watt_hours_lifetime == net_cons.watt_hours_lifetime)
-                        and (cons.watts_now == net_cons.watts_now)
-                    ):
-                        # Add production to net-consumption to get total-consumption
-                        cons.watt_hours_lifetime += prod.watt_hours_lifetime
-                        cons.watts_now += prod.watts_now
+                # correct phases as well
+                if (
+                    phase_count > 1
+                    and (sys_prod := envoy_data.system_production_phases) is not None
+                    and (sys_cons := envoy_data.system_consumption_phases) is not None
+                    and (sys_net_cons := envoy_data.system_net_consumption_phases)
+                    is not None
+                ):
+                    for phase_name in set(sys_prod) & set(sys_cons) & set(sys_net_cons):
+                        if (
+                            (cons := sys_cons[phase_name]) is not None
+                            and (net_cons := sys_net_cons[phase_name]) is not None
+                            and (prod := sys_prod[phase_name]) is not None
+                            and (
+                                cons.watt_hours_lifetime == net_cons.watt_hours_lifetime
+                            )
+                            and (cons.watts_now == net_cons.watts_now)
+                        ):
+                            # Add production to net-consumption to get total-consumption
+                            cons.watt_hours_lifetime += prod.watt_hours_lifetime
+                            cons.watts_now += prod.watts_now
 
 
 class EnvoyProductionJsonUpdater(EnvoyProductionUpdater):
