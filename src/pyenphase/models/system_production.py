@@ -7,11 +7,30 @@ from dataclasses import dataclass
 from typing import Any
 
 
-def find_dict_by_key(all_production: list[dict[str, Any]], key: str) -> dict[str, Any]:
-    """Find a dict by key."""
+def find_dict_by_key(
+    all_production: list[dict[str, Any]], key: str, required: bool = True
+) -> dict[str, Any]:
+    """
+    Find a dict by key presence in list of dicts.
+
+    :param all_production: production segment of /production json
+    :param key: key to find in production segment list of dicts
+    :param required: if True key must be present
+    :raises valueError: if key is required to be present and not found
+    :returns: dict with key if found, empty dict if not found and not required, raises otherwise
+    """
     for production in all_production:
         if production.get("type") == key:
             return production
+
+    # as of 8.3.5422 on Envoy non-metered, /api/v1/production returns all zeros
+    # and we need to fallback to type=inverters of production section in /production.
+    # The non metered Envoy /production has no type=eim in the production section
+    # and this test would raise. If not metered return empty dict by setting
+    # required to False
+    if not required:
+        return {}
+
     raise ValueError(f"{key} is missing")
 
 
@@ -42,22 +61,33 @@ class EnvoySystemProduction:
         )
 
     @classmethod
-    def from_production(cls, data: dict[str, Any]) -> EnvoySystemProduction:
+    def from_production(
+        cls, data: dict[str, Any], metered: bool = True
+    ) -> EnvoySystemProduction:
         """
         Initialize from the production API.
 
         :param data: JSON reply from /production endpoint
+        :param metered: signal Envoy is equipped with configured CT meters,
+            don't fallback to the inverter data section. Default is True
         :return: Lifetime, last seven days, todays energy and current power for solar production
         """
         all_production = data["production"]
 
-        eim = find_dict_by_key(all_production, "eim")
-        inverters = find_dict_by_key(all_production, "inverters")
+        # if metered envoy, eim key must be present
+        # for non-metered envoy not
+        eim = find_dict_by_key(all_production, "eim", metered)
+        # inverters key must be present for both metered and not metered
+        inverters = find_dict_by_key(all_production, "inverters", True)
 
         # This is backwards compatible with envoy_reader
         # envoy metered without configured CT has whLifetime and wNow in inverters
         # whLastSevenDays and whToday are incorrect for both so either can be used
-        now_source = eim if eim["activeCount"] else inverters
+        #
+        # 8.3.5422 on Envoy non-metered /api/v1/production returns all zeros and
+        # needs to use inverters section while type=eim is not present in its
+        # /production endpoint. fallback to inverters if no eim present at all
+        now_source = eim if eim and eim["activeCount"] else inverters
 
         return cls(
             watt_hours_lifetime=round(now_source["whLifetime"]),
@@ -70,21 +100,24 @@ class EnvoySystemProduction:
 
     @classmethod
     def from_production_phase(
-        cls, data: dict[str, Any], phase: int
+        cls, data: dict[str, Any], phase: int, metered: bool = True
     ) -> EnvoySystemProduction | None:
         """
         Initialize from the production API phase data.
 
         :param data: JSON reply from /production endpoint
         :param phase: Index (0-2) in [lines] segment for which to return data
+        :param metered: signal Envoy is equipped with configured CT meters, default True
         :return: Lifetime, last seven days, todays energy and current power for production phase
         """
         all_production = data["production"]
-        eim = find_dict_by_key(all_production, "eim")
+        eim = find_dict_by_key(all_production, "eim", metered)
 
         # if {production[type=eim]{Lines[]} or phase is missing return None
-        phases = eim.get("lines")
-        if not phases or phase >= len(phases):
+        # 8.3.5422 on Envoy non-metered /api/v1/production returns all zeros and
+        # needs to use inverters section while type=eim is not present in its
+        # /production endpoint. return none if no eim present at all
+        if not eim or not (phases := eim.get("lines")) or phase >= len(phases):
             return None
 
         phase_data = phases[phase]
