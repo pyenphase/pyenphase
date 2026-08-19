@@ -41,9 +41,9 @@ Blocking the IQ Gateway's outbound internet access at the network level prevents
 
 (storage-ct-zero-phase_and-agg-drop)=
 
-## intermittent storage CT zero phase data and agggerate value drop in 8.3.6087
+## intermittent storage CT zero phase data and aggregate value drop in 8.3.6087
 
-In, or as of 8.3.6087 metered envoy running with storage CT in split mode, 2 phase configuration, intermittently reports data of one phase with all zero values and the aggregate values drop to the values of the other phase that still has data, typically 50% of normal value. As a result the aggregate values which are the sum of the 2 phases, switch between the sum of both and the value of the single non-zero phase.
+In firmware 8.3.6087 and later, a metered Envoy with a storage CT in split mode, two-phase configuration, intermittently reports data of one phase with all zero values and the aggregate values drop to the values of the other phase that still has data, typically 50% of normal value. As a result the aggregate values which are the sum of the 2 phases, switch between the sum of both and the value of the single non-zero phase.
 
 This version detects this issue and returns None instead of the incorrect aggregate and phase storage CT values in {py:attr}`~pyenphase.EnvoyData.ctmeters` and {py:attr}`~pyenphase.EnvoyData.ctmeters_phases`. As a breaking change, None has been added to the envoy data model for ctmeters and ctmeters_phases.
 

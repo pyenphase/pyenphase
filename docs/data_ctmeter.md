@@ -42,7 +42,7 @@ There are multiple CT types that can be installed. The CT meter types are enumer
 
 To detect how many CTs are installed, use the Envoy property {py:attr}`~pyenphase.Envoy.ct_meter_count`. You can identify which CT meters are available via {py:attr}`pyenphase.Envoy.ct_meter_list`. To test presence of individual CT meters use {py:meth}`pyenphase.Envoy.meter_type` with a {py:class}`~pyenphase.models.meters.CtType` argument.
 
-Be aware that with this release ctmeter data may be none for a meter of a meter phase.
+CT meter entries can be `None` when the Envoy reports unreliable data. Check both aggregate and phase entries before reading their attributes.
 
 The consumption CT can be either `net-consumption` (installed at the grid boundary) or `total-consumption` (measuring house load); see [ct-model](#ct-model) below. Which one is installed, is available in {py:attr}`pyenphase.Envoy.consumption_meter_type`. The IQ Metered collar includes an embedded `net-consumption` CT.
 
@@ -151,6 +151,8 @@ To detect if multiple phases are reporting, use the Envoy property {py:attr}`~py
 
     if envoy.phase_count > 1:
         for phase, phase_data in data.ctmeters_phases.get(CtType.PRODUCTION, {}).items():
+            if phase_data is None:
+                continue
             for key, value in vars(phase_data).items():
                 print(f'{phase} {key}: {value}')
 ```
