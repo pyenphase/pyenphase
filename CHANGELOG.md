@@ -1,32 +1,5 @@
 # CHANGELOG
 
-<!-- version list -->
-
-### This a breaking fix, 
-
-The data model now allows for None entries in the CT meters data. Typed consumers that assume EnvoyMeterData will now fail type checks, and untyped consumers can raise AttributeError on None.
-
-```    
-ctmeters: dict[str, EnvoyMeterData | None] = field(default_factory=dict)
-ctmeters_phases: dict[str, dict[str, EnvoyMeterData | None]] = field(default_factory=dict)
-```
-
-This is also done for the to be deprecated production, consumption and storage data record, if these are still used one should switch to the ctmeters data records. Deprecation may happen shortly. The aggregate records could retun None already, while this is added for the phase records
-
-```
-ctmeter_production: EnvoyMeterData | None = None
-ctmeter_consumption: EnvoyMeterData | None = None
-ctmeter_storage: EnvoyMeterData | None = None
-ctmeter_production_phases: dict[str, EnvoyMeterData | None] | None = None
-ctmeter_consumption_phases: dict[str, EnvoyMeterData | None] | None = None
-ctmeter_storage_phases: dict[str, EnvoyMeterData | None] | None = None
-```
-
-
-
-**_NOTE:_**  
-
-Do not bump this pyenphase version in Home Assistant without changing the sensor.py code.The native_value function of [EnphaseCtEntity ](https://github.com/home-assistant/core/blob/a7b855ed07f20dddebc556dc5d768bd36eba756f/homeassistant/components/enphase_envoy/sensor.py#L1290-L1296) or [EnphaseCtPhaseEntity](https://github.com/home-assistant/core/blob/a7b855ed07f20dddebc556dc5d768bd36eba756f/homeassistant/components/enphase_envoy/sensor.py#L1306-L1320) needs to test for meter data being None and if so return None.
 
 ## v3.2.3 (2026-08-19)
 
@@ -36,11 +9,6 @@ Do not bump this pyenphase version in Home Assistant without changing the sensor
   ([#480](https://github.com/pyenphase/pyenphase/pull/480),
   [`ab07c04`](https://github.com/pyenphase/pyenphase/commit/ab07c04e3c1ee3cef85c6dc56485cfa7b802792c))
 
-**_NOTE:_**  
-
-The data model always specified that None could be returned for production and consumption data. In this release this actually happens when the activeCount reports None instead of incorrect data for metered Envoy with production CT.
-
-Do not bump this pyenphase version in Home Assistant without changing the sensor.py code. The `native_value` functions contain an assert for being None, Like this one for [system_production](https://github.com/home-assistant/core/blob/a7b855ed07f20dddebc556dc5d768bd36eba756f/homeassistant/components/enphase_envoy/sensor.py#L1182-L1186). Similar for system_production_phase, system_consumption, system_consumption_phases, system_net_consumption and system_net_consumption_phases. These all need change with bumping this library version. All should test for None and if so return None instead. HA did not assume they would ever be None.
 
 ## v3.2.2 (2026-08-18)
 
