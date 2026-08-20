@@ -228,12 +228,9 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                         envoy_data.ctmeter_consumption_phases = (
                             envoy_data.ctmeters_phases[meter_type]
                         )
-                elif (
-                    meter_type == CtType.STORAGE
-                    and CtType.STORAGE in envoy_data.ctmeters
-                ):
+                elif meter_type == CtType.STORAGE:
                     envoy_data.ctmeter_storage = envoy_data.ctmeters[meter_type]
-                    if phase_data and CtType.STORAGE in envoy_data.ctmeters_phases:
+                    if phase_data:
                         envoy_data.ctmeter_storage_phases = envoy_data.ctmeters_phases[
                             meter_type
                         ]
