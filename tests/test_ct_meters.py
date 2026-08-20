@@ -1570,24 +1570,6 @@ async def test_intermittent_activeCount_without_production_ct(
     assert data.system_production.watt_hours_lifetime == 4351113
 
 
-BASE_FIXTURE_VALUES_AGG = {
-    "active_power": -7084,
-    "energy_received": 5409935,
-    "energy_delivered": 4073871,
-}
-BASE_FIXTURE_VALUES_L1 = {
-    "active_power": -3538,
-    "energy_received": 2703734,
-    "energy_delivered": 2036140,
-}
-
-BASE_FIXTURE_VALUES_L2 = {
-    "active_power": -3545,
-    "energy_received": 2706201,
-    "energy_delivered": 2037731,
-}
-
-
 @pytest.mark.parametrize(
     (
         "version",  # firmware version pyenphase gets passed
