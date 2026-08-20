@@ -72,7 +72,7 @@ In `net-consumption` mode, {py:attr}`~pyenphase.models.meters.EnvoyMeterData.ene
 ```python
 
 if (
-    (cttype := data.consumption_meter_type) == CtType.NET_CONSUMPTION
+    (cttype := envoy.consumption_meter_type) == CtType.NET_CONSUMPTION
     and data.ctmeters[cttype]
 ):
     grid_import = data.ctmeters[cttype].energy_delivered
