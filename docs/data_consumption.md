@@ -29,12 +29,14 @@ For [metered Envoy with multi-phase installations](./phase_data.md#phase-data), 
                 print(f'{phase} LifetimeEnergy {phase_data.watt_hours_lifetime}')
                 print(f'{phase} Last7DaysEnergy {phase_data.watt_hours_last_7_days}')
 
-        # report specific phase data by using PhaseNames (for phase 1)
-        if (phase_data := data.system_consumption_phases[[PhaseNames.PHASE_1]]):
+    # report specific phase data by using PhaseNames (for phase 1)
+    if envoy.phase_count > 1 and data.system_consumption_phases:
+        if (phase_data := data.system_consumption_phases[PhaseNames.PHASE_1]):
             print(f'Value watt_hours_lifetime : {phase_data.watt_hours_lifetime}')
 
-        # report specific phase data by using phase index 0-2 (for phase 1)
-        if (phase_data := data.system_consumption_phases[[PhaseNames.PHASE_1]]):
+    # report specific phase data by using phase index 0-2 (for phase 1)
+    if envoy.phase_count > 1 and data.system_consumption_phases:
+        if (phase_data := data.system_consumption_phases[PHASENAMES[0]]):
             print(f'Value watt_hours_lifetime : {phase_data.watt_hours_lifetime}')
 ```
 

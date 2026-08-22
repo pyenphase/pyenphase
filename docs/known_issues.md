@@ -69,4 +69,4 @@ A silent fallback from production to inverters data section of /production then 
 
 The library detects the situation and will not fallback to the faulty data, instead it will return None in the system_production data record. None will be returned as long as activeCount remains zero. In prior versions (incorrect) data from the /api/v1/production endpoint was returned.
 
-If the Envoy firmware is also [reporting total consumption as net-consumption](#consumption-data-set-to-net-consumption-data-in-835433), aggregate consumption data will be reported as None and the phase data reports each individual phase as None. This because no reliable production data is available to apply the needed correction.
+If the Envoy firmware is also [reporting total consumption as net-consumption](#consumption-data-set-to-net-consumption-data-in-835433), aggregate consumption data will be reported as None and the phase data for multiphase systems reports each individual phase as None. This is because no reliable production data is available to apply the needed correction.
