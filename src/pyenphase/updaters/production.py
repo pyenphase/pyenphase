@@ -280,7 +280,13 @@ class EnvoyProductionUpdater(EnvoyUpdater):
                     "No reliable production data found, cannot correct consumption data, returning None."
                 )
                 envoy_data.system_consumption = None
-                envoy_data.system_consumption_phases = None
+
+                # set individual phases to None rather then overall phase record so phases
+                # are present with None data and HA will create entities when this
+                # combined issue occurs at start/reload
+                if envoy_data.system_consumption_phases:
+                    for cons_phase in envoy_data.system_consumption_phases:
+                        envoy_data.system_consumption_phases[cons_phase] = None
             else:
                 # Add production to net-consumption to get total-consumption
                 # we're only here if net = tot consumption so we can use either

@@ -1364,9 +1364,11 @@ async def test_intermittent_activecount_regression_total_is_net_consumption(
     assert data.system_production is None
     assert data.system_production_phases is None
 
-    # consumption data should be none as we have no reliable production values to use for correction
+    # consumption data should be none as we have no reliable production values to use for correction. Phases should be present with None value
     assert data.system_consumption is None
-    assert data.system_consumption_phases is None
+    assert data.system_consumption_phases is not None
+    assert data.system_consumption_phases[PhaseNames.PHASE_1] is None
+    assert data.system_consumption_phases[PhaseNames.PHASE_2] is None
 
     # test restore activeCount back to 1. Should restore production and consumption data
     production_json["production"][1]["activeCount"] = 1
@@ -1400,6 +1402,129 @@ async def test_intermittent_activecount_regression_total_is_net_consumption(
 
     # consumption data should be corrected for total=net consumption issue
     assert data.system_consumption is not None
+    assert data.system_production_phases is not None
+    assert data.system_consumption.watts_now == 428 + 357
+    assert data.system_consumption.watt_hours_today == 5649402
+    assert data.system_consumption.watt_hours_last_7_days == 5649402
+    assert data.system_consumption.watt_hours_lifetime == 5649402 + 14405465
+    assert data.system_consumption_phases is not None
+    assert data.system_consumption_phases[PhaseNames.PHASE_1] is not None
+    assert data.system_consumption_phases[PhaseNames.PHASE_2] is not None
+
+    # test for non-phased case to test branch logic
+    production_json = await load_json_fixture(version, "production.json")
+    del production_json["production"][1]["lines"]
+    del production_json["consumption"][0]["lines"]
+    del production_json["consumption"][1]["lines"]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json?details=1",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+
+    envoy = await get_mock_envoy(test_client_session)
+
+    data = envoy.data
+    assert data is not None
+    assert envoy._supported_features is not None
+
+    assert data.system_production is not None
+    assert data.system_production.watts_now == 357
+    assert data.system_production.watt_hours_today == 14405465
+    assert data.system_production.watt_hours_last_7_days == 14405465
+    assert data.system_production.watt_hours_lifetime == 14405465
+    # no production phases for 1 phase system
+    assert data.system_production_phases is None
+
+    assert data.system_consumption is not None
+    assert data.system_consumption.watts_now == 428 + 357
+    assert data.system_consumption.watt_hours_today == 5649402
+    assert data.system_consumption.watt_hours_last_7_days == 5649402
+    assert data.system_consumption.watt_hours_lifetime == 5649402 + 14405465
+    # no consumption phases for 1 phase system
+    assert data.system_consumption_phases is None
+
+    # Test intermittent activeCount = 0 case during regular operation
+    production_json["production"][1]["activeCount"] = 0
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json?details=1",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+
+    await envoy.update()
+
+    data = envoy.data
+    assert data is not None
+
+    # if activeCount is 0 and Production CT present, None should return for production data
+    assert data.system_production is None
+    # no production phases for 1 phase system
+    assert data.system_production_phases is None
+
+    # consumption data should be none as we have no reliable production values to use for correction
+    assert data.system_consumption is None
+    # no consumption phases for 1 phase system
+    assert data.system_consumption_phases is None
+
+    # test restore activeCount back to 1. Should restore production and consumption data
+    production_json["production"][1]["activeCount"] = 1
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/production.json?details=1",
+        status=200,
+        payload=production_json,
+        repeat=True,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data is not None
+
+    # With CT active /production data should be from type=eim and not from type=inverters
+    assert data.system_production is not None
+    # no production phases for 1 phase system
+    assert data.system_production_phases is None
+    assert data.system_production.watts_now == 357
+    assert data.system_production.watt_hours_today == 14405465
+    assert data.system_production.watt_hours_last_7_days == 14405465
+    assert data.system_production.watt_hours_lifetime == 14405465
+
+    # consumption data should be corrected for total=net consumption issue
+    assert data.system_consumption is not None
+    # no consumption phases for 1 phase system
+    assert data.system_production_phases is None
     assert data.system_consumption.watts_now == 428 + 357
     assert data.system_consumption.watt_hours_today == 5649402
     assert data.system_consumption.watt_hours_last_7_days == 5649402
