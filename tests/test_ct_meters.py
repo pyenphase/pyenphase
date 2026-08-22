@@ -1524,7 +1524,7 @@ async def test_intermittent_activecount_regression_total_is_net_consumption(
     # consumption data should be corrected for total=net consumption issue
     assert data.system_consumption is not None
     # no consumption phases for 1 phase system
-    assert data.system_production_phases is None
+    assert data.system_consumption_phases is None
     assert data.system_consumption.watts_now == 428 + 357
     assert data.system_consumption.watt_hours_today == 5649402
     assert data.system_consumption.watt_hours_last_7_days == 5649402
