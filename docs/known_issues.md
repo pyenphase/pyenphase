@@ -59,6 +59,8 @@ For anyone already running 8.3.5433, the consumption total has previously droppe
 
 As of 8.3.5422, the Standard Envoy, not-metered type, reports all zeros in its /api/v1/production endpoint. The library detects the situation and switches to using the inverters data section of the /production endpoint. The inverters section is lacking Today and Last 7 days values, these will be set to zero.
 
+(activecount_zero)=
+
 ## Envoy metered silently falls back to inverter data from /production in 5.3.5528
 
 As of firmware 5.3.5528 (and maybe earlier) metered envoy with production CT installed, intermittently report bogus data in /production type=eim section, recognizable by activeCount: 0.
@@ -67,4 +69,4 @@ A silent fallback from production to inverters data section of /production then 
 
 The library detects the situation and will not fallback to the faulty data, instead it will return None in the system_production data record. None will be returned as long as activeCount remains zero. In prior versions (incorrect) data from the /api/v1/production endpoint was returned.
 
-If the Envoy firmware is also [reporting total consumption as net-consumption](#consumption-data-set-to-net-consumption-data-in-835433), consumption data for aggregate and phase data will be reported as None as well. This because no reliable production data is available to apply the needed correction.
+If the Envoy firmware is also [reporting total consumption as net-consumption](#consumption-data-set-to-net-consumption-data-in-835433), aggregate consumption data will be reported as None and the phase data reports each individual phase as None. This because no reliable production data is available to apply the needed correction.

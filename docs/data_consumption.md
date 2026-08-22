@@ -23,16 +23,19 @@ For [metered Envoy with multi-phase installations](./phase_data.md#phase-data), 
 
     if envoy.phase_count > 1 and data.system_consumption_phases:
         for phase in data.system_consumption_phases:
-            print(f'{phase} Watts: {data.system_consumption_phases[phase].watts_now}')
-            print(f'{phase} TodaysEnergy: {data.system_consumption_phases[phase].watt_hours_today}')
-            print(f'{phase} LifetimeEnergy {data.system_consumption_phases[phase].watt_hours_lifetime}')
-            print(f'{phase} Last7DaysEnergy {data.system_consumption_phases[phase].watt_hours_last_7_days}')
+            if (phase_data := data.system_consumption_phases[phase]):
+                print(f'{phase} Watts: {phase_data.watts_now}')
+                print(f'{phase} TodaysEnergy: {phase_data.watt_hours_today}')
+                print(f'{phase} LifetimeEnergy {phase_data.watt_hours_lifetime}')
+                print(f'{phase} Last7DaysEnergy {phase_data.watt_hours_last_7_days}')
 
-        # report specific phase data  by using PhaseNames (for phase 1)
-        print(f'Value watt_hours_lifetime : {data.system_consumption_phases[PhaseNames.PHASE_1].watt_hours_lifetime}')
+        # report specific phase data by using PhaseNames (for phase 1)
+        if (phase_data := data.system_consumption_phases[[PhaseNames.PHASE_1]]):
+            print(f'Value watt_hours_lifetime : {phase_data.watt_hours_lifetime}')
 
         # report specific phase data by using phase index 0-2 (for phase 1)
-        print(f'Value watt_hours_lifetime : {data.system_consumption_phases[PHASENAMES[0]].watt_hours_lifetime}')
+        if (phase_data := data.system_consumption_phases[[PhaseNames.PHASE_1]]):
+            print(f'Value watt_hours_lifetime : {phase_data.watt_hours_lifetime}')
 ```
 
 ## Data sources

@@ -64,7 +64,9 @@ class EnvoyData:
     #: Solar Production power & energy values
     system_production: EnvoySystemProduction | None = None
     #: Individual phase consumption power & energy values, keyed by :any:`PhaseNames`,
-    #: only for Envoy metered with CT installed
+    #: only for Envoy metered with CT installed.
+    #: A phase entry may be None when the library judges the reading invalid,
+    #: see :ref:`activecount_zero`.
     system_consumption_phases: dict[str, EnvoySystemConsumption | None] | None = None
     #: Individual phase solar production power & energy values, keyed by :any:`PhaseNames`,
     #: only for Envoy metered with CT installed
@@ -83,9 +85,9 @@ class EnvoyData:
     #: see :ref:`storage-ct-zero-phase_and-agg-drop`
     ctmeters: dict[str, EnvoyMeterData | None] = field(default_factory=dict)
     #: CT power & energy phase values, only for Envoy metered with CT installed.
-    #: Keyed by :any:`CtType` and  :any:`PhaseNames`
-    #: An phase entry may be None when the library judges the reading invalid,
-    #: see :ref:`storage-ct-zero-phase_and-agg-drop`
+    #: Keyed by :any:`CtType` and  :any:`PhaseNames`.
+    #: A phase entry may be None when the library judges the reading invalid,
+    #: see :ref:`storage-ct-zero-phase_and-agg-drop`.
     ctmeters_phases: dict[str, dict[str, EnvoyMeterData | None]] = field(
         default_factory=dict
     )
