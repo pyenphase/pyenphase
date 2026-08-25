@@ -1145,7 +1145,7 @@ class Envoy:
         case, use :any:`Envoy.update` to establish the actual state.
 
         Be aware that when the Envoy returns an incomplete document as a
-        refresh reply the stored data for the generator_schedulle is set
+        refresh reply the stored data for the generator_schedule is set
         to None to reflect the now current state in the Envoy and raises
         EnvoyFeatureNotAvailable.
 
@@ -1237,8 +1237,8 @@ class Envoy:
         Build a data model from a document returned by the Envoy.
 
         Used to verify a document returned before a write action
-        is executed and data is sed by the write or after a write
-        action is completeed before any stored data is replaced
+        is executed and data is send by the write or after a write
+        action is completed before any stored data is replaced
         with it. The specified from_api may return None and caller
         should handle those cases.
 

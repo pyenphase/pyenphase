@@ -160,7 +160,7 @@ class EnvoyGeneratorSchedule:
         """
         Initialize class from API json data.
 
-        Exerscise_config is only included in the generator schedule when
+        Exercise_config is only included in the generator schedule when
         configured in the Envoy using the App. Without the exercise_schedule
         the EnvoyGeneratorSchedule is not usable. Other components presence
         is assumed. If any are missing return None, let caller handle this.
@@ -182,7 +182,7 @@ class EnvoyGeneratorSchedule:
                 last_updated_by=schedule["last_updated_by"],
                 schedule=schedule["schedule"],
             )
-        except KeyError:
+        except (KeyError, TypeError, IndexError):
             generator_schedule = None
         return generator_schedule
 

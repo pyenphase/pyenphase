@@ -87,7 +87,7 @@ await envoy.update_generator_schedule({"exercise_day": "Sat"}, refresh=True)
 
 Use it when the Enphase cloud or app may have changed settings since the last data collection, so values from stale data are not sent back.
 
-Be aware that when the Envoy returns an incomplete document as a refresh reply, the stored data for the generator_schedule is set to None to reflect the now current state in the Envoy and return EnvoyFeatureNotAvailable.
+Be aware that when the Envoy returns an incomplete document as a refresh reply, the stored data for the generator_schedule is set to None to reflect the now current state in the Envoy and raises `EnvoyFeatureNotAvailable`.
 
 On systems with Enphase batteries, note that `default_start_soc` and `default_stop_soc` are always part of the schedule document and are applied by the firmware as the active generator start/stop state of charge, as reported in [EnvoyData.generator](#pyenphase.EnvoyData.generator). Values held in [EnvoyData.generator_schedule](#pyenphase.EnvoyData.generator_schedule) at the time of the call are sent, so if another application changed them since the last data collection, the update will set them back. Use `refresh=True`, call [Envoy.update](#pyenphase.Envoy.update) first, or include the wanted SOC values in the settings to change. The generator starts at `default_start_soc` and stops at `default_stop_soc`, so the start value must be lower than the stop value; the resulting pair is validated against the stored values for whichever of the two is not being changed.
 
