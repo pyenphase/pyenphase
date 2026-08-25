@@ -34,7 +34,9 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
     _gen_mode_available: bool = False
 
     async def _optional_endpoint_available(
-        self, end_point: str, verify_method: Callable[..., Any] | None = None
+        self,
+        end_point: str,
+        verify_method: Callable[[dict[str, Any]], object] | None = None,
     ) -> bool:
         """
         Probe an optional generator endpoint and report its availability.
@@ -51,18 +53,18 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
             _LOGGER.debug("Generator endpoint not found at %s: %s", end_point, e)
             return False
         # Newer firmware with no generator configured returns an empty dict
-        if not bool(result) or "err" in result:
-            _LOGGER.debug("Generator endpoint not found at %s", end_point)
+        if not bool(result) or "error" in result or "err" in result:
+            _LOGGER.debug("No usable Generator data at %s", end_point)
             return False
         if verify_method:
             # verify returned data validity
-            result = verify_method(result)
+            verified = verify_method(result)
             _LOGGER.debug(
                 "Generator endpoint %s data passed verification: %s",
                 end_point,
-                bool(result),
+                bool(verified),
             )
-            return bool(result)
+            return bool(verified)
         return True
 
     async def probe(

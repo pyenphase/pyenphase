@@ -1144,6 +1144,11 @@ class Envoy:
         EnvoyCommunicationError is raised. The update was sent in that
         case, use :any:`Envoy.update` to establish the actual state.
 
+        Be aware that when the Envoy returns an incomplete document as a
+        refresh reply the stored data for the generator_schedulle is set
+        to None to reflect the now current state in the Envoy and raises
+        EnvoyFeatureNotAvailable.
+
         :param new_data: dict of settings to change
         :param refresh: re-read the schedule from the Envoy before
             merging the settings to change into it
@@ -1203,19 +1208,19 @@ class Envoy:
         # Build the model first: if the reply is not a complete document
         # the stored data is left at the last known state rather than at
         # an optimistic one the Envoy never confirmed.
+        message = (
+            "The Envoy returned an incomplete generator schedule for the update, "
+            "the update was sent but the stored data was left unchanged"
+        )
         new_state = self._model_from_document(
             URL_GEN_SCHEDULE,
             result,
             EnvoyGeneratorSchedule.from_api,
-            "The Envoy returned an incomplete generator schedule for the update, "
-            "the update was sent but the stored data was left unchanged",
+            message,
         )
         # if updated schedule is None we got incomplete reply
-        if not new_state:
-            raise EnvoyCommunicationError(
-                "The Envoy returned an incomplete generator schedule for the update, "
-                "the update was sent but the stored data was left unchanged",
-            )
+        if new_state is None:
+            raise EnvoyCommunicationError(f"{message}: {URL_GEN_SCHEDULE}")
 
         data.raw[URL_GEN_SCHEDULE] = result
         data.generator_schedule = new_state
@@ -1231,15 +1236,18 @@ class Envoy:
         """
         Build a data model from a document returned by the Envoy.
 
-        Used to verify a document returned for a write action is complete
-        before any stored data is replaced with it.
+        Used to verify a document returned before a write action
+        is executed and data is sed by the write or after a write
+        action is completeed before any stored data is replaced
+        with it. The specified from_api may return None and caller
+        should handle those cases.
 
         :param end_point: Envoy endpoint the document came from
         :param document: JSON document returned by the Envoy
         :param from_api: model method to build the model from the document
         :param message: message to report if the document is incomplete
         :raises EnvoyCommunicationError: If the document is not a complete document
-        :return: data model built from the document
+        :return: data model built from the document, may be None
         """
         try:
             return from_api(document)
