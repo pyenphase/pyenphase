@@ -161,13 +161,13 @@ class EnvoyGeneratorSchedule:
         Initialize class from API json data.
 
         Exercise_config is only included in the generator schedule when
-        configured in the Envoy using the App. Without the exercise_schedule
+        configured in the Envoy using the App. Without the exercise_config
         the EnvoyGeneratorSchedule is not usable. Other components presence
         is assumed. If any are missing return None, let caller handle this.
         This makes from_api usable as verification during probe.
 
         :param schedule: json returned by :any:`URL_GEN_SCHEDULE`
-        :return: populated EnvoyGeneratorSchedule class or None if exercise_schedule or other keys are missing
+        :return: populated EnvoyGeneratorSchedule class or None if exercise_config or other keys are missing
         """
         try:
             exercise_config = schedule["exercise_config"]

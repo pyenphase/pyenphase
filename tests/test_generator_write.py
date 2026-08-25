@@ -509,7 +509,7 @@ async def test_generator_write_refresh_incomplete(
 
 
 @pytest.mark.asyncio
-async def test_update_generator_schedule_without_exercise_schedule(
+async def test_update_generator_schedule_without_exercise_config(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:

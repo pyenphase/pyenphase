@@ -302,11 +302,11 @@ async def test_set_generator_mode(
 
 
 @pytest.mark.asyncio
-async def test_generator_missing_exercise_schedule(
+async def test_generator_missing_exercise_config(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Verify generator data degrades if no exercise schedule is present in schedule."""
+    """Verify generator data degrades if no exercise config is present in schedule."""
     version = "8.3.5169_with_generator"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -343,4 +343,53 @@ async def test_generator_missing_exercise_schedule(
     assert data.generator_mode is not None
     assert URL_GENERATOR in data.raw
     assert URL_GEN_SCHEDULE not in data.raw
+    assert URL_GEN_MODE in data.raw
+
+    # start with working generator schedule
+    schedule_json = await load_json_fixture(version, "ivp_ss_gen_schedule")
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_SCHEDULE}",
+        status=200,
+        payload=schedule_json,
+        repeat=True,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+
+    data = envoy.data
+    assert SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features
+    assert data is not None
+    assert data.generator_config is not None
+    assert URL_GEN_CONFIG in data.raw
+    assert data.generator is not None
+    assert data.generator_schedule is not None
+    assert data.generator_mode is not None
+    assert URL_GENERATOR in data.raw
+    assert URL_GEN_SCHEDULE in data.raw
+    assert URL_GEN_MODE in data.raw
+
+    # now simulated failed schedule
+    del schedule_json["exercise_config"]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_SCHEDULE}",
+        status=200,
+        payload=schedule_json,
+        repeat=True,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features
+    assert data is not None
+    assert data.generator_config is not None
+    assert URL_GEN_CONFIG in data.raw
+    assert data.generator is not None
+    assert data.generator_schedule is None
+    assert data.generator_mode is not None
+    assert URL_GENERATOR in data.raw
+    assert URL_GEN_SCHEDULE in data.raw
     assert URL_GEN_MODE in data.raw

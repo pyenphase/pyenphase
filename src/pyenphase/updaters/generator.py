@@ -106,7 +106,7 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
         self._generator_available = await self._optional_endpoint_available(
             URL_GENERATOR
         )
-        # verify data for missing exercise_schedule
+        # verify data for missing exercise_config
         self._gen_schedule_available = await self._optional_endpoint_available(
             URL_GEN_SCHEDULE, EnvoyGeneratorSchedule.from_api
         )
@@ -139,6 +139,8 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
             envoy_data.generator_schedule = EnvoyGeneratorSchedule.from_api(
                 generator_schedule_data
             )
+            if not envoy_data.generator_schedule:
+                _LOGGER.debug("Generator Schedule returned None.")
 
         if self._gen_mode_available:
             generator_mode_data: dict[str, Any] = await self._json_request(URL_GEN_MODE)
