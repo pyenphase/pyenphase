@@ -509,7 +509,8 @@ LOGGER = logging.getLogger(__name__)
             | SupportedFeatures.TARIFF
             | SupportedFeatures.DUALPHASE
             | SupportedFeatures.CTMETERS
-            | SupportedFeatures.GENERATOR,
+            | SupportedFeatures.GENERATOR
+            | SupportedFeatures.GENERATOR_SCHEDULE,
             {
                 "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
@@ -521,7 +522,8 @@ LOGGER = logging.getLogger(__name__)
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
                 "EnvoyMetersUpdater": SupportedFeatures.DUALPHASE
                 | SupportedFeatures.CTMETERS,
-                "EnvoyGeneratorUpdater": SupportedFeatures.GENERATOR,
+                "EnvoyGeneratorUpdater": SupportedFeatures.GENERATOR
+                | SupportedFeatures.GENERATOR_SCHEDULE,
             },
             2,
             {},

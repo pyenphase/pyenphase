@@ -56,14 +56,24 @@ Dry Contact information is available in the [EnvoyData.dry_contact_status](#pyen
 
 ## Generator data
 
-Systems with an Enpower and a standby generator installed report generator data. Availability is signaled by the {py:attr}`pyenphase.const.SupportedFeatures.GENERATOR` supported feature flag.
+Systems with an Enpower and a standby generator installed report generator data. Availability is signaled by the {py:attr}`pyenphase.const.SupportedFeatures.GENERATOR` and {py:attr}`pyenphase.const.SupportedFeatures.GENERATOR_SCHEDULE` supported feature flags.
 
 - Generator status (admin, operational relay state, admin mode, schedule state, generator present) is available in [EnvoyData.generator](#pyenphase.EnvoyData.generator), modeled by [EnvoyGenerator](#pyenphase.models.generator.EnvoyGenerator).
 - Generator configuration (name plate rating, manufacturer, model, start method, warm-up/cool-down minutes) is available in [EnvoyData.generator_config](#pyenphase.EnvoyData.generator_config), modeled by [EnvoyGeneratorConfig](#pyenphase.models.generator.EnvoyGeneratorConfig).
-- The generator exercise schedule and default state-of-charge settings are available in [EnvoyData.generator_schedule](#pyenphase.EnvoyData.generator_schedule), modeled by [EnvoyGeneratorSchedule](#pyenphase.models.generator.EnvoyGeneratorSchedule).
+- The generator exercise schedule and default state-of-charge settings are available in [EnvoyData.generator_schedule](#pyenphase.EnvoyData.generator_schedule), modeled by [EnvoyGeneratorSchedule](#pyenphase.models.generator.EnvoyGeneratorSchedule). The schedule is only available if the {py:attr}`pyenphase.const.SupportedFeatures.GENERATOR_SCHEDULE` flag is set.
 - The generator operation mode ("off", "on" or "auto") is available in [EnvoyData.generator_mode](#pyenphase.EnvoyData.generator_mode), modeled by [EnvoyGeneratorMode](#pyenphase.models.generator.EnvoyGeneratorMode), on firmware exposing the `/ivp/ss/gen_mode` endpoint.
 
 The Envoy class provides the method [Envoy.set_generator_mode](#pyenphase.Envoy.set_generator_mode) to control the generator operation mode, [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) to change the exercise schedule and default state-of-charge settings, and [Envoy.set_generator_charge_from_generator](#pyenphase.Envoy.set_generator_charge_from_generator) to allow or disallow charging batteries from the generator.
+
+---
+
+**NOTE**
+
+The generator schedule will only be available when configured in the Envoy using the Enphase tools. If not setup, the {py:attr}`pyenphase.const.SupportedFeatures.GENERATOR_SCHEDULE` flag will not be set and the {py:attr}`pyenphase.EnvoyData.generator_schedule` will be `None`. The [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) can not be used either until a schedule is configured in the Envoy.
+
+Once a schedule is configured in the Envoy, rerun {py:attr}`pyenphase.Envoy.probe` to make the schedule known in the data model.
+
+---
 
 [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) and [Envoy.set_generator_charge_from_generator](#pyenphase.Envoy.set_generator_charge_from_generator) send the whole document to the Envoy, as these endpoints do not support partial updates. The document is built from the data in [EnvoyData](#pyenphase.EnvoyData), with only the specified settings changed. ([Envoy.set_generator_mode](#pyenphase.Envoy.set_generator_mode) is a single command endpoint and does not work this way.) [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) takes a dict of settings to change, so a single setting can be changed without specifying the others:
 
@@ -98,8 +108,7 @@ if envoy.data.generator_mode:
 if envoy.data.generator_config:
     print(f"Generator: {envoy.data.generator_config.manufacturer} {envoy.data.generator_config.model}")
 
-if envoy.data.generator_schedule:
-    schedule = envoy.data.generator_schedule
+if SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features and (schedule := data.generator_schedule):
     print(
         f"Exercise: every {schedule.exercise_freq_in_weeks} week(s) on "
         f"{schedule.exercise_day} at minute {schedule.exercise_start} "

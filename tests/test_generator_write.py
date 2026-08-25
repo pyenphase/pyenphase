@@ -342,13 +342,15 @@ async def test_update_generator_schedule_incomplete_reply(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Verify stored data is kept if the Envoy returns no complete schedule."""
+    """Verify stored data is kept if the Envoy returns no complete schedule on schedule update."""
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
     caplog.set_level(logging.DEBUG)
 
     envoy = await get_mock_envoy(test_client_session)
     schedule_json = await load_json_fixture(VERSION, "ivp_ss_gen_schedule")
+    assert envoy.data
+    assert envoy.data.generator_schedule
     full_host = endpoint_path(VERSION, envoy.host)
     mock_aioresponse.post(
         f"{full_host}{URL_GEN_SCHEDULE}", status=200, payload=reply, repeat=True
@@ -494,7 +496,7 @@ async def test_generator_write_refresh_incomplete(
             repeat=True,
         )
 
-    with pytest.raises(EnvoyCommunicationError):
+    with pytest.raises(EnvoyFeatureNotAvailable):
         await envoy.update_generator_schedule({"exercise_duration": 50}, refresh=True)
     with pytest.raises(EnvoyCommunicationError):
         await envoy.set_generator_charge_from_generator(False, refresh=True)
@@ -504,3 +506,36 @@ async def test_generator_write_refresh_incomplete(
     assert cnt == 0
     cnt, _data = latest_request(mock_aioresponse, "POST", URL_GEN_CONFIG)
     assert cnt == 0
+
+
+@pytest.mark.asyncio
+async def test_update_generator_schedule_without_exercise_schedule(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify the schedule update rejects firmware without the exercise in gen_schedule endpoint."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
+
+    # Simulate a firmware variant with gen_config but no gen_schedule endpoint
+    full_host = endpoint_path(VERSION, "127.0.0.1")
+
+    # Simulate a firmware variant that reports schedule without exercise
+    schedule_json = await load_json_fixture(VERSION, "ivp_ss_gen_schedule")
+    del schedule_json["exercise_config"]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_SCHEDULE}",
+        status=200,
+        payload=schedule_json,
+        repeat=True,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+    assert envoy.supported_features & SupportedFeatures.GENERATOR
+    assert envoy.data is not None
+    assert envoy.data.generator_schedule is None
+
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.update_generator_schedule({"exercise_duration": 20})

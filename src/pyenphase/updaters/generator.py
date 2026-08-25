@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Callable
 from typing import Any
 
 from ..const import (
@@ -32,11 +33,16 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
     #: Whether the Envoy exposes the gen_mode endpoint, set during probe
     _gen_mode_available: bool = False
 
-    async def _optional_endpoint_available(self, end_point: str) -> bool:
+    async def _optional_endpoint_available(
+        self, end_point: str, verify_method: Callable[..., Any] | None = None
+    ) -> bool:
         """
         Probe an optional generator endpoint and report its availability.
+        Optionally verify endpoint data validity using the verify method.
 
         :param end_point: Envoy endpoint to probe
+        :param verify_method: If specified used to verify endpoint data.
+            Bool result of verify method is returned instead of bool result of probe request
         :return: True if the endpoint returned usable data
         """
         try:
@@ -44,12 +50,36 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
         except ENDPOINT_PROBE_EXCEPTIONS as e:
             _LOGGER.debug("Generator endpoint not found at %s: %s", end_point, e)
             return False
-        return bool(result) and "error" not in result and "err" not in result
+        # Newer firmware with no generator configured returns an empty dict
+        if not bool(result) or "err" in result:
+            _LOGGER.debug("Generator endpoint not found at %s", end_point)
+            return False
+        if verify_method:
+            # verify returned data validity
+            result = verify_method(result)
+            _LOGGER.debug(
+                "Generator endpoint %s data passed verification: %s",
+                end_point,
+                bool(result),
+            )
+            return bool(result)
+        return True
 
     async def probe(
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
-        """Probe the Envoy for this updater and return SupportedFeatures."""
+        """
+        Probe the Envoy for this updater and return found generator features.
+
+        May set :any:`SupportedFeatures.GENERATOR` or
+        :any:`SupportedFeatures.GENERATOR_SCHEDULE`.
+
+        Probes endpoints :any:`URL_GEN_CONFIG`, :any:`URL_GENERATOR`,
+        :any:`URL_GEN_SCHEDULE` and :any:`URL_GEN_MODE`
+
+        Requires :any:`SupportedFeatures.ENPOWER` to be set,
+        if not, no probe efforts are done and None is returned.
+        """
         if self._envoy_version < ENSEMBLE_MIN_VERSION:
             _LOGGER.debug("Firmware too old for Ensemble support")
             return None
@@ -59,32 +89,30 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
             return None
 
         # Check for generator support
-        try:
-            result = await self._json_probe_request(URL_GEN_CONFIG)
-        except ENDPOINT_PROBE_EXCEPTIONS as e:
-            _LOGGER.debug("Generator config endpoint not found: %s", e)
-        else:
-            if not result or "error" in result or "err" in result:
-                # Newer firmware with no generator configured returns an empty dict
-                _LOGGER.debug("No generator found")
-                return None
+        result = await self._optional_endpoint_available(URL_GEN_CONFIG)
+        if not result:
+            _LOGGER.debug("No generator configuration found")
+            return None
 
-            self._supported_features |= SupportedFeatures.GENERATOR
+        self._supported_features |= SupportedFeatures.GENERATOR
 
-            # The generator status, schedule and operation mode live in
-            # separate endpoints that are not all present on every
-            # generator-capable firmware. Probe each one so update() only
-            # fetches what is available and the corresponding data fields
-            # degrade independently to None.
-            self._generator_available = await self._optional_endpoint_available(
-                URL_GENERATOR
-            )
-            self._gen_schedule_available = await self._optional_endpoint_available(
-                URL_GEN_SCHEDULE
-            )
-            self._gen_mode_available = await self._optional_endpoint_available(
-                URL_GEN_MODE
-            )
+        # The generator status, schedule and operation mode live in
+        # separate endpoints that are not all present on every
+        # generator-capable firmware. Probe each one so update() only
+        # fetches what is available and the corresponding data fields
+        # degrade independently to None.
+        self._generator_available = await self._optional_endpoint_available(
+            URL_GENERATOR
+        )
+        # verify data for missing exercise_schedule
+        self._gen_schedule_available = await self._optional_endpoint_available(
+            URL_GEN_SCHEDULE, EnvoyGeneratorSchedule.from_api
+        )
+        # if valid schedule signal availability to clients so they can use it as guard
+        if self._gen_schedule_available:
+            self._supported_features |= SupportedFeatures.GENERATOR_SCHEDULE
+
+        self._gen_mode_available = await self._optional_endpoint_available(URL_GEN_MODE)
 
         return self._supported_features
 

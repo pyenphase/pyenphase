@@ -299,3 +299,48 @@ async def test_set_generator_mode(
     # invalid modes are rejected without sending a request
     with pytest.raises(ValueError):
         await envoy.set_generator_mode("standby")
+
+
+@pytest.mark.asyncio
+async def test_generator_missing_exercise_schedule(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify generator data degrades if no exercise schedule is present in schedule."""
+    version = "8.3.5169_with_generator"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    full_host = endpoint_path(version, "127.0.0.1")
+
+    # Simulate a firmware variant that reports schedule without exercise
+    schedule_json = await load_json_fixture(version, "ivp_ss_gen_schedule")
+    del schedule_json["exercise_config"]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_SCHEDULE}",
+        status=200,
+        payload=schedule_json,
+        repeat=True,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+
+    # gen_config alone still flags generator support
+    assert envoy.supported_features & SupportedFeatures.GENERATOR
+
+    # generator schedule should not be signalled
+    assert not (envoy.supported_features & SupportedFeatures.GENERATOR_SCHEDULE)
+
+    data = envoy.data
+    assert data is not None
+    # config and mode populated, schedule degrades to None
+    assert data.generator_config is not None
+    assert URL_GEN_CONFIG in data.raw
+    assert data.generator is not None
+    assert data.generator_schedule is None
+    assert data.generator_mode is not None
+    assert URL_GENERATOR in data.raw
+    assert URL_GEN_SCHEDULE not in data.raw
+    assert URL_GEN_MODE in data.raw

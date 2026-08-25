@@ -1147,7 +1147,8 @@ class Envoy:
         :param new_data: dict of settings to change
         :param refresh: re-read the schedule from the Envoy before
             merging the settings to change into it
-        :raises EnvoyFeatureNotAvailable: If GENERATOR feature is not available in Envoy
+        :raises EnvoyFeatureNotAvailable: If GENERATOR or GENERATOR_SCHEDULE
+            feature is not available in Envoy
         :raises EnvoyFeatureNotAvailable: If this firmware does not expose the gen_schedule endpoint
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :raises ValueError: If an unknown setting is specified or a value is out of range
@@ -1157,17 +1158,16 @@ class Envoy:
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: generator schedule JSON returned by Envoy
         """
-        if not self.supported_features & SupportedFeatures.GENERATOR:
+        if (
+            not self.supported_features & SupportedFeatures.GENERATOR
+            or not self.supported_features & SupportedFeatures.GENERATOR_SCHEDULE
+        ):
             raise EnvoyFeatureNotAvailable(
                 "This feature is not available on this Envoy."
             )
         if not (data := self.data):
             raise ValueError(
                 "Tried to set generator schedule before the Envoy was queried."
-            )
-        if data.generator_schedule is None:
-            raise EnvoyFeatureNotAvailable(
-                "The generator schedule endpoint is not available on this Envoy."
             )
         if refresh:
             # re-read before merging so settings changed by the Enphase
@@ -1182,6 +1182,10 @@ class Envoy:
                 "no data was changed and no update was sent",
             )
             data.raw[URL_GEN_SCHEDULE] = current
+        if data.generator_schedule is None:
+            raise EnvoyFeatureNotAvailable(
+                "The generator schedule endpoint is incomplete or not available on this Envoy."
+            )
         new_data = self._validated_generator_schedule(new_data, data.generator_schedule)
         # merge with the current settings and send the whole document
         new_model = replace(data.generator_schedule, **new_data)
@@ -1198,6 +1202,13 @@ class Envoy:
             "The Envoy returned an incomplete generator schedule for the update, "
             "the update was sent but the stored data was left unchanged",
         )
+        # if updated schedule is None we got incomplete reply
+        if not new_state:
+            raise EnvoyCommunicationError(
+                "The Envoy returned an incomplete generator schedule for the update, "
+                "the update was sent but the stored data was left unchanged",
+            )
+
         data.raw[URL_GEN_SCHEDULE] = result
         data.generator_schedule = new_state
         return result

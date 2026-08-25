@@ -40,10 +40,13 @@ URL_ACB_CONFIG = "/admin/lib/acb_config"
 # the updater filters these out by checking admin_state != 0.
 URL_INVENTORY = "/inventory.json?deleted=1"
 
-# Generator Configuration
+#: Ensemble Generator Configuration endpoint for :any:`EnvoyGeneratorUpdater`
 URL_GENERATOR = "/ivp/ensemble/generator"
+#: Generator Configuration endpoint for :any:`EnvoyGeneratorUpdater`
 URL_GEN_CONFIG = "/ivp/ss/gen_config"
+#: Generator mode endpoint for :any:`EnvoyGeneratorUpdater`
 URL_GEN_MODE = "/ivp/ss/gen_mode"
+#: Generator schedule endpoint for :any:`EnvoyGeneratorUpdater`
 URL_GEN_SCHEDULE = "/ivp/ss/gen_schedule"
 
 #: Valid generator modes for :any:`Envoy.set_generator_mode`
@@ -147,6 +150,7 @@ class SupportedFeatures(enum.IntFlag):
     DETAILED_INVERTERS = 8192  #: Detailed inverter data is reported
     COLLAR = 0x4000  #: Envoy reports a Collar
     C6CC = 0x8000  #: Envoy reports a C6 Combiner controller
+    GENERATOR_SCHEDULE = 0x10000  #: Envoy has generator schedule defined
 
 
 class PhaseNames(enum.StrEnum):
