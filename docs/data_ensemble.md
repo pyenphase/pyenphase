@@ -71,7 +71,7 @@ The Envoy class provides the method [Envoy.set_generator_mode](#pyenphase.Envoy.
 
 The generator schedule will only be available when configured in the Envoy using the Enphase tools. If not setup, the {py:attr}`pyenphase.const.SupportedFeatures.GENERATOR_SCHEDULE` flag will not be set and the {py:attr}`pyenphase.EnvoyData.generator_schedule` will be `None`. The [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) can not be used either until a schedule is configured in the Envoy.
 
-Once a schedule is configured in the Envoy, rerun {py:attr}`pyenphase.Envoy.probe` to make the schedule known in the data model.
+Once a schedule is configured in the Envoy, rerun {py:attr}`pyenphase.Envoy.probe` and {py:attr}`pyenphase.Envoy.update` to make the schedule known in the data model. If your application does not specifically uses {py:attr}`pyenphase.Envoy.probe` but rather the automatic execution of it by first use of {py:attr}`pyenphase.Envoy.update`, you will need to re-instantiate the Envoy class, which in its simplest form is re-starting your application.
 
 ---
 
@@ -108,7 +108,7 @@ if envoy.data.generator_mode:
 if envoy.data.generator_config:
     print(f"Generator: {envoy.data.generator_config.manufacturer} {envoy.data.generator_config.model}")
 
-if SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features and (schedule := data.generator_schedule):
+if SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features and (schedule := envoy.data.generator_schedule):
     print(
         f"Exercise: every {schedule.exercise_freq_in_weeks} week(s) on "
         f"{schedule.exercise_day} at minute {schedule.exercise_start} "

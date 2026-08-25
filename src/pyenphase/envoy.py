@@ -1173,6 +1173,13 @@ class Envoy:
             # re-read before merging so settings changed by the Enphase
             # cloud or app since the last data collection are not echoed
             # back with stale values
+            # If we are here then probe detected a valid generator schedule.
+            # _model_from_document raises on 3 error types including KeyError.
+            # fromApi will return None in case of KeyError so we fall through
+            # and below error is not raised, no mention of `no data change`
+            # will occur. data.generator_schedule is set to None and data_raw
+            # shows last known data. Which is for both the actual current situation.
+            # The guard below will prevent actual change execution.
             current = await self._json_request(URL_GEN_SCHEDULE, None)
             data.generator_schedule = self._model_from_document(
                 URL_GEN_SCHEDULE,
@@ -1184,7 +1191,8 @@ class Envoy:
             data.raw[URL_GEN_SCHEDULE] = current
         if data.generator_schedule is None:
             raise EnvoyFeatureNotAvailable(
-                "The generator schedule endpoint is incomplete or not available on this Envoy."
+                "The generator schedule endpoint is incomplete, "
+                "has issues or is no longer available on this Envoy."
             )
         new_data = self._validated_generator_schedule(new_data, data.generator_schedule)
         # merge with the current settings and send the whole document
