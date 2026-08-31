@@ -50,7 +50,9 @@ class EnvoySystemProduction:
     """Model for the Envoy's production data."""
 
     watt_hours_lifetime: int  #: Lifetime Energy produced
-    watt_hours_last_7_days: int  #: Energy produced in previous 7 days (not including today)
+    watt_hours_last_7_days: (
+        int  #: Energy produced in previous 7 days (not including today)
+    )
     watt_hours_today: int  #: Energy produced since start of day
     watts_now: int  #: Current Power production
 ```
@@ -64,6 +66,7 @@ class SupportedFeatures(enum.IntFlag):
 
     :param enum: Feature Name
     """
+
     INVERTERS = 1  #: Can report Inverters
     METERING = 2  #: Can report CT Meter data
 ```
@@ -71,7 +74,6 @@ class SupportedFeatures(enum.IntFlag):
 These can also be placed on the line before the attribute and consist of multiple lines
 
 ```python
-
 #: Alias for :any:`create_no_verify_ssl_context`
 #:
 #: .. code-block:: python
@@ -89,36 +91,36 @@ NO_VERIFY_SSL_CONTEXT = create_no_verify_ssl_context()
 Use the \_\_init\_\_ of a class to document the class parameters.
 
 ```python
-   def __init__(
-        self,
-        self,
-        host: str,
-        host: str,
-        cloud_username: str | None = None,
-        cloud_username: str | None = None,
-        cloud_password: str | None = None,
-        cloud_password: str | None = None,
-        envoy_serial: str | None = None,
-        envoy_serial: str | None = None,
-        token: str | None = None,
-        token: str | None = None,
-    ) -> None:
-        """
-        Class to authenticate with Envoy using Tokens.
+def __init__(
+    self,
+    self,
+    host: str,
+    host: str,
+    cloud_username: str | None = None,
+    cloud_username: str | None = None,
+    cloud_password: str | None = None,
+    cloud_password: str | None = None,
+    envoy_serial: str | None = None,
+    envoy_serial: str | None = None,
+    token: str | None = None,
+    token: str | None = None,
+) -> None:
+    """
+    Class to authenticate with Envoy using Tokens.
 
-        Use with Envoy firmware 7.x and newer
+    Use with Envoy firmware 7.x and newer
 
-        :param host: local Envoy DNS name or IP Address
-        :param cloud_username: Enlighten Cloud username, required to obtain new
-            token when token is not specified or expired, defaults to None
-        :param cloud_password: Enlighten Cloud password, required to obtain new
-            token when token is not specified or expired, defaults to None
-        :param envoy_serial: Envoy serial number, required to obtain new
-            token when token is not specified or expired, defaults to None
-        :param token: Token to use with authentication, if not specified,
-            one will be obtained from Enlighten cloud if username, password
-            and serial are specified, defaults to None
-        """
+    :param host: local Envoy DNS name or IP Address
+    :param cloud_username: Enlighten Cloud username, required to obtain new
+        token when token is not specified or expired, defaults to None
+    :param cloud_password: Enlighten Cloud password, required to obtain new
+        token when token is not specified or expired, defaults to None
+    :param envoy_serial: Envoy serial number, required to obtain new
+        token when token is not specified or expired, defaults to None
+    :param token: Token to use with authentication, if not specified,
+        one will be obtained from Enlighten cloud if username, password
+        and serial are specified, defaults to None
+    """
 ```
 
 ## Documentation structure

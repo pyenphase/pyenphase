@@ -19,25 +19,24 @@ These map to their counterparts {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:clas
 There are multiple CT types that can be installed. The CT meter types are enumerated as `production`, `storage`, `net-consumption`, `total-consumption`, `backfeed`, `load`, `evse` and `pv3p` by {py:class}`pyenphase.models.meters.CtType`. One or more of these can be installed and enabled. For multi-phase configurations, there will be one per phase.
 
 ```python
-    data: EnvoyData = await envoy.update()
+data: EnvoyData = await envoy.update()
 
-    production_ct = data.ctmeters[CtType.PRODUCTION]
+production_ct = data.ctmeters[CtType.PRODUCTION]
 
-    if production_ct: # Might be None
-        print(f'eid: {production_ct.eid}')
-        print(f'timestamp: {production_ct.timestamp}')
-        print(f'energy_delivered: {production_ct.energy_delivered}')
-        print(f'energy_received: {production_ct.energy_received}')
-        print(f'power_factor: {production_ct.power_factor}')
-        print(f'active_power: {production_ct.active_power}')
-        print(f'voltage: {production_ct.voltage}')
-        print(f'current: {production_ct.current}')
-        print(f'frequency: {production_ct.frequency}')
-        print(f'state: {production_ct.state}')
-        print(f'measurement_type: {production_ct.measurement_type}')
-        print(f'metering_status: {production_ct.metering_status}')
-        print(f'status_flags: {production_ct.status_flags}')
-
+if production_ct:  # Might be None
+    print(f"eid: {production_ct.eid}")
+    print(f"timestamp: {production_ct.timestamp}")
+    print(f"energy_delivered: {production_ct.energy_delivered}")
+    print(f"energy_received: {production_ct.energy_received}")
+    print(f"power_factor: {production_ct.power_factor}")
+    print(f"active_power: {production_ct.active_power}")
+    print(f"voltage: {production_ct.voltage}")
+    print(f"current: {production_ct.current}")
+    print(f"frequency: {production_ct.frequency}")
+    print(f"state: {production_ct.state}")
+    print(f"measurement_type: {production_ct.measurement_type}")
+    print(f"metering_status: {production_ct.metering_status}")
+    print(f"status_flags: {production_ct.status_flags}")
 ```
 
 To detect how many CTs are installed, use the Envoy property {py:attr}`~pyenphase.Envoy.ct_meter_count`. You can identify which CT meters are available via {py:attr}`pyenphase.Envoy.ct_meter_list`. To test presence of individual CT meters use {py:meth}`pyenphase.Envoy.meter_type` with a {py:class}`~pyenphase.models.meters.CtType` argument.
@@ -47,14 +46,16 @@ CT meter entries can be `None` when the Envoy reports unreliable data. Check bot
 The consumption CT can be either `net-consumption` (installed at the grid boundary) or `total-consumption` (measuring house load); see [ct-model](#ct-model) below. Which one is installed, is available in {py:attr}`pyenphase.Envoy.consumption_meter_type`. The IQ Metered collar includes an embedded `net-consumption` CT.
 
 ```python
-    how_many_ct = envoy.ct_meter_count
-    meter_list = envoy.ct_meter_list
+how_many_ct = envoy.ct_meter_count
+meter_list = envoy.ct_meter_list
 
-    consumption_ct = 'installed' if envoy.consumption_meter_type else 'not installed'
-    production_ct = 'installed' if envoy.meter_type(CtType.PRODUCTION) else 'not installed'
-    storage_ct = 'installed' if CtType.STORAGE in meter_list else 'not installed'
+consumption_ct = "installed" if envoy.consumption_meter_type else "not installed"
+production_ct = "installed" if envoy.meter_type(CtType.PRODUCTION) else "not installed"
+storage_ct = "installed" if CtType.STORAGE in meter_list else "not installed"
 
-    print(f'This Envoy has Production CT {production_ct}, Consumption CT {consumption_ct}, and Storage CT {storage_ct}')
+print(
+    f"This Envoy has Production CT {production_ct}, Consumption CT {consumption_ct}, and Storage CT {storage_ct}"
+)
 ```
 
 ## Consumption CT options
@@ -70,11 +71,9 @@ In `net-consumption` mode, {py:attr}`~pyenphase.models.meters.EnvoyMeterData.ene
 [^2]: Variations between firmware releases may exist.
 
 ```python
-
-if (
-    (cttype := envoy.consumption_meter_type) == CtType.NET_CONSUMPTION
-    and data.ctmeters[cttype]
-):
+if (cttype := envoy.consumption_meter_type) == CtType.NET_CONSUMPTION and data.ctmeters[
+    cttype
+]:
     grid_import = data.ctmeters[cttype].energy_delivered
     grid_export = data.ctmeters[cttype].energy_received
     grid_power = data.ctmeters[cttype].active_power
@@ -147,14 +146,14 @@ Phase data is only populated if CTs are installed on more than 1 phase for produ
 To detect if multiple phases are reporting, use the Envoy property {py:attr}`~pyenphase.Envoy.phase_count`.
 
 ```python
-    data: EnvoyData = await envoy.update()
+data: EnvoyData = await envoy.update()
 
-    if envoy.phase_count > 1:
-        for phase, phase_data in data.ctmeters_phases.get(CtType.PRODUCTION, {}).items():
-            if phase_data is None:
-                continue
-            for key, value in vars(phase_data).items():
-                print(f'{phase} {key}: {value}')
+if envoy.phase_count > 1:
+    for phase, phase_data in data.ctmeters_phases.get(CtType.PRODUCTION, {}).items():
+        if phase_data is None:
+            continue
+        for key, value in vars(phase_data).items():
+            print(f"{phase} {key}: {value}")
 ```
 
 ## Data sources

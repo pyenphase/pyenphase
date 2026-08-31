@@ -11,20 +11,18 @@ Be aware that `phase_count` and `phase_mode` apply for all configured CTs. The m
 The Envoy property {py:attr}`pyenphase.Envoy.active_phase_count` returns how many phases report non-zero data in the production/consumption reports. This is 0 for `single` configurations.
 
 ```python
-
 from pyenphase import Envoy
 
 envoy = Envoy(host_ip_or_name)
 await envoy.setup()
-print(f'Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}')
+print(f"Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}")
 
 await envoy.authenticate(username=username, password=password, token=token)
 
 await envoy.probe()
 
-print(f'Number of configured Phases: {envoy.phase_count}')
-print(f'Number of configured CT meters: {envoy.ct_meter_count}')
-print(f'Phases are configured in: {envoy.phase_mode} mode')
-print(f'Phases reported in production/consumption: {envoy.active_phase_count}')
-
+print(f"Number of configured Phases: {envoy.phase_count}")
+print(f"Number of configured CT meters: {envoy.ct_meter_count}")
+print(f"Phases are configured in: {envoy.phase_mode} mode")
+print(f"Phases reported in production/consumption: {envoy.active_phase_count}")
 ```

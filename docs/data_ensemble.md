@@ -28,14 +28,12 @@ The Envoy class provides the methods [Go_Off_Grid](#pyenphase.Envoy.go_off_grid)
 [Open_dry_contact](#pyenphase.Envoy.open_dry_contact) and [close_dry_contact](#pyenphase.Envoy.close_dry_contact) allows to to control the dry contacts.
 
 ```python
+status = await envoy.close_dry_contact(id)
+print(f"{envoy.data.dry_contact_status[id].status}")
 
-        status = await envoy.close_dry_contact(id)
-        print(f"{envoy.data.dry_contact_status[id].status}")
 
-
-        status = await envoy.open_dry_contact(id)
-        print(f"{envoy.data.dry_contact_status[id].status}")
-
+status = await envoy.open_dry_contact(id)
+print(f"{envoy.data.dry_contact_status[id].status}")
 ```
 
 Dry Contact information is available in the [EnvoyData.dry_contact_status](#pyenphase.EnvoyData.dry_contact_status) and [Envoy.dry_contact_settings](#pyenphase.EnvoyData.dry_contact_settings).
@@ -43,15 +41,12 @@ Dry Contact information is available in the [EnvoyData.dry_contact_status](#pyen
 [Envoy.update_dry_contact](#pyenphase.Envoy.update_dry_contact) can be used to update settings, use with care and only if fully aware of impact!
 
 ```python
+new_setting: dict[str, Any] = {}
+new_setting["id"] = id
+new_setting["load_name"] = load_name
 
-        new_setting: dict[str, Any] = {}
-        new_setting['id'] = id
-        new_setting['load_name'] = load_name
-
-        status = await envoy.update_dry_contact(new_setting)
-        print (status)
-
-
+status = await envoy.update_dry_contact(new_setting)
+print(status)
 ```
 
 ## Generator data
@@ -94,7 +89,6 @@ On systems with Enphase batteries, note that `default_start_soc` and `default_st
 On systems without Enphase batteries the Envoy accepts a `charge_from_generator` write with HTTP 200 but normalizes the value back to `true`; do not assume `false` persisted. The returned document and the updated [EnvoyData.generator_config](#pyenphase.EnvoyData.generator_config) report the effective value.
 
 ```python
-
 if envoy.data.generator:
     print(f"Generator relay: {envoy.data.generator.oper_state}")
 
@@ -105,7 +99,9 @@ if envoy.data.generator_mode:
     await envoy.set_generator_mode("auto")
 
 if envoy.data.generator_config:
-    print(f"Generator: {envoy.data.generator_config.manufacturer} {envoy.data.generator_config.model}")
+    print(
+        f"Generator: {envoy.data.generator_config.manufacturer} {envoy.data.generator_config.model}"
+    )
 
 if schedule := envoy.data.generator_schedule:
     print(
@@ -142,13 +138,13 @@ ACB per-device telemetry from `/inventory` is relatively slow-moving on some sys
 
 ```python
 await envoy.set_acb_sleep(
-        [
-                {
-                        "serial_num": "122000000001",
-                        "sleep_min_soc": 10,
-                        "sleep_max_soc": 20,
-                }
-        ]
+    [
+        {
+            "serial_num": "122000000001",
+            "sleep_min_soc": 10,
+            "sleep_max_soc": 20,
+        }
+    ]
 )
 
 await envoy.clear_acb_sleep(["122000000001"])

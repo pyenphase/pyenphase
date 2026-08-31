@@ -13,10 +13,9 @@ from pyenphase import Envoy, EnvoyData
 
 envoy = Envoy(host_ip_or_name)
 await envoy.setup()
-print(f'Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}')
+print(f"Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}")
 
 await envoy.authenticate(username=username, password=password, token=token)
-
 ```
 
 ## Close
@@ -33,7 +32,7 @@ from pyenphase import Envoy, EnvoyData
 
 envoy = Envoy(host_ip_or_name)
 await envoy.setup()
-print(f'Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}')
+print(f"Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}")
 
 await envoy.authenticate(username=username, password=password, token=token)
 
@@ -47,14 +46,13 @@ await envoy.close()
 Upon authentication completion, data can be collected (repeatedly) using {py:meth}`pyenphase.Envoy.update`.
 
 ```python
-
 while True:
     data: EnvoyData = await envoy.update()
 
-    print(f'Watts: {data.system_production.watts_now}')
-    print(f'TodaysEnergy: {data.system_production.watt_hours_today}')
-    print(f'LifetimeEnergy: {data.system_production.watt_hours_lifetime}')
-    print(f'Last7DaysEnergy: {data.system_production.watt_hours_last_7_days}')
+    print(f"Watts: {data.system_production.watts_now}")
+    print(f"TodaysEnergy: {data.system_production.watt_hours_today}")
+    print(f"LifetimeEnergy: {data.system_production.watt_hours_lifetime}")
+    print(f"Last7DaysEnergy: {data.system_production.watt_hours_last_7_days}")
 
     await asyncio.sleep(some_time)
 ```
@@ -72,15 +70,16 @@ from pyenphase import Envoy, EnvoyData
 
 envoy = Envoy(host_ip_or_name)
 await envoy.setup()
-print(f'Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}')
+print(f"Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}")
 
 await envoy.authenticate(username=username, password=password, token=token)
 
 await envoy.probe()
-print(f'Phases: {envoy.phase_count}')
+print(f"Phases: {envoy.phase_count}")
 
-production_ct = 'installed' if envoy.production_meter_type else 'not installed'
-consumption_ct = 'installed' if envoy.consumption_meter_type else 'not installed'
-print(f'This envoy has Production CT {production_ct} and Consumption CT {consumption_ct}')
-
+production_ct = "installed" if envoy.production_meter_type else "not installed"
+consumption_ct = "installed" if envoy.consumption_meter_type else "not installed"
+print(
+    f"This envoy has Production CT {production_ct} and Consumption CT {consumption_ct}"
+)
 ```

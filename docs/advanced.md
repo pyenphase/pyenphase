@@ -32,8 +32,10 @@ _KEY_TO_REGEX = {
     "watt_hours_lifetime": r"<td>Since Installation</td>\s*<td>\s*(\d+|\d+\.\d+)\s*(Wh|kWh|MWh)</td>",
 }
 
+
 class LegacyEnvoySystemProduction(EnvoySystemProduction):
     """Get production data from legacy Envoy html"""
+
     def from_production_legacy(cls, text: str) -> EnvoySystemProduction:
         """Legacy parser."""
         data: dict[str, int] = {
@@ -100,19 +102,19 @@ To collect the data the EnvoyUpdater class provides the methods `_probe_request(
 The `update` method is called at each update cycle to provide the actual data. It is passed the EnvoyData class to store the data to. The data collection methods provided by the EnvoyUpdater class are `_json_request(endpoint)` and `_request(endpoint)`. Typically the method uses a data model to extract the data from the response.
 
 ```python
-    async def update(self, envoy_data: EnvoyData) -> None:
-        """Update the Envoy for this updater."""
-        # Get the HTML data from the Envoy
-        response = await self._request(URL_PRODUCTION)
-        production_data = response.text
+async def update(self, envoy_data: EnvoyData) -> None:
+    """Update the Envoy for this updater."""
+    # Get the HTML data from the Envoy
+    response = await self._request(URL_PRODUCTION)
+    production_data = response.text
 
-        # Store the data as is in the raw json of the EnvoyData
-        envoy_data.raw[URL_PRODUCTION] = production_data
+    # Store the data as is in the raw json of the EnvoyData
+    envoy_data.raw[URL_PRODUCTION] = production_data
 
-        # Store data in Envoy data using our data model.
-        envoy_data.system_production = (
-            LegacyEnvoySystemProduction.from_production_legacy(production_data)
-        )
+    # Store data in Envoy data using our data model.
+    envoy_data.system_production = LegacyEnvoySystemProduction.from_production_legacy(
+        production_data
+    )
 ```
 
 ##### Register updater
@@ -120,27 +122,26 @@ The `update` method is called at each update cycle to provide the actual data. I
 To make the updater available for use, it must be registered with the Envoy using `register_updater`. Upon completion of the registration perform the usual setup, authentication and probe of the Envoy and start data collection.
 
 ```python
-    # Initialize Envoy, setup and authenticate
-    envoy = Envoy(host)
+# Initialize Envoy, setup and authenticate
+envoy = Envoy(host)
 
-    # register our updater for legacy envoy
-    remove = register_updater(LegacyProductionScraper)
-    assert LegacyProductionScraper in get_updaters()
+# register our updater for legacy envoy
+remove = register_updater(LegacyProductionScraper)
+assert LegacyProductionScraper in get_updaters()
 
-    # setup and authenticate with Envoy
-    await envoy.setup()
-    await envoy.authenticate(username=username, password=password, token=token)
+# setup and authenticate with Envoy
+await envoy.setup()
+await envoy.authenticate(username=username, password=password, token=token)
 
-    # probe what endpoints are available
-    await envoy.probe()
+# probe what endpoints are available
+await envoy.probe()
 
-    # get data, the production values now fill from html
-    data: EnvoyData = await envoy.update()
+# get data, the production values now fill from html
+data: EnvoyData = await envoy.update()
 
-    # remove our updater from the envoy
-    remove()
-    assert LegacyProductionScraper not in get_updaters()
-
+# remove our updater from the envoy
+remove()
+assert LegacyProductionScraper not in get_updaters()
 ```
 
 Registering the updater inserts it at the end of the updaters giving priority to existing updaters to return production (in this example) data. If all prior ones fail, the newly registered one will be used. Adding a new one only makes sense for cases where the endpoint is not successfully accessed by the other ones. This is implemented by the use of the SupportedFeatures flags.
@@ -159,8 +160,9 @@ from pyenphase.const import URL_PRODUCTION, SupportedFeatures
 from pyenphase.envoy import get_updaters
 from pyenphase.exceptions import ENDPOINT_PROBE_EXCEPTIONS
 
+
 @dataclass(slots=True)
-class EnvoyHomeInformation():
+class EnvoyHomeInformation:
     """Get home data from Envoy"""
 
     software_build_epoch: int
@@ -204,7 +206,6 @@ class EnvoyHome(EnvoyUpdater):
         self._supported_features |= myflag
         return self._supported_features
 
-
     async def update(self, envoy_data: EnvoyData) -> None:
         """Update the Envoy for this /home.json."""
         home_data = await self._json_request("/home.json")
@@ -215,29 +216,26 @@ class EnvoyHome(EnvoyUpdater):
 As there's no EnvoyData attribute to store the `EnvoyHome` data it should be obtained by the application using the model.
 
 ```python
-    # Initialize Envoy, setup and authenticate
-    envoy = Envoy(host)
+# Initialize Envoy, setup and authenticate
+envoy = Envoy(host)
 
-    # register our updater for legacy envoy
-    remove = register_updater(EnvoyHome)
-    assert EnvoyHome in get_updaters()
+# register our updater for legacy envoy
+remove = register_updater(EnvoyHome)
+assert EnvoyHome in get_updaters()
 
-    # setup and authenticate with Envoy
-    await envoy.setup()
-    await envoy.authenticate(username=username, password=password, token=token)
+# setup and authenticate with Envoy
+await envoy.setup()
+await envoy.authenticate(username=username, password=password, token=token)
 
-    # probe what endpoints are available
-    await envoy.probe()
+# probe what endpoints are available
+await envoy.probe()
 
-    # get data, the production values now fill from html
-    data: EnvoyData = await envoy.update()
+# get data, the production values now fill from html
+data: EnvoyData = await envoy.update()
 
-    # obtain our data from raw using the model
-    home_info: EnvoyHomeInformation = (
-        EnvoyHomeInformation.from_home(data.raw['/home.json'])
-    )
-    print(f'Home info: {home_info.timezone}')
-
+# obtain our data from raw using the model
+home_info: EnvoyHomeInformation = EnvoyHomeInformation.from_home(data.raw["/home.json"])
+print(f"Home info: {home_info.timezone}")
 ```
 
 ## Unregister updater

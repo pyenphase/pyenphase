@@ -7,7 +7,7 @@ envoy = Envoy(host_ip_or_name)
 await envoy.setup()
 await envoy.authenticate(username=username, password=password, token=token)
 
-myresponse: aiohttp.ClientResponse = await envoy.request('/my/own/endpoint')
+myresponse: aiohttp.ClientResponse = await envoy.request("/my/own/endpoint")
 status_code = myresponse.status
 
 myjson_data = await myresponse.json()
@@ -29,5 +29,6 @@ Note that `ClientResponse.json()` uses Python’s standard decoder `json.loads` 
 
 ```python
 import orjson
+
 myjson_data = await myresponse.json(loads=orjson.loads)
 ```

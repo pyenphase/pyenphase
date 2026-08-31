@@ -14,7 +14,6 @@ This example will work with both firmware <7 and >=7. In the first case specify 
 envoy = Envoy(host_ip_or_name)
 await envoy.setup()
 await envoy.authenticate(username=username, password=password)
-
 ```
 
 For firmware >= 7 and a known token, specifying it will use it and skip reaching out to the Enlighten cloud.
@@ -41,7 +40,6 @@ try:
     await envoy.authenticate(username=username, password=password, token=token)
 except EnvoyAuthenticationError as exp:
     await envoy.authenticate(username=username, password=password)
-
 ```
 
 The application should check for [token expiry](#pyenphase.auth.EnvoyTokenAuth.expire_timestamp) and request timely [renewal](#pyenphase.auth.EnvoyTokenAuth.refresh). Make sure to store a refreshed token again, access it using the [token property](#pyenphase.auth.EnvoyTokenAuth.token).
@@ -63,7 +61,6 @@ if expire_time < (datetime.now() - timedelta(days=7)):
     await self.envoy.auth.refresh()
     token = envoy.auth.token
     # save token in some storage for later reuse
-
 ```
 
 Enlighten user accounts can be type 'owner' or 'installer'. Token lifetime for an owner account is 1 year, while installer lifetime is 12 hours.
@@ -73,11 +70,11 @@ Enlighten user accounts can be type 'owner' or 'installer'. Token lifetime for a
 When authentication is omitted or data requests experience an authorization failure (HTTP status 401 or 403) an [EnvoyAuthenticationRequired](#pyenphase.exceptions.EnvoyAuthenticationRequired) error is returned. When this occurs, authentication should be repeated.
 
 ```python
-    try:
-        data: EnvoyData = await envoy.update()
+try:
+    data: EnvoyData = await envoy.update()
 
-    except EnvoyAuthenticationRequired:
-        await envoy.authenticate(username=username, password=password,token=token)
+except EnvoyAuthenticationRequired:
+    await envoy.authenticate(username=username, password=password, token=token)
 ```
 
 ## Authentication over firmware update
@@ -91,7 +88,7 @@ from pyenphase import Envoy, EnvoyData
 
 envoy = Envoy(host_ip_or_name)
 await envoy.setup()
-firmware=envoy.firmware
+firmware = envoy.firmware
 
 await envoy.authenticate(username=username, password=password, token=token)
 
