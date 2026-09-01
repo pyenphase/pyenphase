@@ -1,8 +1,7 @@
 from dataclasses import asdict, is_dataclass
 from typing import Any
 
-from syrupy.extensions import AmberSnapshotExtension
-from syrupy.extensions.amber import AmberDataSerializer
+from syrupy.extensions.amber import AmberDataSerializer, AmberSnapshotExtension
 from syrupy.types import PropertyFilter, PropertyMatcher, PropertyPath, SerializableData
 
 

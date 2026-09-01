@@ -6,7 +6,7 @@ import aiohttp
 import pytest
 import pytest_asyncio
 from aioresponses import aioresponses
-from syrupy import SnapshotAssertion
+from syrupy.assertion import SnapshotAssertion
 
 from pyenphase.ssl import NO_VERIFY_SSL_CONTEXT
 from tests.syrupy import EnphaseSnapshotExtension
