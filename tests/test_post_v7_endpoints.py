@@ -7,7 +7,7 @@ import aiohttp
 import pytest
 from aioresponses import aioresponses
 
-from pyenphase.const import PhaseNames
+from pyenphase.const import URL_DEVICE_DATA, PhaseNames
 from pyenphase.envoy import UPDATERS, Envoy, SupportedFeatures, register_updater
 from pyenphase.exceptions import EnvoyAuthenticationRequired
 from pyenphase.updaters.api_v1_production_inverters import (
@@ -139,11 +139,7 @@ async def test_metered_noct(
 
 
 @pytest.mark.parametrize(
-    (
-        "version",
-        "updaters",
-        "inverter_count",
-    ),
+    ("version", "updaters", "inverter_count", "device_to_test"),
     [
         (
             "8.2.4345_with_device_data",
@@ -160,6 +156,7 @@ async def test_metered_noct(
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             15,
+            "553648384",
         ),
         (
             "8.3.5289_modGone",
@@ -172,6 +169,7 @@ async def test_metered_noct(
                 "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
             },
             12,
+            "553649152",
         ),
     ],
     ids=[
@@ -187,6 +185,7 @@ async def test_removed_inverter_devices(
     updaters: dict[str, SupportedFeatures],
     caplog: pytest.LogCaptureFixture,
     inverter_count: int,
+    device_to_test: str,
 ) -> None:
     """Test removed inverters in device data still allow use of device data and set SupportedFeatures.DETAILED_INVERTERS"""
     start_7_firmware_mock(mock_aioresponse)
@@ -201,6 +200,79 @@ async def test_removed_inverter_devices(
     assert len(data.inverters) == inverter_count
     # we should use DETAILED_INVERTERS data
     assert envoy.supported_features & SupportedFeatures.DETAILED_INVERTERS
+
+    # verify data of device ended up in sn entry
+    payload = await load_json_fixture(version, "ivp_pdm_device_data")
+    sn = payload[device_to_test]["sn"]
+    assert sn in data.inverters
+
+    # verify inverters with missing required keys at update
+    # note that in each step we delete higher level data or
+    # keys tested earlier in the code so we don't need to
+    # reload the fixture file. If that changes reload may be needed
+
+    # without watts now we get indexerror
+    del payload[device_to_test]["channels"][0]["watts"]["now"]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    with pytest.raises(KeyError):
+        await envoy.update()
+
+    # without lastReadings endDate we get key error
+    del payload[device_to_test]["channels"][0]["lastReading"]["endDate"]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    with pytest.raises(KeyError):
+        await envoy.update()
+
+    # without lastReadings we get key error
+    del payload[device_to_test]["channels"][0]["lastReading"]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    with pytest.raises(KeyError):
+        await envoy.update()
+
+    # without channel[0] (there's only one) we get indexerror
+    del payload[device_to_test]["channels"][0]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    with pytest.raises(IndexError):
+        await envoy.update()
+
+    # data = envoy.data
+    # assert data
+    # print(f"*** {data.inverters}")
+    # assert data.inverters is None
+
+    # restore original mock for any subsequent tests
+    payload = await load_json_fixture(version, "ivp_pdm_device_data")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
 
 
 @pytest.mark.asyncio
