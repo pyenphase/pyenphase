@@ -23,6 +23,8 @@ Issues have been reported with data; these vary by firmware version. Newer firmw
 
 The [inverter device data](endpoint_json.md#ivppdmdevice_data) includes a `deviceDataLimit` that appears to be fixed at 50. If more inverters are installed, only data for the first `deviceDataLimit` inverters is included, resulting in missing inverter data. When the reported `deviceCount` is greater than or equal to `deviceDataLimit`, data falls back to [/api/v1/production/inverters](endpoint_json.md#apiv1productioninverters) to avoid data loss; device detail data will then be unavailable for all inverters.
 
+It is reported that the [`/ivp/pdm/device_data` endpoint](./endpoint_json.md#ivppdmdevice_data) may have a missing or empty `lastReading` section for one or more inverter (`pcu`) devices. These inverters are excluded from the inverter_data in the {py:meth}`~pyenphase.Envoy.update` results. When the `lastReading` section is restored in a later collection, the inverter is again included in the results
+
 ## Daily Outage at 11 PM
 
 Each day, shortly after 11 PM local Envoy time, the Envoy performs some internal resets and cleanups. These cause the Envoy to become unresponsive. How long this outage lasts, varies by hardware type and/or firmware version.
