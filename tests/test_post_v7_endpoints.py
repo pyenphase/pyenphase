@@ -211,7 +211,7 @@ async def test_removed_inverter_devices(
     # keys tested earlier in the code so we don't need to
     # reload the fixture file. If that changes reload may be needed
 
-    # without watts now we get indexerror
+    # without watts now we should not have device_to_test sn in inverters result
     del payload[device_to_test]["channels"][0]["watts"]["now"]
     override_mock(
         mock_aioresponse,
@@ -220,10 +220,13 @@ async def test_removed_inverter_devices(
         repeat=True,
         payload=payload,
     )
-    with pytest.raises(KeyError):
-        await envoy.update()
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn not in data.inverters
 
-    # without lastReadings endDate we get key error
+    # without lastReadings endDate we should not have device_to_test sn in inverters result
     del payload[device_to_test]["channels"][0]["lastReading"]["endDate"]
     override_mock(
         mock_aioresponse,
@@ -232,10 +235,13 @@ async def test_removed_inverter_devices(
         repeat=True,
         payload=payload,
     )
-    with pytest.raises(KeyError):
-        await envoy.update()
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn not in data.inverters
 
-    # without lastReadings we get key error
+    # without lastReadings we should not have device_to_test sn in inverters result
     del payload[device_to_test]["channels"][0]["lastReading"]
     override_mock(
         mock_aioresponse,
@@ -244,10 +250,13 @@ async def test_removed_inverter_devices(
         repeat=True,
         payload=payload,
     )
-    with pytest.raises(KeyError):
-        await envoy.update()
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn not in data.inverters
 
-    # without channel[0] (there's only one) we get indexerror
+    # without channel[0] (there's only one) we should not have device_to_test sn in inverters result
     del payload[device_to_test]["channels"][0]
     override_mock(
         mock_aioresponse,
@@ -256,13 +265,11 @@ async def test_removed_inverter_devices(
         repeat=True,
         payload=payload,
     )
-    with pytest.raises(IndexError):
-        await envoy.update()
-
-    # data = envoy.data
-    # assert data
-    # print(f"*** {data.inverters}")
-    # assert data.inverters is None
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn not in data.inverters
 
     # restore original mock for any subsequent tests
     payload = await load_json_fixture(version, "ivp_pdm_device_data")

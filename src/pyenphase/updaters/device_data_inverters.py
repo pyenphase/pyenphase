@@ -104,7 +104,14 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         inverters_data: dict[str, Any] = await self._json_request(URL_DEVICE_DATA)
         envoy_data.raw[URL_DEVICE_DATA] = inverters_data
         filtered_inverters = self._filter_inverters(inverters_data)
-        envoy_data.inverters = {
-            sn: EnvoyInverter.from_device_data(inverter)
-            for sn, inverter in filtered_inverters.items()
-        }
+        inverters: dict[str, EnvoyInverter] = {}
+        for sn, inverter in filtered_inverters.items():
+            try:
+                inverters[sn] = EnvoyInverter.from_device_data(inverter)
+            except (KeyError, IndexError) as e:  # noqa: PERF203
+                _LOGGER.debug(
+                    "Skipping inverter %s this cycle: incomplete device data (%s)",
+                    sn,
+                    e,
+                )
+        envoy_data.inverters = inverters
