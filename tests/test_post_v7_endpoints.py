@@ -319,6 +319,14 @@ async def test_removed_inverter_devices(
     assert "All inverters have incomplete device data" in caplog.text
     caplog.clear()
 
+    # the warning should not show a second time until reset
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters == {}
+    assert "All inverters have incomplete device data" not in caplog.text
+    caplog.clear()
+
     # restore original mock to reset warning
     payload = await load_json_fixture(version, "ivp_pdm_device_data")
     override_mock(
@@ -336,6 +344,22 @@ async def test_removed_inverter_devices(
     assert "All inverters have incomplete device data" not in caplog.text
     assert f"Skipping inverter device {device_to_test} this cycle" not in caplog.text
     assert f"Skipping inverter {sn} this cycle" not in caplog.text
+    caplog.clear()
+
+    # warning flag should have been reset and warning should show again
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=empty_payload,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters == {}
+    assert "All inverters have incomplete device data" in caplog.text
+    caplog.clear()
 
 
 @pytest.mark.asyncio
