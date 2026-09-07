@@ -13,6 +13,8 @@ _LOGGER = logging.getLogger(__name__)
 class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
     """Class to handle updates for inverter device data."""
 
+    warning_issued: bool = False
+
     def _filter_inverters(self, inverters_data: dict[str, Any]) -> dict[str, Any]:
         """Filter and return only PCU inverter devices."""
         return {
@@ -100,18 +102,50 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         return self._supported_features
 
     async def update(self, envoy_data: EnvoyData) -> None:
-        """Update the Envoy for this updater."""
+        """
+        Update the Envoy for this updater.
+
+        If we're here then probe confirmed to use device_data.
+        We don't want to raise on Key or Index errors and break
+        overall update. Instead skip any invalid formatted inverter
+        (pcu) data and only return data for inverters with the minimum
+        required fields of sn, watts now, watts max and lastReported endData
+        """
         inverters_data: dict[str, Any] = await self._json_request(URL_DEVICE_DATA)
         envoy_data.raw[URL_DEVICE_DATA] = inverters_data
-        filtered_inverters = self._filter_inverters(inverters_data)
         inverters: dict[str, EnvoyInverter] = {}
-        for sn, inverter in filtered_inverters.items():
+        for id, device in inverters_data.items():
+            # we need to catch KeyErrors returned by _filter_inverters
+            # for an individual inverter and continue with next one.
+            # Let _filter_inverters process one device at the time.
             try:
-                inverters[sn] = EnvoyInverter.from_device_data(inverter)
-            except (KeyError, IndexError) as e:  # noqa: PERF203
+                filtered_inverters = self._filter_inverters({id: device})
+            except (KeyError, IndexError) as e:
                 _LOGGER.debug(
-                    "Skipping inverter %s this cycle: incomplete device data (%s)",
-                    sn,
+                    "Skipping inverter device %s this cycle: incomplete device data (%s)",
+                    id,
                     e,
                 )
+                continue
+            # this will have 1 inverters at best if device was pcu
+            for sn, inverter in filtered_inverters.items():
+                try:
+                    inverters[sn] = EnvoyInverter.from_device_data(inverter)
+                except (KeyError, IndexError) as e:  # noqa: PERF203
+                    _LOGGER.debug(
+                        "Skipping inverter %s this cycle: incomplete device data (%s)",
+                        sn,
+                        e,
+                    )
+
+        # issue one time warning if no data at all is valid
+        if len(inverters) == 0 and not self.warning_issued:
+            self.warning_issued = True
+            _LOGGER.warning(
+                "All inverters have incomplete device data, no data reported. (Further warnings suppressed until inverter data is restored)",
+            )
+        # reset active warning state when at least 1 inverter is back
+        if len(inverters) > 0 and self.warning_issued:
+            self.warning_issued = False
+
         envoy_data.inverters = inverters

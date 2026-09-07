@@ -211,6 +211,8 @@ async def test_removed_inverter_devices(
     # keys tested earlier in the code so we don't need to
     # reload the fixture file. If that changes reload may be needed
 
+    caplog.clear()
+
     # without watts now we should not have device_to_test sn in inverters result
     del payload[device_to_test]["channels"][0]["watts"]["now"]
     override_mock(
@@ -225,6 +227,9 @@ async def test_removed_inverter_devices(
     assert data
     assert data.inverters
     assert sn not in data.inverters
+    assert len(data.inverters) == inverter_count - 1
+    assert f"Skipping inverter {sn} this cycle" in caplog.text
+    caplog.clear()
 
     # without lastReadings endDate we should not have device_to_test sn in inverters result
     del payload[device_to_test]["channels"][0]["lastReading"]["endDate"]
@@ -240,6 +245,9 @@ async def test_removed_inverter_devices(
     assert data
     assert data.inverters
     assert sn not in data.inverters
+    assert len(data.inverters) == inverter_count - 1
+    assert f"Skipping inverter {sn} this cycle" in caplog.text
+    caplog.clear()
 
     # without lastReadings we should not have device_to_test sn in inverters result
     del payload[device_to_test]["channels"][0]["lastReading"]
@@ -255,6 +263,9 @@ async def test_removed_inverter_devices(
     assert data
     assert data.inverters
     assert sn not in data.inverters
+    assert len(data.inverters) == inverter_count - 1
+    assert f"Skipping inverter {sn} this cycle" in caplog.text
+    caplog.clear()
 
     # without channel[0] (there's only one) we should not have device_to_test sn in inverters result
     del payload[device_to_test]["channels"][0]
@@ -270,8 +281,45 @@ async def test_removed_inverter_devices(
     assert data
     assert data.inverters
     assert sn not in data.inverters
+    assert len(data.inverters) == inverter_count - 1
+    assert f"Skipping inverter {sn} this cycle" in caplog.text
+    caplog.clear()
 
-    # restore original mock for any subsequent tests
+    # without serialnumber we should not have device_to_test sn in inverters result
+    del payload[device_to_test]["sn"]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn not in data.inverters
+    assert len(data.inverters) == inverter_count - 1
+    assert f"Skipping inverter device {device_to_test} this cycle" in caplog.text
+    caplog.clear()
+
+    # without any data we should trigger warning in log
+    empty_payload: dict[str, Any] = {device_to_test: {}}
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=empty_payload,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters == {}
+    assert "All inverters have incomplete device data" in caplog.text
+    caplog.clear()
+
+    # restore original mock to reset warning
     payload = await load_json_fixture(version, "ivp_pdm_device_data")
     override_mock(
         mock_aioresponse,
@@ -280,6 +328,14 @@ async def test_removed_inverter_devices(
         repeat=True,
         payload=payload,
     )
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert len(data.inverters) == inverter_count
+    assert sn in data.inverters
+    assert "All inverters have incomplete device data" not in caplog.text
+    assert f"Skipping inverter device {device_to_test} this cycle" not in caplog.text
+    assert f"Skipping inverter {sn} this cycle" not in caplog.text
 
 
 @pytest.mark.asyncio
