@@ -13,7 +13,9 @@ _LOGGER = logging.getLogger(__name__)
 class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
     """Class to handle updates for inverter device data."""
 
-    inverter_count: int = 0
+    all_bad: bool = False
+    verified_inverters: list[str] = []
+    skipped_inverters: list[str] = []
 
     def _filter_inverters(self, inverters_data: dict[str, Any]) -> dict[str, Any]:
         """Filter and return only PCU inverter devices."""
@@ -86,7 +88,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                 for sn, inverter in filtered_inverters.items()
             }
             # remember number of inverters found
-            self.inverter_count = len(inverters)
+            self.verified_inverters = list(inverters)
 
         except (KeyError, IndexError) as e:
             # if any inverter returned None there's something messed by json format, fall back to production
@@ -111,58 +113,81 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         We don't want to raise on Key or Index errors and break
         overall update. Instead skip any invalid formatted inverter
         (pcu) data and only return data for inverters with the minimum
-        required fields of sn, watts now, watts max and lastReported endData
+        required fields of sn, watts now, watts max and lastReading endData
         """
         inverters_data: dict[str, Any] = await self._json_request(URL_DEVICE_DATA)
         envoy_data.raw[URL_DEVICE_DATA] = inverters_data
         inverters: dict[str, EnvoyInverter] = {}
-        for id, device in inverters_data.items():
-            # we need to catch KeyErrors returned by _filter_inverters
-            # for an individual inverter and continue with next one.
-            # Let _filter_inverters process one device at the time.
-            try:
-                filtered_inverters = self._filter_inverters({id: device})
-            except (KeyError, IndexError) as e:
-                _LOGGER.debug(
-                    "Skipping inverter device %s this cycle: incomplete device data (%s)",
-                    id,
+        # filter active pcu from devices.
+        try:
+            filtered_inverters = self._filter_inverters(inverters_data)
+        except (KeyError, IndexError, TypeError) as e:
+            # some devices have no sn, devName or active keys
+            # they had it at probe, don't try finding what is
+            # going on, something is really messed up.
+            # issue warning on first occasion
+            if not self.all_bad:
+                _LOGGER.warning(
+                    "Invalid device data detected: %s, skipping inverter data extraction",
                     e,
                 )
-                continue
-            # this will have 1 inverters at best if device was pcu
-            for sn, inverter in filtered_inverters.items():
-                try:
-                    inverters[sn] = EnvoyInverter.from_device_data(inverter)
-                    # keep track of found inverters
-                except (KeyError, IndexError) as e:  # noqa: PERF203
-                    _LOGGER.debug(
-                        "Skipping inverter %s this cycle: incomplete device data (%s)",
-                        sn,
-                        e,
-                    )
+                self.all_bad = True
+            else:
+                _LOGGER.debug(
+                    "Repeated invalid device data detected: %s, skipping inverter data extraction",
+                    e,
+                )
+            envoy_data.inverters = {}
+            return
 
-        present_count = len(inverters)
-        # issue one time warning if no data at all is valid
-        if present_count == 0 and self.inverter_count > 0:
-            self.warning_issued = True
+        # We now have all active inverters filtered
+        # if inverters change between active True and False
+        # we assume its the result of a user action in
+        # the Envoy and don't report.
+        # Get inverter data from device data
+        # we know that lastReading section may be empty
+        # and we exclude these from reported inverter data.
+        skipped: list[str] = []
+        for sn, inverter in filtered_inverters.items():
+            try:
+                inverters[sn] = EnvoyInverter.from_device_data(inverter)
+            except (KeyError, IndexError, TypeError):  # noqa: PERF203
+                skipped.append(sn)
+
+        # warn for new found incomplete device data once
+        add_to_skipped = set(skipped) - set(self.skipped_inverters)
+        if len(add_to_skipped) > 0:
             _LOGGER.warning(
-                "All inverters have incomplete device data, no data reported. (Further warnings suppressed until inverter data is restored)",
+                "Envoy returned incomplete inverter data, no data reported for: %s",
+                ", ".join(add_to_skipped),
             )
-        # issue warning if number drops
-        elif present_count < self.inverter_count:
-            _LOGGER.warning(
-                "Number of fully reported inverters in device data dropped from %s to %s.",
-                self.inverter_count,
-                present_count,
-            )
-        # debug log on restored count
-        elif present_count > self.inverter_count:
             _LOGGER.debug(
-                "Number of fully reported inverters in device data increased from %s to %s.",
-                self.inverter_count,
-                present_count,
+                "Adding %s to skipped inverters list",
+                ", ".join(add_to_skipped),
             )
-        # remember current count
-        self.inverter_count = present_count
+            # add new skipped inverters to skipped list
+            self.skipped_inverters.extend(add_to_skipped)
+
+        # remove skipped inverters from verified list
+        remove_from_verified_inverters = set(skipped) & set(self.verified_inverters)
+        if remove_from_verified_inverters:
+            _LOGGER.debug(
+                "Removing %s from verified inverters list",
+                ", ".join(remove_from_verified_inverters),
+            )
+            self.verified_inverters = [
+                sn
+                for sn in self.verified_inverters
+                if sn not in remove_from_verified_inverters
+            ]
+
+        # debug log entry for resumed inverters each time they resume
+        add_to_verified = set(inverters) - set(self.verified_inverters)
+        if len(add_to_verified) > 0:
+            _LOGGER.debug(
+                "Envoy returned complete inverter data again for: %s",
+                ", ".join(add_to_verified),
+            )
+            self.verified_inverters.extend(add_to_verified)
 
         envoy_data.inverters = inverters

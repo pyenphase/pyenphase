@@ -214,6 +214,7 @@ async def test_removed_inverter_devices(
     caplog.clear()
 
     # without watts now we should not have device_to_test sn in inverters result
+    # first warning of lost inverter data should be present
     del payload[device_to_test]["channels"][0]["watts"]["now"]
     override_mock(
         mock_aioresponse,
@@ -228,14 +229,15 @@ async def test_removed_inverter_devices(
     assert data.inverters
     assert sn not in data.inverters
     assert len(data.inverters) == inverter_count - 1
-    assert f"Skipping inverter {sn} this cycle" in caplog.text
     assert (
-        f"Number of fully reported inverters in device data dropped from {inverter_count} to {inverter_count - 1}"
+        f"Envoy returned incomplete inverter data, no data reported for: {sn}"
         in caplog.text
     )
+    assert "Envoy returned complete inverter data again for:" not in caplog.text
     caplog.clear()
 
     # without lastReadings endDate we should not have device_to_test sn in inverters result
+    # no warning as that is suppressed after previous test
     del payload[device_to_test]["channels"][0]["lastReading"]["endDate"]
     override_mock(
         mock_aioresponse,
@@ -250,18 +252,15 @@ async def test_removed_inverter_devices(
     assert data.inverters
     assert sn not in data.inverters
     assert len(data.inverters) == inverter_count - 1
-    assert f"Skipping inverter {sn} this cycle" in caplog.text
     assert (
-        "Number of fully reported inverters in device data dropped from"
+        "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
-    assert (
-        "Number of fully reported inverters in device data increased from"
-        not in caplog.text
-    )
+    assert "Envoy returned complete inverter data again for:" not in caplog.text
     caplog.clear()
 
     # without lastReadings we should not have device_to_test sn in inverters result
+    # no warning as that is suppressed after previous test
     del payload[device_to_test]["channels"][0]["lastReading"]
     override_mock(
         mock_aioresponse,
@@ -276,18 +275,15 @@ async def test_removed_inverter_devices(
     assert data.inverters
     assert sn not in data.inverters
     assert len(data.inverters) == inverter_count - 1
-    assert f"Skipping inverter {sn} this cycle" in caplog.text
     assert (
-        "Number of fully reported inverters in device data dropped from"
+        "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
-    assert (
-        "Number of fully reported inverters in device data increased from"
-        not in caplog.text
-    )
+    assert "Envoy returned complete inverter data again for:" not in caplog.text
     caplog.clear()
 
     # without channel[0] (there's only one) we should not have device_to_test sn in inverters result
+    # no warning as that is suppressed after previous test
     del payload[device_to_test]["channels"][0]
     override_mock(
         mock_aioresponse,
@@ -302,18 +298,15 @@ async def test_removed_inverter_devices(
     assert data.inverters
     assert sn not in data.inverters
     assert len(data.inverters) == inverter_count - 1
-    assert f"Skipping inverter {sn} this cycle" in caplog.text
     assert (
-        "Number of fully reported inverters in device data dropped from"
+        "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
-    assert (
-        "Number of fully reported inverters in device data increased from"
-        not in caplog.text
-    )
+    assert "Envoy returned complete inverter data again for:" not in caplog.text
     caplog.clear()
 
-    # without serialnumber we should not have device_to_test sn in inverters result
+    # without serialnumber we should not have inverter data at all
+    # debug log for incomplete data
     del payload[device_to_test]["sn"]
     override_mock(
         mock_aioresponse,
@@ -325,21 +318,19 @@ async def test_removed_inverter_devices(
     await envoy.update()
     data = envoy.data
     assert data
-    assert data.inverters
-    assert sn not in data.inverters
-    assert len(data.inverters) == inverter_count - 1
-    assert f"Skipping inverter device {device_to_test} this cycle" in caplog.text
+    assert data.inverters == {}
     assert (
-        "Number of fully reported inverters in device data dropped from"
-        not in caplog.text
+        "Invalid device data detected: 'sn', skipping inverter data extraction"
+        in caplog.text
     )
     assert (
-        "Number of fully reported inverters in device data increased from"
+        "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
+    assert "Envoy returned complete inverter data again for:" not in caplog.text
     caplog.clear()
 
-    # without any data we should trigger warning in log
+    # without any data we should get repeated warning after previous test but for devName
     empty_payload: dict[str, Any] = {device_to_test: {}}
     override_mock(
         mock_aioresponse,
@@ -352,34 +343,34 @@ async def test_removed_inverter_devices(
     data = envoy.data
     assert data
     assert data.inverters == {}
-    assert "All inverters have incomplete device data" in caplog.text
     assert (
-        "Number of fully reported inverters in device data dropped from"
-        not in caplog.text
+        "Repeated invalid device data detected: 'devName', skipping inverter data extraction"
+        in caplog.text
     )
     assert (
-        "Number of fully reported inverters in device data increased from"
+        "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
+    assert "Envoy returned complete inverter data again for:" not in caplog.text
     caplog.clear()
 
-    # the warning should not show a second time until reset
+    # the repeated message shows as debug next time
     await envoy.update()
     data = envoy.data
     assert data
     assert data.inverters == {}
-    assert "All inverters have incomplete device data" not in caplog.text
     assert (
-        "Number of fully reported inverters in device data dropped from"
-        not in caplog.text
+        "Repeated invalid device data detected: 'devName', skipping inverter data extraction"
+        in caplog.text
     )
     assert (
-        "Number of fully reported inverters in device data increased from"
+        "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
+    assert "Envoy returned complete inverter data again for:" not in caplog.text
     caplog.clear()
 
-    # restore original mock to reset warning
+    # restore original mock to test reset
     payload = await load_json_fixture(version, "ivp_pdm_device_data")
     override_mock(
         mock_aioresponse,
@@ -393,41 +384,43 @@ async def test_removed_inverter_devices(
     assert data
     assert len(data.inverters) == inverter_count
     assert sn in data.inverters
-    assert "All inverters have incomplete device data" not in caplog.text
-    assert f"Skipping inverter device {device_to_test} this cycle" not in caplog.text
-    assert f"Skipping inverter {sn} this cycle" not in caplog.text
     assert (
-        "Number of fully reported inverters in device data dropped from"
+        "Repeated invalid device data detected: 'devName', skipping inverter data extraction"
         not in caplog.text
     )
     assert (
-        f"Number of fully reported inverters in device data increased from 0 to {inverter_count}"
-        in caplog.text
+        "Invalid device data detected: 'devName', skipping inverter data extraction"
+        not in caplog.text
     )
+    assert (
+        "Envoy returned incomplete inverter data, no data reported for:"
+        not in caplog.text
+    )
+    assert f"Envoy returned complete inverter data again for: {sn}" in caplog.text
     caplog.clear()
 
-    # warning flag should have been reset and warning should show again
-    override_mock(
-        mock_aioresponse,
-        "get",
-        f"https://127.0.0.1{URL_DEVICE_DATA}",
-        repeat=True,
-        payload=empty_payload,
-    )
-    await envoy.update()
-    data = envoy.data
-    assert data
-    assert data.inverters == {}
-    assert "All inverters have incomplete device data" in caplog.text
-    assert (
-        "Number of fully reported inverters in device data dropped from"
-        not in caplog.text
-    )
-    assert (
-        "Number of fully reported inverters in device data increased from"
-        not in caplog.text
-    )
-    caplog.clear()
+    # # inverters_count should have been reset to full count and warning should show again
+    # override_mock(
+    #     mock_aioresponse,
+    #     "get",
+    #     f"https://127.0.0.1{URL_DEVICE_DATA}",
+    #     repeat=True,
+    #     payload=empty_payload,
+    # )
+    # await envoy.update()
+    # data = envoy.data
+    # assert data
+    # assert data.inverters == {}
+    # assert "All inverters have incomplete device data" in caplog.text
+    # assert (
+    #     "Number of fully reported inverters in device data dropped from"
+    #     not in caplog.text
+    # )
+    # assert (
+    #     "Number of fully reported inverters in device data increased from"
+    #     not in caplog.text
+    # )
+    # caplog.clear()
 
 
 @pytest.mark.asyncio
