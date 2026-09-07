@@ -116,7 +116,6 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         inverters_data: dict[str, Any] = await self._json_request(URL_DEVICE_DATA)
         envoy_data.raw[URL_DEVICE_DATA] = inverters_data
         inverters: dict[str, EnvoyInverter] = {}
-        present_count: int = 0
         for id, device in inverters_data.items():
             # we need to catch KeyErrors returned by _filter_inverters
             # for an individual inverter and continue with next one.
@@ -135,7 +134,6 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                 try:
                     inverters[sn] = EnvoyInverter.from_device_data(inverter)
                     # keep track of found inverters
-                    present_count += 1
                 except (KeyError, IndexError) as e:  # noqa: PERF203
                     _LOGGER.debug(
                         "Skipping inverter %s this cycle: incomplete device data (%s)",
@@ -143,6 +141,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                         e,
                     )
 
+        present_count = len(inverters)
         # issue one time warning if no data at all is valid
         if present_count == 0 and self.inverter_count > 0:
             self.warning_issued = True
