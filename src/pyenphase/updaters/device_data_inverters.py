@@ -13,7 +13,7 @@ _LOGGER = logging.getLogger(__name__)
 class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
     """Class to handle updates for inverter device data."""
 
-    warning_issued: bool = False
+    inverter_count: int = 0
 
     def _filter_inverters(self, inverters_data: dict[str, Any]) -> dict[str, Any]:
         """Filter and return only PCU inverter devices."""
@@ -81,10 +81,12 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                     URL_DEVICE_DATA,
                 )
                 return None
-            _ = {
+            inverters = {
                 sn: EnvoyInverter.from_device_data(inverter)
                 for sn, inverter in filtered_inverters.items()
             }
+            # remember number of inverters found
+            self.inverter_count = len(inverters)
 
         except (KeyError, IndexError) as e:
             # if any inverter returned None there's something messed by json format, fall back to production
@@ -114,6 +116,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         inverters_data: dict[str, Any] = await self._json_request(URL_DEVICE_DATA)
         envoy_data.raw[URL_DEVICE_DATA] = inverters_data
         inverters: dict[str, EnvoyInverter] = {}
+        present_count: int = 0
         for id, device in inverters_data.items():
             # we need to catch KeyErrors returned by _filter_inverters
             # for an individual inverter and continue with next one.
@@ -131,6 +134,8 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             for sn, inverter in filtered_inverters.items():
                 try:
                     inverters[sn] = EnvoyInverter.from_device_data(inverter)
+                    # keep track of found inverters
+                    present_count += 1
                 except (KeyError, IndexError) as e:  # noqa: PERF203
                     _LOGGER.debug(
                         "Skipping inverter %s this cycle: incomplete device data (%s)",
@@ -139,13 +144,26 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                     )
 
         # issue one time warning if no data at all is valid
-        if len(inverters) == 0 and not self.warning_issued:
+        if present_count == 0 and self.inverter_count > 0:
             self.warning_issued = True
             _LOGGER.warning(
                 "All inverters have incomplete device data, no data reported. (Further warnings suppressed until inverter data is restored)",
             )
-        # reset active warning state when at least 1 inverter is back
-        if len(inverters) > 0 and self.warning_issued:
-            self.warning_issued = False
+        # issue warning if number drops
+        elif present_count < self.inverter_count:
+            _LOGGER.warning(
+                "Number of fully reported inverters in device data dropped from %s to %s.",
+                self.inverter_count,
+                present_count,
+            )
+        # debug log on restored count
+        elif present_count > self.inverter_count:
+            _LOGGER.debug(
+                "Number of fully reported inverters in device data increased from %s to %s.",
+                self.inverter_count,
+                present_count,
+            )
+        # remember current count
+        self.inverter_count = present_count
 
         envoy_data.inverters = inverters
