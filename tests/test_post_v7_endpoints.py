@@ -568,6 +568,52 @@ async def test_no_active_inverter_devices_data(
     assert "Envoy returned complete inverter data for:" in caplog.text
     caplog.clear()
 
+    # test single inactive and rering of warn
+    sn = payload[device_to_test]["sn"]
+    payload[device_to_test]["active"] = False
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn not in data.inverters
+    assert f"Envoy did not provide previously reported inverters, no data reported for: {sn}"
+    caplog.clear()
+
+    caplog.set_level(logging.WARN)
+    for _ in range(RESIGNAL_INTERVAL - 1):
+        await envoy.update()
+        data = envoy.data
+        assert data
+        assert data.inverters
+        assert sn not in data.inverters
+        assert (
+            "Envoy did not provide previously reported inverters, no data reported for"
+            not in caplog.text
+        )
+        assert (
+            "Invalid device data detected: 'devName', skipping inverter data extraction"
+            not in caplog.text
+        )
+        assert (
+            "Envoy returned incomplete inverter data, no data reported for:"
+            not in caplog.text
+        )
+        assert "Envoy returned complete inverter data for:" not in caplog.text
+        assert (
+            "Envoy did not provide all inverters or inverter data, no data reported for:"
+            not in caplog.text
+        )
+        assert "Envoy returned complete inverter data for:" not in caplog.text
+        caplog.clear()
+
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn not in data.inverters
+    assert f"Envoy did not provide previously reported inverters, no data reported for: {sn}"
+    caplog.clear()
+
 
 @pytest.mark.parametrize(
     ("version", "inverter_count", "device_to_test"),
