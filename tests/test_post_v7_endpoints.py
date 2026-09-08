@@ -399,28 +399,123 @@ async def test_removed_inverter_devices(
     assert f"Envoy returned complete inverter data again for: {sn}" in caplog.text
     caplog.clear()
 
-    # # inverters_count should have been reset to full count and warning should show again
-    # override_mock(
-    #     mock_aioresponse,
-    #     "get",
-    #     f"https://127.0.0.1{URL_DEVICE_DATA}",
-    #     repeat=True,
-    #     payload=empty_payload,
-    # )
-    # await envoy.update()
-    # data = envoy.data
-    # assert data
-    # assert data.inverters == {}
-    # assert "All inverters have incomplete device data" in caplog.text
-    # assert (
-    #     "Number of fully reported inverters in device data dropped from"
-    #     not in caplog.text
-    # )
-    # assert (
-    #     "Number of fully reported inverters in device data increased from"
-    #     not in caplog.text
-    # )
-    # caplog.clear()
+    # without lastReadings we should not have device_to_test sn in inverters result
+    # warning should show again after restore in previous test
+    del payload[device_to_test]["channels"][0]["lastReading"]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn not in data.inverters
+    assert len(data.inverters) == inverter_count - 1
+    assert "Invalid device data detected:" not in caplog.text
+    assert (
+        f"Envoy returned incomplete inverter data, no data reported for: {sn}"
+        in caplog.text
+    )
+    assert "Envoy returned complete inverter data again for:" not in caplog.text
+    caplog.clear()
+
+    # all bad has been reset by previous restore and warning should show again
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=empty_payload,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters == {}
+    assert (
+        "Invalid device data detected: 'devName', skipping inverter data extraction"
+        in caplog.text
+    )
+    assert (
+        "Envoy returned incomplete inverter data, no data reported for:"
+        not in caplog.text
+    )
+    assert "Envoy returned complete inverter data again for:" not in caplog.text
+    caplog.clear()
+
+
+@pytest.mark.parametrize(
+    ("version", "inverter_count", "device_to_test"),
+    [
+        (
+            "8.2.4345_with_device_data",
+            15,
+            "553648384",
+        ),
+        (
+            "8.3.5289_modGone",
+            12,
+            "553649152",
+        ),
+    ],
+    ids=[
+        "8.2.4345_with_device_data",
+        "8.3.5289_modGone",
+    ],
+)
+@pytest.mark.asyncio
+async def test_inverter_devices_devide_by_zero(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
+    version: str,
+    inverter_count: int,
+    device_to_test: str,
+) -> None:
+    """Test divide by zero is handled by inverter from_device_data."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+
+    payload = await load_json_fixture(version, "ivp_pdm_device_data")
+    sn = payload[device_to_test]["sn"]
+
+    # force lastReading duration to zero
+    # inverter should be in data with None for energy_produced
+    payload[device_to_test]["channels"][0]["lastReading"]["duration"] = 0
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+    assert data.inverters is not None
+    assert sn in data.inverters
+    assert data.inverters[sn].energy_produced is None
+
+    # test with duration key missing, should return none again
+    # reuse payload already read
+    del payload[device_to_test]["channels"][0]["lastReading"]["duration"]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data is not None
+    assert data.inverters is not None
+    assert sn in data.inverters
+    assert data.inverters[sn].energy_produced is None
 
 
 @pytest.mark.asyncio
