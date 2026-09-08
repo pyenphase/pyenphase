@@ -817,6 +817,27 @@ async def test_rering_of_incomplete_inverter_devices(
     assert "Envoy returned complete inverter data for:" not in caplog.text
     caplog.clear()
 
+    # Now we should see no rering for skipped inverters
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters == {}
+    assert (
+        "Invalid device data detected: 'devName', skipping inverter data extraction"
+        not in caplog.text
+    )
+    assert (
+        "Envoy returned incomplete inverter data, no data reported for:"
+        not in caplog.text
+    )
+    assert "Envoy returned complete inverter data for:" not in caplog.text
+    assert (
+        "Envoy did not provide all inverters or inverter data, no data reported for:"
+        not in caplog.text
+    )
+    assert "Envoy returned complete inverter data for:" not in caplog.text
+    caplog.clear()
+
 
 @pytest.mark.parametrize(
     ("version", "inverter_count", "device_to_test"),
