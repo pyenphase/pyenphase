@@ -170,7 +170,9 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                 # reset warning resignal counter on each warning issued
                 self.resignal = 0
             else:
-                _LOGGER.debug("No active inverter devices detected repeat")
+                _LOGGER.debug(
+                    "No active inverter devices detected repeat (%s)", self.resignal
+                )
             envoy_data.inverters = {}
             return
 
@@ -224,8 +226,9 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         remove_from_verified_inverters = skipped & self.verified_inverters
         if remove_from_verified_inverters:
             _LOGGER.debug(
-                "Removing %s from verified inverters list",
+                "Removing %s from verified inverters list (%s)",
                 ", ".join(sorted(remove_from_verified_inverters)),
+                self.resignal,
             )
             self.verified_inverters = {
                 sn
@@ -237,8 +240,9 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         add_to_verified = set(inverters) - self.verified_inverters
         if len(add_to_verified) > 0:
             _LOGGER.debug(
-                "Envoy returned complete inverter data for: %s",
+                "Envoy returned complete inverter data for: %s (%s)",
                 ", ".join(sorted(add_to_verified)),
+                self.resignal,
             )
             self.verified_inverters.update(add_to_verified)
             self.skipped_inverters = {
