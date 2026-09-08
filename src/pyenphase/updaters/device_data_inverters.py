@@ -14,8 +14,8 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
     """Class to handle updates for inverter device data."""
 
     all_bad: bool = False
-    verified_inverters: list[str]
-    skipped_inverters: list[str]
+    verified_inverters: set[str]
+    skipped_inverters: set[str]
 
     def _filter_inverters(self, inverters_data: dict[str, Any]) -> dict[str, Any]:
         """Filter and return only PCU inverter devices."""
@@ -99,8 +99,8 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             return None
 
         # remember number of inverters found and init skipped tracking list
-        self.verified_inverters = list(inverters)
-        self.skipped_inverters = []
+        self.verified_inverters = set(inverters)
+        self.skipped_inverters = set()
         self.all_bad = False
 
         self._supported_features |= (
@@ -116,7 +116,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         We don't want to raise on Key or Index errors and break
         overall update. Instead skip any invalid formatted inverter
         (pcu) data and only return data for inverters with the minimum
-        required fields of sn, watts now, watts max and lastReading endData
+        required fields of sn, watts now, watts max and lastReading endDate
         """
         inverters_data: dict[str, Any] = await self._json_request(URL_DEVICE_DATA)
         envoy_data.raw[URL_DEVICE_DATA] = inverters_data
@@ -153,15 +153,16 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         # Get inverter data from device data
         # we know that lastReading section may be empty
         # and we exclude these from reported inverter data.
-        skipped: list[str] = []
+        skipped: set[str] = set()
         for sn, inverter in filtered_inverters.items():
             try:
                 inverters[sn] = EnvoyInverter.from_device_data(inverter)
-            except (KeyError, IndexError, TypeError):  # noqa: PERF203
-                skipped.append(sn)
+            except (KeyError, IndexError, TypeError) as e:  # noqa: PERF203
+                _LOGGER.debug("Skipping inverter %s, incomplete data: %r", sn, e)
+                skipped.add(sn)
 
         # warn for new found incomplete device data once
-        add_to_skipped = set(skipped) - set(self.skipped_inverters)
+        add_to_skipped = skipped - self.skipped_inverters
         if len(add_to_skipped) > 0:
             _LOGGER.warning(
                 "Envoy returned incomplete inverter data, no data reported for: %s",
@@ -172,31 +173,31 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                 ", ".join(sorted(add_to_skipped)),
             )
             # add new skipped inverters to skipped list
-            self.skipped_inverters.extend(add_to_skipped)
+            self.skipped_inverters.update(add_to_skipped)
 
         # remove skipped inverters from verified list
-        remove_from_verified_inverters = set(skipped) & set(self.verified_inverters)
+        remove_from_verified_inverters = skipped & self.verified_inverters
         if remove_from_verified_inverters:
             _LOGGER.debug(
                 "Removing %s from verified inverters list",
                 ", ".join(sorted(remove_from_verified_inverters)),
             )
-            self.verified_inverters = [
+            self.verified_inverters = {
                 sn
                 for sn in self.verified_inverters
                 if sn not in remove_from_verified_inverters
-            ]
+            }
 
         # remove restored inverters from skipped list
-        add_to_verified = set(inverters) - set(self.verified_inverters)
+        add_to_verified = set(inverters) - self.verified_inverters
         if len(add_to_verified) > 0:
             _LOGGER.debug(
                 "Envoy returned complete inverter data again for: %s",
                 ", ".join(sorted(add_to_verified)),
             )
-            self.verified_inverters.extend(add_to_verified)
-            self.skipped_inverters = [
+            self.verified_inverters.update(add_to_verified)
+            self.skipped_inverters = {
                 sn for sn in self.skipped_inverters if sn not in add_to_verified
-            ]
+            }
 
         envoy_data.inverters = inverters

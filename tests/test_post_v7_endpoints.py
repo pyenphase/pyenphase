@@ -467,10 +467,9 @@ async def test_removed_inverter_devices(
     ],
 )
 @pytest.mark.asyncio
-async def test_inverter_devices_devide_by_zero(
+async def test_inverter_devices_divide_by_zero(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
-    caplog: pytest.LogCaptureFixture,
     version: str,
     inverter_count: int,
     device_to_test: str,
@@ -478,7 +477,6 @@ async def test_inverter_devices_devide_by_zero(
     """Test divide by zero is handled by inverter from_device_data."""
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-    caplog.set_level(logging.DEBUG)
 
     payload = await load_json_fixture(version, "ivp_pdm_device_data")
     sn = payload[device_to_test]["sn"]
@@ -498,6 +496,8 @@ async def test_inverter_devices_devide_by_zero(
     assert data is not None
     assert data.inverters is not None
     assert sn in data.inverters
+    assert len(data.inverters) == inverter_count
+    assert data.inverters[sn].last_report_duration == 0
     assert data.inverters[sn].energy_produced is None
 
     # test with duration key missing, should return none again
@@ -514,7 +514,9 @@ async def test_inverter_devices_devide_by_zero(
     data = envoy.data
     assert data is not None
     assert data.inverters is not None
+    assert len(data.inverters) == inverter_count
     assert sn in data.inverters
+    assert data.inverters[sn].last_report_duration is None
     assert data.inverters[sn].energy_produced is None
 
 
