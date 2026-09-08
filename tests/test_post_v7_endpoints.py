@@ -13,7 +13,10 @@ from pyenphase.exceptions import EnvoyAuthenticationRequired
 from pyenphase.updaters.api_v1_production_inverters import (
     EnvoyApiV1ProductionInvertersUpdater,
 )
-from pyenphase.updaters.device_data_inverters import EnvoyDeviceDataInvertersUpdater
+from pyenphase.updaters.device_data_inverters import (
+    RERING_INTERVAL,
+    EnvoyDeviceDataInvertersUpdater,
+)
 
 from .common import (
     endpoint_path,
@@ -139,35 +142,15 @@ async def test_metered_noct(
 
 
 @pytest.mark.parametrize(
-    ("version", "updaters", "inverter_count", "device_to_test"),
+    ("version", "inverter_count", "device_to_test"),
     [
         (
             "8.2.4345_with_device_data",
-            {
-                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
-                | SupportedFeatures.DETAILED_INVERTERS,
-                "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
-                | SupportedFeatures.ENPOWER,
-                "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
-                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
-                | SupportedFeatures.TOTAL_CONSUMPTION
-                | SupportedFeatures.NET_CONSUMPTION
-                | SupportedFeatures.PRODUCTION,
-                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-            },
             15,
             "553648384",
         ),
         (
             "8.3.5289_modGone",
-            {
-                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
-                | SupportedFeatures.DETAILED_INVERTERS,
-                "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
-                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
-                | SupportedFeatures.PRODUCTION,
-                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-            },
             12,
             "553649152",
         ),
@@ -182,12 +165,57 @@ async def test_removed_inverter_devices(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     version: str,
-    updaters: dict[str, SupportedFeatures],
-    caplog: pytest.LogCaptureFixture,
     inverter_count: int,
     device_to_test: str,
 ) -> None:
     """Test removed inverters in device data still allow use of device data and set SupportedFeatures.DETAILED_INVERTERS"""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+
+    # verify found inverter count
+    assert len(data.inverters) == inverter_count
+    # we should use DETAILED_INVERTERS data
+    assert envoy.supported_features & SupportedFeatures.DETAILED_INVERTERS
+
+    # verify data of device ended up in sn entry
+    payload = await load_json_fixture(version, "ivp_pdm_device_data")
+    sn = payload[device_to_test]["sn"]
+    assert sn in data.inverters
+
+
+@pytest.mark.parametrize(
+    ("version", "inverter_count", "device_to_test"),
+    [
+        (
+            "8.2.4345_with_device_data",
+            15,
+            "553648384",
+        ),
+        (
+            "8.3.5289_modGone",
+            12,
+            "553649152",
+        ),
+    ],
+    ids=[
+        "8.2.4345_with_device_data",
+        "8.3.5289_modGone",
+    ],
+)
+@pytest.mark.asyncio
+async def test_incomplete_inverter_devices_data(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    caplog: pytest.LogCaptureFixture,
+    inverter_count: int,
+    device_to_test: str,
+) -> None:
+    """Test handling of missing inverter data fields in device data"""
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
@@ -198,8 +226,6 @@ async def test_removed_inverter_devices(
 
     # verify found inverter count
     assert len(data.inverters) == inverter_count
-    # we should use DETAILED_INVERTERS data
-    assert envoy.supported_features & SupportedFeatures.DETAILED_INVERTERS
 
     # verify data of device ended up in sn entry
     payload = await load_json_fixture(version, "ivp_pdm_device_data")
@@ -233,7 +259,7 @@ async def test_removed_inverter_devices(
         f"Envoy returned incomplete inverter data, no data reported for: {sn}"
         in caplog.text
     )
-    assert "Envoy returned complete inverter data again for:" not in caplog.text
+    assert "Envoy returned complete inverter data for:" not in caplog.text
     caplog.clear()
 
     # without lastReadings endDate we should not have device_to_test sn in inverters result
@@ -256,7 +282,7 @@ async def test_removed_inverter_devices(
         "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
-    assert "Envoy returned complete inverter data again for:" not in caplog.text
+    assert "Envoy returned complete inverter data for:" not in caplog.text
     caplog.clear()
 
     # without lastReadings we should not have device_to_test sn in inverters result
@@ -279,7 +305,7 @@ async def test_removed_inverter_devices(
         "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
-    assert "Envoy returned complete inverter data again for:" not in caplog.text
+    assert "Envoy returned complete inverter data for:" not in caplog.text
     caplog.clear()
 
     # without channel[0] (there's only one) we should not have device_to_test sn in inverters result
@@ -302,7 +328,7 @@ async def test_removed_inverter_devices(
         "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
-    assert "Envoy returned complete inverter data again for:" not in caplog.text
+    assert "Envoy returned complete inverter data for:" not in caplog.text
     caplog.clear()
 
     # without serialnumber we should not have inverter data at all
@@ -327,7 +353,7 @@ async def test_removed_inverter_devices(
         "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
-    assert "Envoy returned complete inverter data again for:" not in caplog.text
+    assert "Envoy returned complete inverter data for:" not in caplog.text
     caplog.clear()
 
     # without any data we should get repeated warning after previous test but for devName
@@ -351,7 +377,7 @@ async def test_removed_inverter_devices(
         "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
-    assert "Envoy returned complete inverter data again for:" not in caplog.text
+    assert "Envoy returned complete inverter data for:" not in caplog.text
     caplog.clear()
 
     # the repeated message shows as debug next time
@@ -367,7 +393,7 @@ async def test_removed_inverter_devices(
         "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
-    assert "Envoy returned complete inverter data again for:" not in caplog.text
+    assert "Envoy returned complete inverter data for:" not in caplog.text
     caplog.clear()
 
     # restore original mock to test reset
@@ -396,7 +422,7 @@ async def test_removed_inverter_devices(
         "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
-    assert f"Envoy returned complete inverter data again for: {sn}" in caplog.text
+    assert f"Envoy returned complete inverter data for: {sn}" in caplog.text
     caplog.clear()
 
     # without lastReadings we should not have device_to_test sn in inverters result
@@ -420,7 +446,7 @@ async def test_removed_inverter_devices(
         f"Envoy returned incomplete inverter data, no data reported for: {sn}"
         in caplog.text
     )
-    assert "Envoy returned complete inverter data again for:" not in caplog.text
+    assert "Envoy returned complete inverter data for:" not in caplog.text
     caplog.clear()
 
     # all bad has been reset by previous restore and warning should show again
@@ -443,7 +469,232 @@ async def test_removed_inverter_devices(
         "Envoy returned incomplete inverter data, no data reported for:"
         not in caplog.text
     )
-    assert "Envoy returned complete inverter data again for:" not in caplog.text
+    assert "Envoy returned complete inverter data for:" not in caplog.text
+    caplog.clear()
+
+
+@pytest.mark.parametrize(
+    ("version", "inverter_count", "device_to_test"),
+    [
+        (
+            "8.2.4345_with_device_data",
+            15,
+            "553648384",
+        ),
+        (
+            "8.3.5289_modGone",
+            12,
+            "553649152",
+        ),
+    ],
+    ids=[
+        "8.2.4345_with_device_data",
+        "8.3.5289_modGone",
+    ],
+)
+@pytest.mark.asyncio
+async def test_no_active_inverter_devices_data(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    caplog: pytest.LogCaptureFixture,
+    inverter_count: int,
+    device_to_test: str,
+) -> None:
+    """Test handling of no active inverter in update"""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+
+    # verify found inverter count
+    assert len(data.inverters) == inverter_count
+
+    # verify data of device ended up in sn entry
+    payload = await load_json_fixture(version, "ivp_pdm_device_data")
+    sn = payload[device_to_test]["sn"]
+    assert sn in data.inverters
+
+    # test handling of all inverters with active False at update
+    for id, device in payload.items():
+        if id not in ("deviceCount", "deviceDataLimit") and device["devName"] == "pcu":
+            device["active"] = False
+
+    caplog.clear()
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters == {}
+    assert "No active inverter devices detected, skipping" in caplog.text
+    assert "nvalid device data detected:" not in caplog.text
+    caplog.clear()
+
+    # on repeated problems it should be debug, no warning
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters == {}
+    assert "No active inverter devices detected repeat" in caplog.text
+    assert "nvalid device data detected:" not in caplog.text
+    caplog.clear()
+
+    # on restore debug entry should show restored inverters
+    payload = await load_json_fixture(version, "ivp_pdm_device_data")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn in data.inverters
+    assert "No active inverter devices detected repeat" not in caplog.text
+    assert "nvalid device data detected:" not in caplog.text
+    assert "Envoy returned complete inverter data for:" in caplog.text
+    caplog.clear()
+
+
+@pytest.mark.parametrize(
+    ("version", "inverter_count", "device_to_test"),
+    [
+        (
+            "8.2.4345_with_device_data",
+            15,
+            "553648384",
+        ),
+        (
+            "8.3.5289_modGone",
+            12,
+            "553649152",
+        ),
+    ],
+    ids=[
+        "8.2.4345_with_device_data",
+        "8.3.5289_modGone",
+    ],
+)
+@pytest.mark.asyncio
+async def test_disappearing_and_returning_inverter_devices(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    caplog: pytest.LogCaptureFixture,
+    inverter_count: int,
+    device_to_test: str,
+) -> None:
+    """Test handling of inverters completely disappearing and returning during update"""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+
+    # verify found inverter count
+    assert len(data.inverters) == inverter_count
+
+    # verify data of device ended up in sn entry
+    payload = await load_json_fixture(version, "ivp_pdm_device_data")
+    sn = payload[device_to_test]["sn"]
+    assert sn in data.inverters
+
+    # test handling of disappearing inverter device
+    del payload[device_to_test]
+    caplog.clear()
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn not in data.inverters
+    assert (
+        f"Envoy did not provide previously reported inverters, no data reported for: {sn}"
+        in caplog.text
+    )
+    assert "nvalid device data detected:" not in caplog.text
+    assert "incomplete inverter data" not in caplog.text
+    caplog.clear()
+
+    # on RERING_INTERVAL - 1 repeats no warning
+    # set log level to warn to reduce log output, can't detect debug now
+    caplog.set_level(logging.WARN)
+    for _ in range(RERING_INTERVAL - 1):
+        await envoy.update()
+    assert (
+        "Envoy did not provide previously reported inverters, no data reported for:"
+        not in caplog.text
+    )
+    assert "nvalid device data detected:" not in caplog.text
+    assert "incomplete inverter data" not in caplog.text
+    assert "Envoy returned complete inverter data for:" not in caplog.text
+    assert (
+        "Envoy did not provide all inverters or inverter data, no data reported for:"
+        not in caplog.text
+    )
+
+    # repeat message on RERING_INTERVAL
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn not in data.inverters
+    assert (
+        "Envoy did not provide previously reported inverters, no data reported for:"
+        not in caplog.text
+    )
+    assert "nvalid device data detected:" not in caplog.text
+    assert "incomplete inverter data" not in caplog.text
+    assert (
+        f"Envoy did not provide all inverters or inverter data, no data reported for: {sn}"
+        in caplog.text
+    )
+    caplog.clear()
+    # restore debug level for next test
+    caplog.set_level(logging.DEBUG)
+
+    # on restore the missed one should report
+    payload = await load_json_fixture(version, "ivp_pdm_device_data")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters
+    assert sn in data.inverters
+    assert (
+        "Envoy did not provide previously reported inverters, no data reported for:"
+        not in caplog.text
+    )
+    assert "nvalid device data detected:" not in caplog.text
+    assert "incomplete inverter data" not in caplog.text
+    assert f"Envoy returned complete inverter data for: {sn}" in caplog.text
     caplog.clear()
 
 
