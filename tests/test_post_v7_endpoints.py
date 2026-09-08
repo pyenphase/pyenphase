@@ -805,16 +805,16 @@ async def test_rering_of_incomplete_inverter_devices(
         "Invalid device data detected: 'devName', skipping inverter data extraction"
         in caplog.text
     )
-    # assert (
-    #     "Envoy returned incomplete inverter data, no data reported for:"
-    #     not in caplog.text
-    # )
-    # assert "Envoy returned complete inverter data for:" not in caplog.text
-    # assert (
-    #     "Envoy did not provide all inverters or inverter data, no data reported for:"
-    #     not in caplog.text
-    # )
-    # assert "Envoy returned complete inverter data for:" not in caplog.text
+    assert (
+        "Envoy returned incomplete inverter data, no data reported for:"
+        not in caplog.text
+    )
+    assert "Envoy returned complete inverter data for:" not in caplog.text
+    assert (
+        "Envoy did not provide all inverters or inverter data, no data reported for:"
+        not in caplog.text
+    )
+    assert "Envoy returned complete inverter data for:" not in caplog.text
     caplog.clear()
 
 
