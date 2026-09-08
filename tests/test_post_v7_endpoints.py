@@ -14,7 +14,7 @@ from pyenphase.updaters.api_v1_production_inverters import (
     EnvoyApiV1ProductionInvertersUpdater,
 )
 from pyenphase.updaters.device_data_inverters import (
-    RERING_INTERVAL,
+    RESIGNAL_INTERVAL,
     EnvoyDeviceDataInvertersUpdater,
 )
 
@@ -637,10 +637,10 @@ async def test_disappearing_and_returning_inverter_devices(
     assert "incomplete inverter data" not in caplog.text
     caplog.clear()
 
-    # on RERING_INTERVAL - 1 repeats no warning
+    # on RESIGNAL_INTERVAL - 1 repeats no warning
     # set log level to warn to reduce log output, can't detect debug now
     caplog.set_level(logging.WARN)
-    for _ in range(RERING_INTERVAL - 1):
+    for _ in range(RESIGNAL_INTERVAL - 1):
         await envoy.update()
     assert (
         "Envoy did not provide previously reported inverters, no data reported for:"
@@ -654,7 +654,7 @@ async def test_disappearing_and_returning_inverter_devices(
         not in caplog.text
     )
 
-    # repeat message on RERING_INTERVAL
+    # repeat message on RESIGNAL_INTERVAL
     await envoy.update()
     data = envoy.data
     assert data
@@ -695,6 +695,126 @@ async def test_disappearing_and_returning_inverter_devices(
     assert "nvalid device data detected:" not in caplog.text
     assert "incomplete inverter data" not in caplog.text
     assert f"Envoy returned complete inverter data for: {sn}" in caplog.text
+    caplog.clear()
+
+
+@pytest.mark.parametrize(
+    ("version", "inverter_count", "device_to_test"),
+    [
+        (
+            "8.2.4345_with_device_data",
+            15,
+            "553648384",
+        ),
+        (
+            "8.3.5289_modGone",
+            12,
+            "553649152",
+        ),
+    ],
+    ids=[
+        "8.2.4345_with_device_data",
+        "8.3.5289_modGone",
+    ],
+)
+@pytest.mark.asyncio
+async def test_rering_of_incomplete_inverter_devices(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    caplog: pytest.LogCaptureFixture,
+    inverter_count: int,
+    device_to_test: str,
+) -> None:
+    """Test rering of inverters with incomplete data during update"""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+
+    # verify found inverter count
+    assert len(data.inverters) == inverter_count
+
+    # verify data of device ended up in sn entry
+    payload = await load_json_fixture(version, "ivp_pdm_device_data")
+    sn = payload[device_to_test]["sn"]
+    assert sn in data.inverters
+
+    # without lastReadings we should not have device_to_test sn in inverters result
+    # no warning as that is suppressed after previous test
+    del payload[device_to_test]["devName"]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters == {}
+    assert (
+        "Invalid device data detected: 'devName', skipping inverter data extraction"
+        in caplog.text
+    )
+    assert (
+        "Envoy returned incomplete inverter data, no data reported for:"
+        not in caplog.text
+    )
+    assert "Envoy returned complete inverter data for:" not in caplog.text
+    assert (
+        "Envoy did not provide all inverters or inverter data, no data reported for:"
+        not in caplog.text
+    )
+    assert "Envoy returned complete inverter data for:" not in caplog.text
+    caplog.clear()
+
+    # next updates should not signal warnings
+    caplog.set_level(logging.WARN)
+    for _ in range(RESIGNAL_INTERVAL):
+        await envoy.update()
+        data = envoy.data
+        assert data
+        assert data.inverters == {}
+        assert (
+            "Invalid device data detected: 'devName', skipping inverter data extraction"
+            not in caplog.text
+        )
+        assert (
+            "Envoy returned incomplete inverter data, no data reported for:"
+            not in caplog.text
+        )
+        assert "Envoy returned complete inverter data for:" not in caplog.text
+        assert (
+            "Envoy did not provide all inverters or inverter data, no data reported for:"
+            not in caplog.text
+        )
+        assert "Envoy returned complete inverter data for:" not in caplog.text
+        caplog.clear()
+
+    caplog.set_level(logging.DEBUG)
+    # Now we should see rering for skipped inverters
+    await envoy.update()
+    data = envoy.data
+    assert data
+    assert data.inverters == {}
+    assert (
+        "Invalid device data detected: 'devName', skipping inverter data extraction"
+        in caplog.text
+    )
+    # assert (
+    #     "Envoy returned incomplete inverter data, no data reported for:"
+    #     not in caplog.text
+    # )
+    # assert "Envoy returned complete inverter data for:" not in caplog.text
+    # assert (
+    #     "Envoy did not provide all inverters or inverter data, no data reported for:"
+    #     not in caplog.text
+    # )
+    # assert "Envoy returned complete inverter data for:" not in caplog.text
     caplog.clear()
 
 
