@@ -91,7 +91,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                 for sn, inverter in filtered_inverters.items()
             }
 
-        except (KeyError, IndexError, TypeError, AttributeError) as e:
+        except (KeyError, IndexError, TypeError, AttributeError, ValueError) as e:
             # if any inverter returned None there's something messed by json format, fall back to production
             _LOGGER.debug(
                 "Disabling inverters device data endpoint "
@@ -141,7 +141,13 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             for sn, inverter in filtered_inverters.items():
                 try:
                     inverters[sn] = EnvoyInverter.from_device_data(inverter)
-                except (KeyError, IndexError, TypeError) as e:  # noqa: PERF203
+                except (  # noqa: PERF203
+                    KeyError,
+                    IndexError,
+                    TypeError,
+                    AttributeError,
+                    ValueError,
+                ) as e:
                     _LOGGER.debug("Missing datafields for inverter %s: %r", sn, e)
 
         # we now have all data we can get from data.
