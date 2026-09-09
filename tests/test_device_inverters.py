@@ -157,9 +157,10 @@ async def test_filter_inverters_keys_not_in_inverter_devices_data(
         repeat=True,
         payload=payload,
     )
-    await envoy_update(envoy, sn, False, 0)
-    assert "Inverter data extraction failed: KeyError('sn')" in caplog.text
+    await envoy_update(envoy, sn, False, inverter_count - 1)
+    assert "Inverter device data issues found, enable debug for details" in caplog.text
     assert "Inverter list changed, added" in caplog.text
+    assert "Inverter list changed from Probe, added" in caplog.text
     caplog.clear()
 
     payload[device_to_test]["sn"] = sn
@@ -171,9 +172,12 @@ async def test_filter_inverters_keys_not_in_inverter_devices_data(
         repeat=True,
         payload=payload,
     )
-    await envoy_update(envoy, sn, False, 0)
-    assert "Inverter data extraction failed: KeyError('devName')" in caplog.text
+    await envoy_update(envoy, sn, False, inverter_count - 1)
+    assert (
+        "Inverter device data issues found, enable debug for details" not in caplog.text
+    )
     assert "Inverter list changed, added" not in caplog.text
+    assert "Inverter list changed from Probe, added" in caplog.text
     caplog.clear()
 
     payload[device_to_test]["devName"] = "pcu"
@@ -185,9 +189,12 @@ async def test_filter_inverters_keys_not_in_inverter_devices_data(
         repeat=True,
         payload=payload,
     )
-    await envoy_update(envoy, sn, False, 0)
-    assert "Inverter data extraction failed: KeyError('active')" in caplog.text
+    await envoy_update(envoy, sn, False, inverter_count - 1)
+    assert (
+        "Inverter device data issues found, enable debug for details" not in caplog.text
+    )
     assert "Inverter list changed, added" not in caplog.text
+    assert "Inverter list changed from Probe, added" in caplog.text
     caplog.clear()
 
     payload[device_to_test]["active"] = True
@@ -202,8 +209,9 @@ async def test_filter_inverters_keys_not_in_inverter_devices_data(
         payload=empty_payload,
     )
     await envoy_update(envoy, sn, False, 0)
-    assert "Inverter data extraction failed: KeyError('devName')" in caplog.text
-    assert "Inverter list changed, added" not in caplog.text
+    assert "Inverter device data issues found, enable debug for details" in caplog.text
+    assert "Inverter list changed, added" in caplog.text
+    assert "Inverter list changed from Probe, added" in caplog.text
     caplog.clear()
 
     # restore original mock to test reset
@@ -216,8 +224,11 @@ async def test_filter_inverters_keys_not_in_inverter_devices_data(
         payload=payload,
     )
     await envoy_update(envoy, sn, True, inverter_count)
-    assert "Inverter data extraction failed:" not in caplog.text
+    assert (
+        "Inverter device data issues found, enable debug for details" not in caplog.text
+    )
     assert "Inverter list changed, added" in caplog.text
+    assert "Inverter list changed from Probe, added" not in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -403,7 +414,6 @@ async def test_all_inverters_off_in_inverter_devices_data(
     assert "Missing datafields for inverter" not in caplog.text
     assert "Inverter list changed, added" in caplog.text
     assert "Inverter list changed from Probe, added:" in caplog.text
-    assert "Inverter data extraction failed:" not in caplog.text
     caplog.clear()
 
     # test restore
@@ -416,6 +426,81 @@ async def test_all_inverters_off_in_inverter_devices_data(
         payload=payload,
     )
     await envoy_update(envoy, sn, True, inverter_count)
+    assert "Missing datafields for inverter" not in caplog.text
+    assert "Inverter list changed, added" in caplog.text
+    assert "Inverter list changed from Probe, added:" not in caplog.text
+    caplog.clear()
+
+
+@pytest.mark.parametrize(
+    ("version", "inverter_count", "device_to_test"),
+    [
+        (
+            "8.2.4345_with_device_data",
+            15,
+            "553648384",
+        ),
+        (
+            "8.3.5289_modGone",
+            12,
+            "553649152",
+        ),
+    ],
+    ids=[
+        "8.2.4345_with_device_data",
+        "8.3.5289_modGone",
+    ],
+)
+@pytest.mark.asyncio
+async def test_invalid_json_in_inverter_devices_data(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    caplog: pytest.LogCaptureFixture,
+    inverter_count: int,
+    device_to_test: str,
+) -> None:
+    """Test handling of invalid json device data update."""
+    envoy, sn, payload = await init_device_test(
+        mock_aioresponse, test_client_session, version, inverter_count, device_to_test
+    )
+
+    # verify inverters with missing required keys at update
+    # are excluded from data and no crash occurs
+    # probe() detected these successful before
+
+    caplog.clear()
+
+    # test handling of all inverters with active False at update
+    new_payload = 25
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=new_payload,
+    )
+    await envoy_update(envoy, sn, False, 0)
+    assert "Inverter data extraction failed: AttributeError(" in caplog.text
+    assert "Inverter list changed, added" in caplog.text
+    assert "Inverter list changed from Probe, added:" in caplog.text
+    assert "Inverter device data issues found, enable debug for details!" in caplog.text
+    caplog.clear()
+
+    # test restore
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    await envoy_update(envoy, sn, True, inverter_count)
+    assert (
+        "Inverter device data issues found, enable debug for details!"
+        not in caplog.text
+    )
     assert "Missing datafields for inverter" not in caplog.text
     assert "Inverter list changed, added" in caplog.text
     assert "Inverter list changed from Probe, added:" not in caplog.text
@@ -471,7 +556,7 @@ async def test_rering_of_incomplete_inverter_devices(
     caplog.clear()
 
     # no warning should resignal within resignal interval
-    for _ in range(RESIGNAL_INTERVAL):
+    for _ in range(RESIGNAL_INTERVAL - 1):
         await envoy_update(envoy, sn, False, inverter_count - 1)
         assert f"Missing datafields for inverter {sn}: KeyError('now')" in caplog.text
         assert "Inverter list changed, added" not in caplog.text
@@ -519,17 +604,19 @@ async def test_rering_of_incomplete_inverter_devices(
 
 
 @pytest.mark.parametrize(
-    ("version", "inverter_count", "device_to_test"),
+    ("version", "inverter_count", "device_to_test", "second_device"),
     [
         (
             "8.2.4345_with_device_data",
             15,
             "553648384",
+            "553648640",
         ),
         (
             "8.3.5289_modGone",
             12,
             "553649152",
+            "553649408",
         ),
     ],
     ids=[
@@ -545,6 +632,7 @@ async def test_warn_in_rering_of_incomplete_inverter_devices(
     caplog: pytest.LogCaptureFixture,
     inverter_count: int,
     device_to_test: str,
+    second_device: str,
 ) -> None:
     """Test warn in the midst of rering period during update"""
     envoy, sn, payload = await init_device_test(
@@ -577,19 +665,25 @@ async def test_warn_in_rering_of_incomplete_inverter_devices(
         )
         caplog.clear()
 
-    # on second issue warning should fire
-    del payload[device_to_test]["devName"]
-    await envoy_update(envoy, sn, False, 0)
-    assert "Inverter data extraction failed: KeyError('devName')" in caplog.text
+    # on second issue warning will fire
+    del payload[second_device]["channels"]
+    await envoy_update(envoy, sn, False, inverter_count - 2)
     assert "Inverter list changed, added" in caplog.text
+    assert "Inverter list changed from Probe, added" in caplog.text
     assert "Inverter device data issues found, enable debug for details!" in caplog.text
+    assert f"Missing datafields for inverter {sn}: KeyError('now')" in caplog.text
+    assert (
+        f"Missing datafields for inverter {payload[second_device]['sn']}: KeyError('channels')"
+        in caplog.text
+    )
+
     caplog.clear()
 
     # no warning should resignal within resignal interval as it was restarted with previous warn
-    for _ in range(RESIGNAL_INTERVAL):
-        await envoy_update(envoy, sn, False, 0)
-        assert "Inverter data extraction failed: KeyError('devName')" in caplog.text
+    for _ in range(RESIGNAL_INTERVAL - 1):
+        await envoy_update(envoy, sn, False, inverter_count - 2)
         assert "Inverter list changed, added" not in caplog.text
+        assert "Inverter list changed from Probe, added" in caplog.text
         assert (
             "Inverter device data issues found, enable debug for details!"
             not in caplog.text

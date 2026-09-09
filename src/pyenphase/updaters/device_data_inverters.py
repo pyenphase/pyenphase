@@ -15,20 +15,19 @@ RESIGNAL_INTERVAL = 60
 class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
     """Class to handle updates for inverter device data."""
 
-    all_bad: bool = False
     probed_inverters: set[str]
     verified_inverters: set[str]
-    skipped_inverters: set[str]
     resignal: int
 
     def _filter_inverters(self, inverters_data: dict[str, Any]) -> dict[str, Any]:
         """Filter and return only PCU inverter devices."""
         return {
             inverter["sn"]: inverter
-            for id, inverter in inverters_data.items()
-            if id not in ("deviceCount", "deviceDataLimit")
-            and inverter["devName"] == "pcu"
-            and inverter["active"]
+            for _id, inverter in inverters_data.items()
+            if isinstance(inverter, dict)
+            and inverter.get("devName") == "pcu"
+            and inverter.get("active")
+            and "sn" in inverter
         }
 
     async def probe(
@@ -92,7 +91,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                 for sn, inverter in filtered_inverters.items()
             }
 
-        except (KeyError, IndexError, TypeError) as e:
+        except (KeyError, IndexError, TypeError, AttributeError) as e:
             # if any inverter returned None there's something messed by json format, fall back to production
             _LOGGER.debug(
                 "Disabling inverters device data endpoint "
@@ -102,11 +101,9 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             )
             return None
 
-        # remember number of inverters found and init skipped tracking list
+        # remember number of inverters found
         self.probed_inverters = set(inverters)
         self.verified_inverters = set(inverters)
-        self.skipped_inverters = set()
-        self.all_bad = False
         self.resignal = 0
 
         self._supported_features |= (
@@ -130,10 +127,9 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         # filter active pcu from devices.
         failed_inverters: bool = False
         filtered_inverters: dict[str, Any] = {}
-        skipped: set[str] = set()
         try:
             filtered_inverters = self._filter_inverters(inverters_data)
-        except (KeyError, IndexError, TypeError) as e:
+        except (KeyError, IndexError, TypeError, AttributeError) as e:
             # some devices may have no sn, devName or active keys
             # they had it at probe, don't try finding what is
             # going on, something is really messed up.
@@ -147,7 +143,6 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                     inverters[sn] = EnvoyInverter.from_device_data(inverter)
                 except (KeyError, IndexError, TypeError) as e:  # noqa: PERF203
                     _LOGGER.debug("Missing datafields for inverter %s: %r", sn, e)
-                    skipped.add(sn)
 
         # we now have all data we can get from data.
         # keep track of missed and refound inverters
@@ -166,7 +161,6 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             )
             # Add new inverters to probed set
             self.probed_inverters.update(current_set - self.probed_inverters)
-            # resignal until back to original
 
         # if current set still differs from probed let resignal run
         if current_set != self.probed_inverters:
@@ -188,7 +182,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             self.verified_inverters = current_set
 
         # signal or resignal warning something is wrong and user should look at debug
-        if self.resignal > RESIGNAL_INTERVAL:
+        if self.resignal >= RESIGNAL_INTERVAL:
             _LOGGER.warning(
                 "Inverter device data issues found, enable debug for details!"
             )
