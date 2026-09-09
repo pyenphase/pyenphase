@@ -16,6 +16,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
     """Class to handle updates for inverter device data."""
 
     all_bad: bool = False
+    probed_inverters: set[str]
     verified_inverters: set[str]
     skipped_inverters: set[str]
     resignal: int
@@ -102,6 +103,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             return None
 
         # remember number of inverters found and init skipped tracking list
+        self.probed_inverters = set(inverters)
         self.verified_inverters = set(inverters)
         self.skipped_inverters = set()
         self.all_bad = False
@@ -126,136 +128,70 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         envoy_data.raw[URL_DEVICE_DATA] = inverters_data
         inverters: dict[str, EnvoyInverter] = {}
         # filter active pcu from devices.
+        failed_inverters: bool = False
+        filtered_inverters: dict[str, Any] = {}
+        skipped: set[str] = set()
         try:
             filtered_inverters = self._filter_inverters(inverters_data)
         except (KeyError, IndexError, TypeError) as e:
-            # some devices have no sn, devName or active keys
+            # some devices may have no sn, devName or active keys
             # they had it at probe, don't try finding what is
             # going on, something is really messed up.
-            # issue warning on first occasion
-            if not self.all_bad:
-                _LOGGER.warning(
-                    "Invalid device data detected: %s, skipping inverter data extraction",
-                    e,
-                )
-                self.all_bad = True
-                # reset warning resignal counter on each warning issued
-                self.resignal = 0
-            else:
-                self.resignal += 1
-                if self.resignal > RESIGNAL_INTERVAL:
-                    self.resignal = 0
-                    _LOGGER.warning(
-                        "Invalid device data detected: %s, skipping inverter data extraction",
-                        e,
-                    )
-                else:
-                    _LOGGER.debug(
-                        "Repeated invalid device data detected: %s, skipping inverter data extraction (%s)",
-                        e,
-                        self.resignal,
-                    )
+            failed_inverters = True
+            _LOGGER.debug("Inverter data extraction failed: %r", e)
 
-            envoy_data.inverters = {}
-            return
+        # process found inverter devices, if any
+        if not failed_inverters and filtered_inverters:
+            for sn, inverter in filtered_inverters.items():
+                try:
+                    inverters[sn] = EnvoyInverter.from_device_data(inverter)
+                except (KeyError, IndexError, TypeError) as e:  # noqa: PERF203
+                    _LOGGER.debug("Missing datafields for inverter %s: %r", sn, e)
+                    skipped.add(sn)
 
-        # if no inverter found warn or debug log
-        if not filtered_inverters:
-            if self.verified_inverters:
-                _LOGGER.warning(
-                    "No active inverter devices detected, skipping %s",
-                    ", ".join(sorted(self.verified_inverters)),
-                )
-                self.verified_inverters = set()
-                # reset warning resignal counter on each warning issued
-                self.resignal = 0
-            else:
-                _LOGGER.debug(
-                    "No active inverter devices detected repeat (%s)", self.resignal
-                )
-            envoy_data.inverters = {}
-            return
+        # we now have all data we can get from data.
+        # keep track of missed and refound inverters
+        # warn and rewarn on issues
+        # keep warnings simple, tell them to enable debug to check
 
-        # Filter inverter returned data again, clear all bad
-        self.all_bad = False
+        current_set = set(inverters)
 
-        # We now have all active inverters filtered
-        # if inverters change between active True and False
-        # we assume its the result of a user action in
-        # the Envoy and don't report.
-        # Get inverter data from device data
-        # we know that lastReading section may be empty
-        # and we exclude these from reported inverter data.
-        skipped: set[str] = set()
-        for sn, inverter in filtered_inverters.items():
-            try:
-                inverters[sn] = EnvoyInverter.from_device_data(inverter)
-            except (KeyError, IndexError, TypeError) as e:  # noqa: PERF203
-                _LOGGER.debug("Skipping inverter %s, incomplete data: %r", sn, e)
-                skipped.add(sn)
-
-        # any inverters that disappeared
-        missing = self.verified_inverters - set(filtered_inverters)
-        if len(missing) > 0:
-            _LOGGER.warning(
-                "Envoy did not provide previously reported inverters, no data reported for: %s",
-                ", ".join(sorted(missing)),
-            )
-            # remove from verified inverters so they report when coming back
-            self.verified_inverters = {
-                sn for sn in self.verified_inverters if sn not in missing
-            }
-            # add to skipped
-            self.skipped_inverters.update(missing)
-            # reset warning resignal counter on each warning issued
-            self.resignal = 0
-
-        # warn for new found incomplete device data once
-        add_to_skipped = skipped - self.skipped_inverters
-        if len(add_to_skipped) > 0:
-            _LOGGER.warning(
-                "Envoy returned incomplete inverter data, no data reported for: %s",
-                ", ".join(sorted(add_to_skipped)),
-            )
-            # add new skipped inverters to skipped list
-            self.skipped_inverters.update(add_to_skipped)
-            # reset warning resignal counter on each warning issued
-            self.resignal = 0
-
-        # remove skipped inverters from verified list
-        remove_from_verified_inverters = skipped & self.verified_inverters
-        if remove_from_verified_inverters:
+        # report original list changes
+        if current_set != self.probed_inverters:
             _LOGGER.debug(
-                "Removing %s from verified inverters list (%s)",
-                ", ".join(sorted(remove_from_verified_inverters)),
+                "Inverter list changed from Probe, added: %s , removed: %s (%s)",
+                ", ".join(sorted(current_set - self.probed_inverters)),
+                ", ".join(sorted(self.probed_inverters - current_set)),
                 self.resignal,
             )
-            self.verified_inverters = {
-                sn
-                for sn in self.verified_inverters
-                if sn not in remove_from_verified_inverters
-            }
+            # Add new inverters to probed set
+            self.probed_inverters.update(current_set - self.probed_inverters)
+            # resignal until back to original
 
-        # remove restored inverters from skipped list
-        add_to_verified = set(inverters) - self.verified_inverters
-        if len(add_to_verified) > 0:
+        # if current set still differs from probed let resignal run
+        if current_set != self.probed_inverters:
+            self.resignal += 1
+        else:
+            self.resignal = 0
+
+        # If current set is is not equal to verified set we have changes in found inverters
+        # verified_inverters set started from probed_inverters
+        if current_set != self.verified_inverters:
             _LOGGER.debug(
-                "Envoy returned complete inverter data for: %s (%s)",
-                ", ".join(sorted(add_to_verified)),
-                self.resignal,
+                "Inverter list changed, added: %s , removed: %s",
+                ", ".join(sorted(current_set - self.verified_inverters)),
+                ", ".join(sorted(self.verified_inverters - current_set)),
             )
-            self.verified_inverters.update(add_to_verified)
-            self.skipped_inverters = {
-                sn for sn in self.skipped_inverters if sn not in add_to_verified
-            }
+            # force resignal on lost inverters
+            if self.verified_inverters - current_set:
+                self.resignal = RESIGNAL_INTERVAL + 1
+            self.verified_inverters = current_set
 
-        # resignal warning for skipped inverters if any left and if no log entry for some time
-        self.resignal += 1 if self.skipped_inverters else 0
+        # signal or resignal warning something is wrong and user should look at debug
         if self.resignal > RESIGNAL_INTERVAL:
-            self.resignal = 0
             _LOGGER.warning(
-                "Envoy did not provide all inverters or inverter data, no data reported for: %s",
-                ", ".join(sorted(self.skipped_inverters)),
+                "Inverter device data issues found, enable debug for details!"
             )
+            self.resignal = 0
 
         envoy_data.inverters = inverters
