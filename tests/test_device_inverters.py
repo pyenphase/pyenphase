@@ -768,45 +768,47 @@ async def test_multiple_inverter_sources(
         if updater
         not in (EnvoyApiV1ProductionInvertersUpdater, EnvoyDeviceDataInvertersUpdater)
     ]
+    try:
+        # Add the inverter production endpoint updater followed by the device data updater
+        prod_remover = register_updater(EnvoyApiV1ProductionInvertersUpdater)
+        device_data_remover = register_updater(EnvoyDeviceDataInvertersUpdater)
 
-    # Add the inverter production endpoint updater followed by the device data updater
-    prod_remover = register_updater(EnvoyApiV1ProductionInvertersUpdater)
-    device_data_remover = register_updater(EnvoyDeviceDataInvertersUpdater)
+        # Verify that the production updater is used first
+        await envoy.probe()
+        assert updater_features(envoy._updaters) == {
+            "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
+            "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
+            | SupportedFeatures.ENPOWER,
+            "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+            "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION,
+            "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+        }
 
-    # Verify that the production updater is used first
-    await envoy.probe()
-    assert updater_features(envoy._updaters) == {
-        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-        "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE | SupportedFeatures.ENPOWER,
-        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
-        "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
-        | SupportedFeatures.TOTAL_CONSUMPTION
-        | SupportedFeatures.NET_CONSUMPTION
-        | SupportedFeatures.PRODUCTION,
-        "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-    }
+        # Remove both updaters and re-add them in reverse order
+        prod_remover()
+        device_data_remover()
+        device_data_remover = register_updater(EnvoyDeviceDataInvertersUpdater)
+        prod_remover = register_updater(EnvoyApiV1ProductionInvertersUpdater)
 
-    # Remove both updaters and re-add them in reverse order
-    prod_remover()
-    device_data_remover()
-    device_data_remover = register_updater(EnvoyDeviceDataInvertersUpdater)
-    prod_remover = register_updater(EnvoyApiV1ProductionInvertersUpdater)
-
-    # Verify that the device data updater is used first
-    await envoy.probe()
-    assert updater_features(envoy._updaters) == {
-        "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
-        | SupportedFeatures.DETAILED_INVERTERS,
-        "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE | SupportedFeatures.ENPOWER,
-        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
-        "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
-        | SupportedFeatures.TOTAL_CONSUMPTION
-        | SupportedFeatures.NET_CONSUMPTION
-        | SupportedFeatures.PRODUCTION,
-        "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-    }
-
-    # Restore the original updaters
-    UPDATERS.clear()
-    for updater in original_updaters:
-        register_updater(updater)
+        # Verify that the device data updater is used first
+        await envoy.probe()
+        assert updater_features(envoy._updaters) == {
+            "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
+            | SupportedFeatures.DETAILED_INVERTERS,
+            "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
+            | SupportedFeatures.ENPOWER,
+            "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
+            "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION,
+            "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
+        }
+    finally:
+        # Restore the original updaters
+        UPDATERS.clear()
+        for updater in original_updaters:
+            register_updater(updater)
