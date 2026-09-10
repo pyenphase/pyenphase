@@ -60,7 +60,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             if inverters_data["deviceCount"] >= inverters_data["deviceDataLimit"]:
                 _LOGGER.debug(
                     "Disabling inverters device data endpoint "
-                    " as deviceCount reached  deviceDataLimit %s: %s - %s",
+                    "as deviceCount reached deviceDataLimit %s: %s - %s",
                     URL_DEVICE_DATA,
                     inverters_data["deviceCount"],
                     inverters_data["deviceDataLimit"],
@@ -70,7 +70,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             # if doesn't have these keys, fall back to inverter production
             _LOGGER.debug(
                 "Disabling inverters device data endpoint "
-                " as not all data fields are present %s: %s",
+                "as not all data fields are present %s: %s",
                 URL_DEVICE_DATA,
                 e,
             )

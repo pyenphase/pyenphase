@@ -550,15 +550,17 @@ async def test_invalid_json_in_inverter_devices_data_probe(
     assert envoy.supported_features & SupportedFeatures.INVERTERS
     assert SupportedFeatures.DETAILED_INVERTERS not in envoy.supported_features
     assert (
-        "Disabling inverters device data endpoint  as not all data fields are present"
+        "Disabling inverters device data endpoint as not all data fields are present"
         in caplog.text
     )
+    caplog.clear()
 
     # verify data of device ended up in sn entry via v1 inverters
     payload: dict[str, Any] = await load_json_fixture(version, "ivp_pdm_device_data")
     sn = payload[device_to_test]["sn"]
     assert sn in data.inverters
 
+    # test json format issue probe fallback to v1 inverters
     payload[device_to_test]["channels"] = 25
     override_mock(
         mock_aioresponse,
@@ -577,9 +579,34 @@ async def test_invalid_json_in_inverter_devices_data_probe(
     assert envoy.supported_features & SupportedFeatures.INVERTERS
     assert SupportedFeatures.DETAILED_INVERTERS not in envoy.supported_features
     assert (
-        "Disabling inverters device data endpoint  as not all data fields are present"
+        "Disabling inverters device data endpoint because of data format issues"
         in caplog.text
     )
+    caplog.clear()
+
+    # test json format issue probe fallback to v1 inverters
+    del payload[device_to_test]["channels"]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+
+    # verify found inverter count
+    assert len(data.inverters) == inverter_count
+    # we should use API_V1_inverters data
+    assert envoy.supported_features & SupportedFeatures.INVERTERS
+    assert SupportedFeatures.DETAILED_INVERTERS not in envoy.supported_features
+    assert (
+        "Disabling inverters device data endpoint as keys are missing or format issues"
+        in caplog.text
+    )
+    caplog.clear()
 
 
 @pytest.mark.parametrize(
