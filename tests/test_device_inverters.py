@@ -667,6 +667,13 @@ async def test_warn_in_rering_of_incomplete_inverter_devices(
 
     # on second issue warning will fire
     del payload[second_device]["channels"]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
     await envoy_update(envoy, sn, False, inverter_count - 2)
     assert "Inverter list changed, added" in caplog.text
     assert "Inverter list changed from Probe, added" in caplog.text
