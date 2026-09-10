@@ -1,6 +1,7 @@
 """Test inverter data from device_data endpoint."""
 
 from typing import Any
+from unittest.mock import patch
 
 import aiohttp
 import pytest
@@ -8,11 +9,12 @@ from aioresponses import aioresponses
 
 from pyenphase.const import URL_DEVICE_DATA
 from pyenphase.envoy import UPDATERS, Envoy, SupportedFeatures, register_updater
+from pyenphase.updaters import device_data_inverters
 from pyenphase.updaters.api_v1_production_inverters import (
     EnvoyApiV1ProductionInvertersUpdater,
 )
 from pyenphase.updaters.device_data_inverters import (
-    RESIGNAL_INTERVAL,
+    # RESIGNAL_INTERVAL,
     EnvoyDeviceDataInvertersUpdater,
 )
 
@@ -527,6 +529,7 @@ async def test_invalid_json_in_inverter_devices_data(
     ],
 )
 @pytest.mark.asyncio
+@patch.object(device_data_inverters, "RESIGNAL_INTERVAL", 5)
 async def test_rering_of_incomplete_inverter_devices(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
@@ -539,7 +542,7 @@ async def test_rering_of_incomplete_inverter_devices(
     envoy, sn, payload = await init_device_test(
         mock_aioresponse, test_client_session, version, inverter_count, device_to_test
     )
-
+    RESIGNAL_INTERVAL = device_data_inverters.RESIGNAL_INTERVAL
     # without watts now we should not have device_to_test sn in inverters result
     del payload[device_to_test]["channels"][0]["watts"]["now"]
     override_mock(
@@ -592,7 +595,7 @@ async def test_rering_of_incomplete_inverter_devices(
     caplog.clear()
 
     # no warning should resignal now all is restored
-    for _ in range(RESIGNAL_INTERVAL + 5):
+    for _ in range(RESIGNAL_INTERVAL + 2):
         await envoy_update(envoy, sn, True, inverter_count)
         assert "Missing datafields for inverter" not in caplog.text
         assert "Inverter list changed, added" not in caplog.text
@@ -625,6 +628,7 @@ async def test_rering_of_incomplete_inverter_devices(
     ],
 )
 @pytest.mark.asyncio
+@patch.object(device_data_inverters, "RESIGNAL_INTERVAL", 5)
 async def test_warn_in_rering_of_incomplete_inverter_devices(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
@@ -638,6 +642,7 @@ async def test_warn_in_rering_of_incomplete_inverter_devices(
     envoy, sn, payload = await init_device_test(
         mock_aioresponse, test_client_session, version, inverter_count, device_to_test
     )
+    RESIGNAL_INTERVAL = device_data_inverters.RESIGNAL_INTERVAL
 
     # without watts now we should not have device_to_test sn in inverters result
     del payload[device_to_test]["channels"][0]["watts"]["now"]
@@ -655,7 +660,7 @@ async def test_warn_in_rering_of_incomplete_inverter_devices(
     caplog.clear()
 
     # no warning should resignal within resignal interval
-    for _ in range(RESIGNAL_INTERVAL - 10):
+    for _ in range(RESIGNAL_INTERVAL - 2):
         await envoy_update(envoy, sn, False, inverter_count - 1)
         assert f"Missing datafields for inverter {sn}: KeyError('now')" in caplog.text
         assert "Inverter list changed, added" not in caplog.text
