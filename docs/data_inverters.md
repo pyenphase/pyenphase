@@ -21,7 +21,7 @@ If the `/ivp/pdm/device_data` endpoint is not supported by the Envoy firmware, e
 ```
 
 ```{note}
-It is reported that the [`/ivp/pdm/device_data` endpoint](./endpoint_json.md#ivppdmdevice_data) may have a missing or empty `lastReading` section for one or more inverter (`pcu`) devices. These inverters are excluded from the inverter_data in the {py:meth}`~pyenphase.Envoy.update` results. When the `lastReading` section is restored in a later collection, the inverter is again included in the results. If inverters are excluded for any reason, a one-time warning is issued that is repeated when additional inverters are excluded, every 60 update() calls or when a repeated failure occurs after an inverter resumed normal operation. When warned, enable debug to see details on actual issues.
+It is reported that the [`/ivp/pdm/device_data` endpoint](./endpoint_json.md#ivppdmdevice_data) may have a missing or empty `lastReading` section for one or more inverter (`pcu`) devices. These inverters are excluded from the inverter_data in the {py:meth}`~pyenphase.Envoy.update` results. When the `lastReading` section is restored in a later collection, the inverter is again included in the results. If inverters are excluded for any reason, a one-time warning is issued that is repeated when additional inverters are excluded, every 60 update() calls or when a repeated failure occurs after an inverter resumed normal operation. The list of inverters with issues is included in the warning. For more details enable debug. If these warnings are because of configuration changes in the Envoy, like inverters switched off or removed, then probe should be rerun.
 ```
 
 ## Data sources

@@ -190,7 +190,8 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
         # signal or resignal warning something is wrong and user should look at debug
         if self.resignal >= RESIGNAL_INTERVAL:
             _LOGGER.warning(
-                "Inverter device data issues found, enable debug for details!"
+                "Inverter device data issues found, missing from probe: %s.",
+                ", ".join(sorted(self.probed_inverters - current_set)),
             )
             self.resignal = 0
 
