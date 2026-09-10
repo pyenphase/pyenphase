@@ -66,7 +66,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                     inverters_data["deviceDataLimit"],
                 )
                 return None
-        except KeyError as e:
+        except (KeyError, TypeError) as e:
             # if doesn't have these keys, fall back to inverter production
             _LOGGER.debug(
                 "Disabling inverters device data endpoint "
@@ -91,11 +91,21 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
                 for sn, inverter in filtered_inverters.items()
             }
 
-        except (KeyError, IndexError, TypeError, AttributeError, ValueError) as e:
+        except (KeyError, IndexError) as e:
             # if any inverter returned None there's something messed by json format, fall back to production
             _LOGGER.debug(
                 "Disabling inverters device data endpoint "
-                " as not all data fields are present %s: %s",
+                "as keys are missing or format issues %s: %s",
+                URL_DEVICE_DATA,
+                e,
+            )
+            return None
+
+        except (TypeError, AttributeError, ValueError) as e:
+            # if any inverter returned messed json format, fall back to production
+            _LOGGER.warning(
+                "Disabling inverters device data endpoint "
+                "because of data format issues %s: %s",
                 URL_DEVICE_DATA,
                 e,
             )

@@ -448,7 +448,7 @@ async def test_all_inverters_off_in_inverter_devices_data(
     ],
 )
 @pytest.mark.asyncio
-async def test_invalid_json_in_inverter_devices_data(
+async def test_invalid_json_in_inverter_devices_data_update(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     version: str,
@@ -498,6 +498,88 @@ async def test_invalid_json_in_inverter_devices_data(
     assert "Inverter list changed, added" in caplog.text
     assert "Inverter list changed from Probe, added:" not in caplog.text
     caplog.clear()
+
+
+@pytest.mark.parametrize(
+    ("version", "inverter_count", "device_to_test"),
+    [
+        (
+            "8.2.4345_with_device_data",
+            15,
+            "553648384",
+        ),
+        (
+            "8.3.5289_modGone",
+            12,
+            "553649152",
+        ),
+    ],
+    ids=[
+        "8.2.4345_with_device_data",
+        "8.3.5289_modGone",
+    ],
+)
+@pytest.mark.asyncio
+async def test_invalid_json_in_inverter_devices_data_probe(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    caplog: pytest.LogCaptureFixture,
+    inverter_count: int,
+    device_to_test: str,
+) -> None:
+    """Test handling of invalid json device data probe."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    new_payload = 25
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=new_payload,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+
+    # verify found inverter count
+    assert len(data.inverters) == inverter_count
+    # we should use API_V1_inverters data
+    assert envoy.supported_features & SupportedFeatures.INVERTERS
+    assert SupportedFeatures.DETAILED_INVERTERS not in envoy.supported_features
+    assert (
+        "Disabling inverters device data endpoint  as not all data fields are present"
+        in caplog.text
+    )
+
+    # verify data of device ended up in sn entry via v1 inverters
+    payload: dict[str, Any] = await load_json_fixture(version, "ivp_pdm_device_data")
+    sn = payload[device_to_test]["sn"]
+    assert sn in data.inverters
+
+    payload[device_to_test]["channels"] = 25
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"https://127.0.0.1{URL_DEVICE_DATA}",
+        repeat=True,
+        payload=payload,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+    data = envoy.data
+    assert data is not None
+
+    # verify found inverter count
+    assert len(data.inverters) == inverter_count
+    # we should use API_V1_inverters data
+    assert envoy.supported_features & SupportedFeatures.INVERTERS
+    assert SupportedFeatures.DETAILED_INVERTERS not in envoy.supported_features
+    assert (
+        "Disabling inverters device data endpoint  as not all data fields are present"
+        in caplog.text
+    )
 
 
 @pytest.mark.parametrize(
