@@ -143,7 +143,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         and their phase equivalents are still set to reference the corresponding entries in
         ctmeters[CtType] and ctmeters_phases[CtType].
 
-        Envoy firmware D8.3.6087, /ivp/meters/readings for split, 2 phase storage CT
+        Envoy firmware D8.3.6xxx, /ivp/meters/readings for split, 2 phase storage CT
         intermittently reports zero values on one phase. Aggregated data then
         drops to the other phase values resulting in incorrect storage data.
         In this case, return None in the storage CT and storage CT zero Phase data to
@@ -183,7 +183,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 if phase_data := _meter_data_for_phases(phase_range, meter, ct_status):
                     envoy_data.ctmeters_phases[meter_type] = phase_data
 
-                # As of D8.3.6087, /ivp/meters/readings is intermittently reporting incorrect storage
+                # As of D8.3.6xxx, /ivp/meters/readings is intermittently reporting incorrect storage
                 # CT lifetime energy values on split-phase system. One storage channel reports all
                 # zeros and the aggregate value becomes equal to the other non-zero channel.
                 # if
@@ -193,7 +193,7 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                 #   one channel reports all zeros,
                 #   the aggregate lifetime value suddenly drops to other channel value.
                 if (
-                    # as of fw D8.3.6087
+                    # as of fw D8.3.6xxx
                     self._envoy_version >= STORAGE_CT_FALLBACK_TO_ONE_CHANNEL
                     # only for storage CT
                     and meter_type == CtType.STORAGE
