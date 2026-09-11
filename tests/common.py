@@ -215,7 +215,7 @@ async def prep_envoy(
     files: list[str] = await fixture_files(version)
 
     # Helper to create full URLs
-    full_host = endpoint_path(version, host)
+    full_host = endpoint_path(target_firmware or version, host)
 
     def url(path: str) -> str:
         return f"{full_host}{path}"
