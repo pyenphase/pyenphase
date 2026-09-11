@@ -14,6 +14,7 @@ import aiohttp
 import orjson
 from aioresponses import aioresponses
 from awesomeversion import AwesomeVersion
+from lxml import etree as et  # nosec
 
 from pyenphase import AUTH_TOKEN_MIN_VERSION, Envoy
 from pyenphase.envoy import SupportedFeatures
@@ -185,10 +186,28 @@ def endpoint_path(version: str, host: str) -> str:
     return f"http{'s' if AwesomeVersion(version.split('_')[0]) >= AUTH_TOKEN_MIN_VERSION else ''}://{host}"
 
 
+async def load_info_fixture(
+    fixture_version: str,  #: fixture file set name to use
+    target_firmware: str
+    | None = None,  #: if specified patch <software></software> to this
+) -> str:
+    """Load info (xml) file and if specified patch <software></software> field to target_firmware"""
+    info_xml: str = await load_fixture(fixture_version, "info")
+    if target_firmware:
+        xml = et.fromstring(info_xml.encode("utf-8"))  # nosec
+        if (device_tag := xml.find("device")) is not None and (
+            software_tag := device_tag.find("software")
+        ) is not None:
+            software_tag.text = f"D{target_firmware}"
+            info_xml = et.tostring(xml)
+    return info_xml
+
+
 async def prep_envoy(
     mock_aioresponse: aioresponses,
     host: str,
     version: str,  #: name of version folder to read fixtures from
+    target_firmware: str | None = None,  #: patch info xml software to this
 ) -> list[str]:
     """Setup response mocks for envoy requests and return list of found mock files."""
     files: list[str] = await fixture_files(version)
@@ -205,16 +224,20 @@ async def prep_envoy(
     def url_http(path: str) -> str:
         return f"http://{host}{path}"
 
+    info_xml = await load_info_fixture(
+        fixture_version=version, target_firmware=target_firmware
+    )
+
     mock_aioresponse.get(
         url_http("/info"),
         status=200,
-        body=await load_fixture(version, "info"),
+        body=info_xml,
         repeat=True,
     )
     mock_aioresponse.get(
         url_https("/info"),
         status=200,
-        body=await load_fixture(version, "info"),
+        body=info_xml,
         repeat=True,
     )
     mock_aioresponse.get(url("/info.xml"), status=200, body="", repeat=True)

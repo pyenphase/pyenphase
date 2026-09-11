@@ -1572,15 +1572,18 @@ async def test_intermittent_activeCount_without_production_ct(
 
 @pytest.mark.parametrize(
     (
-        "version",  # firmware version pyenphase gets passed
+        "version",  # fixture fileset name to use
+        "useasversion",  # firmware version pyenphase gets passed
         "aggregate_data",  # aggregate storage CT values to expect for active_power, energy_received and energy_delivered
         "phase_l1_data",  # L1 phase storage CT values to expect
         "phase_l2_data",  # L2 phase storage CT values to expect
         "block_zero",  # firmware will detect zero values and return None for aggregate and phase
     ),
     [
+        # original firmware with reported issue, needs correction
         (
             "8.3.6087_storage_ct_drops",
+            "8.3.6087",
             {
                 "active_power": 0,
                 "energy_received": 2425361,
@@ -1598,8 +1601,52 @@ async def test_intermittent_activeCount_without_production_ct(
             },
             True,
         ),
+        # test firmware at firmware sentinel, should correct
+        (
+            "8.3.6087_storage_ct_drops",
+            "8.3.6000",
+            {
+                "active_power": 0,
+                "energy_received": 2425361,
+                "energy_delivered": 343300,
+            },
+            {
+                "active_power": 0,
+                "energy_received": 1212681,
+                "energy_delivered": 171650,
+            },
+            {
+                "active_power": 0,
+                "energy_received": 1212681,
+                "energy_delivered": 171650,
+            },
+            True,
+        ),
+        # test firmware below firmware sentinel, should not correct
+        (
+            "8.3.6087_storage_ct_drops",
+            "8.3.5999",
+            {
+                "active_power": 0,
+                "energy_received": 2425361,
+                "energy_delivered": 343300,
+            },
+            {
+                "active_power": 0,
+                "energy_received": 1212681,
+                "energy_delivered": 171650,
+            },
+            {
+                "active_power": 0,
+                "energy_received": 1212681,
+                "energy_delivered": 171650,
+            },
+            False,
+        ),
+        # test with firmware well below firmware sentinel, should not correct
         (
             "8.2.4286_with_3cts_and_battery_split",
+            "8.2.4286",
             {
                 "active_power": -7084,
                 "energy_received": 5409935,
@@ -1620,6 +1667,8 @@ async def test_intermittent_activeCount_without_production_ct(
     ],
     ids=[
         "8.3.6087",
+        "8.3.6000",
+        "8.3.5999",
         "8.2.4286",
     ],
 )
@@ -1628,6 +1677,7 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     version: str,
+    useasversion: str,
     aggregate_data: dict[str, Any],
     phase_l1_data: dict[str, Any],
     phase_l2_data: dict[str, Any],
@@ -1636,14 +1686,14 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     """
     Test envoy metered with storage ct and intermitted 1 phase zero values.
 
-    Envoy firmware D8.3.6087, /ivp/meters/readings for split, 2 phase storage CT
+    Envoy firmware D8.3.6xxx, /ivp/meters/readings for split, 2 phase storage CT
     intermittently reports zero values on one phase. Aggregated data then
     drops to the other phase values resulting in incorrect storage data.
     Test meters updates return None in the storage CT and storage CT L1 Phase data
     if this scenario applies.
     """
     start_7_firmware_mock(mock_aioresponse)
-    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version, useasversion)
 
     envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
@@ -1751,12 +1801,12 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     result = _find_zero_phase_for_storage_anomaly(data)
     assert result is None
 
-    # For D8.3.6087, /ivp/meters/readings started intermittently reporting incorrect storage
+    # For D8.3.6xxx, /ivp/meters/readings started intermittently reporting incorrect storage
     # CT lifetime energy values on split-phase system.  One storage channel reports all
     # zeros and the aggregate value becomes equal to the remaining non-zero channel.
 
     # test with zero l1 channel and aggregate equal to L2 data
-    # for D8.3.6087 and newer, should have None for aggregate and L1.
+    # for D8.3.6xxx and newer, should have None for aggregate and L1.
     # For older fw aggregate has L2 values and L1 zeros.
 
     meter_data_json = await load_json_list_fixture(version, "ivp_meters_readings")
