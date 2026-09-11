@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v4.0.3 (2026-09-11)
+
+### Bug Fixes
+
+- Update() crash when device_data endpoint has a empty or lastReading record
+  ([#496](https://github.com/pyenphase/pyenphase/pull/496),
+  [`f456490`](https://github.com/pyenphase/pyenphase/commit/f4564901438c32dcd26eaf71361029c7c09c76be))
+
+- Update() crash when device_data endpoint has an empty or incomplete lastReading record
+  ([#496](https://github.com/pyenphase/pyenphase/pull/496),
+  [`f456490`](https://github.com/pyenphase/pyenphase/commit/f4564901438c32dcd26eaf71361029c7c09c76be))
+
+
 ## v4.0.2 (2026-09-11)
 
 ### Bug Fixes
