@@ -1,6 +1,27 @@
 # CHANGELOG
 
 
+## v4.0.2 (2026-09-11)
+
+### Bug Fixes
+
+- Storage CT zero-phase anomaly also occurs on Envoy 8.3.6086, lower sentinel to 8.3.6000
+  ([#500](https://github.com/pyenphase/pyenphase/pull/500),
+  [`ebd5735`](https://github.com/pyenphase/pyenphase/commit/ebd5735f40225d10415252ec515e96a3bea415fe))
+
+### Chores
+
+- **deps-dev**: Bump syrupy from 5.5.3 to 6.0.0
+  ([#492](https://github.com/pyenphase/pyenphase/pull/492),
+  [`c35991d`](https://github.com/pyenphase/pyenphase/commit/c35991de71f20d5eb532cebc679bb1e2c6755d9f))
+
+- **pre-commit.ci**: Auto fixes ([#493](https://github.com/pyenphase/pyenphase/pull/493),
+  [`e88fc49`](https://github.com/pyenphase/pyenphase/commit/e88fc499f9b72c3667115bb5c0e235d451311b72))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#493](https://github.com/pyenphase/pyenphase/pull/493),
+  [`e88fc49`](https://github.com/pyenphase/pyenphase/commit/e88fc499f9b72c3667115bb5c0e235d451311b72))
+
+
 ## v4.0.1 (2026-08-28)
 
 ### Bug Fixes
