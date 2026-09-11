@@ -1573,7 +1573,7 @@ async def test_intermittent_activeCount_without_production_ct(
 @pytest.mark.parametrize(
     (
         "version",  # fixture fileset name to use
-        "useasversion",  # firmware version pyenphase gets passed
+        "as_version",  # firmware version pyenphase gets passed
         "aggregate_data",  # aggregate storage CT values to expect for active_power, energy_received and energy_delivered
         "phase_l1_data",  # L1 phase storage CT values to expect
         "phase_l2_data",  # L2 phase storage CT values to expect
@@ -1673,11 +1673,11 @@ async def test_intermittent_activeCount_without_production_ct(
     ],
 )
 @pytest.mark.asyncio
-async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
+async def test_intermittent_zero_storageCT_Phase_asof_8_3_6xxx(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     version: str,
-    useasversion: str,
+    as_version: str,
     aggregate_data: dict[str, Any],
     phase_l1_data: dict[str, Any],
     phase_l2_data: dict[str, Any],
@@ -1693,7 +1693,7 @@ async def test_intermittent_zero_storageCT_Phase_asof_8_3_6087(
     if this scenario applies.
     """
     start_7_firmware_mock(mock_aioresponse)
-    await prep_envoy(mock_aioresponse, "127.0.0.1", version, useasversion)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version, as_version)
 
     envoy = await get_mock_envoy(test_client_session)
     data = envoy.data
