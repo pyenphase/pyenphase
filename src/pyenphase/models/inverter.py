@@ -75,7 +75,7 @@ class EnvoyInverter:
             if lifetime_joulesProduced is not None
             else None,
             energy_produced=round(period_joules_produced / duration / 3.6, 3)
-            if period_joules_produced is not None and duration is not None
+            if period_joules_produced is not None and duration and duration > 0
             else None,
             energy_today=watthours.get("today") if watthours else None,
             last_report_duration=duration,

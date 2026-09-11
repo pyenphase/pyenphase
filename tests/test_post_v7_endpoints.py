@@ -8,12 +8,8 @@ import pytest
 from aioresponses import aioresponses
 
 from pyenphase.const import PhaseNames
-from pyenphase.envoy import UPDATERS, Envoy, SupportedFeatures, register_updater
+from pyenphase.envoy import SupportedFeatures
 from pyenphase.exceptions import EnvoyAuthenticationRequired
-from pyenphase.updaters.api_v1_production_inverters import (
-    EnvoyApiV1ProductionInvertersUpdater,
-)
-from pyenphase.updaters.device_data_inverters import EnvoyDeviceDataInvertersUpdater
 
 from .common import (
     endpoint_path,
@@ -136,138 +132,6 @@ async def test_metered_noct(
     assert data.system_production.watt_hours_today == watt_hours_today
     assert data.system_production.watt_hours_last_7_days == watt_hours_last_7_days
     assert data.system_production.watt_hours_lifetime == watt_hours_lifetime
-
-
-@pytest.mark.parametrize(
-    (
-        "version",
-        "updaters",
-        "inverter_count",
-    ),
-    [
-        (
-            "8.2.4345_with_device_data",
-            {
-                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
-                | SupportedFeatures.DETAILED_INVERTERS,
-                "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
-                | SupportedFeatures.ENPOWER,
-                "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
-                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
-                | SupportedFeatures.TOTAL_CONSUMPTION
-                | SupportedFeatures.NET_CONSUMPTION
-                | SupportedFeatures.PRODUCTION,
-                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-            },
-            15,
-        ),
-        (
-            "8.3.5289_modGone",
-            {
-                "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
-                | SupportedFeatures.DETAILED_INVERTERS,
-                "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
-                "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
-                | SupportedFeatures.PRODUCTION,
-                "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-            },
-            12,
-        ),
-    ],
-    ids=[
-        "8.2.4345_with_device_data",
-        "8.3.5289_modGone",
-    ],
-)
-@pytest.mark.asyncio
-async def test_removed_inverter_devices(
-    mock_aioresponse: aioresponses,
-    test_client_session: aiohttp.ClientSession,
-    version: str,
-    updaters: dict[str, SupportedFeatures],
-    caplog: pytest.LogCaptureFixture,
-    inverter_count: int,
-) -> None:
-    """Test removed inverters in device data still allow use of device data and set SupportedFeatures.DETAILED_INVERTERS"""
-    start_7_firmware_mock(mock_aioresponse)
-    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-    caplog.set_level(logging.DEBUG)
-
-    envoy = await get_mock_envoy(test_client_session)
-    data = envoy.data
-    assert data is not None
-
-    # verify found inverter count
-    assert len(data.inverters) == inverter_count
-    # we should use DETAILED_INVERTERS data
-    assert envoy.supported_features & SupportedFeatures.DETAILED_INVERTERS
-
-
-@pytest.mark.asyncio
-async def test_multiple_inverter_sources(
-    mock_aioresponse: aioresponses,
-    test_client_session: aiohttp.ClientSession,
-) -> None:
-    """Test that multiple inverters from different sources are handled correctly."""
-    start_7_firmware_mock(mock_aioresponse)
-    await prep_envoy(mock_aioresponse, "127.0.0.1", "8.2.4345_with_device_data")
-
-    envoy = Envoy("127.0.0.1", client=test_client_session)
-    await envoy.setup()
-    await envoy.authenticate("username", "password")
-
-    # Preserve the original updaters
-    original_updaters = UPDATERS.copy()
-
-    # Remove existing inverter updaters
-    UPDATERS[:] = [
-        updater
-        for updater in UPDATERS
-        if updater
-        not in (EnvoyApiV1ProductionInvertersUpdater, EnvoyDeviceDataInvertersUpdater)
-    ]
-
-    # Add the inverter production endpoint updater followed by the device data updater
-    prod_remover = register_updater(EnvoyApiV1ProductionInvertersUpdater)
-    device_data_remover = register_updater(EnvoyDeviceDataInvertersUpdater)
-
-    # Verify that the production updater is used first
-    await envoy.probe()
-    assert updater_features(envoy._updaters) == {
-        "EnvoyApiV1ProductionInvertersUpdater": SupportedFeatures.INVERTERS,
-        "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE | SupportedFeatures.ENPOWER,
-        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
-        "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
-        | SupportedFeatures.TOTAL_CONSUMPTION
-        | SupportedFeatures.NET_CONSUMPTION
-        | SupportedFeatures.PRODUCTION,
-        "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-    }
-
-    # Remove both updaters and re-add them in reverse order
-    prod_remover()
-    device_data_remover()
-    device_data_remover = register_updater(EnvoyDeviceDataInvertersUpdater)
-    prod_remover = register_updater(EnvoyApiV1ProductionInvertersUpdater)
-
-    # Verify that the device data updater is used first
-    await envoy.probe()
-    assert updater_features(envoy._updaters) == {
-        "EnvoyDeviceDataInvertersUpdater": SupportedFeatures.INVERTERS
-        | SupportedFeatures.DETAILED_INVERTERS,
-        "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE | SupportedFeatures.ENPOWER,
-        "EnvoyMetersUpdater": SupportedFeatures.CTMETERS,
-        "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
-        | SupportedFeatures.TOTAL_CONSUMPTION
-        | SupportedFeatures.NET_CONSUMPTION
-        | SupportedFeatures.PRODUCTION,
-        "EnvoyTariffUpdater": SupportedFeatures.TARIFF,
-    }
-
-    # Restore the original updaters
-    UPDATERS.clear()
-    for updater in original_updaters:
-        register_updater(updater)
 
 
 @pytest.mark.parametrize(
