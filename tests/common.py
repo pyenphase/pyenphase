@@ -199,7 +199,7 @@ async def load_info_fixture(
             software_tag := device_tag.find("software")
         ) is not None:
             software_tag.text = f"D{target_firmware}"
-            info_xml = et.tostring(xml)
+            info_xml = et.tostring(xml, encoding="unicode")
     return info_xml
 
 
