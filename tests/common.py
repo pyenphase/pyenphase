@@ -195,11 +195,13 @@ async def load_info_fixture(
     info_xml: str = await load_fixture(fixture_version, "info")
     if target_firmware:
         xml = et.fromstring(info_xml.encode("utf-8"))  # nosec
-        if (device_tag := xml.find("device")) is not None and (
-            software_tag := device_tag.find("software")
-        ) is not None:
-            software_tag.text = f"D{target_firmware}"
-            info_xml = et.tostring(xml, encoding="unicode")
+        device_tag = xml.find("device")
+        software_tag = device_tag.find("software") if device_tag is not None else None
+        assert software_tag is not None, (
+            f"fixture {fixture_version}/info has no device/software tag to patch"
+        )
+        software_tag.text = f"D{target_firmware}"
+        info_xml = et.tostring(xml, encoding="unicode")
     return info_xml
 
 
