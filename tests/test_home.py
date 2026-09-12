@@ -252,52 +252,30 @@ async def test_json_request_runtimeerror_on_request(
     assert "Failure getting interface information" in caplog.text
 
 
+@pytest.mark.parametrize(
+    ("error", "http_status"),  # error to test
+    [
+        (asyncio.TimeoutError, 200),
+        (RuntimeError, 200),
+        (asyncio.TimeoutError, 350),
+        (RuntimeError, 350),
+    ],
+    ids=[
+        "timeout_200",
+        "runtime_200",
+        "timeout_350",
+        "runtime_350",
+    ],
+)
 @pytest.mark.asyncio
-async def test_json_request_response_read_timeout(
-    mock_aioresponse: aioresponses,
-    test_client_session: aiohttp.ClientSession,
-) -> None:
-    """Test _json_request timeout on response.read."""
-    # we want to test the response.read timeout of _json_request
-    # if debug is enabled the debug statement in envoy._request
-    # already perform a request.read which preempts our test
-    # disable debug here so timeout failure is caught by the
-    # _json_request request.read and not by the _json_request
-    # try except around _request call.
-    logging.getLogger("pyenphase").setLevel(logging.WARN)
-
-    version = "7.6.175"
-
-    start_7_firmware_mock(mock_aioresponse)
-
-    info_data = await load_fixture(version, "info")
-    mock_aioresponse.get(
-        "https://127.0.0.1/info", status=200, body=info_data, repeat=True
-    )
-
-    envoy = Envoy("127.0.0.1", client=test_client_session)
-    await envoy.setup()
-    await envoy.authenticate("username", "password")
-
-    home_json = await load_json_fixture(version, "home")
-    override_mock(
-        mock_aioresponse, "get", "https://127.0.0.1/home", status=200, payload=home_json
-    )
-
-    # mock clientresponse.read to return TimeoutError
-    timeout_mock = AsyncMock(side_effect=asyncio.TimeoutError)
-    with patch.object(aiohttp.ClientResponse, "read", timeout_mock):
-        result = await envoy.interface_settings()
-    assert result is None
-
-
-@pytest.mark.asyncio
-async def test_json_request_response_read_runtimeerror(
+async def test_json_request_response_read(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
+    error: Exception,
+    http_status: int,
 ) -> None:
-    """Test _json_request runtimeerror on response.read."""
+    """Test _json_request error on response.read."""
     # we want to test the response.read RuntimeError of _json_request
     # if debug is enabled the debug statement in envoy._request
     # already perform a request.read which preempts our test
@@ -306,7 +284,7 @@ async def test_json_request_response_read_runtimeerror(
     # try except around _request call.
     logging.getLogger("pyenphase").setLevel(logging.WARN)
 
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level(logging.WARN)
 
     version = "7.6.175"
 
@@ -323,11 +301,15 @@ async def test_json_request_response_read_runtimeerror(
 
     home_json = await load_json_fixture(version, "home")
     override_mock(
-        mock_aioresponse, "get", "https://127.0.0.1/home", status=200, payload=home_json
+        mock_aioresponse,
+        "get",
+        "https://127.0.0.1/home",
+        status=http_status,
+        payload=home_json,
     )
 
     # mock clientresponse.read to return RunTimeError
-    runtime_mock = AsyncMock(side_effect=RuntimeError)
-    with patch.object(aiohttp.ClientResponse, "read", runtime_mock):
+    error_mock = AsyncMock(side_effect=error)
+    with patch.object(aiohttp.ClientResponse, "read", error_mock):
         result = await envoy.interface_settings()
     assert result is None

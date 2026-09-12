@@ -883,17 +883,17 @@ class Envoy:
         except RuntimeError as err:
             _LOGGER.debug("Request to %s failed with RunTimeError %s", end_point, err)
             raise EnvoyCommunicationError(f"RuntimeError {err!s}") from err
-        if not (200 <= response.status < 300):
-            content = await response.read()
-            _LOGGER.debug(
-                "Request to %s failed with status %s: %s",
-                end_point,
-                response.status,
-                content[:500] if content else "No content",
-            )
-            raise EnvoyHTTPStatusError(response.status, str(response.url))
-
         try:
+            if not (200 <= response.status < 300):
+                content = await response.read()
+                _LOGGER.debug(
+                    "Request to %s failed with status %s: %s",
+                    end_point,
+                    response.status,
+                    content[:500] if content else "No content",
+                )
+                raise EnvoyHTTPStatusError(response.status, str(response.url))
+
             return json_loads(end_point, await response.read())
         except orjson.JSONDecodeError as err:
             raise EnvoyCommunicationError(
