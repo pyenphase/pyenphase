@@ -868,7 +868,7 @@ class Envoy:
         :param data: data dictionary to send to the Envoy, defaults to None
         :param method: method to use to send data dictionary,
             POST if none, only used for data send
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
+        :raises EnvoyCommunicationError: when RuntimeError, aiohttp Client or Timeout error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: response content as JSON
         """
@@ -880,6 +880,9 @@ class Envoy:
         except asyncio.TimeoutError as err:
             _LOGGER.debug("Request to %s timed out: %s", end_point, err)
             raise EnvoyCommunicationError(f"Timeout {err!s}") from err
+        except RuntimeError as err:
+            _LOGGER.debug("Request to %s failed with RunTimeError %s", end_point, err)
+            raise EnvoyCommunicationError(f"RuntimeError {err!s}") from err
         if not (200 <= response.status < 300):
             content = await response.read()
             _LOGGER.debug(
@@ -896,6 +899,14 @@ class Envoy:
             raise EnvoyCommunicationError(
                 f"Invalid JSON response from {end_point}: {err}"
             ) from err
+        except asyncio.TimeoutError as err:
+            _LOGGER.debug("Request read from %s timed out: %s", end_point, err)
+            raise EnvoyCommunicationError(f"Timeout {err!s}") from err
+        except RuntimeError as err:
+            _LOGGER.debug(
+                "Request read from %s failed with RunTimeError %s", end_point, err
+            )
+            raise EnvoyCommunicationError(f"RuntimeError {err!s}") from err
 
     async def go_on_grid(self) -> dict[str, Any]:
         """
