@@ -96,9 +96,13 @@ async def test_json_request_error_on_request(
         (aiohttp.ClientError, r"aiohttp ClientError \(response.read\)", 200),
         (NotImplementedError("_json_request"), "_json_request", 200),
         (RuntimeError("_json_request"), "_json_request", 200),
-        (asyncio.TimeoutError, r"Timeout \(http status\)", 350),
-        (aiohttp.ClientError, r"aiohttp ClientError \(http status\)", 350),
-        (RuntimeError("_json_request"), "_json_request", 350),
+        (asyncio.TimeoutError, "HTTP status error https://127.0.0.1/home 350", 350),
+        (aiohttp.ClientError, "HTTP status error https://127.0.0.1/home 500", 500),
+        (
+            RuntimeError("_json_request"),
+            "HTTP status error https://127.0.0.1/home 400",
+            400,
+        ),
     ],
     ids=[
         "timeout_200",
@@ -106,8 +110,8 @@ async def test_json_request_error_on_request(
         "notimplemented_200",
         "runtime_200",
         "timeout_350",
-        "client_350",
-        "runtime_350",
+        "client_500",
+        "runtime_400",
     ],
 )
 @pytest.mark.asyncio
