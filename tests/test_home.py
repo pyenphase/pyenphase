@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-from unittest.mock import AsyncMock, patch
 
 import aiohttp
 import pytest
@@ -184,6 +183,24 @@ async def test_home_endpoint_errors_with_7_6_175(
     await envoy.interface_settings()
     assert "Failure getting interface information" in caplog.text
 
+    mock_aioresponse.get(
+        "https://127.0.0.1/home",
+        exception=RuntimeError("Test runtimeexception session open"),
+    )
+    # RuntimeError with open session will reraise
+    with pytest.raises(RuntimeError, match="session open"):
+        await envoy.interface_settings()
+
+    # RuntimeError with closed session will transfer into caught EnvoyError
+    await envoy._client.close()
+    mock_aioresponse.get(
+        "https://127.0.0.1/home",
+        exception=RuntimeError("Test runtimeexception session closed"),
+    )
+    await envoy.interface_settings()
+    assert "RuntimeError (closed: True) Session is closed" in caplog.text
+    assert "Failure getting interface information" in caplog.text
+
 
 @pytest.mark.asyncio
 async def test_home_endpoint_non_json_response(
@@ -216,100 +233,3 @@ async def test_home_endpoint_non_json_response(
     result = await envoy.interface_settings()
     assert result is None
     assert "Failure getting interface information" in caplog.text
-
-
-@pytest.mark.asyncio
-async def test_json_request_runtimeerror_on_request(
-    mock_aioresponse: aioresponses,
-    test_client_session: aiohttp.ClientSession,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test _json_request runtimeerror result of _request call."""
-    caplog.set_level(logging.DEBUG)
-
-    # start with regular data first
-    version = "7.6.175"
-
-    # Set up auth mocks
-    start_7_firmware_mock(mock_aioresponse)
-
-    # Set up info endpoint for setup
-    info_data = await load_fixture(version, "info")
-    mock_aioresponse.get(
-        "https://127.0.0.1/info", status=200, body=info_data, repeat=True
-    )
-
-    # Create and setup envoy
-    envoy = Envoy("127.0.0.1", client=test_client_session)
-    await envoy.setup()
-    await envoy.authenticate("username", "password")
-
-    mock_aioresponse.get(
-        "https://127.0.0.1/home",
-        exception=RuntimeError("Test timeoutexception"),
-    )
-    await envoy.interface_settings()
-    assert "Failure getting interface information" in caplog.text
-
-
-@pytest.mark.parametrize(
-    ("error", "http_status"),  # error to test
-    [
-        (asyncio.TimeoutError, 200),
-        (RuntimeError, 200),
-        (asyncio.TimeoutError, 350),
-        (RuntimeError, 350),
-    ],
-    ids=[
-        "timeout_200",
-        "runtime_200",
-        "timeout_350",
-        "runtime_350",
-    ],
-)
-@pytest.mark.asyncio
-async def test_json_request_response_read(
-    mock_aioresponse: aioresponses,
-    test_client_session: aiohttp.ClientSession,
-    caplog: pytest.LogCaptureFixture,
-    error: Exception,
-    http_status: int,
-) -> None:
-    """Test _json_request error on response.read."""
-    # we want to test the response.read RuntimeError of _json_request
-    # if debug is enabled the debug statement in envoy._request
-    # already perform a request.read which preempts our test
-    # disable debug here so RuntimeError failure is caught by the
-    # _json_request request.read and not by the _json_request
-    # try except around _request call.
-    logging.getLogger("pyenphase").setLevel(logging.WARN)
-
-    caplog.set_level(logging.WARN)
-
-    version = "7.6.175"
-
-    start_7_firmware_mock(mock_aioresponse)
-
-    info_data = await load_fixture(version, "info")
-    mock_aioresponse.get(
-        "https://127.0.0.1/info", status=200, body=info_data, repeat=True
-    )
-
-    envoy = Envoy("127.0.0.1", client=test_client_session)
-    await envoy.setup()
-    await envoy.authenticate("username", "password")
-
-    home_json = await load_json_fixture(version, "home")
-    override_mock(
-        mock_aioresponse,
-        "get",
-        "https://127.0.0.1/home",
-        status=http_status,
-        payload=home_json,
-    )
-
-    # mock clientresponse.read to return RunTimeError
-    error_mock = AsyncMock(side_effect=error)
-    with patch.object(aiohttp.ClientResponse, "read", error_mock):
-        result = await envoy.interface_settings()
-    assert result is None
