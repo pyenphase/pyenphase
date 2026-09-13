@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import aiohttp
@@ -90,18 +91,39 @@ async def test_json_request_error_on_request(
 
 
 @pytest.mark.parametrize(
-    ("error", "match", "http_status"),  # error to test
+    ("error", "match", "http_status", "expected_exception"),  # error to test
     [
-        (asyncio.TimeoutError, r"Timeout \(response.read\)", 200),
-        (aiohttp.ClientError, r"aiohttp ClientError \(response.read\)", 200),
-        (NotImplementedError("_json_request"), "_json_request", 200),
-        (RuntimeError("_json_request"), "_json_request", 200),
-        (asyncio.TimeoutError, "HTTP status error https://127.0.0.1/home 350", 350),
-        (aiohttp.ClientError, "HTTP status error https://127.0.0.1/home 500", 500),
+        (
+            asyncio.TimeoutError,
+            r"Timeout \(response.read\)",
+            200,
+            EnvoyCommunicationError,
+        ),
+        (
+            aiohttp.ClientError,
+            r"aiohttp ClientError \(response.read\)",
+            200,
+            EnvoyCommunicationError,
+        ),
+        (NotImplementedError("_json_request"), "_json_request", 200, RuntimeError),
+        (RuntimeError("_json_request"), "_json_request", 200, RuntimeError),
+        (
+            asyncio.TimeoutError,
+            "HTTP status error https://127.0.0.1/home 350",
+            350,
+            EnvoyHTTPStatusError,
+        ),
+        (
+            aiohttp.ClientError,
+            "HTTP status error https://127.0.0.1/home 500",
+            500,
+            EnvoyHTTPStatusError,
+        ),
         (
             RuntimeError("_json_request"),
             "HTTP status error https://127.0.0.1/home 400",
             400,
+            EnvoyHTTPStatusError,
         ),
     ],
     ids=[
@@ -122,6 +144,7 @@ async def test_json_request_response_read(
     error: Exception,
     match: str,
     http_status: int,
+    expected_exception: Any,
 ) -> None:
     """Test _json_request error on response.read."""
     # we want to test the response.read RuntimeError of _json_request
@@ -150,10 +173,7 @@ async def test_json_request_response_read(
         error_mock = AsyncMock(side_effect=error)
         with (
             patch.object(aiohttp.ClientResponse, "read", error_mock),
-            pytest.raises(
-                (EnvoyCommunicationError, RuntimeError, EnvoyHTTPStatusError),
-                match=match,
-            ),
+            pytest.raises(expected_exception, match=match),
         ):
             await envoy._json_request(ENDPOINT_URL_HOME, None)
 
