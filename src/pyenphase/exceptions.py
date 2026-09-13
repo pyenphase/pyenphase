@@ -96,7 +96,7 @@ class EnvoyCommunicationError(EnvoyError):
 
     - aiohttp.ClientError error occurs.
     - asyncio.TimeoutError error occurs
-    - RuntimeError occurs while the client session is still open
+    - RuntimeError occurs while the client session is closed
     """
 
 
