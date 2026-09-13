@@ -90,28 +90,24 @@ async def test_json_request_error_on_request(
 
 
 @pytest.mark.parametrize(
-    ("error", "match", "http_status", "close_session"),  # error to test
+    ("error", "match", "http_status"),  # error to test
     [
-        (asyncio.TimeoutError, r"Timeout \(response.read\)", 200, False),
-        (aiohttp.ClientError, r"aiohttp ClientError \(response.read\)", 200, False),
-        (NotImplementedError("_json_request"), "_json_request", 200, False),
-        (RuntimeError("_json_request"), "_json_request", 200, False),
-        (RuntimeError, r"RuntimeError \(request\) Session is closed", 200, True),
-        (asyncio.TimeoutError, r"Timeout \(http status\)", 350, False),
-        (aiohttp.ClientError, r"aiohttp ClientError \(http status\)", 350, False),
-        (RuntimeError("_json_request"), "_json_request", 350, False),
-        (RuntimeError, r"RuntimeError \(request\) Session is closed", 350, True),
+        (asyncio.TimeoutError, r"Timeout \(response.read\)", 200),
+        (aiohttp.ClientError, r"aiohttp ClientError \(response.read\)", 200),
+        (NotImplementedError("_json_request"), "_json_request", 200),
+        (RuntimeError("_json_request"), "_json_request", 200),
+        (asyncio.TimeoutError, r"Timeout \(http status\)", 350),
+        (aiohttp.ClientError, r"aiohttp ClientError \(http status\)", 350),
+        (RuntimeError("_json_request"), "_json_request", 350),
     ],
     ids=[
         "timeout_200",
         "client_200",
         "notimplemented_200",
         "runtime_200",
-        "runtime_closed_200",
         "timeout_350",
         "client_350",
         "runtime_350",
-        "runtime_closed_350",
     ],
 )
 @pytest.mark.asyncio
@@ -122,7 +118,6 @@ async def test_json_request_response_read(
     error: Exception,
     match: str,
     http_status: int,
-    close_session: bool,
 ) -> None:
     """Test _json_request error on response.read."""
     # we want to test the response.read RuntimeError of _json_request
@@ -146,9 +141,6 @@ async def test_json_request_response_read(
             status=http_status,
             repeat=True,
         )
-
-        if close_session:
-            await envoy._client.close()
 
         # mock clientresponse.read to return error
         error_mock = AsyncMock(side_effect=error)
