@@ -19,6 +19,7 @@ from .common import (
     override_mock,
     prep_envoy,
     start_7_firmware_mock,
+    temporary_log_level,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -130,34 +131,35 @@ async def test_json_request_response_read(
     # disable debug here so RuntimeError failure is caught by the
     # _json_request request.read and not by the _json_request
     # try except around _request call.
-    logging.getLogger("pyenphase").setLevel(logging.WARN)
-    start_7_firmware_mock(mock_aioresponse)
-    version = "7.6.175"
-    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-    full_host = endpoint_path(version, "127.0.0.1")
-    envoy = await get_mock_envoy(test_client_session)
-    caplog.set_level(logging.WARN)
+    with temporary_log_level("pyenphase", logging.WARN):
+        start_7_firmware_mock(mock_aioresponse)
+        version = "7.6.175"
+        await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+        full_host = endpoint_path(version, "127.0.0.1")
+        envoy = await get_mock_envoy(test_client_session)
+        caplog.set_level(logging.WARN)
 
-    override_mock(
-        mock_aioresponse,
-        "get",
-        f"{full_host}{ENDPOINT_URL_HOME}",
-        status=http_status,
-        repeat=True,
-    )
+        override_mock(
+            mock_aioresponse,
+            "get",
+            f"{full_host}{ENDPOINT_URL_HOME}",
+            status=http_status,
+            repeat=True,
+        )
 
-    if close_session:
-        await envoy._client.close()
+        if close_session:
+            await envoy._client.close()
 
-    # mock clientresponse.read to return error
-    error_mock = AsyncMock(side_effect=error)
-    with (
-        patch.object(aiohttp.ClientResponse, "read", error_mock),
-        pytest.raises(
-            (EnvoyCommunicationError, RuntimeError, EnvoyHTTPStatusError), match=match
-        ),
-    ):
-        await envoy._json_request(ENDPOINT_URL_HOME, None)
+        # mock clientresponse.read to return error
+        error_mock = AsyncMock(side_effect=error)
+        with (
+            patch.object(aiohttp.ClientResponse, "read", error_mock),
+            pytest.raises(
+                (EnvoyCommunicationError, RuntimeError, EnvoyHTTPStatusError),
+                match=match,
+            ),
+        ):
+            await envoy._json_request(ENDPOINT_URL_HOME, None)
 
 
 @pytest.mark.asyncio
