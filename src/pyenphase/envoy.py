@@ -872,41 +872,58 @@ class Envoy:
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
         :return: response content as JSON
         """
+        progress = "request"
         try:
             response = await self._request(end_point, data, method)
-        except aiohttp.ClientError as err:
-            _LOGGER.debug("Request to %s failed with ClientError: %s", end_point, err)
-            raise EnvoyCommunicationError(f"aiohttp ClientError {err!s}") from err
-        except asyncio.TimeoutError as err:
-            _LOGGER.debug("Request to %s timed out: %s", end_point, err)
-            raise EnvoyCommunicationError(f"Timeout {err!s}") from err
-        except RuntimeError as err:
-            _LOGGER.debug("Request to %s failed with RunTimeError %s", end_point, err)
-            raise EnvoyCommunicationError(f"RuntimeError {err!s}") from err
-        try:
-            if not (200 <= response.status < 300):
-                content = await response.read()
-                _LOGGER.debug(
-                    "Request to %s failed with status %s: %s",
-                    end_point,
-                    response.status,
-                    content[:500] if content else "No content",
-                )
-                raise EnvoyHTTPStatusError(response.status, str(response.url))
+            async with response:  # release response on error
+                if not (200 <= response.status < 300):
+                    progress = "http status"
+                    content = await response.read()
+                    _LOGGER.debug(
+                        "Request to %s failed with status %s: %s",
+                        end_point,
+                        response.status,
+                        content[:500] if content else "No content",
+                    )
+                    raise EnvoyHTTPStatusError(response.status, str(response.url))
 
-            return json_loads(end_point, await response.read())
+                progress = "response.read"
+                return json_loads(end_point, await response.read())
+        except aiohttp.ClientError as err:
+            _LOGGER.debug(
+                "Request to %s failed in %s stage with ClientError: %s",
+                end_point,
+                progress,
+                err,
+            )
+            raise EnvoyCommunicationError(
+                f"aiohttp ClientError ({progress}) {err!s}"
+            ) from err
+        except asyncio.TimeoutError as err:
+            _LOGGER.debug(
+                "Request to %s timed out in %s stage: %s", end_point, progress, err
+            )
+            raise EnvoyCommunicationError(f"Timeout ({progress}) {err!s}") from err
+        except RuntimeError as err:
+            closed = self._client.closed
+            _LOGGER.debug(
+                "Request to %s failed in %s stage with RuntimeError (closed: %s) %s",
+                end_point,
+                progress,
+                closed,
+                err,
+            )
+            if closed:
+                # session closed runtime error transfer to EnvoyCommunicationError
+                raise EnvoyCommunicationError(
+                    f"RuntimeError ({progress}) {err!s}"
+                ) from err
+            raise RuntimeError(f"RuntimeError ({progress}) reraise {err!s}") from err
         except orjson.JSONDecodeError as err:
+            _LOGGER.debug("Request to %s returns invalid JSON: %s", end_point, err)
             raise EnvoyCommunicationError(
                 f"Invalid JSON response from {end_point}: {err}"
             ) from err
-        except asyncio.TimeoutError as err:
-            _LOGGER.debug("Request read from %s timed out: %s", end_point, err)
-            raise EnvoyCommunicationError(f"Timeout {err!s}") from err
-        except RuntimeError as err:
-            _LOGGER.debug(
-                "Request read from %s failed with RunTimeError %s", end_point, err
-            )
-            raise EnvoyCommunicationError(f"RuntimeError {err!s}") from err
 
     async def go_on_grid(self) -> dict[str, Any]:
         """
