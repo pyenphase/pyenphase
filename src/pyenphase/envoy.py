@@ -868,8 +868,11 @@ class Envoy:
         :param data: data dictionary to send to the Envoy, defaults to None
         :param method: method to use to send data dictionary,
             POST if none, only used for data send
-        :raises EnvoyCommunicationError: when RuntimeError, aiohttp Client or Timeout error occurs.
+        :raises EnvoyCommunicationError: when aiohttp Client, Timeout, or a
+            closed-session RuntimeError occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises RuntimeError: when a RuntimeError occurs while the client
+            session is still open.
         :return: response content as JSON
         """
         progress = "request"
@@ -918,7 +921,7 @@ class Envoy:
                 raise EnvoyCommunicationError(
                     f"RuntimeError ({progress}) {err!s}"
                 ) from err
-            raise RuntimeError(f"RuntimeError ({progress}) reraise {err!s}") from err
+            raise
         except orjson.JSONDecodeError as err:
             _LOGGER.debug("Request to %s returns invalid JSON: %s", end_point, err)
             raise EnvoyCommunicationError(

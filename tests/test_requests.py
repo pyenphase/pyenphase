@@ -94,12 +94,12 @@ async def test_json_request_error_on_request(
     [
         (asyncio.TimeoutError, r"Timeout \(response.read\)", 200, False),
         (aiohttp.ClientError, r"aiohttp ClientError \(response.read\)", 200, False),
-        (NotImplementedError, r"RuntimeError \(response.read\) reraise", 200, False),
-        (RuntimeError, r"RuntimeError \(response.read\) reraise", 200, False),
+        (NotImplementedError("_json_request"), "_json_request", 200, False),
+        (RuntimeError("_json_request"), "_json_request", 200, False),
         (RuntimeError, r"RuntimeError \(request\) Session is closed", 200, True),
         (asyncio.TimeoutError, r"Timeout \(http status\)", 350, False),
         (aiohttp.ClientError, r"aiohttp ClientError \(http status\)", 350, False),
-        (RuntimeError, r"RuntimeError \(http status\) reraise", 350, False),
+        (RuntimeError("_json_request"), "_json_request", 350, False),
         (RuntimeError, r"RuntimeError \(request\) Session is closed", 350, True),
     ],
     ids=[
