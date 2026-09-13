@@ -182,6 +182,7 @@ async def test_home_endpoint_errors_with_7_6_175(
     )
     await envoy.interface_settings()
     assert "Failure getting interface information" in caplog.text
+    caplog.clear()
 
     mock_aioresponse.get(
         "https://127.0.0.1/home",
@@ -190,6 +191,7 @@ async def test_home_endpoint_errors_with_7_6_175(
     # RuntimeError with open session will reraise
     with pytest.raises(RuntimeError, match="session open"):
         await envoy.interface_settings()
+    caplog.clear()
 
     # RuntimeError with closed session will transfer into caught EnvoyError
     await envoy._client.close()
@@ -200,6 +202,7 @@ async def test_home_endpoint_errors_with_7_6_175(
     await envoy.interface_settings()
     assert "RuntimeError (closed: True) Session is closed" in caplog.text
     assert "Failure getting interface information" in caplog.text
+    caplog.clear()
 
 
 @pytest.mark.asyncio
