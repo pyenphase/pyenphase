@@ -87,7 +87,11 @@ class EnvoyHTTPStatusError(EnvoyError):
 
 
 class EnvoyProbeFailed(EnvoyError):
-    """Exception raised when the Envoy probe fails."""
+    """
+    Exception raised when the Envoy probe fails.
+
+    :param status: Error status description
+    """
 
 
 class EnvoyCommunicationError(EnvoyError):
@@ -97,6 +101,16 @@ class EnvoyCommunicationError(EnvoyError):
     - aiohttp.ClientError error occurs.
     - asyncio.TimeoutError error occurs
     - RuntimeError occurs while the client session is closed
+
+    :param status: Error status description
+    """
+
+
+class EnvoyClientClosedError(EnvoyError):
+    """
+    Exception raised when the :py:class:`pyenphase.Envoy` client aiohttp ClientSession is closed before request is issued.
+
+    :param status: Error status description
     """
 
 
@@ -106,6 +120,7 @@ class EnvoyFeatureNotAvailable(EnvoyError):
 
     - When using go on/off grid and ENPOWER feature is not available in Envoy
 
+    :param status: Error status description
     """
 
 
