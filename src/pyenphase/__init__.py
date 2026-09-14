@@ -8,6 +8,7 @@ from .exceptions import (
     EnvoyClientClosedError,
     EnvoyCommunicationError,
     EnvoyError,
+    EnvoyFeatureNotAvailable,
     EnvoyFirmwareCheckError,
     EnvoyFirmwareFatalCheckError,
     EnvoyHTTPStatusError,
