@@ -869,8 +869,7 @@ class Envoy:
         :param data: data dictionary to send to the Envoy, defaults to None
         :param method: method to use to send data dictionary,
             POST if none, only used for data send
-        :raises EnvoyCommunicationError: when aiohttp Client, Timeout, or a
-            closed-session RuntimeError occurs.
+        :raises EnvoyCommunicationError: when aiohttp Client or Timeout error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx
         :raises EnvoyClientClosedError: when aiohttp client is closed before request is issued
         :raises RuntimeError: when a RuntimeError occurs while the client
