@@ -880,19 +880,8 @@ class Envoy:
             response = await self._request(end_point, data, method)
             async with response:  # release response on error
                 if not (200 <= response.status < 300):
-                    progress = "http status"
-                    try:
-                        if _LOGGER.isEnabledFor(logging.DEBUG):
-                            content = await response.read()
-                            _LOGGER.debug(
-                                "Request to %s failed with status %s: %s",
-                                end_point,
-                                response.status,
-                                content[:500] if content else "No content",
-                            )
-                    finally:
-                        # make sure to raise http in case of errors during response.read
-                        raise EnvoyHTTPStatusError(response.status, str(response.url))
+                    # body and status already logged by _request when debug is enabled
+                    raise EnvoyHTTPStatusError(response.status, str(response.url))
 
                 progress = "response.read"
                 return json_loads(end_point, await response.read())
