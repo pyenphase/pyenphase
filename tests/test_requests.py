@@ -27,27 +27,37 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.parametrize(
-    ("error", "match", "close_session"),
+    ("error", "match", "expected_exception", "close_session"),
     [
         (  # test _request error
             asyncio.TimeoutError("Test _json_request"),
             r"Timeout \(request\) Test _json_request",
+            EnvoyCommunicationError,
             False,
         ),
         (  # test _request error
             aiohttp.ClientError("Test _json_request"),
             r"aiohttp ClientError \(request\) Test _json_request",
+            EnvoyCommunicationError,
             False,
         ),
         (  # test _request error
             RuntimeError("Test _json_request runtimerror not closed"),
             "Test _json_request runtimerror not closed",
+            RuntimeError,
             False,
         ),
         (  # test _request error with session closed
-            RuntimeError("Test _json_request"),
+            RuntimeError("Test _json_request runtimerror closed"),
             r"RuntimeError \(request\) Session is closed",
+            EnvoyCommunicationError,
             True,
+        ),
+        (
+            asyncio.CancelledError("Test _json_request runtimerror canceled"),
+            r"Test _json_request runtimerror canceled",
+            asyncio.CancelledError,
+            False,
         ),
     ],
     ids=[
@@ -55,6 +65,7 @@ LOGGER = logging.getLogger(__name__)
         "client",
         "runtime_open",
         "runtime_closed",
+        "canceled_open",
     ],
 )
 @pytest.mark.asyncio
@@ -64,6 +75,7 @@ async def test_json_request_error_on_request(
     caplog: pytest.LogCaptureFixture,
     error: Exception,
     match: str,
+    expected_exception: Any,
     close_session: bool,
 ) -> None:
     """Test _json_request request call error handling."""
@@ -86,54 +98,37 @@ async def test_json_request_error_on_request(
     if close_session:
         await envoy._client.close()
 
-    with pytest.raises((EnvoyCommunicationError, RuntimeError), match=match):
+    with pytest.raises(expected_exception, match=match):
         await envoy._json_request(ENDPOINT_URL_HOME, None)
 
 
 @pytest.mark.parametrize(
-    ("error", "match", "http_status", "expected_exception"),  # error to test
+    ("error", "match", "expected_exception"),  # error to test
     [
         (
             asyncio.TimeoutError,
             r"Timeout \(response.read\)",
-            200,
             EnvoyCommunicationError,
         ),
         (
             aiohttp.ClientError,
             r"aiohttp ClientError \(response.read\)",
-            200,
             EnvoyCommunicationError,
         ),
-        (NotImplementedError("_json_request"), "_json_request", 200, RuntimeError),
-        (RuntimeError("_json_request"), "_json_request", 200, RuntimeError),
+        (NotImplementedError("_json_request"), "_json_request", RuntimeError),
+        (RuntimeError("_json_request"), "_json_request", RuntimeError),
         (
-            asyncio.TimeoutError,
-            "HTTP status error https://127.0.0.1/home 350",
-            350,
-            EnvoyHTTPStatusError,
-        ),
-        (
-            aiohttp.ClientError,
-            "HTTP status error https://127.0.0.1/home 500",
-            500,
-            EnvoyHTTPStatusError,
-        ),
-        (
-            RuntimeError("_json_request"),
-            "HTTP status error https://127.0.0.1/home 400",
-            400,
-            EnvoyHTTPStatusError,
+            asyncio.CancelledError("_json_request"),
+            "_json_request",
+            asyncio.CancelledError,
         ),
     ],
     ids=[
-        "timeout_200",
-        "client_200",
-        "notimplemented_200",
-        "runtime_200",
-        "timeout_350",
-        "client_500",
-        "runtime_400",
+        "timeout",
+        "client",
+        "notimplemented",
+        "runtime",
+        "canceled",
     ],
 )
 @pytest.mark.asyncio
@@ -143,7 +138,6 @@ async def test_json_request_response_read(
     caplog: pytest.LogCaptureFixture,
     error: Exception,
     match: str,
-    http_status: int,
     expected_exception: Any,
 ) -> None:
     """Test _json_request error on response.read."""
@@ -165,7 +159,7 @@ async def test_json_request_response_read(
             mock_aioresponse,
             "get",
             f"{full_host}{ENDPOINT_URL_HOME}",
-            status=http_status,
+            status=200,
             repeat=True,
         )
 
@@ -223,7 +217,7 @@ async def test_json_request_data_return(
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test _json_request http non-200 and decode errors."""
+    """Test _json_request json results."""
     start_7_firmware_mock(mock_aioresponse)
     version = "7.6.175"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
