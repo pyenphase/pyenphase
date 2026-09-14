@@ -115,7 +115,7 @@ async def test_json_request_error_on_request(
             r"aiohttp ClientError \(response.read\)",
             EnvoyCommunicationError,
         ),
-        (NotImplementedError("_json_request"), "_json_request", RuntimeError),
+        (NotImplementedError("_json_request"), "_json_request", NotImplementedError),
         (RuntimeError("_json_request"), "_json_request", RuntimeError),
         (
             asyncio.CancelledError("_json_request"),
@@ -141,10 +141,10 @@ async def test_json_request_response_read(
     expected_exception: Any,
 ) -> None:
     """Test _json_request error on response.read."""
-    # we want to test the response.read RuntimeError of _json_request
+    # we want to test the response.read errors of _json_request
     # if debug is enabled the debug statement in envoy._request
     # already perform a request.read which preempts our test
-    # disable debug here so RuntimeError failure is caught by the
+    # disable debug here so failures are caught by the
     # _json_request request.read and not by the _json_request
     # try except around _request call.
     with temporary_log_level("pyenphase", logging.WARN):
