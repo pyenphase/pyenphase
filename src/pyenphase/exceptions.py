@@ -100,12 +100,14 @@ class EnvoyCommunicationError(EnvoyError):
     """
 
 
-class EnvoyClientClosedError(EnvoyError):
+class EnvoyClientClosedError(RuntimeError):
     """
     Exception raised when the :py:class:`pyenphase.Envoy` client
     aiohttp ClientSession is closed before request is issued.
 
     """
+
+    # Subclasses RuntimeError for backward compatibility
 
 
 class EnvoyFeatureNotAvailable(EnvoyError):

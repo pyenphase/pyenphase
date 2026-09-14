@@ -208,9 +208,10 @@ async def test_home_endpoint_errors_with_7_6_175(
             "This error never fires as session closed is tested before request"
         ),
     )
-    await envoy.interface_settings()
+    with pytest.raises(RuntimeError, match="Client closed before request is issued"):
+        await envoy.interface_settings()
     assert "Request to /home aborted because client is closed" in caplog.text
-    assert "Failure getting interface information" in caplog.text
+    assert "Failure getting interface information" not in caplog.text
     caplog.clear()
 
 

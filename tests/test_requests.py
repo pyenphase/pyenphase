@@ -56,6 +56,12 @@ LOGGER = logging.getLogger(__name__)
             EnvoyClientClosedError,
             True,
         ),
+        (  # test _request with session closed is still caught as RuntimeError (actual error is not relevant)
+            RuntimeError("Test _json_request runtimerror closed"),
+            "Client closed before request is issued",
+            RuntimeError,
+            True,
+        ),
         (  # test task cancellation is not swallowed
             asyncio.CancelledError("Test _json_request runtimerror canceled"),
             r"Test _json_request runtimerror canceled",
@@ -67,6 +73,7 @@ LOGGER = logging.getLogger(__name__)
         "timeout",
         "client",
         "runtime_open",
+        "envoyclient_closed",
         "runtime_closed",
         "canceled_open",
     ],
