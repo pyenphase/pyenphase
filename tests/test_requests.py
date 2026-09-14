@@ -12,7 +12,7 @@ from aioresponses import aioresponses
 
 from pyenphase import EnvoyCommunicationError
 from pyenphase.const import ENDPOINT_URL_HOME
-from pyenphase.exceptions import EnvoyHTTPStatusError
+from pyenphase.exceptions import EnvoyClientClosedError, EnvoyHTTPStatusError
 
 from .common import (
     endpoint_path,
@@ -41,19 +41,19 @@ LOGGER = logging.getLogger(__name__)
             EnvoyCommunicationError,
             False,
         ),
-        (  # test _request error
+        (  # test run time errors are not swallowed
             RuntimeError("Test _json_request runtimerror not closed"),
             "Test _json_request runtimerror not closed",
             RuntimeError,
             False,
         ),
-        (  # test _request error with session closed
+        (  # test _request with session closed (actual error is not relevant)
             RuntimeError("Test _json_request runtimerror closed"),
-            r"RuntimeError \(request\) Session is closed",
-            EnvoyCommunicationError,
+            "Client closed before request is issued",
+            EnvoyClientClosedError,
             True,
         ),
-        (
+        (  # test task cancellation is not swallowed
             asyncio.CancelledError("Test _json_request runtimerror canceled"),
             r"Test _json_request runtimerror canceled",
             asyncio.CancelledError,

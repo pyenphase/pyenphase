@@ -200,7 +200,7 @@ async def test_home_endpoint_errors_with_7_6_175(
         exception=RuntimeError("Test runtimeexception session closed"),
     )
     await envoy.interface_settings()
-    assert "RuntimeError (closed: True) Session is closed" in caplog.text
+    assert "Request to /home aborted because client is closed" in caplog.text
     assert "Failure getting interface information" in caplog.text
     caplog.clear()
 

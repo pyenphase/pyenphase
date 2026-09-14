@@ -54,6 +54,7 @@ from .const import (
 )
 from .exceptions import (
     EnvoyAuthenticationRequired,
+    EnvoyClientClosedError,
     EnvoyCommunicationError,
     EnvoyError,
     EnvoyFeatureNotAvailable,
@@ -870,13 +871,20 @@ class Envoy:
             POST if none, only used for data send
         :raises EnvoyCommunicationError: when aiohttp Client, Timeout, or a
             closed-session RuntimeError occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx
+        :raises EnvoyClientClosedError: when aiohttp client is closed before request is issued
         :raises RuntimeError: when a RuntimeError occurs while the client
             session is still open.
         :return: response content as JSON
         """
         progress = "request"
         try:
+            if self._client.closed:
+                _LOGGER.debug(
+                    "Request to %s aborted because client is closed.",
+                    end_point,
+                )
+                raise EnvoyClientClosedError("Client closed before request is issued")
             response = await self._request(end_point, data, method)
             async with response:  # release response on error
                 if not (200 <= response.status < 300):
@@ -900,21 +908,6 @@ class Envoy:
                 "Request to %s timed out in %s stage: %s", end_point, progress, err
             )
             raise EnvoyCommunicationError(f"Timeout ({progress}) {err!s}") from err
-        except RuntimeError as err:
-            closed = self._client.closed
-            _LOGGER.debug(
-                "Request to %s failed in %s stage with RuntimeError (closed: %s) %s",
-                end_point,
-                progress,
-                closed,
-                err,
-            )
-            if closed:
-                # session closed runtime error transfer to EnvoyCommunicationError
-                raise EnvoyCommunicationError(
-                    f"RuntimeError ({progress}) {err!s}"
-                ) from err
-            raise
         except orjson.JSONDecodeError as err:
             _LOGGER.debug("Request to %s returns invalid JSON: %s", end_point, err)
             raise EnvoyCommunicationError(
