@@ -880,7 +880,7 @@ class Envoy:
         progress = "request"
         try:
             if self._client.closed:
-                _LOGGER.debug(
+                _LOGGER.error(
                     "Request to %s aborted because client is closed.",
                     end_point,
                 )
