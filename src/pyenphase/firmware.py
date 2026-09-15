@@ -86,10 +86,8 @@ class EnvoyFirmware:
         ever comes first on network or remote protocol errors.
         HTTP status is not verified.
 
-        :raises EnvoyFirmwareFatalCheckError: if connection or timeout
-            failure occurs
-        :raises EnvoyFirmwareCheckError: on http errors or any HTTP
-            status other then 200
+        :raises aiohttp.ClientError: on network or protocol errors once retries are exhausted
+        :raises asyncio.TimeoutError: on timeout once retries are exhausted
         :raises EnvoyClientClosedError: when aiohttp client is closed
             before request is issued
         :return: tuple of (status_code, content)

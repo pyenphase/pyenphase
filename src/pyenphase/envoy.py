@@ -385,6 +385,8 @@ class Envoy:
             if none and data is specified, POST is default.
         :raises EnvoyAuthenticationRequired: if no prior authentication
             was completed or HTTP status 401 or 404 is returned
+        :raises aiohttp.ClientError: on communication errors once retries are exhausted
+        :raises asyncio.TimeoutError: on timeouts once retries are exhausted
         :raises EnvoyClientClosedError: when aiohttp client is closed
             before request is issued (see :py:meth:`pyenphase.Envoy._request`)
         :return: request response.
