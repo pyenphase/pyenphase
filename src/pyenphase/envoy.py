@@ -770,6 +770,8 @@ class Envoy:
 
         :raises EnvoyProbeFailed: if no solar production data can be found on the Envoy.
             Solar production data is available in all Envoy models.
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued
         """
         supported_features = SupportedFeatures(0)
         updaters: list[EnvoyUpdater] = []
@@ -842,6 +844,8 @@ class Envoy:
 
         :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued
         :return: Collected Envoy data
         """
         # Some of the updaters user the same endpoint
