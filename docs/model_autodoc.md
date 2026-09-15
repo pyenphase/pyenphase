@@ -5,7 +5,7 @@
   :members:
   :undoc-members:
   :show-inheritance:
-  :private-members: _json_request
+  :private-members: _json_request, _request
   :member-order: alphabetical
   :class-doc-from: init
 ```

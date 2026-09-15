@@ -230,6 +230,8 @@ class Envoy:
             failure occurs
         :raises EnvoyFirmwareCheckError: on http errors or any HTTP
             status other then 200
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued
         """
         await self._firmware.setup()
         # force refetch of interface data next time requested
@@ -348,8 +350,7 @@ class Envoy:
         which ever comes first.
 
         :param endpoint: Envoy Endpoint to access, start with leading /.
-        :raises EnvoyAuthenticationRequired: if no prior authentication
-            was completed or HTTP status 401 or 404 is returned.
+        :raises errors returned by _request: see :py:meth:`pyenphase.Envoy._request`
         :return: request response.
         """
         return await self._request(endpoint)
@@ -379,9 +380,8 @@ class Envoy:
             Defaults to none, if none a GET request is issued.
         :param method: HTTP method to use when sending data dictionary,
             if none and data is specified, POST is default.
-        :raises EnvoyAuthenticationRequired: if no prior authentication
-            was completed or HTTP status 401 or 404 is returned.
-        :raises: Any communication errors when retries are exceeded
+        :raises errors returned by _request: see :py:meth:`pyenphase.Envoy._request`
+        :raises Any communication error: when retries are exceeded
         :return: request response.
         """
         self._request_last_attempts = 0
@@ -483,6 +483,8 @@ class Envoy:
             POST if none, only used for data send
         :raises EnvoyAuthenticationRequired: if no prior authentication
             was completed or HTTP status 401 or 404 is returned
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued
         :return: request response
         """
         if self.auth is None:
@@ -492,6 +494,13 @@ class Envoy:
 
         url = self.auth.get_endpoint_url(endpoint)
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
+        if self._client.closed:
+            if debugon:
+                _LOGGER.error(
+                    "Request to %s aborted because client is closed.",
+                    endpoint,
+                )
+            raise EnvoyClientClosedError("Client closed before request is issued")
         if debugon:
             request_start = time.monotonic()
 
@@ -877,12 +886,7 @@ class Envoy:
         """
         progress = "request"
         try:
-            if self._client.closed:
-                _LOGGER.error(
-                    "Request to %s aborted because client is closed.",
-                    end_point,
-                )
-                raise EnvoyClientClosedError("Client closed before request is issued")
+            # note: _request will test client closed and raise EnvoyClientClosedError
             response = await self._request(end_point, data, method)
             async with response:  # release response on error
                 if not (200 <= response.status < 300):

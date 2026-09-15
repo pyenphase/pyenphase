@@ -7,7 +7,7 @@ import pytest
 from aioresponses import aioresponses
 
 from pyenphase import Envoy
-from pyenphase.exceptions import EnvoyFirmwareCheckError
+from pyenphase.exceptions import EnvoyClientClosedError, EnvoyFirmwareCheckError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -190,3 +190,28 @@ async def test_firmware_missing_metered_with_7_6_175_standard(
     envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
     assert not envoy.is_metered
+
+
+@pytest.mark.asyncio
+async def test_firmware_client_closed(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """Test firmware signals client closed."""
+    info = (
+        "<?xml version='1.0' encoding='UTF-8'?>"
+        "<envoy_info>"
+        "  <device>"
+        "    <sn>123456789012</sn>"
+        "    <pn>800-12345-r99</pn>"
+        "    <software>D7.8.901</software>"
+        "  </device>"
+        "</envoy_info>"
+    )
+    mock_aioresponse.get("https://127.0.0.1/info", status=200, body=info)
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+    # close client to force client closed
+    await envoy._client.close()
+    with pytest.raises(
+        EnvoyClientClosedError, match="Client closed before request is issued"
+    ):
+        await envoy.setup()
