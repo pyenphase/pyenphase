@@ -1,6 +1,30 @@
 # CHANGELOG
 
 
+## v4.0.4 (2026-09-15)
+
+### Bug Fixes
+
+- Guard _json_request response read and raise EnvoyClientClosedError on closed session
+  ([#501](https://github.com/pyenphase/pyenphase/pull/501),
+  [`fd3b8b2`](https://github.com/pyenphase/pyenphase/commit/fd3b8b2bde7385eb127ad2d5c7bc7c288cc91e41))
+
+### Chores
+
+- **ci**: Bump the github-actions group with 3 updates
+  ([#494](https://github.com/pyenphase/pyenphase/pull/494),
+  [`666ccf9`](https://github.com/pyenphase/pyenphase/commit/666ccf9ce4d639c3f415199700f35b6f69052efc))
+
+- **deps**: Bump lxml from 6.1.2 to 6.1.3 ([#497](https://github.com/pyenphase/pyenphase/pull/497),
+  [`e614220`](https://github.com/pyenphase/pyenphase/commit/e6142204d22f4ace9dbdfb8ff7f32ae3a5fbdef3))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#502](https://github.com/pyenphase/pyenphase/pull/502),
+  [`c70b33a`](https://github.com/pyenphase/pyenphase/commit/c70b33ad7e561a2597072c841eebe5a6f1b89074))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#498](https://github.com/pyenphase/pyenphase/pull/498),
+  [`73a7790`](https://github.com/pyenphase/pyenphase/commit/73a77902cbb4cbe1af85f4c01a82f80b0c361666))
+
+
 ## v4.0.3 (2026-09-11)
 
 ### Bug Fixes
