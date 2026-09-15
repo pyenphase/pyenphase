@@ -16,7 +16,11 @@ from tenacity import (
 )
 
 from .const import LOCAL_TIMEOUT, MAX_PROBE_REQUEST_ATTEMPTS, MAX_PROBE_REQUEST_DELAY
-from .exceptions import EnvoyFirmwareCheckError, EnvoyFirmwareFatalCheckError
+from .exceptions import (
+    EnvoyClientClosedError,
+    EnvoyFirmwareCheckError,
+    EnvoyFirmwareFatalCheckError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,6 +58,15 @@ class EnvoyFirmware:
         self._url: str = ""
         self._metered: bool = False
 
+    def raise_on_client_closed(self, endpoint: str) -> None:
+        """Raise EnvoyClientClosedError if client is closed"""
+        if self._client.closed:
+            _LOGGER.error(
+                "Request to %s aborted because client is closed.",
+                endpoint,
+            )
+            raise EnvoyClientClosedError("Client closed before request is issued")
+
     @retry(
         retry=retry_if_exception_type(aiohttp.ClientError),
         wait=wait_random_exponential(multiplier=2, max=5),
@@ -73,11 +86,18 @@ class EnvoyFirmware:
         ever comes first on network or remote protocol errors.
         HTTP status is not verified.
 
+        :raises EnvoyFirmwareFatalCheckError: if connection or timeout
+            failure occurs
+        :raises EnvoyFirmwareCheckError: on http errors or any HTTP
+            status other then 200
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued
         :return: tuple of (status_code, content)
         """
         self._url = f"https://{self._host}/info"
         _LOGGER.debug("Requesting %s with timeout %s", self._url, LOCAL_TIMEOUT)
         try:
+            self.raise_on_client_closed(self._url)
             resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
             return resp.status, await resp.read()
         except (aiohttp.ClientConnectorError, asyncio.TimeoutError):
@@ -86,6 +106,7 @@ class EnvoyFirmware:
             # which is not helpful
             self._url = f"http://{self._host}/info"
             _LOGGER.debug("Retrying to %s with timeout %s", self._url, LOCAL_TIMEOUT)
+            self.raise_on_client_closed(self._url)
             resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
             return resp.status, await resp.read()
 
@@ -114,6 +135,8 @@ class EnvoyFirmware:
             failure occurs
         :raises EnvoyFirmwareCheckError: on http errors or any HTTP
             status other then 200
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued
         """
         # <envoy>/info will return XML with the firmware version
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)

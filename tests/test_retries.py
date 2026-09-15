@@ -16,6 +16,7 @@ from pyenphase.const import (
 )
 from pyenphase.exceptions import (
     EnvoyAuthenticationRequired,
+    EnvoyClientClosedError,
     EnvoyCommunicationError,
     EnvoyFirmwareCheckError,
     EnvoyFirmwareFatalCheckError,
@@ -657,3 +658,79 @@ async def test_retry_policy(
     stats2: dict[str, Any] = envoy2.last_request_statistics
     assert "attempt_number" in stats2
     assert stats2["attempt_number"] == DEFAULT_MAX_REQUEST_ATTEMPTS
+
+
+@pytest.mark.asyncio
+async def test_nosession_at_probe(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """Test session closed at probe"""
+    version = "7.6.175_standard"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+    # remove the waits between retries for this test and set known retries
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    envoy._firmware._get_info.retry.wait = wait_none()
+    envoy.probe_request.retry.wait = wait_none()
+
+    await envoy.setup()
+    await envoy.authenticate("username", "password")
+
+    # Ensure there was 1 attempt.
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
+    assert "attempt_number" in stats
+    assert stats["attempt_number"] == 1
+
+    # force session closed
+    await envoy._client.close()
+
+    with pytest.raises(
+        EnvoyClientClosedError, match="Client closed before request is issued"
+    ):
+        await envoy.probe()
+
+    stats = envoy.probe_request.statistics
+    assert "attempt_number" in stats
+    assert stats["attempt_number"] == 1
+
+
+@pytest.mark.asyncio
+async def test_session_closed_at_update(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """Test session closed at update"""
+    version = "7.6.175_standard"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+    # remove the waits between retries for this test
+    # retries are defined by MAX_PROBE_REQUEST_ATTEMPTS and MAX_PROBE_REQUEST_DELAY
+    envoy._firmware._get_info.retry.wait = wait_none()
+
+    await envoy.setup()
+    await envoy.authenticate("username", "password")
+
+    # Ensure that there was 1 attempt only.
+    stats: dict[str, Any] = envoy._firmware._get_info.statistics
+    assert "attempt_number" in stats
+    assert stats["attempt_number"] == 1
+
+    assert envoy.firmware == "7.6.175"
+    assert envoy.part_number == "800-00656-r06"
+
+    await envoy.probe()
+
+    # force session closed
+    await envoy._client.close()
+
+    with pytest.raises(
+        EnvoyClientClosedError, match="Client closed before request is issued"
+    ):
+        await envoy.update()
+
+    stats = envoy.last_request_statistics
+    assert "attempt_number" in stats
+    assert stats["attempt_number"] == 1
