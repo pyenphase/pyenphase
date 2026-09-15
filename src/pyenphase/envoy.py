@@ -54,7 +54,6 @@ from .const import (
 )
 from .exceptions import (
     EnvoyAuthenticationRequired,
-    EnvoyClientClosedError,
     EnvoyCommunicationError,
     EnvoyError,
     EnvoyFeatureNotAvailable,
@@ -84,6 +83,7 @@ from .updaters.production import (
     EnvoyProductionUpdater,
 )
 from .updaters.tariff import EnvoyTariffUpdater
+from .utilities import raise_on_client_closed
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -501,12 +501,7 @@ class Envoy:
 
         url = self.auth.get_endpoint_url(endpoint)
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
-        if self._client.closed:
-            _LOGGER.error(
-                "Request to %s aborted because client is closed.",
-                endpoint,
-            )
-            raise EnvoyClientClosedError("Client closed before request is issued")
+        raise_on_client_closed(self._client, endpoint)
         if debugon:
             request_start = time.monotonic()
 

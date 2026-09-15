@@ -17,10 +17,10 @@ from tenacity import (
 
 from .const import LOCAL_TIMEOUT, MAX_PROBE_REQUEST_ATTEMPTS, MAX_PROBE_REQUEST_DELAY
 from .exceptions import (
-    EnvoyClientClosedError,
     EnvoyFirmwareCheckError,
     EnvoyFirmwareFatalCheckError,
 )
+from .utilities import raise_on_client_closed
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,15 +58,6 @@ class EnvoyFirmware:
         self._url: str = ""
         self._metered: bool = False
 
-    def raise_on_client_closed(self, endpoint: str) -> None:
-        """Raise EnvoyClientClosedError if client is closed"""
-        if self._client.closed:
-            _LOGGER.error(
-                "Request to %s aborted because client is closed.",
-                endpoint,
-            )
-            raise EnvoyClientClosedError("Client closed before request is issued")
-
     @retry(
         retry=retry_if_exception_type(aiohttp.ClientError),
         wait=wait_random_exponential(multiplier=2, max=5),
@@ -95,7 +86,7 @@ class EnvoyFirmware:
         self._url = f"https://{self._host}/info"
         _LOGGER.debug("Requesting %s with timeout %s", self._url, LOCAL_TIMEOUT)
         try:
-            self.raise_on_client_closed(self._url)
+            raise_on_client_closed(self._client, self._url)
             resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
             return resp.status, await resp.read()
         except (aiohttp.ClientConnectorError, asyncio.TimeoutError):
@@ -104,7 +95,7 @@ class EnvoyFirmware:
             # which is not helpful
             self._url = f"http://{self._host}/info"
             _LOGGER.debug("Retrying to %s with timeout %s", self._url, LOCAL_TIMEOUT)
-            self.raise_on_client_closed(self._url)
+            raise_on_client_closed(self._client, self._url)
             resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
             return resp.status, await resp.read()
 
