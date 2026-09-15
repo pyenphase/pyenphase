@@ -495,11 +495,10 @@ class Envoy:
         url = self.auth.get_endpoint_url(endpoint)
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
         if self._client.closed:
-            if debugon:
-                _LOGGER.error(
-                    "Request to %s aborted because client is closed.",
-                    endpoint,
-                )
+            _LOGGER.error(
+                "Request to %s aborted because client is closed.",
+                endpoint,
+            )
             raise EnvoyClientClosedError("Client closed before request is issued")
         if debugon:
             request_start = time.monotonic()

@@ -30,34 +30,30 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.parametrize(
-    ("error", "match", "expected_exception", "close_session", "with_debug"),
+    ("error", "match", "expected_exception", "close_session"),
     [
         (  # test _request error
             asyncio.TimeoutError("Test _json_request"),
             r"Timeout \(request\) Test _json_request",
             EnvoyCommunicationError,
             False,
-            True,
         ),
         (  # test _request error
             aiohttp.ClientError("Test _json_request"),
             r"aiohttp ClientError \(request\) Test _json_request",
             EnvoyCommunicationError,
             False,
-            True,
         ),
         (  # test run time errors are not swallowed
             RuntimeError("Test _json_request runtimerror not closed"),
             "Test _json_request runtimerror not closed",
             RuntimeError,
             False,
-            True,
         ),
         (  # test _request with session closed (actual error is not relevant)
             RuntimeError("Test _json_request runtimerror closed"),
             "Client closed before request is issued",
             EnvoyClientClosedError,
-            True,
             True,
         ),
         (  # test _request with session closed is still caught as RuntimeError (actual error is not relevant)
@@ -65,20 +61,11 @@ LOGGER = logging.getLogger(__name__)
             "Client closed before request is issued",
             RuntimeError,
             True,
-            True,
         ),
         (  # test task cancellation is not swallowed
             asyncio.CancelledError("Test _json_request runtimerror canceled"),
             r"Test _json_request runtimerror canceled",
             asyncio.CancelledError,
-            False,
-            True,
-        ),
-        (  # test _request with session closed with debug off for COV (actual error is not relevant)
-            RuntimeError("Test _json_request runtimerror closed"),
-            "Client closed before request is issued",
-            EnvoyClientClosedError,
-            True,
             False,
         ),
     ],
@@ -89,7 +76,6 @@ LOGGER = logging.getLogger(__name__)
         "envoyclient_closed",
         "runtime_closed",
         "canceled_open",
-        "runtime_closed_nodebug",
     ],
 )
 @pytest.mark.asyncio
@@ -101,7 +87,6 @@ async def test_json_request_error_on_request(
     match: str,
     expected_exception: Any,
     close_session: bool,
-    with_debug: bool,
 ) -> None:
     """Test _json_request request call error handling."""
     start_7_firmware_mock(mock_aioresponse)
@@ -123,10 +108,7 @@ async def test_json_request_error_on_request(
     if close_session:
         await envoy._client.close()
 
-    with (
-        temporary_log_level("pyenphase", logging.DEBUG if with_debug else logging.WARN),
-        pytest.raises(expected_exception, match=match),
-    ):
+    with pytest.raises(expected_exception, match=match):
         await envoy._json_request(ENDPOINT_URL_HOME, None)
 
 
