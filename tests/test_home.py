@@ -137,7 +137,14 @@ async def test_home_endpoint_errors_with_7_6_175(
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test home interface information data"""
+    """
+    Test home interface information data
+
+    Interface_settings converts all EnvoyError into
+    last known internal value, none if never collected
+    and logs 'Failure getting interface information' in debug
+
+    """
     caplog.set_level(logging.DEBUG)
 
     # start with regular data first
@@ -182,6 +189,30 @@ async def test_home_endpoint_errors_with_7_6_175(
     )
     await envoy.interface_settings()
     assert "Failure getting interface information" in caplog.text
+    caplog.clear()
+
+    mock_aioresponse.get(
+        "https://127.0.0.1/home",
+        exception=RuntimeError("Test runtimeexception session open"),
+    )
+    # RuntimeErrors will reraise
+    with pytest.raises(RuntimeError, match="session open"):
+        await envoy.interface_settings()
+    caplog.clear()
+
+    # closed session will be caught before actual request and raises EnvoyClientClosed error
+    await envoy._client.close()
+    mock_aioresponse.get(
+        "https://127.0.0.1/home",
+        exception=RuntimeError(
+            "This error never fires as session closed is tested before request"
+        ),
+    )
+    with pytest.raises(RuntimeError, match="Client closed before request is issued"):
+        await envoy.interface_settings()
+    assert "Request to /home aborted because client is closed" in caplog.text
+    assert "Failure getting interface information" not in caplog.text
+    caplog.clear()
 
 
 @pytest.mark.asyncio

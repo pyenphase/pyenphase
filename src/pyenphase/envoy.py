@@ -54,6 +54,7 @@ from .const import (
 )
 from .exceptions import (
     EnvoyAuthenticationRequired,
+    EnvoyClientClosedError,
     EnvoyCommunicationError,
     EnvoyError,
     EnvoyFeatureNotAvailable,
@@ -868,31 +869,45 @@ class Envoy:
         :param data: data dictionary to send to the Envoy, defaults to None
         :param method: method to use to send data dictionary,
             POST if none, only used for data send
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises EnvoyCommunicationError: when aiohttp Client, Timeout or JSONDecodeError error occurs.
+        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx
+        :raises EnvoyClientClosedError: when aiohttp client is closed before request is issued
+        :raises: All other unguarded exceptions from the aiohttp request
         :return: response content as JSON
         """
+        progress = "request"
         try:
+            if self._client.closed:
+                _LOGGER.error(
+                    "Request to %s aborted because client is closed.",
+                    end_point,
+                )
+                raise EnvoyClientClosedError("Client closed before request is issued")
             response = await self._request(end_point, data, method)
-        except aiohttp.ClientError as err:
-            _LOGGER.debug("Request to %s failed with ClientError: %s", end_point, err)
-            raise EnvoyCommunicationError(f"aiohttp ClientError {err!s}") from err
-        except asyncio.TimeoutError as err:
-            _LOGGER.debug("Request to %s timed out: %s", end_point, err)
-            raise EnvoyCommunicationError(f"Timeout {err!s}") from err
-        if not (200 <= response.status < 300):
-            content = await response.read()
-            _LOGGER.debug(
-                "Request to %s failed with status %s: %s",
-                end_point,
-                response.status,
-                content[:500] if content else "No content",
-            )
-            raise EnvoyHTTPStatusError(response.status, str(response.url))
+            async with response:  # release response on error
+                if not (200 <= response.status < 300):
+                    # body and status already logged by _request when debug is enabled
+                    raise EnvoyHTTPStatusError(response.status, str(response.url))
 
-        try:
-            return json_loads(end_point, await response.read())
+                progress = "response.read"
+                return json_loads(end_point, await response.read())
+        except aiohttp.ClientError as err:
+            _LOGGER.debug(
+                "Request to %s failed in %s stage with ClientError: %s",
+                end_point,
+                progress,
+                err,
+            )
+            raise EnvoyCommunicationError(
+                f"aiohttp ClientError ({progress}) {err!s}"
+            ) from err
+        except asyncio.TimeoutError as err:
+            _LOGGER.debug(
+                "Request to %s timed out in %s stage: %s", end_point, progress, err
+            )
+            raise EnvoyCommunicationError(f"Timeout ({progress}) {err!s}") from err
         except orjson.JSONDecodeError as err:
+            _LOGGER.debug("Request to %s returns invalid JSON: %s", end_point, err)
             raise EnvoyCommunicationError(
                 f"Invalid JSON response from {end_point}: {err}"
             ) from err
@@ -905,8 +920,7 @@ class Envoy:
         to connect to the grid. Requires ENPOWER installed.
 
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :return: JSON returned by Envoy
         """
         if not self.supported_features & SupportedFeatures.ENPOWER:
@@ -923,8 +937,7 @@ class Envoy:
         to disconnect from the grid. Requires ENPOWER installed.
 
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :return: JSON returned by Envoy
         """
         if not self.supported_features & SupportedFeatures.ENPOWER:
@@ -962,8 +975,7 @@ class Envoy:
 
         :param new_data: dict of settings to change, "id" key/value required
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :raises ValueError: If no "id" key is present in data dict to send.
         :return: dry_contact_settings JSON returned by Envoy
@@ -1000,8 +1012,7 @@ class Envoy:
 
         :param id: relay id of dry contact relay to open
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :return: JSON response of Envoy
         """
         if not self.supported_features & SupportedFeatures.ENPOWER:
@@ -1030,8 +1041,7 @@ class Envoy:
 
         :param id: relay id of dry contact relay to open
         :raises EnvoyFeatureNotAvailable: If ENPOWER feature is not available in Envoy
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :return: JSON response of Envoy
         """
         if not self.supported_features & SupportedFeatures.ENPOWER:
@@ -1065,8 +1075,7 @@ class Envoy:
         :param mode: generator mode to set, one of "off", "on" or "auto"
         :raises EnvoyFeatureNotAvailable: If GENERATOR feature is not available in Envoy
         :raises ValueError: If mode is not one of "off", "on" or "auto"
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :return: JSON returned by Envoy
         """
         if not self.supported_features & SupportedFeatures.GENERATOR:
@@ -1158,9 +1167,8 @@ class Envoy:
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :raises ValueError: If an unknown setting is specified or a value is out of range
         :raises ValueError: If the resulting default_start_soc is not lower than default_stop_soc
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyCommunicationError: If the Envoy does not return a complete schedule document
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :return: generator schedule JSON returned by Envoy
         """
         if (
@@ -1359,9 +1367,8 @@ class Envoy:
         :raises EnvoyFeatureNotAvailable: If GENERATOR feature is not available in Envoy
         :raises TypeError: If charge_from_generator is not of type bool
         :raises ValueError: If update was attempted before first data was requested from Envoy
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyCommunicationError: If the Envoy does not return a complete configuration document
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :return: generator configuration JSON returned by Envoy
         """
         if not self.supported_features & SupportedFeatures.GENERATOR:
@@ -1422,8 +1429,7 @@ class Envoy:
             sleep_min_soc (int 0-100), sleep_max_soc (int 0-100).
         :raises EnvoyFeatureNotAvailable: If ACB feature is not available in Envoy
         :raises ValueError: If configs is empty or any entry has invalid/missing fields.
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :return: JSON response of Envoy
         """
         if not self.supported_features & SupportedFeatures.ACB:
@@ -1497,8 +1503,7 @@ class Envoy:
         :param serial_nums: List of ACB device serial numbers.
         :raises EnvoyFeatureNotAvailable: If ACB feature is not available in Envoy
         :raises ValueError: If serial_nums is empty or contains empty serials.
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :return: JSON response of Envoy
         """
         if not self.supported_features & SupportedFeatures.ACB:
@@ -1565,8 +1570,7 @@ class Envoy:
 
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy
         """
@@ -1591,8 +1595,7 @@ class Envoy:
 
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy
         """
@@ -1632,8 +1635,7 @@ class Envoy:
             alongside the mode change
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy
         """
@@ -1666,8 +1668,7 @@ class Envoy:
         :param value: reserve soc to set
         :raises EnvoyFeatureNotAvailable: If no Encharge or IQ batteries are available
         :raises EnvoyFeatureNotAvailable: If no TARIFF data is available in Envoy
-        :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
-        :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises errors returned by _json_request: see :py:meth:`pyenphase.Envoy._json_request`
         :raises ValueError: If update was attempted before first data was requested from Envoy
         :return: JSON response of Envoy
         """
