@@ -54,7 +54,6 @@ from .const import (
 )
 from .exceptions import (
     EnvoyAuthenticationRequired,
-    EnvoyClientClosedError,
     EnvoyCommunicationError,
     EnvoyError,
     EnvoyFeatureNotAvailable,
@@ -84,6 +83,7 @@ from .updaters.production import (
     EnvoyProductionUpdater,
 )
 from .updaters.tariff import EnvoyTariffUpdater
+from .utilities import raise_on_client_closed
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -230,6 +230,8 @@ class Envoy:
             failure occurs
         :raises EnvoyFirmwareCheckError: on http errors or any HTTP
             status other then 200
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued
         """
         await self._firmware.setup()
         # force refetch of interface data next time requested
@@ -349,7 +351,9 @@ class Envoy:
 
         :param endpoint: Envoy Endpoint to access, start with leading /.
         :raises EnvoyAuthenticationRequired: if no prior authentication
-            was completed or HTTP status 401 or 404 is returned.
+            was completed or HTTP status 401 or 404 is returned
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued (see :py:meth:`pyenphase.Envoy._request`)
         :return: request response.
         """
         return await self._request(endpoint)
@@ -380,8 +384,11 @@ class Envoy:
         :param method: HTTP method to use when sending data dictionary,
             if none and data is specified, POST is default.
         :raises EnvoyAuthenticationRequired: if no prior authentication
-            was completed or HTTP status 401 or 404 is returned.
-        :raises: Any communication errors when retries are exceeded
+            was completed or HTTP status 401 or 404 is returned
+        :raises aiohttp.ClientError: on communication errors once retries are exhausted
+        :raises asyncio.TimeoutError: on timeouts once retries are exhausted
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued (see :py:meth:`pyenphase.Envoy._request`)
         :return: request response.
         """
         self._request_last_attempts = 0
@@ -483,6 +490,8 @@ class Envoy:
             POST if none, only used for data send
         :raises EnvoyAuthenticationRequired: if no prior authentication
             was completed or HTTP status 401 or 404 is returned
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued
         :return: request response
         """
         if self.auth is None:
@@ -492,6 +501,7 @@ class Envoy:
 
         url = self.auth.get_endpoint_url(endpoint)
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)
+        raise_on_client_closed(self._client, endpoint)
         if debugon:
             request_start = time.monotonic()
 
@@ -762,6 +772,8 @@ class Envoy:
 
         :raises EnvoyProbeFailed: if no solar production data can be found on the Envoy.
             Solar production data is available in all Envoy models.
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued (see :py:meth:`pyenphase.Envoy._request`)
         """
         supported_features = SupportedFeatures(0)
         updaters: list[EnvoyUpdater] = []
@@ -834,6 +846,8 @@ class Envoy:
 
         :raises EnvoyCommunicationError: when aiohttp network or communication error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx.
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+            before request is issued (see :py:meth:`pyenphase.Envoy._request`)
         :return: Collected Envoy data
         """
         # Some of the updaters user the same endpoint
@@ -869,20 +883,16 @@ class Envoy:
         :param data: data dictionary to send to the Envoy, defaults to None
         :param method: method to use to send data dictionary,
             POST if none, only used for data send
-        :raises EnvoyCommunicationError: when aiohttp Client, Timeout or JSONDecodeError error occurs.
+        :raises EnvoyCommunicationError: when aiohttp Client, Timeout or
+            JSONDecodeError error occurs.
         :raises EnvoyHTTPStatusError: when HTTP status is not 2xx
-        :raises EnvoyClientClosedError: when aiohttp client is closed before request is issued
-        :raises: All other unguarded exceptions from the aiohttp request
+        :raises EnvoyClientClosedError: when aiohttp client is closed before
+            request is issued (see :py:meth:`pyenphase.Envoy._request`)
         :return: response content as JSON
         """
         progress = "request"
         try:
-            if self._client.closed:
-                _LOGGER.error(
-                    "Request to %s aborted because client is closed.",
-                    end_point,
-                )
-                raise EnvoyClientClosedError("Client closed before request is issued")
+            # note: _request will test client closed and raise EnvoyClientClosedError
             response = await self._request(end_point, data, method)
             async with response:  # release response on error
                 if not (200 <= response.status < 300):

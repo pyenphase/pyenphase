@@ -1,13 +1,15 @@
 """Test firmware functions."""
 
+import asyncio
 import logging
+from typing import Any
 
 import aiohttp
 import pytest
 from aioresponses import aioresponses
 
 from pyenphase import Envoy
-from pyenphase.exceptions import EnvoyFirmwareCheckError
+from pyenphase.exceptions import EnvoyClientClosedError, EnvoyFirmwareCheckError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -190,3 +192,59 @@ async def test_firmware_missing_metered_with_7_6_175_standard(
     envoy = Envoy("127.0.0.1", client=test_client_session)
     await envoy.setup()
     assert not envoy.is_metered
+
+
+@pytest.mark.asyncio
+async def test_firmware_https_client_closed(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """Test firmware signals client closed."""
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+    # close client to force client closed
+    await envoy._client.close()
+    with pytest.raises(
+        EnvoyClientClosedError, match="Client closed before request is issued"
+    ):
+        await envoy.setup()
+
+
+@pytest.mark.asyncio
+async def test_firmware_http_client_closed(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test session closed between https and http fallback."""
+    caplog.set_level(logging.DEBUG)
+
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+
+    # to test client closed during the failed https request we
+    # need to make sure that will not close it before the https request
+    # but right after it, so the closed test in the http fallback
+    # catches it. Use callback that awaits the actual closure function
+
+    async def close_and_timeout(url: str, **kwargs: Any) -> None:
+        await envoy._client.close()
+        raise asyncio.TimeoutError("Test session closed between https and http")
+
+    mock_aioresponse.get("https://127.0.0.1/info", callback=close_and_timeout)
+
+    with (
+        pytest.raises(
+            EnvoyClientClosedError,
+            match="Client closed before request is issued",
+        ),
+    ):
+        await envoy.setup()
+
+    assert "Requesting https://127.0.0.1/info" in caplog.text
+    assert (
+        "Request to https://127.0.0.1/info aborted because client is closed."
+        not in caplog.text
+    )
+    assert "Retrying to http://127.0.0.1/info" in caplog.text
+    assert (
+        "Request to http://127.0.0.1/info aborted because client is closed."
+        in caplog.text
+    )
