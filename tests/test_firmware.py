@@ -199,17 +199,6 @@ async def test_firmware_https_client_closed(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
     """Test firmware signals client closed."""
-    info = (
-        "<?xml version='1.0' encoding='UTF-8'?>"
-        "<envoy_info>"
-        "  <device>"
-        "    <sn>123456789012</sn>"
-        "    <pn>800-12345-r99</pn>"
-        "    <software>D7.8.901</software>"
-        "  </device>"
-        "</envoy_info>"
-    )
-    mock_aioresponse.get("https://127.0.0.1/info", status=200, body=info)
     envoy = Envoy("127.0.0.1", client=test_client_session)
     # close client to force client closed
     await envoy._client.close()
