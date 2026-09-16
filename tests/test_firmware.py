@@ -1,6 +1,8 @@
 """Test firmware functions."""
 
+import asyncio
 import logging
+from typing import Any
 
 import aiohttp
 import pytest
@@ -217,23 +219,13 @@ async def test_firmware_https_client_closed(
         await envoy.setup()
 
 
-async def fail_request_and_close_session(
-    url: str,
-    client: aiohttp.ClientSession,
-    body: str = "",
-) -> CallbackResult:
-    """Close session and return result"""
-    await client.close()
-    return CallbackResult(status=200, body=body)
-
-
 @pytest.mark.asyncio
 async def test_firmware_http_client_closed(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test firmware signals client closed."""
+    """Test session closed between https and http fallback."""
     caplog.set_level(logging.DEBUG)
     info = (
         "<?xml version='1.0' encoding='UTF-8'?>"
@@ -248,22 +240,27 @@ async def test_firmware_http_client_closed(
     envoy = Envoy("127.0.0.1", client=test_client_session)
 
     # to test client closed during the failed https request we
-    # need soething that will not close it before the https request
+    # need to make sure that will not close it before the https request
     # but right after it, so the closed test in the http fallback
-    # catches it. Using callback fails, it closes but the https closed
-    # checks picks it up already.
-    # DEBUG    pyenphase.firmware:firmware.py:87 Requesting https://127.0.0.1/info with timeout ...
-    # ERROR    pyenphase.utilities:utilities.py:15 Request to https://127.0.0.1/info aborted because client is closed.
-    # for now leave as is till a way to do this is clear
+    # catches it. Use callback that awaits the actual closure function
+    async def close_session_and_return_result(
+        body: str = "",
+    ) -> CallbackResult:
+        """Close session and return result"""
+        await envoy._client.close()
+        return CallbackResult(status=200, body=body)
+
+    async def close_on_https(url: str, **kwargs: Any) -> CallbackResult:
+        """Defer the close callback"""
+        return await close_session_and_return_result(
+            body=info,
+        )
+
     mock_aioresponse.get(
         "https://127.0.0.1/info",
         status=200,
-        exception=aiohttp.ClientConnectionError("Test https to http"),
-        callback=await fail_request_and_close_session(
-            url="/info",
-            client=envoy._client,
-            body=info,
-        ),
+        exception=asyncio.TimeoutError("Test session closed between https and http"),
+        callback=close_on_https,
     )
 
     mock_aioresponse.get(
@@ -279,11 +276,14 @@ async def test_firmware_http_client_closed(
         ),
     ):
         await envoy.setup()
+
     assert "Requesting https://127.0.0.1/info" in caplog.text
     assert (
         "Request to https://127.0.0.1/info aborted because client is closed."
+        not in caplog.text
+    )
+    assert "Requesting https://127.0.0.1/info" in caplog.text
+    assert (
+        "Request to http://127.0.0.1/info aborted because client is closed."
         in caplog.text
     )
-    # if we could test http fallback with closed then we need to test for this
-    # assert "Requesting https://127.0.0.1/info" in caplog.text
-    # assert "Request to http://127.0.0.1/info aborted because client is closed." in caplog.text
