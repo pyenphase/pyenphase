@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v4.0.5 (2026-09-16)
+
+### Bug Fixes
+
+- Raise EnvoyClientClosedError on closed session for setup, probe and update methods.
+  ([#503](https://github.com/pyenphase/pyenphase/pull/503),
+  [`ce4f647`](https://github.com/pyenphase/pyenphase/commit/ce4f647326dbf9ec389b25416b21f5ca91198ef9))
+
+
 ## v4.0.4 (2026-09-15)
 
 ### Bug Fixes
