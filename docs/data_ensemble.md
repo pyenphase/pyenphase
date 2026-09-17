@@ -6,26 +6,26 @@ Enphase ensemble [^1] provides information on installed battery storage and how 
 
 ## Enphase Enpower data
 
-The Enphase Enpower [^2] connects the home to grid power, the Encharge storage system, and solar PV. Information on it can be obtained from the [EnvoyEnpower](#pyenphase.models.enpower.EnvoyEnpower).
+The Enphase Enpower [^2] connects the home to grid power, the Encharge storage system, and solar PV. Information on it can be obtained from the {py:class}`~pyenphase.models.enpower.EnvoyEnpower`.
 
 [^2]: Older Name, more recent name IQ System Controller
 
-The Envoy class provides the methods [Go_Off_Grid](#pyenphase.Envoy.go_off_grid) and [Go_On_Grid](#pyenphase.Envoy.go_on_grid) to control the grid connection.
+The Envoy class provides the methods {py:meth}`~pyenphase.Envoy.go_off_grid` and {py:meth}`~pyenphase.Envoy.go_on_grid` to control the grid connection.
 
 ```python
         status = await envoy.go_off_grid()
         if status["mains_admin_state"] != "open":
-            #error clogoing off grid
+            #error going off grid
 
 
 
-        status = await envoy.go_off_grid()
+        status = await envoy.go_on_grid()
         if status["mains_admin_state"] != "closed":
-            #error clogoing off grid
+            #error going on grid
 
 ```
 
-[Open_dry_contact](#pyenphase.Envoy.open_dry_contact) and [close_dry_contact](#pyenphase.Envoy.close_dry_contact) allows to to control the dry contacts.
+{py:meth}`~pyenphase.Envoy.open_dry_contact` and {py:meth}`~pyenphase.Envoy.close_dry_contact` allows to control the dry contacts.
 
 ```python
 status = await envoy.close_dry_contact(id)
@@ -36,9 +36,9 @@ status = await envoy.open_dry_contact(id)
 print(f"{envoy.data.dry_contact_status[id].status}")
 ```
 
-Dry Contact information is available in the [EnvoyData.dry_contact_status](#pyenphase.EnvoyData.dry_contact_status) and [Envoy.dry_contact_settings](#pyenphase.EnvoyData.dry_contact_settings).
+Dry Contact information is available in the {py:attr}`~pyenphase.EnvoyData.dry_contact_status` and {py:attr}`~pyenphase.EnvoyData.dry_contact_settings`.
 
-[Envoy.update_dry_contact](#pyenphase.Envoy.update_dry_contact) can be used to update settings, use with care and only if fully aware of impact!
+{py:meth}`~pyenphase.Envoy.update_dry_contact` can be used to update settings, use with care and only if fully aware of impact!
 
 ```python
 new_setting: dict[str, Any] = {}
@@ -51,28 +51,28 @@ print(status)
 
 ## Generator data
 
-Systems with an Enpower and a standby generator installed report generator data. Availability is signaled by the {py:attr}`pyenphase.const.SupportedFeatures.GENERATOR` and {py:attr}`pyenphase.const.SupportedFeatures.GENERATOR_SCHEDULE` supported feature flags.
+Systems with an Enpower and a standby generator installed report generator data. Availability is signaled by the {py:attr}`~pyenphase.const.SupportedFeatures.GENERATOR` and {py:attr}`~pyenphase.const.SupportedFeatures.GENERATOR_SCHEDULE` supported feature flags.
 
-- Generator status (admin, operational relay state, admin mode, schedule state, generator present) is available in [EnvoyData.generator](#pyenphase.EnvoyData.generator), modeled by [EnvoyGenerator](#pyenphase.models.generator.EnvoyGenerator).
-- Generator configuration (name plate rating, manufacturer, model, start method, warm-up/cool-down minutes) is available in [EnvoyData.generator_config](#pyenphase.EnvoyData.generator_config), modeled by [EnvoyGeneratorConfig](#pyenphase.models.generator.EnvoyGeneratorConfig).
-- The generator exercise schedule and default state-of-charge settings are available in [EnvoyData.generator_schedule](#pyenphase.EnvoyData.generator_schedule), modeled by [EnvoyGeneratorSchedule](#pyenphase.models.generator.EnvoyGeneratorSchedule). The schedule is only available if the {py:attr}`pyenphase.const.SupportedFeatures.GENERATOR_SCHEDULE` flag is set. If the flag is set, generator_schedule may return None when issues exist with the schedule data.
-- The generator operation mode ("off", "on" or "auto") is available in [EnvoyData.generator_mode](#pyenphase.EnvoyData.generator_mode), modeled by [EnvoyGeneratorMode](#pyenphase.models.generator.EnvoyGeneratorMode), on firmware exposing the `/ivp/ss/gen_mode` endpoint.
+- Generator status (admin, operational relay state, admin mode, schedule state, generator present) is available in {py:attr}`~pyenphase.EnvoyData.generator`, modeled by {py:class}`~pyenphase.models.generator.EnvoyGenerator`.
+- Generator configuration (name plate rating, manufacturer, model, start method, warm-up/cool-down minutes) is available in {py:attr}`~pyenphase.EnvoyData.generator_config`, modeled by {py:class}`~pyenphase.models.generator.EnvoyGeneratorConfig`.
+- The generator exercise schedule and default state-of-charge settings are available in {py:attr}`~pyenphase.EnvoyData.generator_schedule`, modeled by {py:class}`~pyenphase.models.generator.EnvoyGeneratorSchedule`. The schedule is only available if the {py:attr}`~pyenphase.const.SupportedFeatures.GENERATOR_SCHEDULE` flag is set. If the flag is set, generator_schedule may return None when issues exist with the schedule data.
+- The generator operation mode ("off", "on" or "auto") is available in {py:attr}`~pyenphase.EnvoyData.generator_mode`, modeled by {py:class}`~pyenphase.models.generator.EnvoyGeneratorMode`, on firmware exposing the `/ivp/ss/gen_mode` endpoint.
 
-The Envoy class provides the method [Envoy.set_generator_mode](#pyenphase.Envoy.set_generator_mode) to control the generator operation mode, [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) to change the exercise schedule and default state-of-charge settings, and [Envoy.set_generator_charge_from_generator](#pyenphase.Envoy.set_generator_charge_from_generator) to allow or disallow charging batteries from the generator.
+The Envoy class provides the method {py:meth}`~pyenphase.Envoy.set_generator_mode` to control the generator operation mode, {py:meth}`~pyenphase.Envoy.update_generator_schedule` to change the exercise schedule and default state-of-charge settings, and {py:meth}`~pyenphase.Envoy.set_generator_charge_from_generator` to allow or disallow charging batteries from the generator.
 
 ```{note}
-The generator schedule will only be available when configured in the Envoy using the Enphase tools. If not setup, the {py:attr}`pyenphase.const.SupportedFeatures.GENERATOR_SCHEDULE` flag will not be set and the {py:attr}`pyenphase.EnvoyData.generator_schedule` will be `None`. The [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) can not be used either until a schedule is configured in the Envoy.
+The generator schedule will only be available when configured in the Envoy using the Enphase tools. If not setup, the {py:attr}`~pyenphase.const.SupportedFeatures.GENERATOR_SCHEDULE` flag will not be set and the {py:attr}`~pyenphase.EnvoyData.generator_schedule` will be `None`. The {py:meth}`~pyenphase.Envoy.update_generator_schedule` can not be used either until a schedule is configured in the Envoy.
 
 Once a schedule is configured in the Envoy, rerun {py:attr}`pyenphase.Envoy.probe` and {py:attr}`pyenphase.Envoy.update` to make the schedule known in the data model. If your application does not specifically use {py:meth}`pyenphase.Envoy.probe` but rather the automatic execution of it by first use of {py:meth}`pyenphase.Envoy.update`, you will need to re-instantiate the Envoy class, which in its simplest form is re-starting your application.
 ```
 
-[Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) and [Envoy.set_generator_charge_from_generator](#pyenphase.Envoy.set_generator_charge_from_generator) send the whole document to the Envoy, as these endpoints do not support partial updates. The document is built from the data in [EnvoyData](#pyenphase.EnvoyData), with only the specified settings changed. ([Envoy.set_generator_mode](#pyenphase.Envoy.set_generator_mode) is a single command endpoint and does not work this way.) [Envoy.update_generator_schedule](#pyenphase.Envoy.update_generator_schedule) takes a dict of settings to change, so a single setting can be changed without specifying the others:
+{py:meth}`~pyenphase.Envoy.update_generator_schedule` and {py:meth}`~pyenphase.Envoy.set_generator_charge_from_generator` send the whole document to the Envoy, as these endpoints do not support partial updates. The document is built from the data in {py:class}`~pyenphase.EnvoyData`, with only the specified settings changed. ({py:meth}`~pyenphase.Envoy.set_generator_mode` is a single command endpoint and does not work this way.) {py:meth}`~pyenphase.Envoy.update_generator_schedule` takes a dict of settings to change, so a single setting can be changed without specifying the others:
 
 ```python
 await envoy.update_generator_schedule({"exercise_day": "Sat", "exercise_start": 945})
 ```
 
-Both return the reply from the Envoy, which is the resulting document. The stored data is updated from it as well, so either can be used to verify what was applied. If the Envoy does not return a complete document, the stored data is left at the last known state instead of an optimistic one and `EnvoyCommunicationError` is raised; the update was sent in that case, so use [Envoy.update](#pyenphase.Envoy.update) to establish the actual state.
+Both return the reply from the Envoy, which is the resulting document. The stored data is updated from it as well, so either can be used to verify what was applied. If the Envoy does not return a complete document, the stored data is left at the last known state instead of an optimistic one and {py:exc}`EnvoyCommunicationError` is raised; the update was sent in that case, so use {py:meth}`~pyenphase.Envoy.update` to establish the actual state.
 
 Both also accept `refresh`, which re-reads the document from the Envoy right before the changes are merged into it:
 
@@ -82,11 +82,11 @@ await envoy.update_generator_schedule({"exercise_day": "Sat"}, refresh=True)
 
 Use it when the Enphase cloud or app may have changed settings since the last data collection, so values from stale data are not sent back.
 
-Be aware that when the Envoy returns an incomplete document as a refresh reply, the stored data for the generator_schedule is set to None to reflect the now current state in the Envoy and raises `EnvoyFeatureNotAvailable`.
+Be aware that when the Envoy returns an incomplete document as a refresh reply, the stored data for the generator_schedule is set to None to reflect the now current state in the Envoy and raises {py:exc}`EnvoyFeatureNotAvailable`.
 
-On systems with Enphase batteries, note that `default_start_soc` and `default_stop_soc` are always part of the schedule document and are applied by the firmware as the active generator start/stop state of charge, as reported in [EnvoyData.generator](#pyenphase.EnvoyData.generator). Values held in [EnvoyData.generator_schedule](#pyenphase.EnvoyData.generator_schedule) at the time of the call are sent, so if another application changed them since the last data collection, the update will set them back. Use `refresh=True`, call [Envoy.update](#pyenphase.Envoy.update) first, or include the wanted SOC values in the settings to change. The generator starts at `default_start_soc` and stops at `default_stop_soc`, so the start value must be lower than the stop value; the resulting pair is validated against the stored values for whichever of the two is not being changed.
+On systems with Enphase batteries, note that `default_start_soc` and `default_stop_soc` are always part of the schedule document and are applied by the firmware as the active generator start/stop state of charge, as reported in {py:attr}`~pyenphase.EnvoyData.generator`. Values held in {py:attr}`~pyenphase.EnvoyData.generator_schedule` at the time of the call are sent, so if another application changed them since the last data collection, the update will set them back. Use `refresh=True`, call {py:meth}`~pyenphase.Envoy.update` first, or include the wanted SOC values in the settings to change. The generator starts at `default_start_soc` and stops at `default_stop_soc`, so the start value must be lower than the stop value; the resulting pair is validated against the stored values for whichever of the two is not being changed.
 
-On systems without Enphase batteries the Envoy accepts a `charge_from_generator` write with HTTP 200 but normalizes the value back to `true`; do not assume `false` persisted. The returned document and the updated [EnvoyData.generator_config](#pyenphase.EnvoyData.generator_config) report the effective value.
+On systems without Enphase batteries the Envoy accepts a `charge_from_generator` write with HTTP 200 but normalizes the value back to `true`; do not assume `false` persisted. The returned document and the updated {py:attr}`~pyenphase.EnvoyData.generator_config` report the effective value.
 
 ```python
 if envoy.data.generator:
@@ -115,10 +115,10 @@ if schedule := envoy.data.generator_schedule:
 
 Both ACB aggregate and per-device battery data are exposed:
 
-- Aggregate ACB power and SOC are available in [EnvoyData.acb_power](#pyenphase.EnvoyData.acb_power), modeled by [EnvoyACBPower](#pyenphase.models.acb.EnvoyACBPower).
-- Combined Encharge + ACB SOC/capacity is available in [EnvoyData.battery_aggregate](#pyenphase.EnvoyData.battery_aggregate), modeled by [EnvoyBatteryAggregate](#pyenphase.models.acb.EnvoyBatteryAggregate).
-- Per-device ACB data is available in [EnvoyData.acb_inventory](#pyenphase.EnvoyData.acb_inventory), keyed by serial number and modeled by [EnvoyACB](#pyenphase.models.acb.EnvoyACB).
-- The number of ACB batteries reported in production storage can be read from [Envoy.acb_count](#pyenphase.Envoy.acb_count).
+- Aggregate ACB power and SOC are available in {py:attr}`~pyenphase.EnvoyData.acb_power`, modeled by {py:class}`~pyenphase.models.acb.EnvoyACBPower`.
+- Combined Encharge + ACB SOC/capacity is available in {py:attr}`~pyenphase.EnvoyData.battery_aggregate`, modeled by {py:class}`~pyenphase.models.acb.EnvoyBatteryAggregate`.
+- Per-device ACB data is available in {py:attr}`~pyenphase.EnvoyData.acb_inventory`, keyed by serial number and modeled by {py:class}`~pyenphase.models.acb.EnvoyACB`.
+- The number of ACB batteries reported in production storage can be read from {py:attr}`~pyenphase.Envoy.acb_count`.
 
 Per-device ACB fields include state and sensor values such as `sleep_enabled`, `sleep_state`, `sleep_min_soc`, `sleep_max_soc`, `percent_full`, `charge_status`, `communicating`, `operating`, `producing`, `last_report_watts`, `max_report_watts`, and `last_report_date`.
 
@@ -130,7 +130,7 @@ if envoy.data.acb_inventory:
         print(serial, acb.sleep_state, acb.percent_full, acb.last_report_watts)
 ```
 
-ACB sleep control is available with [Envoy.set_acb_sleep](#pyenphase.Envoy.set_acb_sleep) and [Envoy.clear_acb_sleep](#pyenphase.Envoy.clear_acb_sleep).
+ACB sleep control is available with {py:meth}`~pyenphase.Envoy.set_acb_sleep` and {py:meth}`~pyenphase.Envoy.clear_acb_sleep`.
 
 When using `sleep_min_soc` and `sleep_max_soc`, the battery will charge or discharge to reach the configured target boundary before entering sleep mode. For example, if current SOC is above `sleep_max_soc`, it will discharge down to that level, and if SOC is below `sleep_min_soc`, it will charge up to that level.
 
@@ -154,9 +154,9 @@ Both ACB control methods require ACB support on the gateway and validate inputs 
 
 ## Envoy Encharge data
 
-The Enphase Encharge controls battery charge and discharge. Information on it can be obtained from [EnvoyEncharge](#pyenphase.models.encharge.EnvoyEncharge) for individual batteries, [EnvoyEnchargePower](#pyenphase.models.encharge.EnvoyEnchargePower) and [EnvoyEnchargeAggregate](#pyenphase.models.encharge.EnvoyEnchargeAggregate) for all batteries aggregated.
+The Enphase Encharge controls battery charge and discharge. Information on it can be obtained from {py:attr}`~pyenphase.models.encharge.EnvoyEncharge` for individual batteries, {py:attr}`~pyenphase.models.encharge.EnvoyEnchargePower` and {py:attr}`~pyenphase.models.encharge.EnvoyEnchargeAggregate` for all batteries aggregated.
 
-The Envoy class provides the methods [Envoy.enable_charge_from_grid](#pyenphase.Envoy.enable_charge_from_grid), [Envoy.disable_charge_from_grid](#pyenphase.Envoy.disable_charge_from_grid), [Envoy.set_storage_mode](#pyenphase.Envoy.set_storage_mode) and [set_reserve_soc](#pyenphase.Envoy.set_reserve_soc).
+The Envoy class provides the methods {py:meth}`~pyenphase.Envoy.enable_charge_from_grid`, {py:meth}`~pyenphase.Envoy.disable_charge_from_grid`, {py:meth}`~pyenphase.Envoy.set_storage_mode` and {py:meth}`~pyenphase.Envoy.set_reserve_soc`.
 
 ```python
 
@@ -165,8 +165,8 @@ The Envoy class provides the methods [Envoy.enable_charge_from_grid](#pyenphase.
         print (status)
 
 
-        status = await envoy.disable_charge_from_grid(id)
-        print(f"{envoy.data.dry_contact_status[id].status}")
+        status = await envoy.disable_charge_from_grid()
+        print(f"{envoy.data.tariff.storage_settings.charge_from_grid}")
         print (status)
 
 
@@ -192,8 +192,8 @@ Note that the Enlighten cloud service may overwrite a locally-set mode within on
 The Enphase IQ Meter Collar is a meter socket adapter with an integrated microgrid interconnection device (MID) and current
 sensors for energy consumption metering. The CT sensors in the collar provide the [net-consumption](./data_ctmeter.md#consumption-ct-options) data.
 
-The MID status is available in the [EnvoyCollar](#pyenphase.models.collar.EnvoyCollar) data object.
+The MID status is available in the {py:attr}`~pyenphase.models.collar.EnvoyCollar` data object.
 
 ## C6 Combiner data
 
-The C6 Combiner status is available in the [EnvoyC6CC](#pyenphase.models.c6combiner.EnvoyC6CC) data object.
+The C6 Combiner status is available in the {py:attr}`~pyenphase.models.c6combiner.EnvoyC6CC` data object.

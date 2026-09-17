@@ -1,6 +1,6 @@
 # Raw data
 
-All data for all endpoints is stored as received in the `raw: dict[str, Any]` attribute, keyed by the endpoint path.[^1] Raw can be used for quick check if anything changed between data collections.
+All data for all endpoints is stored as received in the {py:attr}`~pyenphase.EnvoyData.raw` attribute, keyed by the endpoint path.[^1] Raw can be used for quick check if anything changed between data collections.
 
 ```json
 {
@@ -26,7 +26,7 @@ All data for all endpoints is stored as received in the `raw: dict[str, Any]` at
 
 ```
 
-[^1]: Example only showing 2 endpoints. Production data is provided in [EnvoySystemProduction](#EnvoySystemProduction) class, Inverter data in [EnvoyInverter](#EnvoyInverter) class.
+[^1]: Example only showing 2 endpoints. Production data is provided in {py:class}`~pyenphase.models.system_production.EnvoySystemProduction` class, Inverter data in {py:class}`~pyenphase.models.inverter.EnvoyInverter` class.
 
 ```python
 previous_data: EnvoyData
