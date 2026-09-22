@@ -422,12 +422,7 @@ async def test_probe_generator_config_missing_keys(
         repeat=True,
     )
 
-    # with pytest.raises(KeyError, match="max_cont_gen_amps"):
     envoy = await get_mock_envoy(test_client_session)
-
-    # assert (
-    #     f"Generator endpoint {URL_GEN_CONFIG} data failed verification:" in caplog.text
-    # )
     assert "No generator configuration found" in caplog.text
     assert SupportedFeatures.GENERATOR_SCHEDULE not in envoy.supported_features
     assert SupportedFeatures.GENERATOR not in envoy.supported_features
@@ -459,8 +454,6 @@ async def test_update_generator_config_missing_keys(
         payload=generator_json,
         repeat=True,
     )
-
-    # with pytest.raises(KeyError, match="max_cont_gen_amps"):
     data = await envoy.update()
     assert data
     assert data.generator_config is None
@@ -493,9 +486,7 @@ async def test_probe_generator_mode_missing_keys(
         repeat=True,
     )
 
-    # with pytest.raises(KeyError, match="gen_cmd"):
     envoy = await get_mock_envoy(test_client_session)
-    # assert f"Generator endpoint {URL_GEN_MODE} data failed verification:" in caplog.text
     assert "No generator mode found" in caplog.text
     assert SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features
     assert SupportedFeatures.GENERATOR in envoy.supported_features
@@ -529,8 +520,6 @@ async def test_update_generator_mode_missing_keys(
         payload=generator_json,
         repeat=True,
     )
-
-    # with pytest.raises(KeyError, match="gen_cmd"):
     data = await envoy.update()
     assert data
     assert data.generator_mode is None
@@ -561,12 +550,7 @@ async def test_probe_generator_missing_keys(
         payload=generator_json,
         repeat=True,
     )
-
-    # with pytest.raises(KeyError, match="admin_state"):
     envoy = await get_mock_envoy(test_client_session)
-    # assert (
-    #     f"Generator endpoint {URL_GENERATOR} data failed verification:" in caplog.text
-    # )
     assert "No ensemble generator data found" in caplog.text
     assert SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features
     assert SupportedFeatures.GENERATOR in envoy.supported_features
