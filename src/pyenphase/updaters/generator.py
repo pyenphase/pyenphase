@@ -36,15 +36,15 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
     async def _optional_endpoint_available(
         self,
         end_point: str,
-        verify_method: Callable[[dict[str, Any]], object] | None = None,
+        verify_method: Callable[[dict[str, Any]], object],
     ) -> bool:
         """
         Probe an optional generator endpoint and report its availability.
-        Optionally verify endpoint data validity using the verify method.
+        Verify endpoint data validity using the verify method.
 
         :param end_point: Envoy endpoint to probe
-        :param verify_method: If specified used to verify endpoint data.
-            Bool result of verify method is returned instead of bool result of probe request
+        :param verify_method: method to verify endpoint data.
+            Bool result of verify method is returned
         :return: True if the endpoint returned usable data
         """
         try:
@@ -56,16 +56,15 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
         if not bool(result) or "error" in result or "err" in result:
             _LOGGER.debug("No usable Generator data at %s", end_point)
             return False
-        if verify_method:
-            # verify returned data validity
-            verified = verify_method(result)
-            _LOGGER.debug(
-                "Generator endpoint %s data passed verification: %s",
-                end_point,
-                bool(verified),
-            )
-            return bool(verified)
-        return True
+        # if verify_method:
+        # verify returned data validity
+        verified = verify_method(result)
+        _LOGGER.debug(
+            "Generator endpoint %s data passed verification: %s",
+            end_point,
+            bool(verified),
+        )
+        return bool(verified)
 
     async def probe(
         self, discovered_features: SupportedFeatures
@@ -91,7 +90,9 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
             return None
 
         # Check for generator support
-        result = await self._optional_endpoint_available(URL_GEN_CONFIG)
+        result = await self._optional_endpoint_available(
+            URL_GEN_CONFIG, EnvoyGeneratorConfig.from_api
+        )
         if not result:
             _LOGGER.debug("No generator configuration found")
             return None
@@ -104,8 +105,11 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
         # fetches what is available and the corresponding data fields
         # degrade independently to None.
         self._generator_available = await self._optional_endpoint_available(
-            URL_GENERATOR
+            URL_GENERATOR, EnvoyGenerator.from_api
         )
+        if not self._generator_available:
+            _LOGGER.debug("No ensemble generator data found")
+
         # verify data for missing exercise_config
         self._gen_schedule_available = await self._optional_endpoint_available(
             URL_GEN_SCHEDULE, EnvoyGeneratorSchedule.from_api
@@ -113,8 +117,14 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
         # if valid schedule signal availability to clients so they can use it as guard
         if self._gen_schedule_available:
             self._supported_features |= SupportedFeatures.GENERATOR_SCHEDULE
+        else:
+            _LOGGER.debug("No generator schedule found")
 
-        self._gen_mode_available = await self._optional_endpoint_available(URL_GEN_MODE)
+        self._gen_mode_available = await self._optional_endpoint_available(
+            URL_GEN_MODE, EnvoyGeneratorMode.from_api
+        )
+        if not self._gen_mode_available:
+            _LOGGER.debug("No generator mode found")
 
         return self._supported_features
 
@@ -130,6 +140,8 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
         envoy_data.generator_config = EnvoyGeneratorConfig.from_api(
             generator_config_data
         )
+        if not envoy_data.generator_config:
+            _LOGGER.debug("Generator Schedule returned None.")
 
         if self._gen_schedule_available:
             generator_schedule_data: dict[str, Any] = await self._json_request(
@@ -146,3 +158,5 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
             generator_mode_data: dict[str, Any] = await self._json_request(URL_GEN_MODE)
             envoy_data.raw[URL_GEN_MODE] = generator_mode_data
             envoy_data.generator_mode = EnvoyGeneratorMode.from_api(generator_mode_data)
+            if not envoy_data.generator_mode:
+                _LOGGER.debug("Generator Mode returned None.")
