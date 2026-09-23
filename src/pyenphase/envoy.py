@@ -1411,8 +1411,12 @@ class Envoy:
             data.raw[URL_GEN_CONFIG] = current
         # gen_config is the GENERATOR detection gate, so it is always
         # collected during update when the feature is available
-        if TYPE_CHECKING:
-            assert data.generator_config is not None  # nosec
+        # catch if it changes on the fly
+        if data.generator_config is None:
+            raise EnvoyFeatureNotAvailable(
+                "The generator configuration endpoint is incomplete, "
+                "has issues or is no longer available on this Envoy."
+            )
         new_model = replace(
             data.generator_config, charge_from_generator=charge_from_generator
         )

@@ -408,6 +408,46 @@ async def test_set_generator_charge_from_generator_incomplete_reply(
 
 
 @pytest.mark.asyncio
+async def test_generator_write_norefresh_current_data_none(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify no command is sent when data is None after update."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+    full_host = endpoint_path(VERSION, envoy.host)
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_CONFIG}",
+        status=200,
+        payload={"charge_from_generator": False},
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_SCHEDULE}",
+        status=200,
+        payload={"unknown_item_only": False},
+        repeat=True,
+    )
+    data = await envoy.update()
+    assert data
+    assert data.generator_config is None
+
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.set_generator_charge_from_generator(False)
+
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.update_generator_schedule({"exercise_duration": 50})
+
+
+@pytest.mark.asyncio
 async def test_generator_write_refresh(
     caplog: pytest.LogCaptureFixture,
     mock_aioresponse: aioresponses,
