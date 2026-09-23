@@ -1243,14 +1243,33 @@ class Envoy:
         data.generator_schedule = new_state
         return result
 
+    @overload
     def _model_from_document(
         self,
         end_point: str,
         document: Any,
-        from_api: Callable[[Any], _ModelT],
+        from_api: Callable[[Any], _ModelT | None],
+        message: str,
+    ) -> _ModelT: ...
+
+    @overload
+    def _model_from_document(
+        self,
+        end_point: str,
+        document: Any,
+        from_api: Callable[[Any], _ModelT | None],
+        message: str,
+        no_raise_on_none: bool,
+    ) -> _ModelT | None: ...
+
+    def _model_from_document(
+        self,
+        end_point: str,
+        document: Any,
+        from_api: Callable[[Any], _ModelT | None],
         message: str,
         no_raise_on_none: bool = False,
-    ) -> _ModelT:
+    ) -> _ModelT | None:
         """
         Build a data model from a document returned by the Envoy.
 
