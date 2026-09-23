@@ -7,7 +7,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from functools import cached_property, partial
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, overload
 
 import aiohttp
 import orjson
@@ -1197,12 +1197,10 @@ class Envoy:
             # cloud or app since the last data collection are not echoed
             # back with stale values
             # If we are here then probe detected a valid generator schedule.
-            # _model_from_document raises on 3 error types including KeyError.
-            # fromApi will return None in case of KeyError so we fall through
-            # and below error is not raised, no mention of `no data change`
-            # will occur. data.generator_schedule is set to None and data_raw
-            # shows last known data. Which is for both the actual current situation.
-            # The guard below will prevent actual change execution.
+            # _model_from_document by default raises EnvoyCommunicationError
+            # on 3 error types including KeyError. For backward compatibility
+            # use the option to not raise on these errors and handle the
+            # returned None here as EnvoyFeatureNotAvailable.
             current = await self._json_request(URL_GEN_SCHEDULE, None)
             data.generator_schedule = self._model_from_document(
                 URL_GEN_SCHEDULE,
@@ -1250,6 +1248,7 @@ class Envoy:
         document: Any,
         from_api: Callable[[Any], _ModelT | None],
         message: str,
+        no_raise_on_none: Literal[False] = False,
     ) -> _ModelT: ...
 
     @overload
@@ -1259,7 +1258,7 @@ class Envoy:
         document: Any,
         from_api: Callable[[Any], _ModelT | None],
         message: str,
-        no_raise_on_none: bool,
+        no_raise_on_none: Literal[True],
     ) -> _ModelT | None: ...
 
     def _model_from_document(
@@ -1286,7 +1285,7 @@ class Envoy:
         :param no_raise_on_none: do not raise EnvoyCommunicationError,
             caller will handle None result, default False.
         :raises EnvoyCommunicationError: If the document is not a complete document and no_raise_on_none false
-        :return: data model built from the document, may be None if no_raise_on_none false
+        :return: data model built from the document, may be None if no_raise_on_none is true
         """
         # from_api will return None on KeyError, TypeError, IndexError
         if (validated := from_api(document)) is not None or no_raise_on_none:
