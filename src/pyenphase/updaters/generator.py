@@ -56,8 +56,6 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
         if not bool(result) or "error" in result or "err" in result:
             _LOGGER.debug("No usable Generator data at %s", end_point)
             return False
-        # if verify_method:
-        # verify returned data validity
         verified = verify_method(result)
         _LOGGER.debug(
             "Generator endpoint %s data passed verification: %s",
@@ -134,6 +132,8 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
             generator_data: dict[str, Any] = await self._json_request(URL_GENERATOR)
             envoy_data.raw[URL_GENERATOR] = generator_data
             envoy_data.generator = EnvoyGenerator.from_api(generator_data)
+            if not envoy_data.generator:
+                _LOGGER.debug("Generator returned None.")
 
         generator_config_data: dict[str, Any] = await self._json_request(URL_GEN_CONFIG)
         envoy_data.raw[URL_GEN_CONFIG] = generator_config_data
@@ -141,7 +141,7 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
             generator_config_data
         )
         if not envoy_data.generator_config:
-            _LOGGER.debug("Generator Schedule returned None.")
+            _LOGGER.debug("Generator Config returned None.")
 
         if self._gen_schedule_available:
             generator_schedule_data: dict[str, Any] = await self._json_request(

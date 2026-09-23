@@ -404,15 +404,14 @@ async def test_probe_generator_config_missing_keys(
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Verify probe generator config raises when missing keys."""
+    """Verify probe generator collection is not enabled when keys are missing."""
     version = "8.3.5169_with_generator"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
-
     full_host = endpoint_path(version, "127.0.0.1")
 
-    # Simulate a firmware variant that reports schedule without exercise
+    # remove expected key from data set
     generator_json = await load_json_fixture(version, "ivp_ss_gen_config")
     del generator_json["max_cont_gen_amps"]
 
@@ -424,14 +423,15 @@ async def test_probe_generator_config_missing_keys(
         payload=generator_json,
         repeat=True,
     )
-
     envoy = await get_mock_envoy(test_client_session)
+
+    assert envoy.data
+    assert envoy.data.generator_config is None
+
     assert "Failure parsing generator configuration information" in caplog.text
     assert "No generator configuration found" in caplog.text
     assert SupportedFeatures.GENERATOR_SCHEDULE not in envoy.supported_features
     assert SupportedFeatures.GENERATOR not in envoy.supported_features
-    assert envoy.data
-    assert envoy.data.generator_config is None
 
 
 @pytest.mark.asyncio
@@ -440,15 +440,15 @@ async def test_update_generator_config_missing_keys(
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Verify update generator config raises when missing keys."""
+    """Verify update generator config is None when keys are missing."""
     version = "8.3.5169_with_generator"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
-
     full_host = endpoint_path(version, "127.0.0.1")
     envoy = await get_mock_envoy(test_client_session)
 
+    # remove expected key from data set
     generator_json = await load_json_fixture(version, "ivp_ss_gen_config")
     del generator_json["max_cont_gen_amps"]
 
@@ -461,9 +461,12 @@ async def test_update_generator_config_missing_keys(
         repeat=True,
     )
     data = await envoy.update()
+
     assert data
     assert data.generator_config is None
+
     assert "Failure parsing generator configuration information" in caplog.text
+    assert "Generator Config returned None." in caplog.text
 
 
 @pytest.mark.asyncio
@@ -472,15 +475,14 @@ async def test_probe_generator_mode_missing_keys(
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Verify probe generator mode raises when missing keys."""
+    """Verify probe generator mode is not enabled when keys are missing."""
     version = "8.3.5169_with_generator"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
-
     full_host = endpoint_path(version, "127.0.0.1")
 
-    # Simulate a firmware variant that reports schedule without exercise
+    # remove expected key from data set
     generator_json = await load_json_fixture(version, "ivp_ss_gen_mode")
     del generator_json["gen_cmd"]
 
@@ -492,14 +494,15 @@ async def test_probe_generator_mode_missing_keys(
         payload=generator_json,
         repeat=True,
     )
-
     envoy = await get_mock_envoy(test_client_session)
+
+    assert envoy.data
+    assert envoy.data.generator_mode is None
+
     assert "No generator mode found" in caplog.text
     assert "Failure parsing generator mode information" in caplog.text
     assert SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features
     assert SupportedFeatures.GENERATOR in envoy.supported_features
-    assert envoy.data
-    assert envoy.data.generator_mode is None
 
 
 @pytest.mark.asyncio
@@ -508,15 +511,15 @@ async def test_update_generator_mode_missing_keys(
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Verify update generator mode raises when missing keys."""
+    """Verify update generator mode is None when keys are missing."""
     version = "8.3.5169_with_generator"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
-
     full_host = endpoint_path(version, "127.0.0.1")
     envoy = await get_mock_envoy(test_client_session)
 
+    # remove expected key from data set
     generator_json = await load_json_fixture(version, "ivp_ss_gen_mode")
     del generator_json["gen_cmd"]
 
@@ -529,9 +532,12 @@ async def test_update_generator_mode_missing_keys(
         repeat=True,
     )
     data = await envoy.update()
+
     assert data
     assert data.generator_mode is None
+
     assert "Failure parsing generator mode information" in caplog.text
+    assert "Generator Mode returned None." in caplog.text
 
 
 @pytest.mark.asyncio
@@ -540,14 +546,14 @@ async def test_probe_generator_missing_keys(
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Verify probe generator raises when missing keys."""
+    """Verify probe generator is not enabled when keys are missing."""
     version = "8.3.5169_with_generator"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
-
     full_host = endpoint_path(version, "127.0.0.1")
 
+    # remove expected key from data set
     generator_json = await load_json_fixture(version, "ivp_ensemble_generator")
     del generator_json["admin_state"]
 
@@ -560,6 +566,7 @@ async def test_probe_generator_missing_keys(
         repeat=True,
     )
     envoy = await get_mock_envoy(test_client_session)
+
     assert "Failure parsing generator information" in caplog.text
     assert "No ensemble generator data found" in caplog.text
     assert SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features
@@ -570,16 +577,17 @@ async def test_probe_generator_missing_keys(
 async def test_update_generator_missing_keys(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Verify update generator raises when missing keys."""
+    """Verify update generator is None when keys are missing."""
     version = "8.3.5169_with_generator"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
-
+    caplog.set_level(logging.DEBUG)
     full_host = endpoint_path(version, "127.0.0.1")
-
     envoy = await get_mock_envoy(test_client_session)
 
+    # remove expected key from data set
     generator_json = await load_json_fixture(version, "ivp_ensemble_generator")
     del generator_json["admin_state"]
 
@@ -591,9 +599,10 @@ async def test_update_generator_missing_keys(
         payload=generator_json,
         repeat=True,
     )
+    data = await envoy.update()
 
-    # with pytest.raises(KeyError, match="admin_state"):
-    data = await envoy.update()
-    data = await envoy.update()
     assert data
     assert data.generator is None
+
+    assert "Failure parsing generator information" in caplog.text
+    assert "Generator returned None." in caplog.text
