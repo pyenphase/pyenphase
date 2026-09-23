@@ -5,8 +5,11 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -47,7 +50,8 @@ class EnvoyGenerator:
                 present=bool(generator["present"]),
                 type=generator["type"],
             )
-        except (KeyError, TypeError, IndexError):
+        except (KeyError, TypeError, IndexError) as exc:
+            _LOGGER.debug("Failure parsing generator information %s", exc)
             return None
 
 
@@ -101,7 +105,8 @@ class EnvoyGeneratorConfig:
                 generator_id=config["generator_id"],
                 charge_from_generator=config["charge_from_generator"],
             )
-        except (KeyError, TypeError, IndexError):
+        except (KeyError, TypeError, IndexError) as exc:
+            _LOGGER.debug("Failure parsing generator configuration information %s", exc)
             return None
 
     def to_api(self) -> dict[str, Any]:
@@ -139,7 +144,8 @@ class EnvoyGeneratorMode:
                 gen_cmd=mode["gen_cmd"],
                 last_updated_by=mode["last_updated_by"],
             )
-        except (KeyError, TypeError, IndexError):
+        except (KeyError, TypeError, IndexError) as exc:
+            _LOGGER.debug("Failure parsing generator mode information %s", exc)
             return None
 
 
@@ -191,7 +197,8 @@ class EnvoyGeneratorSchedule:
                 last_updated_by=schedule["last_updated_by"],
                 schedule=schedule["schedule"],
             )
-        except (KeyError, TypeError, IndexError):
+        except (KeyError, TypeError, IndexError) as exc:
+            _LOGGER.debug("Failure parsing generator schedule information %s", exc)
             return None
 
     def to_api(self) -> dict[str, Any]:
