@@ -5,11 +5,8 @@
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 from typing import Any
-
-_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -83,7 +80,7 @@ class EnvoyGeneratorConfig:
     charge_from_generator: bool
 
     @classmethod
-    def from_api(cls, config: dict[str, Any]) -> EnvoyGeneratorConfig | None:
+    def from_api(cls, config: dict[str, Any]) -> EnvoyGeneratorConfig:
         """Initialize from the API."""
         return cls(
             max_cont_gen_amps=config["max_cont_gen_amps"],
@@ -129,7 +126,7 @@ class EnvoyGeneratorMode:
     last_updated_by: str
 
     @classmethod
-    def from_api(cls, mode: dict[str, Any]) -> EnvoyGeneratorMode | None:
+    def from_api(cls, mode: dict[str, Any]) -> EnvoyGeneratorMode:
         """Initialize from the API."""
         return cls(
             gen_cmd=mode["gen_cmd"],
@@ -159,15 +156,13 @@ class EnvoyGeneratorSchedule:
     schedule: dict[str, Any]
 
     @classmethod
-    def from_api(cls, schedule: dict[str, Any]) -> EnvoyGeneratorSchedule | None:
+    def from_api(cls, schedule: dict[str, Any]) -> EnvoyGeneratorSchedule:
         """
         Initialize class from API json data.
 
         Exercise_config is only included in the generator schedule when
         configured in the Envoy using the App. Without the exercise_config
-        the EnvoyGeneratorSchedule is not usable. Other components presence
-        is assumed. If any are missing return None, let caller handle this.
-        This makes from_api usable as verification during probe.
+        the EnvoyGeneratorSchedule is not usable.
 
         :param schedule: json returned by :any:`URL_GEN_SCHEDULE`
         :return: populated EnvoyGeneratorSchedule class
