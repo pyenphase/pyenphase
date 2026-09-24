@@ -154,6 +154,7 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
             envoy_data.raw[URL_GENERATOR] = generator_data
             try:
                 envoy_data.generator = EnvoyGenerator.from_api(generator_data)
+                self._generator_valid = True
             except (KeyError, TypeError, IndexError) as err:
                 if self._generator_valid:
                     self._generator_valid = False
@@ -169,6 +170,7 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
             envoy_data.generator_config = EnvoyGeneratorConfig.from_api(
                 generator_config_data
             )
+            self._generator_config_valid = True
         except (KeyError, TypeError, IndexError) as err:
             if self._generator_config_valid:
                 self._generator_config_valid = False
@@ -189,6 +191,7 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
                 envoy_data.generator_schedule = EnvoyGeneratorSchedule.from_api(
                     generator_schedule_data
                 )
+                self._generator_schedule_valid = True
             except (KeyError, TypeError, IndexError) as err:
                 if self._generator_schedule_valid:
                     self._generator_schedule_valid = False
@@ -211,6 +214,7 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
                 envoy_data.generator_mode = EnvoyGeneratorMode.from_api(
                     generator_mode_data
                 )
+                self._generator_mode_valid = True
             except (KeyError, TypeError, IndexError) as err:
                 if self._generator_mode_valid:
                     self._generator_mode_valid = False

@@ -415,6 +415,24 @@ async def test_generator_missing_exercise_config(
         in caplog.text
     )
 
+    # update should recover on full data again
+    caplog.clear()
+    schedule_json = await load_json_fixture(version, "ivp_ss_gen_schedule")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_SCHEDULE}",
+        status=200,
+        payload=schedule_json,
+        repeat=True,
+    )
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_schedule is not None
+
+    assert f"Generator Schedule returned error {URL_GEN_SCHEDULE}" not in caplog.text
+
 
 @pytest.mark.asyncio
 async def test_probe_generator_config_missing_keys(
@@ -498,6 +516,24 @@ async def test_update_generator_config_missing_keys(
         in caplog.text
     )
 
+    # update should recover on full data again
+    caplog.clear()
+    generator_json = await load_json_fixture(version, "ivp_ss_gen_config")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_CONFIG}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_config is not None
+
+    assert f"Generator Config returned error {URL_GEN_CONFIG}" not in caplog.text
+
 
 @pytest.mark.asyncio
 async def test_probe_generator_mode_missing_keys(
@@ -575,6 +611,24 @@ async def test_update_generator_mode_missing_keys(
 
     assert f"Generator Mode returned error {URL_GEN_MODE} 'gen_cmd'" in caplog.text
 
+    # update should recover on full data again
+    caplog.clear()
+    generator_json = await load_json_fixture(version, "ivp_ss_gen_mode")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_MODE}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_mode is not None
+
+    assert f"Generator Mode returned error {URL_GEN_MODE}" not in caplog.text
+
 
 @pytest.mark.asyncio
 async def test_probe_generator_missing_keys(
@@ -648,3 +702,22 @@ async def test_update_generator_missing_keys(
     assert data.generator is None
 
     assert f"Generator returned error {URL_GENERATOR} 'admin_state'" in caplog.text
+
+    # update should recover on full data again
+    caplog.clear()
+
+    generator_json = await load_json_fixture(version, "ivp_ensemble_generator")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GENERATOR}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    data = await envoy.update()
+
+    assert data
+    assert data.generator is not None
+
+    assert f"Generator returned error {URL_GENERATOR}" not in caplog.text
