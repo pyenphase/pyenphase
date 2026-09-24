@@ -405,6 +405,7 @@ async def test_generator_missing_exercise_config(
     )
 
     # second update after first failure has debug instead of warning log, test for full COV
+    caplog.clear()
     data = await envoy.update()
 
     assert data
@@ -506,6 +507,7 @@ async def test_update_generator_config_missing_keys(
     )
 
     # second update after first failure has debug instead of warning log, test for full COV
+    caplog.clear()
     data = await envoy.update()
 
     assert data
@@ -604,6 +606,7 @@ async def test_update_generator_mode_missing_keys(
     assert f"Generator Mode returned error {URL_GEN_MODE} 'gen_cmd'" in caplog.text
 
     # second update after first failure has debug instead of warning log, test for full COV
+    caplog.clear()
     data = await envoy.update()
 
     assert data
@@ -696,6 +699,7 @@ async def test_update_generator_missing_keys(
     assert f"Generator returned error {URL_GENERATOR} 'admin_state'" in caplog.text
 
     # second update after first failure has debug instead of warning log, test for full COV
+    caplog.clear()
     data = await envoy.update()
 
     assert data
