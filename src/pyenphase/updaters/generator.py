@@ -39,7 +39,7 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
     #: Whether exposed generator schedule has valid data, set during probe, tracked in update
     _generator_schedule_valid: bool = False
     #: Whether exposed generator mode has valid data, set during probe, tracked in update
-    _genenerator_mode_valid: bool = False
+    _generator_mode_valid: bool = False
 
     async def _optional_endpoint_available(
         self,
