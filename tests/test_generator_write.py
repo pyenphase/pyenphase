@@ -532,7 +532,7 @@ async def test_generator_write_refresh_incomplete(
             "get",
             f"{full_host}{path}",
             status=200,
-            payload={"incomplete": True},
+            payload={"incomplete": path},
             repeat=True,
         )
 
@@ -556,7 +556,9 @@ async def test_generator_write_refresh_incomplete(
 
     assert envoy.data
     assert envoy.data.generator_schedule is None
+    assert envoy.data.raw[URL_GEN_SCHEDULE] == {"incomplete": URL_GEN_SCHEDULE}
     assert envoy.data.generator_config is None
+    assert envoy.data.raw[URL_GEN_CONFIG] == {"incomplete": URL_GEN_CONFIG}
 
     # current data is None, we now should get feature not available if refresh is False
     with pytest.raises(

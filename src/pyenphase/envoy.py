@@ -1418,7 +1418,7 @@ class Envoy:
                 data.generator_config = None
                 raise
             finally:
-                data.raw[URL_GEN_SCHEDULE] = current
+                data.raw[URL_GEN_CONFIG] = current
 
         # gen_config is the GENERATOR detection gate, so it is always
         # collected during update when the feature is available
