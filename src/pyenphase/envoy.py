@@ -1210,7 +1210,7 @@ class Envoy:
                     "no data was changed and no update was sent",
                 )
             except EnvoyCommunicationError:
-                # for current schedule data to None to prevent reuse of old data
+                # force current schedule data to None to prevent reuse of old data
                 data.generator_schedule = None
                 raise
             finally:
@@ -1414,7 +1414,7 @@ class Envoy:
                     "no data was changed and no update was sent",
                 )
             except EnvoyCommunicationError:
-                # for current configuration data to None to prevent reuse of old data
+                # force current configuration data to None to prevent reuse of old data
                 data.generator_config = None
                 raise
             finally:
