@@ -1257,17 +1257,16 @@ class Envoy:
         Used to verify a document returned before a write action
         is executed and data is send by the write or after a write
         action is completed before any stored data is replaced
-        with it. The specified from_api may return None and caller
-        should handle those cases.
+        with it.
 
         :param end_point: Envoy endpoint the document came from
         :param document: JSON document returned by the Envoy
         :param from_api: model method to build the model from the document
         :param message: message to report if the document is incomplete
-        :raises EnvoyCommunicationError: If the document is not a complete document
+        :raises EnvoyCommunicationError: If the document is not a complete
+            document and KeyError, TypeError or IndexError are raised by from_api.
         :return: data model built from the document
         """
-        # from_api will return None on KeyError, TypeError, IndexError
         try:
             return from_api(document)
         except (KeyError, TypeError, IndexError) as err:
