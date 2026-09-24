@@ -536,7 +536,7 @@ async def test_generator_write_refresh_incomplete(
             repeat=True,
         )
 
-    with pytest.raises(EnvoyFeatureNotAvailable):
+    with pytest.raises(EnvoyCommunicationError):
         await envoy.update_generator_schedule({"exercise_duration": 50}, refresh=True)
     with pytest.raises(EnvoyCommunicationError):
         await envoy.set_generator_charge_from_generator(False, refresh=True)

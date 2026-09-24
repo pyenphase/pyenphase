@@ -7,7 +7,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from functools import cached_property, partial
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Literal, TypeVar, overload
+from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 import aiohttp
 import orjson
@@ -1208,7 +1208,6 @@ class Envoy:
                 EnvoyGeneratorSchedule.from_api,
                 "The Envoy returned an incomplete generator schedule, "
                 "no data was changed and no update was sent",
-                True,  # do not raise comm error for backward compatibility
             )
             data.raw[URL_GEN_SCHEDULE] = current
         if data.generator_schedule is None:
@@ -1241,34 +1240,13 @@ class Envoy:
         data.generator_schedule = new_state
         return result
 
-    @overload
     def _model_from_document(
         self,
         end_point: str,
         document: Any,
         from_api: Callable[[Any], _ModelT | None],
         message: str,
-        no_raise_on_none: Literal[False] = False,
-    ) -> _ModelT: ...
-
-    @overload
-    def _model_from_document(
-        self,
-        end_point: str,
-        document: Any,
-        from_api: Callable[[Any], _ModelT | None],
-        message: str,
-        no_raise_on_none: Literal[True],
-    ) -> _ModelT | None: ...
-
-    def _model_from_document(
-        self,
-        end_point: str,
-        document: Any,
-        from_api: Callable[[Any], _ModelT | None],
-        message: str,
-        no_raise_on_none: bool = False,
-    ) -> _ModelT | None:
+    ) -> _ModelT:
         """
         Build a data model from a document returned by the Envoy.
 
@@ -1282,13 +1260,11 @@ class Envoy:
         :param document: JSON document returned by the Envoy
         :param from_api: model method to build the model from the document
         :param message: message to report if the document is incomplete
-        :param no_raise_on_none: do not raise EnvoyCommunicationError,
-            caller will handle None result, default False.
-        :raises EnvoyCommunicationError: If the document is not a complete document and no_raise_on_none false
-        :return: data model built from the document, may be None if no_raise_on_none is true
+        :raises EnvoyCommunicationError: If the document is not a complete document
+        :return: data model built from the document
         """
         # from_api will return None on KeyError, TypeError, IndexError
-        if (validated := from_api(document)) is not None or no_raise_on_none:
+        if (validated := from_api(document)) is not None:
             return validated
         # from_api returned None on KeyError, TypeError, IndexError
         _LOGGER.debug("Incomplete document returned by %s: %s", end_point, document)
