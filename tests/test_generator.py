@@ -373,6 +373,8 @@ async def test_generator_missing_exercise_config(
     assert URL_GEN_SCHEDULE in data.raw
     assert URL_GEN_MODE in data.raw
 
+    caplog.clear()
+
     # now simulated failed schedule
     del schedule_json["exercise_config"]
 
@@ -396,6 +398,22 @@ async def test_generator_missing_exercise_config(
     assert URL_GENERATOR in data.raw
     assert URL_GEN_SCHEDULE in data.raw
     assert URL_GEN_MODE in data.raw
+
+    assert (
+        f"Generator Schedule returned error {URL_GEN_SCHEDULE} 'exercise_config'"
+        in caplog.text
+    )
+
+    # second update after first failure has debug instead of warning log, test for full COV
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_schedule is None
+
+    assert (
+        f"Generator Schedule returned error {URL_GEN_SCHEDULE} 'exercise_config'"
+        in caplog.text
+    )
 
 
 @pytest.mark.asyncio
@@ -464,7 +482,21 @@ async def test_update_generator_config_missing_keys(
     assert data
     assert data.generator_config is None
 
-    assert "Generator Config returned error 'max_cont_gen_amps'" in caplog.text
+    assert (
+        f"Generator Config returned error {URL_GEN_CONFIG} 'max_cont_gen_amps'"
+        in caplog.text
+    )
+
+    # second update after first failure has debug instead of warning log, test for full COV
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_config is None
+
+    assert (
+        f"Generator Config returned error {URL_GEN_CONFIG} 'max_cont_gen_amps'"
+        in caplog.text
+    )
 
 
 @pytest.mark.asyncio
@@ -533,7 +565,15 @@ async def test_update_generator_mode_missing_keys(
     assert data
     assert data.generator_mode is None
 
-    assert "Generator Mode returned error 'gen_cmd'" in caplog.text
+    assert f"Generator Mode returned error {URL_GEN_MODE} 'gen_cmd'" in caplog.text
+
+    # second update after first failure has debug instead of warning log, test for full COV
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_mode is None
+
+    assert f"Generator Mode returned error {URL_GEN_MODE} 'gen_cmd'" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -599,4 +639,12 @@ async def test_update_generator_missing_keys(
     assert data
     assert data.generator is None
 
-    assert "Generator returned error 'admin_state'" in caplog.text
+    assert f"Generator returned error {URL_GENERATOR} 'admin_state'" in caplog.text
+
+    # second update after first failure has debug instead of warning log, test for full COV
+    data = await envoy.update()
+
+    assert data
+    assert data.generator is None
+
+    assert f"Generator returned error {URL_GENERATOR} 'admin_state'" in caplog.text
