@@ -538,6 +538,7 @@ async def test_generator_write_refresh_incomplete(
 
     with pytest.raises(EnvoyCommunicationError):
         await envoy.update_generator_schedule({"exercise_duration": 50}, refresh=True)
+
     with pytest.raises(EnvoyCommunicationError):
         await envoy.set_generator_charge_from_generator(False, refresh=True)
 
@@ -546,6 +547,17 @@ async def test_generator_write_refresh_incomplete(
     assert cnt == 0
     cnt, _data = latest_request(mock_aioresponse, "POST", URL_GEN_CONFIG)
     assert cnt == 0
+
+    assert envoy.data
+    assert envoy.data.generator_schedule is None
+    assert envoy.data.generator_config is None
+
+    # current data is None, we now should get feature not available if refresh is False
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.update_generator_schedule({"exercise_duration": 50}, refresh=False)
+
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.set_generator_charge_from_generator(False, refresh=False)
 
 
 @pytest.mark.asyncio
