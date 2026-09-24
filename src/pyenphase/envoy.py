@@ -1164,9 +1164,8 @@ class Envoy:
         case, use :any:`Envoy.update` to establish the actual state.
 
         Be aware that when the Envoy returns an incomplete document as a
-        refresh reply the stored data for the generator_schedule is set
-        to None to reflect the now current state in the Envoy and raises
-        EnvoyFeatureNotAvailable.
+        refresh reply the stored data for the generator_schedule is left
+        unaltered and an EnvoyCommunicationError is raised.
 
         :param new_data: dict of settings to change
         :param refresh: re-read the schedule from the Envoy before
@@ -1198,18 +1197,23 @@ class Envoy:
             # back with stale values
             # If we are here then probe detected a valid generator schedule.
             # _model_from_document by default raises EnvoyCommunicationError
-            # on 3 error types including KeyError. For backward compatibility
-            # use the option to not raise on these errors and handle the
-            # returned None here as EnvoyFeatureNotAvailable.
+            # on 3 error types including KeyError.
+            # force generator_schedule data to None on error to avoid reuse
+            # of old values that may have been changed by cloud
             current = await self._json_request(URL_GEN_SCHEDULE, None)
-            data.generator_schedule = self._model_from_document(
-                URL_GEN_SCHEDULE,
-                current,
-                EnvoyGeneratorSchedule.from_api,
-                "The Envoy returned an incomplete generator schedule, "
-                "no data was changed and no update was sent",
-            )
-            data.raw[URL_GEN_SCHEDULE] = current
+            try:
+                data.generator_schedule = self._model_from_document(
+                    URL_GEN_SCHEDULE,
+                    current,
+                    EnvoyGeneratorSchedule.from_api,
+                    "The Envoy returned an incomplete generator schedule, "
+                    "no data was changed and no update was sent",
+                )
+                data.raw[URL_GEN_SCHEDULE] = current
+            except EnvoyCommunicationError:
+                # for current schedule data to None to prevent reuse of old data
+                data.generator_schedule = None
+                raise
         if data.generator_schedule is None:
             raise EnvoyFeatureNotAvailable(
                 "The generator schedule endpoint is incomplete, "
