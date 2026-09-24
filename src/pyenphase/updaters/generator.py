@@ -32,19 +32,27 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
     _gen_schedule_available: bool = False
     #: Whether the Envoy exposes the gen_mode endpoint, set during probe
     _gen_mode_available: bool = False
+    #: Whether exposed generator configuration has valid data, set during probe, tracked in update
+    _generator_config_valid: bool = False
+    #: Whether exposed generator status has valid data, set during probe, tracked in update
+    _generator_valid: bool = False
+    #: Whether exposed generator schedule has valid data, set during probe, tracked in update
+    _generator_schedule_valid: bool = False
+    #: Whether exposed generator mode has valid data, set during probe, tracked in update
+    _generator_mode_valid: bool = False
 
     async def _optional_endpoint_available(
         self,
         end_point: str,
-        verify_method: Callable[[dict[str, Any]], object] | None = None,
+        verify_method: Callable[[dict[str, Any]], object],
     ) -> bool:
         """
         Probe an optional generator endpoint and report its availability.
-        Optionally verify endpoint data validity using the verify method.
+        Verify endpoint data validity using the verify method.
 
         :param end_point: Envoy endpoint to probe
-        :param verify_method: If specified used to verify endpoint data.
-            Bool result of verify method is returned instead of bool result of probe request
+        :param verify_method: method to verify endpoint data.
+            Bool result of verify method is returned
         :return: True if the endpoint returned usable data
         """
         try:
@@ -56,8 +64,7 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
         if not bool(result) or "error" in result or "err" in result:
             _LOGGER.debug("No usable Generator data at %s", end_point)
             return False
-        if verify_method:
-            # verify returned data validity
+        try:
             verified = verify_method(result)
             _LOGGER.debug(
                 "Generator endpoint %s data passed verification: %s",
@@ -65,7 +72,12 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
                 bool(verified),
             )
             return bool(verified)
-        return True
+        except (KeyError, TypeError, IndexError) as err:
+            # problems with data formats, return failed verification
+            _LOGGER.debug(
+                "Generator endpoint %s failed data verification: %s", end_point, err
+            )
+            return False
 
     async def probe(
         self, discovered_features: SupportedFeatures
@@ -91,8 +103,10 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
             return None
 
         # Check for generator support
-        result = await self._optional_endpoint_available(URL_GEN_CONFIG)
-        if not result:
+        self._generator_config_valid = await self._optional_endpoint_available(
+            URL_GEN_CONFIG, EnvoyGeneratorConfig.from_api
+        )
+        if not self._generator_config_valid:
             _LOGGER.debug("No generator configuration found")
             return None
 
@@ -103,18 +117,33 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
         # generator-capable firmware. Probe each one so update() only
         # fetches what is available and the corresponding data fields
         # degrade independently to None.
-        self._generator_available = await self._optional_endpoint_available(
-            URL_GENERATOR
+        self._generator_valid = (
+            self._generator_available
+        ) = await self._optional_endpoint_available(
+            URL_GENERATOR, EnvoyGenerator.from_api
         )
+        if not self._generator_available:
+            _LOGGER.debug("No ensemble generator data found")
+
         # verify data for missing exercise_config
-        self._gen_schedule_available = await self._optional_endpoint_available(
+        self._generator_schedule_valid = (
+            self._gen_schedule_available
+        ) = await self._optional_endpoint_available(
             URL_GEN_SCHEDULE, EnvoyGeneratorSchedule.from_api
         )
         # if valid schedule signal availability to clients so they can use it as guard
         if self._gen_schedule_available:
             self._supported_features |= SupportedFeatures.GENERATOR_SCHEDULE
+        else:
+            _LOGGER.debug("No generator schedule found")
 
-        self._gen_mode_available = await self._optional_endpoint_available(URL_GEN_MODE)
+        self._generator_mode_valid = (
+            self._gen_mode_available
+        ) = await self._optional_endpoint_available(
+            URL_GEN_MODE, EnvoyGeneratorMode.from_api
+        )
+        if not self._gen_mode_available:
+            _LOGGER.debug("No generator mode found")
 
         return self._supported_features
 
@@ -123,26 +152,76 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
         if self._generator_available:
             generator_data: dict[str, Any] = await self._json_request(URL_GENERATOR)
             envoy_data.raw[URL_GENERATOR] = generator_data
-            envoy_data.generator = EnvoyGenerator.from_api(generator_data)
+            try:
+                envoy_data.generator = EnvoyGenerator.from_api(generator_data)
+                self._generator_valid = True
+            except (KeyError, TypeError, IndexError) as err:
+                if self._generator_valid:
+                    self._generator_valid = False
+                    _LOGGER.warning(
+                        "Generator returned error %s %s.", URL_GENERATOR, err
+                    )
+                else:
+                    _LOGGER.debug("Generator returned error %s %s.", URL_GENERATOR, err)
 
         generator_config_data: dict[str, Any] = await self._json_request(URL_GEN_CONFIG)
         envoy_data.raw[URL_GEN_CONFIG] = generator_config_data
-        envoy_data.generator_config = EnvoyGeneratorConfig.from_api(
-            generator_config_data
-        )
+        try:
+            envoy_data.generator_config = EnvoyGeneratorConfig.from_api(
+                generator_config_data
+            )
+            self._generator_config_valid = True
+        except (KeyError, TypeError, IndexError) as err:
+            if self._generator_config_valid:
+                self._generator_config_valid = False
+                _LOGGER.warning(
+                    "Generator Config returned error %s %s.", URL_GEN_CONFIG, err
+                )
+            else:
+                _LOGGER.debug(
+                    "Generator Config returned error %s %s.", URL_GEN_CONFIG, err
+                )
 
         if self._gen_schedule_available:
             generator_schedule_data: dict[str, Any] = await self._json_request(
                 URL_GEN_SCHEDULE
             )
             envoy_data.raw[URL_GEN_SCHEDULE] = generator_schedule_data
-            envoy_data.generator_schedule = EnvoyGeneratorSchedule.from_api(
-                generator_schedule_data
-            )
-            if not envoy_data.generator_schedule:
-                _LOGGER.debug("Generator Schedule returned None.")
+            try:
+                envoy_data.generator_schedule = EnvoyGeneratorSchedule.from_api(
+                    generator_schedule_data
+                )
+                self._generator_schedule_valid = True
+            except (KeyError, TypeError, IndexError) as err:
+                if self._generator_schedule_valid:
+                    self._generator_schedule_valid = False
+                    _LOGGER.warning(
+                        "Generator Schedule returned error %s %s.",
+                        URL_GEN_SCHEDULE,
+                        err,
+                    )
+                else:
+                    _LOGGER.debug(
+                        "Generator Schedule returned error %s %s.",
+                        URL_GEN_SCHEDULE,
+                        err,
+                    )
 
         if self._gen_mode_available:
             generator_mode_data: dict[str, Any] = await self._json_request(URL_GEN_MODE)
             envoy_data.raw[URL_GEN_MODE] = generator_mode_data
-            envoy_data.generator_mode = EnvoyGeneratorMode.from_api(generator_mode_data)
+            try:
+                envoy_data.generator_mode = EnvoyGeneratorMode.from_api(
+                    generator_mode_data
+                )
+                self._generator_mode_valid = True
+            except (KeyError, TypeError, IndexError) as err:
+                if self._generator_mode_valid:
+                    self._generator_mode_valid = False
+                    _LOGGER.warning(
+                        "Generator Mode returned error %s %s.", URL_GEN_MODE, err
+                    )
+                else:
+                    _LOGGER.debug(
+                        "Generator Mode returned error %s %s.", URL_GEN_MODE, err
+                    )

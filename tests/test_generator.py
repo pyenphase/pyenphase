@@ -305,11 +305,13 @@ async def test_set_generator_mode(
 async def test_generator_missing_exercise_config(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Verify generator data degrades if no exercise config is present in schedule."""
     version = "8.3.5169_with_generator"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
 
     full_host = endpoint_path(version, "127.0.0.1")
 
@@ -344,6 +346,7 @@ async def test_generator_missing_exercise_config(
     assert URL_GENERATOR in data.raw
     assert URL_GEN_SCHEDULE not in data.raw
     assert URL_GEN_MODE in data.raw
+    assert "No generator schedule found" in caplog.text
 
     # start with working generator schedule
     schedule_json = await load_json_fixture(version, "ivp_ss_gen_schedule")
@@ -370,6 +373,8 @@ async def test_generator_missing_exercise_config(
     assert URL_GEN_SCHEDULE in data.raw
     assert URL_GEN_MODE in data.raw
 
+    caplog.clear()
+
     # now simulated failed schedule
     del schedule_json["exercise_config"]
 
@@ -393,3 +398,330 @@ async def test_generator_missing_exercise_config(
     assert URL_GENERATOR in data.raw
     assert URL_GEN_SCHEDULE in data.raw
     assert URL_GEN_MODE in data.raw
+
+    assert (
+        f"Generator Schedule returned error {URL_GEN_SCHEDULE} 'exercise_config'"
+        in caplog.text
+    )
+
+    # second update after first failure has debug instead of warning log, test for full COV
+    caplog.clear()
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_schedule is None
+
+    assert (
+        f"Generator Schedule returned error {URL_GEN_SCHEDULE} 'exercise_config'"
+        in caplog.text
+    )
+
+    # update should recover on full data again
+    caplog.clear()
+    schedule_json = await load_json_fixture(version, "ivp_ss_gen_schedule")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_SCHEDULE}",
+        status=200,
+        payload=schedule_json,
+        repeat=True,
+    )
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_schedule is not None
+
+    assert f"Generator Schedule returned error {URL_GEN_SCHEDULE}" not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_probe_generator_config_missing_keys(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Verify probe generator collection is not enabled when keys are missing."""
+    version = "8.3.5169_with_generator"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+    full_host = endpoint_path(version, "127.0.0.1")
+
+    # remove expected key from data set
+    generator_json = await load_json_fixture(version, "ivp_ss_gen_config")
+    del generator_json["max_cont_gen_amps"]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_CONFIG}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+
+    assert envoy.data
+    assert envoy.data.generator_config is None
+
+    assert "No generator configuration found" in caplog.text
+    assert SupportedFeatures.GENERATOR_SCHEDULE not in envoy.supported_features
+    assert SupportedFeatures.GENERATOR not in envoy.supported_features
+
+
+@pytest.mark.asyncio
+async def test_update_generator_config_missing_keys(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Verify update generator config is None when keys are missing."""
+    version = "8.3.5169_with_generator"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+    full_host = endpoint_path(version, "127.0.0.1")
+    envoy = await get_mock_envoy(test_client_session)
+
+    # remove expected key from data set
+    generator_json = await load_json_fixture(version, "ivp_ss_gen_config")
+    del generator_json["max_cont_gen_amps"]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_CONFIG}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_config is None
+
+    assert (
+        f"Generator Config returned error {URL_GEN_CONFIG} 'max_cont_gen_amps'"
+        in caplog.text
+    )
+
+    # second update after first failure has debug instead of warning log, test for full COV
+    caplog.clear()
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_config is None
+
+    assert (
+        f"Generator Config returned error {URL_GEN_CONFIG} 'max_cont_gen_amps'"
+        in caplog.text
+    )
+
+    # update should recover on full data again
+    caplog.clear()
+    generator_json = await load_json_fixture(version, "ivp_ss_gen_config")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_CONFIG}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_config is not None
+
+    assert f"Generator Config returned error {URL_GEN_CONFIG}" not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_probe_generator_mode_missing_keys(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Verify probe generator mode is not enabled when keys are missing."""
+    version = "8.3.5169_with_generator"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+    full_host = endpoint_path(version, "127.0.0.1")
+
+    # remove expected key from data set
+    generator_json = await load_json_fixture(version, "ivp_ss_gen_mode")
+    del generator_json["gen_cmd"]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_MODE}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+
+    assert envoy.data
+    assert envoy.data.generator_mode is None
+
+    assert "No generator mode found" in caplog.text
+    assert SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features
+    assert SupportedFeatures.GENERATOR in envoy.supported_features
+
+
+@pytest.mark.asyncio
+async def test_update_generator_mode_missing_keys(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Verify update generator mode is None when keys are missing."""
+    version = "8.3.5169_with_generator"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+    full_host = endpoint_path(version, "127.0.0.1")
+    envoy = await get_mock_envoy(test_client_session)
+
+    # remove expected key from data set
+    generator_json = await load_json_fixture(version, "ivp_ss_gen_mode")
+    del generator_json["gen_cmd"]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_MODE}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_mode is None
+
+    assert f"Generator Mode returned error {URL_GEN_MODE} 'gen_cmd'" in caplog.text
+
+    # second update after first failure has debug instead of warning log, test for full COV
+    caplog.clear()
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_mode is None
+
+    assert f"Generator Mode returned error {URL_GEN_MODE} 'gen_cmd'" in caplog.text
+
+    # update should recover on full data again
+    caplog.clear()
+    generator_json = await load_json_fixture(version, "ivp_ss_gen_mode")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_MODE}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    data = await envoy.update()
+
+    assert data
+    assert data.generator_mode is not None
+
+    assert f"Generator Mode returned error {URL_GEN_MODE}" not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_probe_generator_missing_keys(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Verify probe generator is not enabled when keys are missing."""
+    version = "8.3.5169_with_generator"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+    full_host = endpoint_path(version, "127.0.0.1")
+
+    # remove expected key from data set
+    generator_json = await load_json_fixture(version, "ivp_ensemble_generator")
+    del generator_json["admin_state"]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GENERATOR}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    envoy = await get_mock_envoy(test_client_session)
+
+    assert "No ensemble generator data found" in caplog.text
+    assert SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features
+    assert SupportedFeatures.GENERATOR in envoy.supported_features
+
+
+@pytest.mark.asyncio
+async def test_update_generator_missing_keys(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Verify update generator is None when keys are missing."""
+    version = "8.3.5169_with_generator"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    caplog.set_level(logging.DEBUG)
+    full_host = endpoint_path(version, "127.0.0.1")
+    envoy = await get_mock_envoy(test_client_session)
+
+    # remove expected key from data set
+    generator_json = await load_json_fixture(version, "ivp_ensemble_generator")
+    del generator_json["admin_state"]
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GENERATOR}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    data = await envoy.update()
+
+    assert data
+    assert data.generator is None
+
+    assert f"Generator returned error {URL_GENERATOR} 'admin_state'" in caplog.text
+
+    # second update after first failure has debug instead of warning log, test for full COV
+    caplog.clear()
+    data = await envoy.update()
+
+    assert data
+    assert data.generator is None
+
+    assert f"Generator returned error {URL_GENERATOR} 'admin_state'" in caplog.text
+
+    # update should recover on full data again
+    caplog.clear()
+
+    generator_json = await load_json_fixture(version, "ivp_ensemble_generator")
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GENERATOR}",
+        status=200,
+        payload=generator_json,
+        repeat=True,
+    )
+    data = await envoy.update()
+
+    assert data
+    assert data.generator is not None
+
+    assert f"Generator returned error {URL_GENERATOR}" not in caplog.text

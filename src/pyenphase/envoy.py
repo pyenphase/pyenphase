@@ -1164,9 +1164,8 @@ class Envoy:
         case, use :any:`Envoy.update` to establish the actual state.
 
         Be aware that when the Envoy returns an incomplete document as a
-        refresh reply the stored data for the generator_schedule is set
-        to None to reflect the now current state in the Envoy and raises
-        EnvoyFeatureNotAvailable.
+        refresh reply, the stored data for the generator_schedule is set
+        to None and an EnvoyCommunicationError is raised.
 
         :param new_data: dict of settings to change
         :param refresh: re-read the schedule from the Envoy before
@@ -1197,21 +1196,25 @@ class Envoy:
             # cloud or app since the last data collection are not echoed
             # back with stale values
             # If we are here then probe detected a valid generator schedule.
-            # _model_from_document raises on 3 error types including KeyError.
-            # fromApi will return None in case of KeyError so we fall through
-            # and below error is not raised, no mention of `no data change`
-            # will occur. data.generator_schedule is set to None and data_raw
-            # shows last known data. Which is for both the actual current situation.
-            # The guard below will prevent actual change execution.
+            # _model_from_document by default raises EnvoyCommunicationError
+            # on 3 error types including KeyError.
+            # force generator_schedule data to None on error to avoid reuse
+            # of old values that may have been changed by cloud
             current = await self._json_request(URL_GEN_SCHEDULE, None)
-            data.generator_schedule = self._model_from_document(
-                URL_GEN_SCHEDULE,
-                current,
-                EnvoyGeneratorSchedule.from_api,
-                "The Envoy returned an incomplete generator schedule, "
-                "no data was changed and no update was sent",
-            )
-            data.raw[URL_GEN_SCHEDULE] = current
+            try:
+                data.generator_schedule = self._model_from_document(
+                    URL_GEN_SCHEDULE,
+                    current,
+                    EnvoyGeneratorSchedule.from_api,
+                    "The Envoy returned an incomplete generator schedule, "
+                    "no data was changed and no update was sent",
+                )
+            except EnvoyCommunicationError:
+                # force current schedule data to None to prevent reuse of old data
+                data.generator_schedule = None
+                raise
+            finally:
+                data.raw[URL_GEN_SCHEDULE] = current
         if data.generator_schedule is None:
             raise EnvoyFeatureNotAvailable(
                 "The generator schedule endpoint is incomplete, "
@@ -1230,15 +1233,13 @@ class Envoy:
             "The Envoy returned an incomplete generator schedule for the update, "
             "the update was sent but the stored data was left unchanged"
         )
+        # _model_from_document will raise EnvoyCommunicationError on None
         new_state = self._model_from_document(
             URL_GEN_SCHEDULE,
             result,
             EnvoyGeneratorSchedule.from_api,
             message,
         )
-        # if updated schedule is None we got incomplete reply
-        if new_state is None:
-            raise EnvoyCommunicationError(f"{message}: {URL_GEN_SCHEDULE}")
 
         data.raw[URL_GEN_SCHEDULE] = result
         data.generator_schedule = new_state
@@ -1257,20 +1258,23 @@ class Envoy:
         Used to verify a document returned before a write action
         is executed and data is send by the write or after a write
         action is completed before any stored data is replaced
-        with it. The specified from_api may return None and caller
-        should handle those cases.
+        with it.
 
         :param end_point: Envoy endpoint the document came from
         :param document: JSON document returned by the Envoy
         :param from_api: model method to build the model from the document
         :param message: message to report if the document is incomplete
-        :raises EnvoyCommunicationError: If the document is not a complete document
-        :return: data model built from the document, may be None
+        :raises EnvoyCommunicationError: If the document is not a complete
+            document and KeyError, TypeError or IndexError are raised by from_api.
+        :return: data model built from the document
         """
         try:
             return from_api(document)
         except (KeyError, TypeError, IndexError) as err:
-            _LOGGER.debug("Incomplete document returned by %s: %s", end_point, document)
+            # from_api returned data format errors
+            _LOGGER.debug(
+                "Incomplete document returned by %s: %s %s", end_point, err, document
+            )
             raise EnvoyCommunicationError(f"{message}: {end_point} {err!s}") from err
 
     def _validated_generator_schedule(
@@ -1370,6 +1374,11 @@ class Envoy:
         from the Envoy right before the setting is changed in it, or by
         using :any:`Envoy.update` before the call.
 
+
+        Be aware that when the Envoy returns an incomplete document as a
+        refresh reply, the stored data for the generator_config is set
+        to None and an EnvoyCommunicationError is raised.
+
         :param charge_from_generator: True to allow charging batteries
             from the generator, False to disallow
         :param refresh: re-read the configuration from the Envoy before
@@ -1396,18 +1405,29 @@ class Envoy:
             # Enphase cloud or app since the last data collection is not
             # echoed back with stale values
             current = await self._json_request(URL_GEN_CONFIG, None)
-            data.generator_config = self._model_from_document(
-                URL_GEN_CONFIG,
-                current,
-                EnvoyGeneratorConfig.from_api,
-                "The Envoy returned an incomplete generator configuration, "
-                "no data was changed and no update was sent",
-            )
-            data.raw[URL_GEN_CONFIG] = current
+            try:
+                data.generator_config = self._model_from_document(
+                    URL_GEN_CONFIG,
+                    current,
+                    EnvoyGeneratorConfig.from_api,
+                    "The Envoy returned an incomplete generator configuration, "
+                    "no data was changed and no update was sent",
+                )
+            except EnvoyCommunicationError:
+                # force current configuration data to None to prevent reuse of old data
+                data.generator_config = None
+                raise
+            finally:
+                data.raw[URL_GEN_CONFIG] = current
+
         # gen_config is the GENERATOR detection gate, so it is always
         # collected during update when the feature is available
-        if TYPE_CHECKING:
-            assert data.generator_config is not None  # nosec
+        # catch if it changes on the fly
+        if data.generator_config is None:
+            raise EnvoyFeatureNotAvailable(
+                "The generator configuration endpoint is incomplete, "
+                "has issues or is no longer available on this Envoy."
+            )
         new_model = replace(
             data.generator_config, charge_from_generator=charge_from_generator
         )

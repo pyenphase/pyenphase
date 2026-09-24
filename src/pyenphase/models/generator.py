@@ -156,35 +156,29 @@ class EnvoyGeneratorSchedule:
     schedule: dict[str, Any]
 
     @classmethod
-    def from_api(cls, schedule: dict[str, Any]) -> EnvoyGeneratorSchedule | None:
+    def from_api(cls, schedule: dict[str, Any]) -> EnvoyGeneratorSchedule:
         """
         Initialize class from API json data.
 
         Exercise_config is only included in the generator schedule when
         configured in the Envoy using the App. Without the exercise_config
-        the EnvoyGeneratorSchedule is not usable. Other components presence
-        is assumed. If any are missing return None, let caller handle this.
-        This makes from_api usable as verification during probe.
+        the EnvoyGeneratorSchedule is not usable.
 
         :param schedule: json returned by :any:`URL_GEN_SCHEDULE`
-        :return: populated EnvoyGeneratorSchedule class or None if exercise_config or other keys are missing
+        :return: populated EnvoyGeneratorSchedule class
         """
-        try:
-            exercise_config = schedule["exercise_config"]
-            default_soc = schedule["default_soc"]
-            generator_schedule = cls(
-                exercise_freq_in_weeks=exercise_config["freq_in_weeks"],
-                exercise_start=exercise_config["start"],
-                exercise_duration=exercise_config["duration"],
-                exercise_day=exercise_config["day"],
-                default_start_soc=default_soc["start_soc"],
-                default_stop_soc=default_soc["stop_soc"],
-                last_updated_by=schedule["last_updated_by"],
-                schedule=schedule["schedule"],
-            )
-        except (KeyError, TypeError, IndexError):
-            generator_schedule = None
-        return generator_schedule
+        exercise_config = schedule["exercise_config"]
+        default_soc = schedule["default_soc"]
+        return cls(
+            exercise_freq_in_weeks=exercise_config["freq_in_weeks"],
+            exercise_start=exercise_config["start"],
+            exercise_duration=exercise_config["duration"],
+            exercise_day=exercise_config["day"],
+            default_start_soc=default_soc["start_soc"],
+            default_stop_soc=default_soc["stop_soc"],
+            last_updated_by=schedule["last_updated_by"],
+            schedule=schedule["schedule"],
+        )
 
     def to_api(self) -> dict[str, Any]:
         """Convert to API format."""

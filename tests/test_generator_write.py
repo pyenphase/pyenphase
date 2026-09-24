@@ -408,6 +408,46 @@ async def test_set_generator_charge_from_generator_incomplete_reply(
 
 
 @pytest.mark.asyncio
+async def test_generator_write_norefresh_current_data_none(
+    caplog: pytest.LogCaptureFixture,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+) -> None:
+    """Verify no command is sent when data is None after update."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", VERSION)
+    caplog.set_level(logging.DEBUG)
+
+    envoy = await get_mock_envoy(test_client_session)
+    full_host = endpoint_path(VERSION, envoy.host)
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_CONFIG}",
+        status=200,
+        payload={"charge_from_generator": False},
+        repeat=True,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{URL_GEN_SCHEDULE}",
+        status=200,
+        payload={"unknown_item_only": False},
+        repeat=True,
+    )
+    data = await envoy.update()
+    assert data
+    assert data.generator_config is None
+
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.set_generator_charge_from_generator(False)
+
+    with pytest.raises(EnvoyFeatureNotAvailable):
+        await envoy.update_generator_schedule({"exercise_duration": 50})
+
+
+@pytest.mark.asyncio
 async def test_generator_write_refresh(
     caplog: pytest.LogCaptureFixture,
     mock_aioresponse: aioresponses,
@@ -492,13 +532,20 @@ async def test_generator_write_refresh_incomplete(
             "get",
             f"{full_host}{path}",
             status=200,
-            payload={"incomplete": True},
+            payload={"incomplete": path},
             repeat=True,
         )
 
-    with pytest.raises(EnvoyFeatureNotAvailable):
+    with pytest.raises(
+        EnvoyCommunicationError,
+        match="The Envoy returned an incomplete generator schedule",
+    ):
         await envoy.update_generator_schedule({"exercise_duration": 50}, refresh=True)
-    with pytest.raises(EnvoyCommunicationError):
+
+    with pytest.raises(
+        EnvoyCommunicationError,
+        match="The Envoy returned an incomplete generator configuration",
+    ):
         await envoy.set_generator_charge_from_generator(False, refresh=True)
 
     # nothing was sent
@@ -506,6 +553,24 @@ async def test_generator_write_refresh_incomplete(
     assert cnt == 0
     cnt, _data = latest_request(mock_aioresponse, "POST", URL_GEN_CONFIG)
     assert cnt == 0
+
+    assert envoy.data
+    assert envoy.data.generator_schedule is None
+    assert envoy.data.raw[URL_GEN_SCHEDULE] == {"incomplete": URL_GEN_SCHEDULE}
+    assert envoy.data.generator_config is None
+    assert envoy.data.raw[URL_GEN_CONFIG] == {"incomplete": URL_GEN_CONFIG}
+
+    # current data is None, we now should get feature not available if refresh is False
+    with pytest.raises(
+        EnvoyFeatureNotAvailable, match="The generator schedule endpoint is incomplete,"
+    ):
+        await envoy.update_generator_schedule({"exercise_duration": 50}, refresh=False)
+
+    with pytest.raises(
+        EnvoyFeatureNotAvailable,
+        match="The generator configuration endpoint is incomplete,",
+    ):
+        await envoy.set_generator_charge_from_generator(False, refresh=False)
 
 
 @pytest.mark.asyncio
