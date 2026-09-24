@@ -1272,8 +1272,10 @@ class Envoy:
             return from_api(document)
         except (KeyError, TypeError, IndexError) as err:
             # from_api returned data format errors
-            _LOGGER.debug("Incomplete document returned by %s: %s", end_point, err)
-            raise EnvoyCommunicationError(f"{message}: {end_point}") from err
+            _LOGGER.debug(
+                "Incomplete document returned by %s: %s %s", end_point, err, document
+            )
+            raise EnvoyCommunicationError(f"{message}: {end_point} {err!s}") from err
 
     def _validated_generator_schedule(
         self, new_data: dict[str, Any], current: EnvoyGeneratorSchedule
