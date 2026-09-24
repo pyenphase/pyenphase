@@ -1,6 +1,37 @@
 # CHANGELOG
 
 
+## v4.0.6 (2026-09-24)
+
+### Bug Fixes
+
+- KeyError max_cont_gen_amps in generator data
+  ([#508](https://github.com/pyenphase/pyenphase/pull/508),
+  [`d57b9b3`](https://github.com/pyenphase/pyenphase/commit/d57b9b36973e50db6f906e83471e19d002a0cd54))
+
+### Chores
+
+- **deps**: Bump pyjwt from 2.13.0 to 2.14.0
+  ([#506](https://github.com/pyenphase/pyenphase/pull/506),
+  [`f0daf7b`](https://github.com/pyenphase/pyenphase/commit/f0daf7b0193e0f06c919d5f3469466babaa747b1))
+
+- **deps-dev**: Bump syrupy from 6.0.0 to 6.1.1
+  ([#505](https://github.com/pyenphase/pyenphase/pull/505),
+  [`1d6b10c`](https://github.com/pyenphase/pyenphase/commit/1d6b10cc6deb562b1b9083ceeed4c76e28e4d051))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#507](https://github.com/pyenphase/pyenphase/pull/507),
+  [`1da310c`](https://github.com/pyenphase/pyenphase/commit/1da310ceed159e7564b491612e8c726a7f89993c))
+
+### Documentation
+
+- Repair Markdown fragment links ([#504](https://github.com/pyenphase/pyenphase/pull/504),
+  [`2e11ac8`](https://github.com/pyenphase/pyenphase/commit/2e11ac8423ddad1505262121306c4b8be93f00f7))
+
+- Repair Markdown fragment links in data_ensemble.md and data_raw.md
+  ([#504](https://github.com/pyenphase/pyenphase/pull/504),
+  [`2e11ac8`](https://github.com/pyenphase/pyenphase/commit/2e11ac8423ddad1505262121306c4b8be93f00f7))
+
+
 ## v4.0.5 (2026-09-16)
 
 ### Bug Fixes
