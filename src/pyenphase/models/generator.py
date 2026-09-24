@@ -36,23 +36,19 @@ class EnvoyGenerator:
     type: int
 
     @classmethod
-    def from_api(cls, generator: dict[str, Any]) -> EnvoyGenerator | None:
+    def from_api(cls, generator: dict[str, Any]) -> EnvoyGenerator:
         """Initialize from the API."""
-        try:
-            return cls(
-                admin_state=generator["admin_state"],
-                oper_state=generator["oper_state"],
-                admin_mode=generator["admin_mode"],
-                schedule=generator["schedule"],
-                start_soc=generator["start_soc"],
-                stop_soc=generator["stop_soc"],
-                exc_on=generator["exc_on"],
-                present=bool(generator["present"]),
-                type=generator["type"],
-            )
-        except (KeyError, TypeError, IndexError) as exc:
-            _LOGGER.debug("Failure parsing generator information %s", exc)
-            return None
+        return cls(
+            admin_state=generator["admin_state"],
+            oper_state=generator["oper_state"],
+            admin_mode=generator["admin_mode"],
+            schedule=generator["schedule"],
+            start_soc=generator["start_soc"],
+            stop_soc=generator["stop_soc"],
+            exc_on=generator["exc_on"],
+            present=bool(generator["present"]),
+            type=generator["type"],
+        )
 
 
 @dataclass(slots=True)
@@ -89,25 +85,21 @@ class EnvoyGeneratorConfig:
     @classmethod
     def from_api(cls, config: dict[str, Any]) -> EnvoyGeneratorConfig | None:
         """Initialize from the API."""
-        try:
-            return cls(
-                max_cont_gen_amps=config["max_cont_gen_amps"],
-                min_gen_loading_perc=config["min_gen_loading_perc"],
-                max_gen_efficiency_perc=config["max_gen_efficiency_perc"],
-                name_plate_rating_wat=config["name_plate_rating_wat"],
-                start_method=config["start_method"],
-                warm_up_mins=config["warm_up_mins"],
-                cool_down_mins=config["cool_down_mins"],
-                gen_type=config["gen_type"],
-                model=config["model"],
-                manufacturer=config["manufacturer"],
-                last_updated_by=config["last_updated_by"],
-                generator_id=config["generator_id"],
-                charge_from_generator=config["charge_from_generator"],
-            )
-        except (KeyError, TypeError, IndexError) as exc:
-            _LOGGER.debug("Failure parsing generator configuration information %s", exc)
-            return None
+        return cls(
+            max_cont_gen_amps=config["max_cont_gen_amps"],
+            min_gen_loading_perc=config["min_gen_loading_perc"],
+            max_gen_efficiency_perc=config["max_gen_efficiency_perc"],
+            name_plate_rating_wat=config["name_plate_rating_wat"],
+            start_method=config["start_method"],
+            warm_up_mins=config["warm_up_mins"],
+            cool_down_mins=config["cool_down_mins"],
+            gen_type=config["gen_type"],
+            model=config["model"],
+            manufacturer=config["manufacturer"],
+            last_updated_by=config["last_updated_by"],
+            generator_id=config["generator_id"],
+            charge_from_generator=config["charge_from_generator"],
+        )
 
     def to_api(self) -> dict[str, Any]:
         """Convert to API format."""
@@ -139,14 +131,10 @@ class EnvoyGeneratorMode:
     @classmethod
     def from_api(cls, mode: dict[str, Any]) -> EnvoyGeneratorMode | None:
         """Initialize from the API."""
-        try:
-            return cls(
-                gen_cmd=mode["gen_cmd"],
-                last_updated_by=mode["last_updated_by"],
-            )
-        except (KeyError, TypeError, IndexError) as exc:
-            _LOGGER.debug("Failure parsing generator mode information %s", exc)
-            return None
+        return cls(
+            gen_cmd=mode["gen_cmd"],
+            last_updated_by=mode["last_updated_by"],
+        )
 
 
 @dataclass(slots=True)
@@ -182,24 +170,20 @@ class EnvoyGeneratorSchedule:
         This makes from_api usable as verification during probe.
 
         :param schedule: json returned by :any:`URL_GEN_SCHEDULE`
-        :return: populated EnvoyGeneratorSchedule class or None if exercise_config or other keys are missing
+        :return: populated EnvoyGeneratorSchedule class
         """
-        try:
-            exercise_config = schedule["exercise_config"]
-            default_soc = schedule["default_soc"]
-            return cls(
-                exercise_freq_in_weeks=exercise_config["freq_in_weeks"],
-                exercise_start=exercise_config["start"],
-                exercise_duration=exercise_config["duration"],
-                exercise_day=exercise_config["day"],
-                default_start_soc=default_soc["start_soc"],
-                default_stop_soc=default_soc["stop_soc"],
-                last_updated_by=schedule["last_updated_by"],
-                schedule=schedule["schedule"],
-            )
-        except (KeyError, TypeError, IndexError) as exc:
-            _LOGGER.debug("Failure parsing generator schedule information %s", exc)
-            return None
+        exercise_config = schedule["exercise_config"]
+        default_soc = schedule["default_soc"]
+        return cls(
+            exercise_freq_in_weeks=exercise_config["freq_in_weeks"],
+            exercise_start=exercise_config["start"],
+            exercise_duration=exercise_config["duration"],
+            exercise_day=exercise_config["day"],
+            default_start_soc=default_soc["start_soc"],
+            default_stop_soc=default_soc["stop_soc"],
+            last_updated_by=schedule["last_updated_by"],
+            schedule=schedule["schedule"],
+        )
 
     def to_api(self) -> dict[str, Any]:
         """Convert to API format."""

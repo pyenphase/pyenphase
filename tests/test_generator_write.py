@@ -536,10 +536,16 @@ async def test_generator_write_refresh_incomplete(
             repeat=True,
         )
 
-    with pytest.raises(EnvoyCommunicationError):
+    with pytest.raises(
+        EnvoyCommunicationError,
+        match="The Envoy returned an incomplete generator schedule",
+    ):
         await envoy.update_generator_schedule({"exercise_duration": 50}, refresh=True)
 
-    with pytest.raises(EnvoyCommunicationError):
+    with pytest.raises(
+        EnvoyCommunicationError,
+        match="The Envoy returned an incomplete generator configuration",
+    ):
         await envoy.set_generator_charge_from_generator(False, refresh=True)
 
     # nothing was sent
@@ -553,10 +559,15 @@ async def test_generator_write_refresh_incomplete(
     assert envoy.data.generator_config is None
 
     # current data is None, we now should get feature not available if refresh is False
-    with pytest.raises(EnvoyFeatureNotAvailable):
+    with pytest.raises(
+        EnvoyFeatureNotAvailable, match="The generator schedule endpoint is incomplete,"
+    ):
         await envoy.update_generator_schedule({"exercise_duration": 50}, refresh=False)
 
-    with pytest.raises(EnvoyFeatureNotAvailable):
+    with pytest.raises(
+        EnvoyFeatureNotAvailable,
+        match="The generator configuration endpoint is incomplete,",
+    ):
         await envoy.set_generator_charge_from_generator(False, refresh=False)
 
 

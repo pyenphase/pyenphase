@@ -346,7 +346,7 @@ async def test_generator_missing_exercise_config(
     assert URL_GENERATOR in data.raw
     assert URL_GEN_SCHEDULE not in data.raw
     assert URL_GEN_MODE in data.raw
-    assert "Failure parsing generator schedule information" in caplog.text
+    assert "No generator schedule found" in caplog.text
 
     # start with working generator schedule
     schedule_json = await load_json_fixture(version, "ivp_ss_gen_schedule")
@@ -428,7 +428,6 @@ async def test_probe_generator_config_missing_keys(
     assert envoy.data
     assert envoy.data.generator_config is None
 
-    assert "Failure parsing generator configuration information" in caplog.text
     assert "No generator configuration found" in caplog.text
     assert SupportedFeatures.GENERATOR_SCHEDULE not in envoy.supported_features
     assert SupportedFeatures.GENERATOR not in envoy.supported_features
@@ -465,8 +464,7 @@ async def test_update_generator_config_missing_keys(
     assert data
     assert data.generator_config is None
 
-    assert "Failure parsing generator configuration information" in caplog.text
-    assert "Generator Config returned None." in caplog.text
+    assert "Generator Config returned error 'max_cont_gen_amps'" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -500,7 +498,6 @@ async def test_probe_generator_mode_missing_keys(
     assert envoy.data.generator_mode is None
 
     assert "No generator mode found" in caplog.text
-    assert "Failure parsing generator mode information" in caplog.text
     assert SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features
     assert SupportedFeatures.GENERATOR in envoy.supported_features
 
@@ -536,8 +533,7 @@ async def test_update_generator_mode_missing_keys(
     assert data
     assert data.generator_mode is None
 
-    assert "Failure parsing generator mode information" in caplog.text
-    assert "Generator Mode returned None." in caplog.text
+    assert "Generator Mode returned error 'gen_cmd'" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -567,7 +563,6 @@ async def test_probe_generator_missing_keys(
     )
     envoy = await get_mock_envoy(test_client_session)
 
-    assert "Failure parsing generator information" in caplog.text
     assert "No ensemble generator data found" in caplog.text
     assert SupportedFeatures.GENERATOR_SCHEDULE in envoy.supported_features
     assert SupportedFeatures.GENERATOR in envoy.supported_features
@@ -604,5 +599,4 @@ async def test_update_generator_missing_keys(
     assert data
     assert data.generator is None
 
-    assert "Failure parsing generator information" in caplog.text
-    assert "Generator returned None." in caplog.text
+    assert "Generator returned error 'admin_state'" in caplog.text

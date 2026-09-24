@@ -1248,7 +1248,7 @@ class Envoy:
         self,
         end_point: str,
         document: Any,
-        from_api: Callable[[Any], _ModelT | None],
+        from_api: Callable[[Any], _ModelT],
         message: str,
     ) -> _ModelT:
         """
@@ -1268,13 +1268,12 @@ class Envoy:
         :return: data model built from the document
         """
         # from_api will return None on KeyError, TypeError, IndexError
-        if (validated := from_api(document)) is not None:
-            return validated
-        # from_api returned None on KeyError, TypeError, IndexError
-        _LOGGER.debug("Incomplete document returned by %s: %s", end_point, document)
-        raise EnvoyCommunicationError(
-            f"{message}: {end_point} returned incomplete data: {document}"
-        )
+        try:
+            return from_api(document)
+        except (KeyError, TypeError, IndexError) as err:
+            # from_api returned data format errors
+            _LOGGER.debug("Incomplete document returned by %s: %s", end_point, err)
+            raise EnvoyCommunicationError(f"{message}: {end_point}") from err
 
     def _validated_generator_schedule(
         self, new_data: dict[str, Any], current: EnvoyGeneratorSchedule
