@@ -64,8 +64,11 @@ class EnvoyGeneratorUpdater(EnvoyUpdater):
                 bool(verified),
             )
             return bool(verified)
-        except (KeyError, TypeError, IndexError):
+        except (KeyError, TypeError, IndexError) as err:
             # problems with data formats, return failed verification
+            _LOGGER.debug(
+                "Generator endpoint %s failed data verification: %s", end_point, err
+            )
             return False
 
     async def probe(
