@@ -1209,11 +1209,12 @@ class Envoy:
                     "The Envoy returned an incomplete generator schedule, "
                     "no data was changed and no update was sent",
                 )
-                data.raw[URL_GEN_SCHEDULE] = current
             except EnvoyCommunicationError:
                 # for current schedule data to None to prevent reuse of old data
                 data.generator_schedule = None
                 raise
+            finally:
+                data.raw[URL_GEN_SCHEDULE] = current
         if data.generator_schedule is None:
             raise EnvoyFeatureNotAvailable(
                 "The generator schedule endpoint is incomplete, "
@@ -1410,11 +1411,12 @@ class Envoy:
                     "The Envoy returned an incomplete generator configuration, "
                     "no data was changed and no update was sent",
                 )
-                data.raw[URL_GEN_CONFIG] = current
             except EnvoyCommunicationError:
                 # for current configuration data to None to prevent reuse of old data
                 data.generator_config = None
                 raise
+            finally:
+                data.raw[URL_GEN_SCHEDULE] = current
 
         # gen_config is the GENERATOR detection gate, so it is always
         # collected during update when the feature is available
