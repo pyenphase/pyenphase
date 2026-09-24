@@ -1375,7 +1375,7 @@ class Envoy:
 
 
         Be aware that when the Envoy returns an incomplete document as a
-        refresh reply, the stored data for the generator_schedule is set
+        refresh reply, the stored data for the generator_config is set
         to None and an EnvoyCommunicationError is raised.
 
         :param charge_from_generator: True to allow charging batteries
