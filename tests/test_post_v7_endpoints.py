@@ -204,7 +204,7 @@ async def test_client_session_close(
     session = aiohttp.ClientSession(timeout=timeout, connector=connector)
     await envoy3.new_client(new_client=session)
 
-    # old client should be closed as it was pyenphqse internal
+    # old client should be closed as it was pyenphase internal
     assert client3.closed
     # verify new one
     client4 = envoy3.current_client
@@ -220,6 +220,13 @@ async def test_client_session_close(
     assert client5 is not None
     assert not client5.closed
     assert not client4.closed
+
+    # replace current client with same one should not close current client
+    await envoy3.new_client(client5)
+    assert client5 is not None
+    assert not client5.closed
+    assert envoy3._firmware._client is client5
+
     await envoy3.close()
     assert client5.closed
     assert not client4.closed

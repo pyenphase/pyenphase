@@ -277,10 +277,16 @@ class Envoy:
         if new_client and new_client.closed:
             raise EnvoyClientClosedError("Specified client is closed.")
 
+        if new_client and new_client is self._client:
+            # if same client as current one we're done
+            _LOGGER.debug("Client replaced by itself, leave as is")
+            return
+
         await self.close()
 
         connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
         self._client = new_client or aiohttp.ClientSession(connector=connector)  # nosec
+        self._firmware.new_client(self._client)
         self._user_client = new_client is not None
         _LOGGER.debug(f"added new client user_client: {self._user_client}")
 
