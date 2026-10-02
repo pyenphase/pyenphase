@@ -54,6 +54,7 @@ from .const import (
 )
 from .exceptions import (
     EnvoyAuthenticationRequired,
+    EnvoyClientClosedError,
     EnvoyCommunicationError,
     EnvoyError,
     EnvoyFeatureNotAvailable,
@@ -239,22 +240,49 @@ class Envoy:
 
     async def close(self) -> None:
         """
-        Close or clean anything opened or created on behalf of the caller.
+        Close the client session created on behalf of the caller.
 
-        Should be called when ending application, if:
-
-        - no aiohttp ClientSession was specified for the Envoy:
-
-          - the pyenphase-created ClientSession will be closed.
-
-        - an aiohttp ClientSession was provided by the caller:
-
-          - Envoy will not close the provided session; the caller remains responsible.
+        If the current client was created on behalf of the caller
+        and still open, it is closed. If client was created by caller,
+        the existing client is left untouched, caller should close it.
 
         :return: None
         """
-        if not self._user_client and not self._client.closed:
+        if self._client and not self._user_client and not self._client.closed:
             await self._client.close()
+
+    @property
+    def current_client(self) -> aiohttp.ClientSession | None:
+        """Return the client session in use."""
+        return self._client
+
+    async def new_client(self, new_client: aiohttp.ClientSession | None = None) -> None:
+        """
+        Set or Create new client session.
+
+        Use to set a new or replace an existing client session.
+        If the current client was created on behalf of the caller
+        and still open, it is closed and a new one is created.
+        If client was created by caller, the existing client
+        is only replaced, not closed.
+
+        :param client: aiohttp ClientSession not verifying SSL
+            certificates, if not specified. one will be created. In
+            that case call :py:meth:`Envoy.close` before application
+            exit.
+
+        :raises EnvoyClientClosedError: if specified client is closed
+        :return: None
+        """
+        if new_client and new_client.closed:
+            raise EnvoyClientClosedError("Specified client is closed.")
+
+        await self.close()
+
+        connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
+        self._client = new_client or aiohttp.ClientSession(connector=connector)  # nosec
+        self._user_client = new_client is not None
+        _LOGGER.debug(f"added new client user_client: {self._user_client}")
 
     async def authenticate(
         self,

@@ -9,7 +9,8 @@ from aioresponses import aioresponses
 
 from pyenphase.const import PhaseNames
 from pyenphase.envoy import SupportedFeatures
-from pyenphase.exceptions import EnvoyAuthenticationRequired
+from pyenphase.exceptions import EnvoyAuthenticationRequired, EnvoyClientClosedError
+from pyenphase.ssl import NO_VERIFY_SSL_CONTEXT
 
 from .common import (
     endpoint_path,
@@ -154,7 +155,7 @@ async def test_client_session_close(
     version: str,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test client session close code COV."""
+    """Test client session close."""
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     caplog.set_level(logging.DEBUG)
@@ -163,33 +164,67 @@ async def test_client_session_close(
     envoy = await get_mock_envoy(client_session=test_client_session)
     data = envoy.data
     assert data is not None
-    assert envoy._client is not None
-    assert not envoy._client.closed
-    await envoy.close()
+    client1 = envoy.current_client
+    assert client1 is not None
+    assert not client1.closed
     # it's our client, pyenphase will not close it on close
-    assert not envoy._client.closed
+    await envoy.close()
+    assert not client1.closed
+    # close our client ourself
+    await client1.close()
+    assert envoy.current_client
+    assert envoy.current_client.closed
 
     # test with pyenphase internal created client
     envoy2 = await get_mock_envoy(client_session=None)
     data = envoy2.data
     assert data is not None
-    assert envoy2._client is not None
-    assert not envoy2._client.closed
+    client2 = envoy2.current_client
+    assert client2 is not None
+    assert not client2.closed
+    # it's pyenphase's client, it will close it on close
     await envoy2.close()
-    # it's pyenphase's client, will close it on close
-    assert envoy2._client.closed
+    assert client2.closed
 
+    # test closure on client replacement of internal client
     envoy3 = await get_mock_envoy(client_session=None)
     data = envoy3.data
     assert data is not None
-    assert not envoy3._client.closed
+    client3 = envoy3.current_client
+    assert client3 is not None
+    assert not client3.closed
 
-    # force close internal envoy client for cov test
-    await envoy3._client.close()
-    assert envoy3._client.closed
+    # replace current client, test_client was previously closed
+    with pytest.raises(EnvoyClientClosedError, match="Specified client is closed"):
+        await envoy3.new_client(new_client=client1)
+    assert not client3.closed
+
+    timeout = aiohttp.ClientTimeout(total=5.0, connect=1.0, sock_read=1.0)
+    connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
+    session = aiohttp.ClientSession(timeout=timeout, connector=connector)
+    await envoy3.new_client(new_client=session)
+
+    # old client should be closed as it was pyenphqse internal
+    assert client3.closed
+    # verify new one
+    client4 = envoy3.current_client
+    assert client4 is not None
+    assert not client4.closed
+    # can't close this one as it's ours
     await envoy3.close()
-    # was closed already, should still be closed.
-    assert envoy3._client.closed
+    assert not client4.closed
+
+    # replace current client. should not close old client
+    await envoy3.new_client()
+    client5 = envoy3.current_client
+    assert client5 is not None
+    assert not client5.closed
+    assert not client4.closed
+    await envoy3.close()
+    assert client5.closed
+    assert not client4.closed
+    await client4.close()
+    assert client4.closed
 
 
 @pytest.mark.parametrize(
