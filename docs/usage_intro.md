@@ -18,29 +18,6 @@ print(f"Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}")
 await envoy.authenticate(username=username, password=password, token=token)
 ```
 
-## Close
-
-The Envoy class uses an [aiohttp client session](https://docs.aiohttp.org/en/stable/client_reference.html)
-for HTTP communication. The caller can optionally specify a client session when constructing the {py:class}`pyenphase.Envoy`.
-If no client session is specified, pyenphase will create one.
-
-The client session created by pyenphase must be closed at application exit. Use {py:meth}`pyenphase.Envoy.close` to close the created session.
-If you supplied your own aiohttp ClientSession, {py:meth}`pyenphase.Envoy.close` will not close it; you remain responsible for closing it.
-
-```python
-from pyenphase import Envoy, EnvoyData
-
-envoy = Envoy(host_ip_or_name)
-await envoy.setup()
-print(f"Envoy {envoy.host} running {envoy.firmware}, sn: {envoy.serial_number}")
-
-await envoy.authenticate(username=username, password=password, token=token)
-
-data: EnvoyData = await envoy.update()
-
-await envoy.close()
-```
-
 ## Update
 
 Upon authentication completion, data can be collected (repeatedly) using {py:meth}`pyenphase.Envoy.update`.
