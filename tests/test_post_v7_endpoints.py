@@ -165,14 +165,12 @@ async def test_client_session_close(
     data = envoy.data
     assert data is not None
     client1 = envoy.current_client
-    assert client1 is not None
     assert not client1.closed
     # it's our client, pyenphase will not close it on close
     await envoy.close()
     assert not client1.closed
     # close our client ourself
     await client1.close()
-    assert envoy.current_client
     assert envoy.current_client.closed
 
     # test with pyenphase internal created client
@@ -180,7 +178,6 @@ async def test_client_session_close(
     data = envoy2.data
     assert data is not None
     client2 = envoy2.current_client
-    assert client2 is not None
     assert not client2.closed
     # it's pyenphase's client, it will close it on close
     await envoy2.close()
@@ -191,7 +188,6 @@ async def test_client_session_close(
     data = envoy3.data
     assert data is not None
     client3 = envoy3.current_client
-    assert client3 is not None
     assert not client3.closed
 
     # replace current client, test_client was previously closed
@@ -208,7 +204,6 @@ async def test_client_session_close(
     assert client3.closed
     # verify new one
     client4 = envoy3.current_client
-    assert client4 is not None
     assert not client4.closed
     # can't close this one as it's ours
     await envoy3.close()
@@ -223,7 +218,6 @@ async def test_client_session_close(
 
     # replace current client with same one should not close current client
     await envoy3.new_client(client5)
-    assert client5 is not None
     assert not client5.closed
     assert envoy3._firmware._client is client5
 

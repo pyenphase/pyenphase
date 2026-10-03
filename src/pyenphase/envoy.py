@@ -248,11 +248,11 @@ class Envoy:
 
         :return: None
         """
-        if self._client and not self._user_client and not self._client.closed:
+        if not self._user_client and not self._client.closed:
             await self._client.close()
 
     @property
-    def current_client(self) -> aiohttp.ClientSession | None:
+    def current_client(self) -> aiohttp.ClientSession:
         """Return the client session in use."""
         return self._client
 
