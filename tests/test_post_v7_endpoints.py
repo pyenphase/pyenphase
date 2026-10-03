@@ -205,6 +205,8 @@ async def test_client_session_close(
     # verify new one
     client4 = envoy3.current_client
     assert not client4.closed
+    # exercise setup to use new client
+    await envoy3.setup()
     # can't close this one as it's ours
     await envoy3.close()
     assert not client4.closed
