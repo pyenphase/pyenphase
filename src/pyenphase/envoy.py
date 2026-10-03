@@ -293,7 +293,7 @@ class Envoy:
         self._client = new_client or aiohttp.ClientSession(connector=connector)  # nosec
         self._firmware.new_client(self._client)
         self._user_client = new_client is not None
-        _LOGGER.debug(f"added new client user_client: {self._user_client}")
+        _LOGGER.debug("Added new client user_client: %s", self._user_client)
 
     async def authenticate(
         self,
