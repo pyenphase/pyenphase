@@ -78,7 +78,9 @@ class EnvoyEnsembleDevice:
                 _LOGGER.debug(
                     "Missing data field for ensemble device %s: %r", serial, err
                 )
-            for sub_serial, submodule in device.get("submodules", {}).items():
+            if not (submodules := device.get("submodules")):
+                continue
+            for sub_serial, submodule in submodules.items():
                 if sub_serial == serial:
                     continue
                 try:

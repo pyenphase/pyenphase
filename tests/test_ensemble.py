@@ -1171,6 +1171,12 @@ def test_ensemble_device_from_status_skips_incomplete_entries() -> None:
                     "part_number": "800-02403-r08",
                     "app_fw_version": "2.2.1-D4119",
                 },
+                "6": {
+                    "device_type": 30,
+                    "part_number": "800-00001-r01",
+                    "app_fw_version": "4.0.1107_rel/99.19",
+                    "submodules": None,
+                },
             }
         }
     }
@@ -1194,6 +1200,12 @@ def test_ensemble_device_from_status_skips_incomplete_entries() -> None:
             device_type=115,
             part_number="800-02403-r08",
             firmware_version="2.2.1-D4119",
+        ),
+        "6": EnvoyEnsembleDevice(
+            serial_number="6",
+            device_type=30,
+            part_number="800-00001-r01",
+            firmware_version="4.0.1107_rel/99.19",
         ),
     }
 
