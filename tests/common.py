@@ -450,6 +450,17 @@ async def prep_envoy(
             url("/ivp/ensemble/secctrl"), status=200, payload=json_data, repeat=True
         )
 
+    if "ivp_ensemble_status" in files:
+        try:
+            json_data = await load_json_fixture(version, "ivp_ensemble_status")
+        except json.decoder.JSONDecodeError:
+            json_data = {}
+        mock_aioresponse.get(
+            url("/ivp/ensemble/status"), status=200, payload=json_data, repeat=True
+        )
+    else:
+        mock_aioresponse.get(url("/ivp/ensemble/status"), status=404, repeat=True)
+
     if "admin_lib_tariff" in files:
         try:
             json_data = await load_json_fixture(version, "admin_lib_tariff")

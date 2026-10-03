@@ -14,13 +14,15 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class EnvoyInventoryUpdater(EnvoyUpdater):
-    """Updater for generic inventory endpoint, currently for ACB devices."""
+    """Updater for generic inventory endpoint, currently for inverter firmware and ACB devices."""
 
     async def probe(
         self, discovered_features: SupportedFeatures
     ) -> SupportedFeatures | None:
-        """Probe inventory endpoint for ACB devices when ACB support is discovered."""
-        if SupportedFeatures.ACB not in discovered_features:
+        """Probe inventory endpoint when inverter or ACB support is discovered."""
+        if not discovered_features & (
+            SupportedFeatures.ACB | SupportedFeatures.INVERTERS
+        ):
             return None
 
         try:
@@ -39,27 +41,43 @@ class EnvoyInventoryUpdater(EnvoyUpdater):
         if not isinstance(inventory_data, list):
             return None
 
-        for item in inventory_data:
-            if item.get("type") != "ACB":
-                continue
-            # Only declare ACB support if there is at least one active (non-decommissioned) device.
-            # admin_state == 0 means decommissioned; absent means active.
-            if any(
-                isinstance(d, dict) and d.get("admin_state") != 0
-                for d in item.get("devices", [])
-            ):
-                self._supported_features |= SupportedFeatures.ACB
-                return self._supported_features
+        # Inventory reports the running firmware of every inverter, which the
+        # inverter updaters' endpoints lack.
+        if SupportedFeatures.INVERTERS in discovered_features:
+            self._supported_features |= SupportedFeatures.INVERTERS
 
-        return None
+        if SupportedFeatures.ACB in discovered_features:
+            for item in inventory_data:
+                if item.get("type") != "ACB":
+                    continue
+                # Only declare ACB support if there is at least one active (non-decommissioned) device.
+                # admin_state == 0 means decommissioned; absent means active.
+                if any(
+                    isinstance(d, dict) and d.get("admin_state") != 0
+                    for d in item.get("devices", [])
+                ):
+                    self._supported_features |= SupportedFeatures.ACB
+                    break
+
+        return self._supported_features or None
 
     async def update(self, envoy_data: EnvoyData) -> None:
-        """Update per-device ACB inventory from inventory endpoint."""
-        if not self._supported_features & SupportedFeatures.ACB:
+        """Update inverter firmware and per-device ACB inventory from inventory endpoint."""
+        if not self._supported_features:
             return
 
         inventory_data: list[dict[str, Any]] = await self._json_request(URL_INVENTORY)
         envoy_data.raw[URL_INVENTORY] = inventory_data
+
+        for item in inventory_data:
+            for device in item.get("devices", []):
+                if not isinstance(device, dict) or device.get("admin_state") == 0:
+                    continue
+                if inverter := envoy_data.inverters.get(str(device.get("serial_num"))):
+                    inverter.firmware_version = device.get("img_pnum_running")
+
+        if not self._supported_features & SupportedFeatures.ACB:
+            return
 
         # Build per-ACB power lookup from devType=11 entries in the v1 inverters response.
         # devType=1 (solar microinverters) are filtered out of envoy_data.inverters, so we

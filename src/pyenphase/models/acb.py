@@ -167,6 +167,8 @@ class EnvoyACB:
     last_report_watts: int | None
     #: Maximum reported power in watts, from /api/v1/production/inverters (devType=11)
     max_report_watts: int | None
+    #: Running firmware version, from /inventory img_pnum_running
+    firmware_version: str | None = None
 
     @property
     def sleep_state(self) -> ACBSleepState:
@@ -213,7 +215,8 @@ class EnvoyACB:
                     "producing": true,
                     "sleep_min_soc": 25,
                     "sleep_max_soc": 30,
-                    "charge_status": "discharging"
+                    "charge_status": "discharging",
+                    "img_pnum_running": "520-00092-r01-v02.13.02"
                 }
 
         Args:
@@ -247,4 +250,5 @@ class EnvoyACB:
             last_report_date=inverter.last_report_date if inverter else None,
             last_report_watts=inverter.last_report_watts if inverter else None,
             max_report_watts=inverter.max_report_watts if inverter else None,
+            firmware_version=data.get("img_pnum_running"),
         )

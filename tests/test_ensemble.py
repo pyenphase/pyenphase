@@ -22,6 +22,7 @@ from pyenphase.const import (
 from pyenphase.envoy import SupportedFeatures
 from pyenphase.exceptions import EnvoyError, EnvoyFeatureNotAvailable
 from pyenphase.models.dry_contacts import DryContactStatus
+from pyenphase.models.ensemble import EnvoyEnsembleDevice
 from pyenphase.models.tariff import EnvoyStorageMode
 
 from .common import (
@@ -397,6 +398,7 @@ LOGGER = logging.getLogger(__name__)
                 | SupportedFeatures.DETAILED_INVERTERS,
                 "EnvoyEnembleUpdater": SupportedFeatures.ENCHARGE
                 | SupportedFeatures.ENPOWER,
+                "EnvoyInventoryUpdater": SupportedFeatures.INVERTERS,
                 "EnvoyProductionJsonUpdater": SupportedFeatures.METERING
                 | SupportedFeatures.TOTAL_CONSUMPTION
                 | SupportedFeatures.NET_CONSUMPTION
@@ -1106,3 +1108,66 @@ async def test_with_7_x_firmware(
         )
     else:
         assert data.c6cc is None
+
+
+@pytest.mark.asyncio
+async def test_ensemble_devices_from_status(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """Verify devices and submodules read from the Ensemble status."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", "8.3.1598_collar")
+
+    envoy = await get_mock_envoy(test_client_session)
+    assert envoy.data is not None
+    devices = envoy.data.ensemble_devices
+
+    assert len(devices) == 14
+    assert devices["542517021267"] == EnvoyEnsembleDevice(
+        serial_number="542517021267",
+        device_type=14,
+        part_number="800-02041-r05",
+        firmware_version="10.9.63-D14494",
+        parent_serial_number="492516006337",
+    )
+    assert devices["482523040550"] == EnvoyEnsembleDevice(
+        serial_number="482523040550",
+        device_type=115,
+        part_number="800-02403-r08",
+        firmware_version="2.2.1-D4119",
+    )
+    # The communications kit also lists itself as a type 31 submodule, which
+    # must leave the device entry in place
+    assert devices["482523040548"].device_type == 30
+
+
+def test_ensemble_device_from_status_skips_incomplete_entries() -> None:
+    """Verify from_status skips a device or submodule with a missing field."""
+    status = {
+        "inventory": {
+            "serial_nums": {
+                "1": {
+                    "device_type": 30,
+                    "part_number": "800-00001-r01",
+                    "submodules": {},
+                },
+                "2": {
+                    "device_type": 13,
+                    "part_number": "836-01250-r00",
+                    "app_fw_version": "4.5.35",
+                    "submodules": {
+                        "3": {"device_type": 14, "part_number": "800-02041-r05"}
+                    },
+                },
+            }
+        }
+    }
+
+    assert EnvoyEnsembleDevice.from_status(status) == {
+        "2": EnvoyEnsembleDevice(
+            serial_number="2",
+            device_type=13,
+            part_number="836-01250-r00",
+            firmware_version="4.5.35",
+        )
+    }

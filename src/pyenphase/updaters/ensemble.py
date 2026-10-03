@@ -10,6 +10,7 @@ from ..const import (
     URL_ENCHARGE_BATTERY,
     URL_ENSEMBLE_INVENTORY,
     URL_ENSEMBLE_SECCTRL,
+    URL_ENSEMBLE_STATUS,
     SupportedFeatures,
 )
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
@@ -19,6 +20,7 @@ from ..models.collar import EnvoyCollar
 from ..models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from ..models.encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from ..models.enpower import EnvoyEnpower
+from ..models.ensemble import EnvoyEnsembleDevice
 from ..models.envoy import EnvoyData
 from .base import EnvoyUpdater
 
@@ -27,6 +29,8 @@ _LOGGER = logging.getLogger(__name__)
 
 class EnvoyEnembleUpdater(EnvoyUpdater):
     """Class to handle updates for Ensemble devices."""
+
+    _has_status = False
 
     async def probe(
         self, discovered_features: SupportedFeatures
@@ -68,7 +72,21 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
                 if item["type"] == "C6 COMBINER CONTROLLER":
                     self._supported_features |= SupportedFeatures.C6CC
 
+            self._has_status = await self._probe_status()
+
         return self._supported_features
+
+    async def _probe_status(self) -> bool:
+        """Return whether the Ensemble status endpoint lists at least one device."""
+        try:
+            status = await self._json_probe_request(URL_ENSEMBLE_STATUS)
+        except (*ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired) as e:
+            _LOGGER.debug("Ensemble status endpoint unavailable: %s", e)
+            return False
+        # Firmware without the endpoint can reply 200 with {"error": ...}
+        return isinstance(status, dict) and bool(
+            status.get("inventory", {}).get("serial_nums")
+        )
 
     async def update(self, envoy_data: EnvoyData) -> None:
         """Update the Envoy for this updater."""
@@ -168,3 +186,8 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
                 if item.get("devices"):
                     c6cc_data = item["devices"][0]
                     envoy_data.c6cc = EnvoyC6CC.from_api(c6cc_data)
+
+        if self._has_status:
+            status_data: dict[str, Any] = await self._json_request(URL_ENSEMBLE_STATUS)
+            envoy_data.raw[URL_ENSEMBLE_STATUS] = status_data
+            envoy_data.ensemble_devices = EnvoyEnsembleDevice.from_status(status_data)

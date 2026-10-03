@@ -9,6 +9,7 @@ from .collar import EnvoyCollar
 from .dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from .enpower import EnvoyEnpower
+from .ensemble import EnvoyEnsembleDevice
 from .generator import (
     EnvoyGenerator,
     EnvoyGeneratorConfig,
@@ -59,6 +60,8 @@ class EnvoyData:
     collar: EnvoyCollar | None = None
     #: Envoy C6 Combiner controller
     c6cc: EnvoyC6CC | None = None
+    #: dict of devices and submodules from the Ensemble status, keyed by serial number
+    ensemble_devices: dict[str, EnvoyEnsembleDevice] = field(default_factory=dict)
     #: Consumption power & energy values, only for Envoy metered with CT installed
     system_consumption: EnvoySystemConsumption | None = None
     #: Solar Production power & energy values
