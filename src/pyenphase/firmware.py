@@ -17,6 +17,7 @@ from tenacity import (
 
 from .const import LOCAL_TIMEOUT, MAX_PROBE_REQUEST_ATTEMPTS, MAX_PROBE_REQUEST_DELAY
 from .exceptions import (
+    EnvoyClientClosedError,
     EnvoyFirmwareCheckError,
     EnvoyFirmwareFatalCheckError,
 )
@@ -80,13 +81,12 @@ class EnvoyFirmware:
         :raises aiohttp.ClientError: on network or protocol errors once retries are exhausted
         :raises asyncio.TimeoutError: on timeout once retries are exhausted
         :raises EnvoyClientClosedError: when aiohttp client is closed
-            before request is issued
         :return: tuple of (status_code, content)
         """
         self._url = f"https://{self._host}/info"
         _LOGGER.debug("Requesting %s with timeout %s", self._url, LOCAL_TIMEOUT)
+        raise_on_client_closed(self._client, self._url)
         try:
-            raise_on_client_closed(self._client, self._url)
             resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
             return resp.status, await resp.read()
         except (aiohttp.ClientConnectorError, asyncio.TimeoutError):
@@ -94,10 +94,21 @@ class EnvoyFirmware:
             # as a fallback, worse sometimes http will redirect to https://localhost
             # which is not helpful
             self._url = f"http://{self._host}/info"
-            _LOGGER.debug("Retrying to %s with timeout %s", self._url, LOCAL_TIMEOUT)
-            raise_on_client_closed(self._client, self._url)
+        except RuntimeError as err:
+            if self._client.closed:
+                raise EnvoyClientClosedError("Session is closed") from err
+            raise
+
+        # if arrived here we need to retry on http
+        _LOGGER.debug("Retrying to %s with timeout %s", self._url, LOCAL_TIMEOUT)
+        raise_on_client_closed(self._client, self._url)
+        try:
             resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
             return resp.status, await resp.read()
+        except RuntimeError as err:
+            if self._client.closed:
+                raise EnvoyClientClosedError("Session is closed") from err
+            raise
 
     async def setup(self) -> None:
         """
@@ -125,7 +136,6 @@ class EnvoyFirmware:
         :raises EnvoyFirmwareCheckError: on http errors or any HTTP
             status other then 200
         :raises EnvoyClientClosedError: when aiohttp client is closed
-            before request is issued
         """
         # <envoy>/info will return XML with the firmware version
         debugon = _LOGGER.isEnabledFor(logging.DEBUG)

@@ -52,13 +52,13 @@ LOGGER = logging.getLogger(__name__)
         ),
         (  # test _request with session closed (actual error is not relevant)
             RuntimeError("Test _json_request runtimerror closed"),
-            "Client closed before request is issued",
+            "Session is closed before request is issued",
             EnvoyClientClosedError,
             True,
         ),
         (  # test _request with session closed is still caught as RuntimeError (actual error is not relevant)
             RuntimeError("Test _json_request runtimerror closed"),
-            "Client closed before request is issued",
+            "Session is closed before request is issued",
             RuntimeError,
             True,
         ),
@@ -183,12 +183,12 @@ async def test_json_request_response_read(
 
 
 @pytest.mark.asyncio
-async def test_json_request_http_and_decode_error(
+async def test_json_request_http_decode_closed_error(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test _json_request http non-200 and decode errors."""
+    """Test _json_request http non-200, decode and session closed errors."""
     start_7_firmware_mock(mock_aioresponse)
     version = "7.6.175"
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -218,6 +218,27 @@ async def test_json_request_http_and_decode_error(
     )
 
     with pytest.raises(EnvoyCommunicationError):
+        await envoy._json_request(ENDPOINT_URL_HOME, None)
+
+    async def close_and_runtimeerror(url: str, **kwargs: Any) -> None:
+        await envoy._client.close()
+        raise RuntimeError("Session is closed")
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{ENDPOINT_URL_HOME}",
+        status=200,
+        repeat=True,
+        callback=close_and_runtimeerror,
+    )
+
+    with (
+        pytest.raises(
+            EnvoyClientClosedError,
+            match="Session is closed",
+        ),
+    ):
         await envoy._json_request(ENDPOINT_URL_HOME, None)
 
 
