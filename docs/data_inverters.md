@@ -83,3 +83,15 @@ This is the updater for base inverter data. It only provides data for individual
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.energy_produced`      | not available                                                               |     |
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.energy_today`         | not available                                                               |     |
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_duration` | not available                                                               |     |
+
+### {py:class}`~pyenphase.updaters.inventory.EnvoyInventoryUpdater`
+
+This updater adds the running firmware to the inverters found by one of the updaters above. Its probe returns {py:attr}`~pyenphase.const.SupportedFeatures.INVERTERS` when an earlier updater found inverters and the inventory endpoint replies with a list. Inventory devices are matched to inverters by serial number, and decommissioned devices (`admin_state` 0) are skipped. When the Envoy rejects the inventory endpoint, `firmware_version` stays `None`.
+
+|                                                                      |                             |     |
+| -------------------------------------------------------------------- | --------------------------- | --- |
+| endpoint                                                             | `/inventory.json?deleted=1` |     |
+| json path                                                            | `[*].devices[*]`            |     |
+|                                                                      |                             |     |
+| data                                                                 | json node                   | uom |
+| {py:attr}`~pyenphase.models.inverter.EnvoyInverter.firmware_version` | `img_pnum_running`          |     |

@@ -120,7 +120,7 @@ Both ACB aggregate and per-device battery data are exposed:
 - Per-device ACB data is available in {py:attr}`~pyenphase.EnvoyData.acb_inventory`, keyed by serial number and modeled by {py:class}`~pyenphase.models.acb.EnvoyACB`.
 - The number of ACB batteries reported in production storage can be read from {py:attr}`~pyenphase.Envoy.acb_count`.
 
-Per-device ACB fields include state and sensor values such as `sleep_enabled`, `sleep_state`, `sleep_min_soc`, `sleep_max_soc`, `percent_full`, `charge_status`, `communicating`, `operating`, `producing`, `last_report_watts`, `max_report_watts`, and `last_report_date`.
+Per-device ACB fields include state and sensor values such as `sleep_enabled`, `sleep_state`, `sleep_min_soc`, `sleep_max_soc`, `percent_full`, `charge_status`, `communicating`, `operating`, `producing`, `last_report_watts`, `max_report_watts`, `last_report_date`, and `firmware_version`.
 
 ```python
 print(f"ACB count: {envoy.acb_count}")
@@ -197,3 +197,16 @@ The MID status is available in the {py:attr}`~pyenphase.models.collar.EnvoyColla
 ## C6 Combiner data
 
 The C6 Combiner status is available in the {py:attr}`~pyenphase.models.c6combiner.EnvoyC6CC` data object.
+
+## Ensemble devices and submodules
+
+{py:attr}`~pyenphase.EnvoyData.ensemble_devices` lists every device and submodule in the `/ivp/ensemble/status` reply, keyed by serial number and modeled by {py:class}`~pyenphase.models.ensemble.EnvoyEnsembleDevice`. It includes parts that the other models leave out, such as the microinverters inside each IQ Battery and the revenue grade meters. Each entry carries its device type code, part number, and running firmware. A submodule also carries the serial number of its parent device.
+
+The dictionary stays empty when the Envoy firmware lacks the status endpoint or lists no devices in it.
+
+```python
+for serial, device in envoy.data.ensemble_devices.items():
+    print(
+        serial, device.device_type, device.firmware_version, device.parent_serial_number
+    )
+```
