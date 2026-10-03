@@ -243,8 +243,6 @@ class Envoy:
         else:
             connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
             self._client = aiohttp.ClientSession(connector=connector)  # nosec
-        if hasattr(self, "_firmware"):
-            self._firmware.set_client(self._client)
         self._user_client = client is not None
 
     async def close(self) -> None:
@@ -299,6 +297,7 @@ class Envoy:
         await self.close()
 
         self._create_client(new_client)
+        self._firmware.set_client(self._client)
 
     async def authenticate(
         self,
