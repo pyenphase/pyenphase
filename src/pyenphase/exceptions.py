@@ -103,7 +103,7 @@ class EnvoyCommunicationError(EnvoyError):
 class EnvoyClientClosedError(RuntimeError):
     """
     Exception raised when the :py:class:`pyenphase.Envoy` client
-    aiohttp ClientSession is closed before request is issued.
+    aiohttp ClientSession is closed.
 
     """
 
