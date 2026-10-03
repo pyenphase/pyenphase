@@ -261,13 +261,18 @@ class Envoy:
         Set or Create new client session.
 
         Use to set a new or replace an existing client session.
-        If the current client was created on behalf of the caller
-        and still open, it is closed and a new one is created.
+        If the current client was created internally on behalf of
+        the caller and still open, it is closed and a new one is
+        created. This aborts any request still running on it.
         If client was created by caller, the existing client
         is only replaced, not closed.
 
-        :param client: aiohttp ClientSession not verifying SSL
-            certificates, if not specified. one will be created. In
+        If the current active client is specified as new_client,
+        the current one is left in place as-is, and not closed
+        and replaced.
+
+        :param new_client: aiohttp ClientSession not verifying SSL
+            certificates, if not specified, one will be created. In
             that case call :py:meth:`Envoy.close` before application
             exit.
 
