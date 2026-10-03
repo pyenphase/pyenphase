@@ -1,6 +1,36 @@
 # CHANGELOG
 
 
+## v4.1.0 (2026-10-03)
+
+### Chores
+
+- **ci**: Bump the github-actions group with 3 updates
+  ([#511](https://github.com/pyenphase/pyenphase/pull/511),
+  [`db2a014`](https://github.com/pyenphase/pyenphase/commit/db2a014ddca09d808ea36158006076485d5998ba))
+
+- **deps**: Bump pyjwt from 2.14.0 to 2.15.0
+  ([#509](https://github.com/pyenphase/pyenphase/pull/509),
+  [`48faa12`](https://github.com/pyenphase/pyenphase/commit/48faa128f4304533c97b509c9b834c80b4c0cff9))
+
+- **deps-dev**: Bump urllib3 from 2.7.0 to 2.8.0
+  ([#513](https://github.com/pyenphase/pyenphase/pull/513),
+  [`a95a16d`](https://github.com/pyenphase/pyenphase/commit/a95a16dbbac4577b03e6b31cbcb301f7b2292144))
+
+- **deps-dev**: Bump virtualenv from 20.36.1 to 21.7.13
+  ([#512](https://github.com/pyenphase/pyenphase/pull/512),
+  [`f8fa1f3`](https://github.com/pyenphase/pyenphase/commit/f8fa1f35691e88fbd5de73b078d633c95a846d82))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#510](https://github.com/pyenphase/pyenphase/pull/510),
+  [`3a028a2`](https://github.com/pyenphase/pyenphase/commit/3a028a2af4d6d3fe1ae4b7e27a9c6b7db4ab21e1))
+
+### Features
+
+- Add current_client property and new_client method
+  ([#514](https://github.com/pyenphase/pyenphase/pull/514),
+  [`bf90217`](https://github.com/pyenphase/pyenphase/commit/bf90217415aef0eb150fc6781214f47f593a5efe))
+
+
 ## v4.0.6 (2026-09-24)
 
 ### Bug Fixes
