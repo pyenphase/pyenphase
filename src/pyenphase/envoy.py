@@ -194,9 +194,10 @@ class Envoy:
         """
         # We use our own aiohttp client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._timeout = timeout or LOCAL_TIMEOUT
-        connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
-        self._client = client or aiohttp.ClientSession(connector=connector)  # nosec
-        self._user_client = client is not None
+        # connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
+        # self._client = client or aiohttp.ClientSession(connector=connector)  # nosec
+        # self._user_client = client is not None
+        self._create_client(client)
         self.auth: EnvoyAuth | None = None
         self._host = host
         self._firmware = EnvoyFirmware(self._client, self._host)
@@ -237,6 +238,17 @@ class Envoy:
         await self._firmware.setup()
         # force refetch of interface data next time requested
         self._interface_settings = None
+
+    def _create_client(self, client: aiohttp.ClientSession | None) -> None:
+        """Create client if not specified and calculate user_client flag."""
+        self._user_client = client is not None
+        if client is not None:
+            self._client = client
+            return
+        connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
+        self._client = aiohttp.ClientSession(connector=connector)  # nosec
+        if hasattr(self, "_firmware"):
+            self._firmware.new_client(self._client)
 
     async def close(self) -> None:
         """
@@ -289,11 +301,7 @@ class Envoy:
 
         await self.close()
 
-        connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
-        self._client = new_client or aiohttp.ClientSession(connector=connector)  # nosec
-        self._firmware.new_client(self._client)
-        self._user_client = new_client is not None
-        _LOGGER.debug("Added new client user_client: %s", self._user_client)
+        self._create_client(new_client)
 
     async def authenticate(
         self,
