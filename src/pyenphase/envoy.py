@@ -248,7 +248,7 @@ class Envoy:
         connector = aiohttp.TCPConnector(ssl=NO_VERIFY_SSL_CONTEXT)
         self._client = aiohttp.ClientSession(connector=connector)  # nosec
         if hasattr(self, "_firmware"):
-            self._firmware.new_client(self._client)
+            self._firmware.set_client(self._client)
 
     async def close(self) -> None:
         """

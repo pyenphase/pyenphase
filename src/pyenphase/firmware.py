@@ -174,7 +174,7 @@ class EnvoyFirmware:
             # If we get a different status code, raise an exception
             raise EnvoyFirmwareCheckError(status_code, content.decode())
 
-    def new_client(self, client: aiohttp.ClientSession) -> None:
+    def set_client(self, client: aiohttp.ClientSession) -> None:
         """Set new client."""
         self._client = client
 
