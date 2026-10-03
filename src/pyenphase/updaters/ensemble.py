@@ -83,10 +83,12 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
         except (*ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired) as e:
             _LOGGER.debug("Ensemble status endpoint unavailable: %s", e)
             return False
-        # Firmware without the endpoint can reply 200 with {"error": ...}
-        return isinstance(status, dict) and bool(
-            status.get("inventory", {}).get("serial_nums")
-        )
+        try:
+            return bool(EnvoyEnsembleDevice.from_status(status))
+        except (KeyError, TypeError, AttributeError) as e:
+            # Firmware without the endpoint can reply 200 with {"error": ...}
+            _LOGGER.debug("Ensemble status data unusable: %s", e)
+            return False
 
     async def update(self, envoy_data: EnvoyData) -> None:
         """Update the Envoy for this updater."""
@@ -190,4 +192,9 @@ class EnvoyEnembleUpdater(EnvoyUpdater):
         if self._has_status:
             status_data: dict[str, Any] = await self._json_request(URL_ENSEMBLE_STATUS)
             envoy_data.raw[URL_ENSEMBLE_STATUS] = status_data
-            envoy_data.ensemble_devices = EnvoyEnsembleDevice.from_status(status_data)
+            try:
+                envoy_data.ensemble_devices = EnvoyEnsembleDevice.from_status(
+                    status_data
+                )
+            except (KeyError, TypeError, AttributeError) as err:
+                _LOGGER.debug("Ensemble status data unusable: %s", err)

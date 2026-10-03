@@ -16,6 +16,7 @@ from pyenphase.const import (
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
     URL_ENSEMBLE_INVENTORY,
+    URL_ENSEMBLE_STATUS,
     URL_GRID_RELAY,
     URL_TARIFF,
 )
@@ -1147,9 +1148,15 @@ def test_ensemble_device_from_status_skips_incomplete_entries() -> None:
         "inventory": {
             "serial_nums": {
                 "1": {
-                    "device_type": 30,
+                    "device_type": 13,
                     "part_number": "800-00001-r01",
-                    "submodules": {},
+                    "submodules": {
+                        "4": {
+                            "device_type": 14,
+                            "part_number": "800-02041-r05",
+                            "procload": {"assembly_number": "10.9.63-D14494"},
+                        }
+                    },
                 },
                 "2": {
                     "device_type": 13,
@@ -1158,6 +1165,11 @@ def test_ensemble_device_from_status_skips_incomplete_entries() -> None:
                     "submodules": {
                         "3": {"device_type": 14, "part_number": "800-02041-r05"}
                     },
+                },
+                "5": {
+                    "device_type": 115,
+                    "part_number": "800-02403-r08",
+                    "app_fw_version": "2.2.1-D4119",
                 },
             }
         }
@@ -1169,5 +1181,46 @@ def test_ensemble_device_from_status_skips_incomplete_entries() -> None:
             device_type=13,
             part_number="836-01250-r00",
             firmware_version="4.5.35",
-        )
+        ),
+        "4": EnvoyEnsembleDevice(
+            serial_number="4",
+            device_type=14,
+            part_number="800-02041-r05",
+            firmware_version="10.9.63-D14494",
+            parent_serial_number="1",
+        ),
+        "5": EnvoyEnsembleDevice(
+            serial_number="5",
+            device_type=115,
+            part_number="800-02403-r08",
+            firmware_version="2.2.1-D4119",
+        ),
     }
+
+
+@pytest.mark.asyncio
+async def test_ensemble_status_unusable(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """Verify an unusable Ensemble status leaves ensemble_devices empty."""
+    version = "8.3.1598_collar"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    envoy = await get_mock_envoy(test_client_session)
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{endpoint_path(version, '127.0.0.1')}{URL_ENSEMBLE_STATUS}",
+        status=200,
+        payload={"inventory": []},
+        repeat=True,
+    )
+
+    # The first probe found devices, so the update reads the unusable reply
+    data = await envoy.update()
+    assert data.ensemble_devices == {}
+
+    # A new probe treats the unusable reply as no status
+    await envoy.probe()
+    data = await envoy.update()
+    assert URL_ENSEMBLE_STATUS not in data.raw

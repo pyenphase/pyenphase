@@ -54,7 +54,8 @@ class EnvoyEnsembleDevice:
                 }
 
         A submodule carrying its parent's serial number is skipped, as it
-        repeats the parent device. An entry with a missing field is skipped.
+        repeats the parent device. An entry with a missing field is skipped,
+        and the submodules of a skipped device are still read.
 
         Args:
             status (dict[str, Any]): JSON returned from URL_ENSEMBLE_STATUS
@@ -67,7 +68,6 @@ class EnvoyEnsembleDevice:
         devices: dict[str, EnvoyEnsembleDevice] = {}
         for serial, device in status["inventory"]["serial_nums"].items():
             try:
-                submodules = device["submodules"]
                 devices[serial] = cls(
                     serial_number=serial,
                     device_type=device["device_type"],
@@ -78,8 +78,7 @@ class EnvoyEnsembleDevice:
                 _LOGGER.debug(
                     "Missing data field for ensemble device %s: %r", serial, err
                 )
-                continue
-            for sub_serial, submodule in submodules.items():
+            for sub_serial, submodule in device.get("submodules", {}).items():
                 if sub_serial == serial:
                     continue
                 try:
