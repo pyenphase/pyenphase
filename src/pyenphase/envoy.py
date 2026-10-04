@@ -84,7 +84,7 @@ from .updaters.production import (
     EnvoyProductionUpdater,
 )
 from .updaters.tariff import EnvoyTariffUpdater
-from .utilities import raise_on_client_closed
+from .utilities import raise_on_client_closed, translate_client_closed
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -547,17 +547,17 @@ class Envoy:
         # Set up middleware from auth
         middlewares = (self.auth.auth,) if self.auth.auth else None
 
-        try:
-            # not using redirects to avoid following 301s to error pages on missing
-            # end points and lots of extra requests
-            if data:
-                if debugon:
-                    _LOGGER.debug(
-                        "Sending %s to %s with data %s",
-                        method or "POST",
-                        url,
-                        orjson.dumps(data),
-                    )
+        # not using redirects to avoid following 301s to error pages on missing
+        # end points and lots of extra requests
+        if data:
+            if debugon:
+                _LOGGER.debug(
+                    "Sending %s to %s with data %s",
+                    method or "POST",
+                    url,
+                    orjson.dumps(data),
+                )
+            with translate_client_closed(self._client):
                 response = await self._client.request(
                     method or "POST",
                     url,
@@ -567,8 +567,9 @@ class Envoy:
                     middlewares=middlewares,
                     allow_redirects=False,
                 )
-            else:
-                _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
+        else:
+            _LOGGER.debug("Requesting %s with timeout %s", url, self._timeout)
+            with translate_client_closed(self._client):
                 response = await self._client.get(
                     url,
                     headers={**DEFAULT_HEADERS, **self.auth.headers},
@@ -577,36 +578,32 @@ class Envoy:
                     allow_redirects=False,
                 )
 
-            status_code = response.status
-            if status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
-                content = await response.read()
-                _LOGGER.debug(
-                    "Authentication failed for %s with status %s: %s",
-                    url,
-                    status_code,
-                    content[:500] if content else "No content",
-                )
-                raise EnvoyAuthenticationRequired(
-                    f"Authentication failed for {url} with status {status_code}, "
-                    "please check your username/password or token."
-                )
+        status_code = response.status
+        if status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
+            content = await response.read()
+            _LOGGER.debug(
+                "Authentication failed for %s with status %s: %s",
+                url,
+                status_code,
+                content[:500] if content else "No content",
+            )
+            raise EnvoyAuthenticationRequired(
+                f"Authentication failed for {url} with status {status_code}, "
+                "please check your username/password or token."
+            )
 
-            # show all responses centrally when in debug
-            if debugon:
-                request_end = time.monotonic()
-                content_type = response.headers.get("content-type")
-                _LOGGER.debug(
-                    "Request reply in %s sec from %s status %s: %s %s",
-                    round(request_end - request_start, 1),
-                    url,
-                    status_code,
-                    content_type,
-                    await response.read(),  # Use the actual content bytes
-                )
-        except RuntimeError as err:
-            if self._client.closed:
-                raise EnvoyClientClosedError("Session is closed") from err
-            raise
+        # show all responses centrally when in debug
+        if debugon:
+            request_end = time.monotonic()
+            content_type = response.headers.get("content-type")
+            _LOGGER.debug(
+                "Request reply in %s sec from %s status %s: %s %s",
+                round(request_end - request_start, 1),
+                url,
+                status_code,
+                content_type,
+                await response.read(),  # Use the actual content bytes
+            )
 
         return response
 

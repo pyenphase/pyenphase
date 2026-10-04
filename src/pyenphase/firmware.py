@@ -17,11 +17,10 @@ from tenacity import (
 
 from .const import LOCAL_TIMEOUT, MAX_PROBE_REQUEST_ATTEMPTS, MAX_PROBE_REQUEST_DELAY
 from .exceptions import (
-    EnvoyClientClosedError,
     EnvoyFirmwareCheckError,
     EnvoyFirmwareFatalCheckError,
 )
-from .utilities import raise_on_client_closed
+from .utilities import raise_on_client_closed, translate_client_closed
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -87,28 +86,21 @@ class EnvoyFirmware:
         _LOGGER.debug("Requesting %s with timeout %s", self._url, LOCAL_TIMEOUT)
         raise_on_client_closed(self._client, self._url)
         try:
-            resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
-            return resp.status, await resp.read()
+            with translate_client_closed(self._client):
+                resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
+                return resp.status, await resp.read()
         except (aiohttp.ClientConnectorError, asyncio.TimeoutError):
             # Firmware < 7.0.0 does not support HTTPS so we need to try HTTP
             # as a fallback, worse sometimes http will redirect to https://localhost
             # which is not helpful
             self._url = f"http://{self._host}/info"
-        except RuntimeError as err:
-            if self._client.closed:
-                raise EnvoyClientClosedError("Session is closed") from err
-            raise
 
         # if arrived here we need to retry on http
         _LOGGER.debug("Retrying to %s with timeout %s", self._url, LOCAL_TIMEOUT)
         raise_on_client_closed(self._client, self._url)
-        try:
+        with translate_client_closed(self._client):
             resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
             return resp.status, await resp.read()
-        except RuntimeError as err:
-            if self._client.closed:
-                raise EnvoyClientClosedError("Session is closed") from err
-            raise
 
     async def setup(self) -> None:
         """

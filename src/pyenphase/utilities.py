@@ -1,6 +1,8 @@
 """Pyenphase helpers."""
 
 import logging
+from collections.abc import Generator
+from contextlib import contextmanager
 
 import aiohttp
 
@@ -17,3 +19,14 @@ def raise_on_client_closed(client: aiohttp.ClientSession, endpoint: str) -> None
             endpoint,
         )
         raise EnvoyClientClosedError("Session is closed before request is issued")
+
+
+@contextmanager
+def translate_client_closed(client: aiohttp.ClientSession) -> Generator[None]:
+    """Context manager for requests handling session closed"""
+    try:
+        yield
+    except RuntimeError as err:
+        if client.closed:
+            raise EnvoyClientClosedError("Session is closed") from err
+        raise
