@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v4.2.0 (2026-10-04)
+
+### Features
+
+- Raise EnvoyClientClosedError when session is closed during request
+  ([#516](https://github.com/pyenphase/pyenphase/pull/516),
+  [`d704c1e`](https://github.com/pyenphase/pyenphase/commit/d704c1e25f7ff8feed6a010201efa56e1654313f))
+
+
 ## v4.1.0 (2026-10-03)
 
 ### Chores
