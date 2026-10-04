@@ -19,7 +19,11 @@ from pyenphase.const import (
     URL_PRODUCTION_INVERTERS,
     SupportedFeatures,
 )
-from pyenphase.exceptions import EnvoyAuthenticationError, EnvoyAuthenticationRequired
+from pyenphase.exceptions import (
+    EnvoyAuthenticationError,
+    EnvoyAuthenticationRequired,
+    EnvoyClientClosedError,
+)
 
 from .common import (
     get_mock_envoy,
@@ -298,6 +302,29 @@ async def test_jwt_failure_with_7_6_175_standard(
     await envoy.setup()
     with pytest.raises(EnvoyAuthenticationError):
         await envoy.authenticate("username", "password")
+
+
+@pytest.mark.asyncio
+async def test_jwt_session_closed_with_7_6_175_standard(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """Test Unable to verify token for Envoy authentication"""
+    version = "7.6.175_standard"
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+
+    token = jwt.encode(
+        payload={"name": "envoy", "exp": 1707837780, "enphaseUser": "owner"},
+        key="useaverylongsecretofatleast32bytestoavoidajwtsecuritywarning",
+        algorithm="HS256",
+    )
+
+    # with patch("pyenphase.EnvoyTokenAuth._obtain_token", return_value=None):
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+    await envoy.setup()
+    await test_client_session.close()
+    with pytest.raises(EnvoyClientClosedError):
+        await envoy.authenticate("username", "password", token=token)
 
 
 @pytest.mark.asyncio
