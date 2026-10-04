@@ -24,6 +24,7 @@ class EnvoyInverter:
     energy_produced: float | None = None
     energy_today: int | None = None
     last_report_duration: int | None = None
+    firmware_version: str | None = None
 
     @classmethod
     def from_v1_api(cls, data: dict[str, Any]) -> EnvoyInverter:

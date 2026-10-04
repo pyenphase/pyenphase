@@ -16,6 +16,7 @@ from pyenphase.exceptions import EnvoyAuthenticationRequired, EnvoyHTTPStatusErr
 from pyenphase.models.acb import ACBChargeStatus, ACBSleepState, EnvoyACB
 from pyenphase.models.common import CommonProperties
 from pyenphase.models.envoy import EnvoyData
+from pyenphase.models.inverter import EnvoyInverter
 from pyenphase.updaters.inventory import EnvoyInventoryUpdater
 
 from .common import (
@@ -176,6 +177,98 @@ async def test_inventory_update_with_no_valid_acb_devices_keeps_inventory_none()
 
     json_request_mock.assert_awaited_once_with(URL_INVENTORY)
     assert URL_INVENTORY in envoy_data.raw
+    assert envoy_data.acb_inventory is None
+
+
+@pytest.mark.asyncio
+async def test_inventory_probe_returns_inverters_without_acb() -> None:
+    """Probe should declare inverter support for an inventory without ACB devices."""
+    updater = _make_inventory_updater()
+    probe_request_mock = AsyncMock(
+        return_value=[{"type": "PCU", "devices": [{"serial_num": "122000010001"}]}]
+    )
+
+    with patch.object(updater, "_json_probe_request", probe_request_mock):
+        result = await updater.probe(SupportedFeatures.INVERTERS)
+
+    assert result == SupportedFeatures.INVERTERS
+
+
+@pytest.mark.asyncio
+async def test_inventory_probe_returns_none_for_decommissioned_acb_only() -> None:
+    """Probe should return None when only ACB was discovered and all are decommissioned."""
+    updater = _make_inventory_updater()
+    probe_request_mock = AsyncMock(
+        return_value=[
+            {
+                "type": "ACB",
+                "devices": [{"serial_num": "122000000099", "admin_state": 0}],
+            }
+        ]
+    )
+
+    with patch.object(updater, "_json_probe_request", probe_request_mock):
+        result = await updater.probe(SupportedFeatures.ACB)
+
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_inventory_update_sets_inverter_firmware() -> None:
+    """Update should set firmware on every active inventory device found in inverters."""
+    updater = _make_inventory_updater()
+    updater._supported_features |= SupportedFeatures.INVERTERS
+    json_request_mock = AsyncMock(
+        return_value=[
+            {
+                "type": "PCU",
+                "devices": [
+                    {
+                        "serial_num": "122000010001",
+                        "img_pnum_running": "520-00082-r01-v04.30.32",
+                    },
+                    {
+                        "serial_num": "122000010002",
+                        "admin_state": 0,
+                        "img_pnum_running": "520-00082-r01-v04.30.32",
+                    },
+                    "invalid-device-entry",
+                ],
+            },
+            {
+                "type": "ACB",
+                "devices": [
+                    {
+                        "serial_num": "122000000001",
+                        "img_pnum_running": "520-00092-r01-v02.13.02",
+                    }
+                ],
+            },
+        ]
+    )
+    envoy_data = EnvoyData(
+        inverters={
+            serial: EnvoyInverter(
+                serial_number=serial,
+                last_report_date=1778091218,
+                last_report_watts=10,
+                max_report_watts=20,
+            )
+            for serial in ("122000010001", "122000010002", "122000000001")
+        }
+    )
+
+    with patch.object(updater, "_json_request", json_request_mock):
+        await updater.update(envoy_data)
+
+    json_request_mock.assert_awaited_once_with(URL_INVENTORY)
+    inverters = envoy_data.inverters
+    assert inverters["122000010001"].firmware_version == "520-00082-r01-v04.30.32"
+    # decommissioned in the inventory, so its firmware is left unset
+    assert inverters["122000010002"].firmware_version is None
+    # an ACB in inverters (v2_acb_mode) gets its firmware too
+    assert inverters["122000000001"].firmware_version == "520-00092-r01-v02.13.02"
+    # without ACB support, no per-device ACB inventory is built
     assert envoy_data.acb_inventory is None
 
 
@@ -741,6 +834,7 @@ async def test_acb_per_device_inventory(
     assert acb0.producing is True
     assert acb0.sleep_min_soc == 25
     assert acb0.sleep_max_soc == 30
+    assert acb0.firmware_version == "520-00092-r01-v02.13.02"
     assert acb0.last_report_date == 1778091218
     # Per-device power from inverters endpoint (devType=11)
     assert acb0.last_report_watts == 0
@@ -764,6 +858,8 @@ async def test_acb_per_device_inventory(
     assert "122000010001" in data.inverters
     assert "122000010002" in data.inverters
     assert "122000010003" in data.inverters
+    # Solar inverter firmware comes from the inventory endpoint
+    assert data.inverters["122000010001"].firmware_version == "520-00082-r01-v04.30.32"
 
     # ACB devices (devType=11) must NOT appear in the inverters dict
     assert "122000000001" not in data.inverters
@@ -1288,7 +1384,7 @@ async def test_acb_inventory_probe_non_list_response(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test probe() returns None when inventory returns non-list JSON (covers line 40)."""
+    """Test probe() returns None when inventory returns non-list JSON."""
     version = "8.2.4382_ACB_2"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)
@@ -1314,7 +1410,7 @@ async def test_acb_inventory_probe_all_decommissioned(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
 ) -> None:
-    """Probe returns None when all ACB devices are decommissioned (covers 47->42 and line 54)."""
+    """Probe declares no ACB support when all ACB devices are decommissioned."""
     version = "8.2.4382_ACB_2"
     start_7_firmware_mock(mock_aioresponse)
     await prep_envoy(mock_aioresponse, "127.0.0.1", version)

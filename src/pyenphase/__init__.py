@@ -21,6 +21,7 @@ from .models.collar import EnvoyCollar
 from .models.dry_contacts import EnvoyDryContactSettings, EnvoyDryContactStatus
 from .models.encharge import EnvoyEncharge, EnvoyEnchargeAggregate, EnvoyEnchargePower
 from .models.enpower import EnvoyEnpower
+from .models.ensemble import EnvoyEnsembleDevice
 from .models.envoy import EnvoyData
 from .models.generator import (
     EnvoyGenerator,
@@ -57,6 +58,7 @@ __all__ = (
     "EnvoyEnchargeAggregate",
     "EnvoyEnchargePower",
     "EnvoyEnpower",
+    "EnvoyEnsembleDevice",
     "EnvoyGenerator",
     "EnvoyGeneratorConfig",
     "EnvoyGeneratorMode",

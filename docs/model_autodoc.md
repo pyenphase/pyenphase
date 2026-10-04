@@ -149,6 +149,15 @@
 
 ```
 
+```{eval-rst}
+.. automodule:: pyenphase.updaters.inventory
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: alphabetical
+
+```
+
 ## EnvoyEnsemble
 
 ```{eval-rst}
@@ -351,6 +360,17 @@
 
 ```{eval-rst}
 .. automodule:: pyenphase.models.c6combiner
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: groupwise
+
+```
+
+## EnvoyEnsembleDevice
+
+```{eval-rst}
+.. automodule:: pyenphase.models.ensemble
   :members:
   :undoc-members:
   :show-inheritance:
