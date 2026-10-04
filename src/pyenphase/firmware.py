@@ -95,12 +95,12 @@ class EnvoyFirmware:
             # which is not helpful
             self._url = f"http://{self._host}/info"
 
-        # if arrived here we need to retry on http
-        _LOGGER.debug("Retrying to %s with timeout %s", self._url, LOCAL_TIMEOUT)
-        raise_on_client_closed(self._client, self._url)
-        with translate_client_closed(self._client):
-            resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
-            return resp.status, await resp.read()
+            # if arrived here we need to retry on http
+            _LOGGER.debug("Retrying to %s with timeout %s", self._url, LOCAL_TIMEOUT)
+            raise_on_client_closed(self._client, self._url)
+            with translate_client_closed(self._client):
+                resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
+                return resp.status, await resp.read()
 
     async def setup(self) -> None:
         """
