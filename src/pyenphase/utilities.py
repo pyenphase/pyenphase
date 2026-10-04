@@ -22,7 +22,9 @@ def raise_on_client_closed(client: aiohttp.ClientSession, endpoint: str) -> None
 
 
 @contextmanager
-def translate_client_closed(client: aiohttp.ClientSession) -> Generator[None]:
+def translate_client_closed(
+    client: aiohttp.ClientSession,
+) -> Generator[None, None, None]:
     """Context manager for requests handling session closed"""
     try:
         yield
