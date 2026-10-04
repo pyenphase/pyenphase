@@ -687,7 +687,7 @@ async def test_nosession_at_probe(
     await envoy._client.close()
 
     with pytest.raises(
-        EnvoyClientClosedError, match="Client closed before request is issued"
+        EnvoyClientClosedError, match="Session is closed before request is issued"
     ):
         await envoy.probe()
 
@@ -727,7 +727,7 @@ async def test_session_closed_at_update(
     await envoy._client.close()
 
     with pytest.raises(
-        EnvoyClientClosedError, match="Client closed before request is issued"
+        EnvoyClientClosedError, match="Session is closed before request is issued"
     ):
         await envoy.update()
 

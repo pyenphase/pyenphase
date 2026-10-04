@@ -195,7 +195,7 @@ async def test_firmware_missing_metered_with_7_6_175_standard(
 
 
 @pytest.mark.asyncio
-async def test_firmware_https_client_closed(
+async def test_firmware_https_client_closed_before_setup(
     mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
 ) -> None:
     """Test firmware signals client closed."""
@@ -203,13 +203,53 @@ async def test_firmware_https_client_closed(
     # close client to force client closed
     await envoy._client.close()
     with pytest.raises(
-        EnvoyClientClosedError, match="Client closed before request is issued"
+        EnvoyClientClosedError, match="Session is closed before request is issued"
     ):
         await envoy.setup()
 
 
 @pytest.mark.asyncio
-async def test_firmware_http_client_closed(
+async def test_firmware_https_client_closed_during_setup(
+    mock_aioresponse: aioresponses, test_client_session: aiohttp.ClientSession
+) -> None:
+    """Test firmware signals client closed as setup result."""
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+
+    async def close_and_runtimeerror(url: str, **kwargs: Any) -> None:
+        await envoy._client.close()
+        raise RuntimeError("Test Session is closed")
+
+    mock_aioresponse.get(
+        "https://127.0.0.1/info",
+        status=200,
+        exception=RuntimeError("Test Session is closed"),
+    )
+
+    with (
+        pytest.raises(
+            RuntimeError,
+            match="Test Session is closed",
+        ),
+    ):
+        await envoy.setup()
+
+    mock_aioresponse.get(
+        "https://127.0.0.1/info",
+        status=200,
+        callback=close_and_runtimeerror,
+    )
+
+    with (
+        pytest.raises(
+            EnvoyClientClosedError,
+            match="Session is closed",
+        ),
+    ):
+        await envoy.setup()
+
+
+@pytest.mark.asyncio
+async def test_firmware_http_client_closed_before_setup(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     caplog: pytest.LogCaptureFixture,
@@ -233,7 +273,7 @@ async def test_firmware_http_client_closed(
     with (
         pytest.raises(
             EnvoyClientClosedError,
-            match="Client closed before request is issued",
+            match="Session is closed before request is issued",
         ),
     ):
         await envoy.setup()
@@ -248,3 +288,54 @@ async def test_firmware_http_client_closed(
         "Request to http://127.0.0.1/info aborted because client is closed."
         in caplog.text
     )
+
+
+@pytest.mark.asyncio
+async def test_firmware_http_client_closed_during_setup(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test session closed between during http setup."""
+    caplog.set_level(logging.DEBUG)
+
+    envoy = Envoy("127.0.0.1", client=test_client_session)
+
+    async def close_and_runtimeerror(url: str, **kwargs: Any) -> None:
+        await envoy._client.close()
+        raise RuntimeError("Test Session is closed")
+
+    # force fallback to http
+    mock_aioresponse.get(
+        "https://127.0.0.1/info",
+        exception=asyncio.TimeoutError("Test session closed between https and http"),
+        repeat=True,
+    )
+
+    mock_aioresponse.get(
+        "http://127.0.0.1/info",
+        status=200,
+        exception=RuntimeError("Test Session is closed"),
+    )
+
+    with (
+        pytest.raises(
+            RuntimeError,
+            match="Test Session is closed",
+        ),
+    ):
+        await envoy.setup()
+
+    mock_aioresponse.get(
+        "http://127.0.0.1/info",
+        status=200,
+        callback=close_and_runtimeerror,
+    )
+
+    with (
+        pytest.raises(
+            EnvoyClientClosedError,
+            match="Session is closed",
+        ),
+    ):
+        await envoy.setup()

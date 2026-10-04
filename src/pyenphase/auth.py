@@ -11,6 +11,7 @@ from tenacity import retry, retry_if_exception_type, wait_random_exponential
 from .const import LOCAL_TIMEOUT, URL_AUTH_CHECK_JWT
 from .exceptions import EnvoyAuthenticationError, EnvoyAuthenticationRequired
 from .ssl import SSL_CONTEXT
+from .utilities import translate_client_closed
 
 
 class EnvoyAuth:
@@ -138,14 +139,15 @@ class EnvoyTokenAuth(EnvoyAuth):
     )
     async def _check_jwt(self, client: aiohttp.ClientSession) -> None:
         """Check the JWT token for Envoy authentication."""
-        async with client.get(
-            f"https://{self.host}{URL_AUTH_CHECK_JWT}",
-            headers={"Authorization": f"Bearer {self.token}"},
-            timeout=LOCAL_TIMEOUT,
-        ) as resp:
-            if resp.status == 200:
-                self._cookies = {k: v.value for k, v in resp.cookies.items()}
-                return
+        with translate_client_closed(client):
+            async with client.get(
+                f"https://{self.host}{URL_AUTH_CHECK_JWT}",
+                headers={"Authorization": f"Bearer {self.token}"},
+                timeout=LOCAL_TIMEOUT,
+            ) as resp:
+                if resp.status == 200:
+                    self._cookies = {k: v.value for k, v in resp.cookies.items()}
+                    return
 
         raise EnvoyAuthenticationError(
             "Unable to verify token for Envoy authentication."
