@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import re
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
@@ -36,6 +37,7 @@ from .const import (
     DEFAULT_MAX_REQUEST_ATTEMPTS,
     DEFAULT_MAX_REQUEST_DELAY,
     ENDPOINT_URL_HOME,
+    FIXTURE_LIST,
     GENERATOR_EXERCISE_DAYS,
     GENERATOR_MODES,
     GENERATOR_SCHEDULE_SETTINGS,
@@ -1780,3 +1782,237 @@ class Envoy:
             raise EnvoyFeatureNotAvailable(
                 "This feature requires Enphase Encharge or IQ Batteries."
             )
+
+    def anonymize_serials(self, fixtures: dict[str, Any]) -> dict[str, Any]:
+        """
+        Replace serial numbers by neutral values.
+
+        - Envoy: 123456789012.
+        - inverter: 100000000nnn
+        - Ensemble devices
+          - batteries: 3000000000nn
+          - Enpower device: 4000000000nn
+          - COLLAR: 5100000000nn
+          - C6 COMBINER CONTROLLER: 5400000000nn
+          - C6 RGM: 5300000000nn
+          - unknown ensemble devices: 5900000000nn
+
+        :param fixtures: dict with endpoints and their returned request data
+        :returns: updated dict with serials replaced
+        """
+        # replace envoy serial with 123456789012
+        if (endpoint := "/info") in fixtures:
+            fixtures[endpoint] = re.sub(
+                r"<sn>.*</sn",
+                "<sn>123456789012</sn>",
+                fixtures[endpoint],
+            )
+
+        # identify inverter and other device serials
+        serials: dict[str, Any] = {}
+        if (endpoint := "/api/v1/production/inverters") in fixtures and fixtures[
+            endpoint
+        ]:
+            serials |= {inverter["serialNumber"]: "" for inverter in fixtures[endpoint]}
+
+        if (endpoint := "/ivp/pdm/device_data") in fixtures and fixtures[endpoint]:
+            # "deviceCount" are "deviceDataLimit" are plain numbers, not dict
+            serials |= {
+                fixtures[endpoint][device]["sn"]: ""
+                for device in fixtures[endpoint]
+                if device not in ("deviceCount", "deviceDataLimit")
+            }
+
+        # EIM device contain envoy serial followed by EIMn
+        serials.update(
+            {
+                key: f"123456789012{key[: key.find('EIM')]}"
+                for key in sorted(
+                    [
+                        key
+                        for key, value in serials.items()
+                        if "EIM" in key and value == ""
+                    ]
+                )
+            }
+        )
+
+        # assign replacement serials in serial sequential order
+        serials.update(
+            {
+                key: 100000000001 + index
+                for index, key in enumerate(
+                    sorted([key for key, value in serials.items() if value == ""])
+                )
+            }
+        )
+
+        # replace inverter and pdm device serials
+        if (endpoint := "/api/v1/production/inverters") in fixtures and fixtures[
+            endpoint
+        ]:
+            fixtures[endpoint] = [
+                inverter | {"serialNumber": serials[inverter["serialNumber"]]}
+                for inverter in fixtures[endpoint]
+            ]
+
+        if (endpoint := "/ivp/pdm/device_data") in fixtures and fixtures[endpoint]:
+            # "deviceCount" are "deviceDataLimit" are plain numbers, not dict
+            fixtures[endpoint] = {
+                id: device
+                | (0 if isinstance(device, int) else {"sn": serials[device["sn"]]})
+                for id, device in fixtures[endpoint].items()
+            }
+
+        # add ensemble battery serials
+        if (endpoint := "/ivp/ensemble/power") in fixtures and fixtures[endpoint]:
+            serials |= {
+                device["serial_num"]: "" for device in fixtures[endpoint]["devices:"]
+            }
+
+        # add ensemble other serials
+        if (endpoint := "/ivp/ensemble/inventory") in fixtures and fixtures[endpoint]:
+            KNOWN_TYPES = {
+                "ENCHARGE": "30",
+                "ENPOWER": "40",
+                "COLLAR": "51",
+                "C6 COMBINER CONTROLLER": "52",
+                "C6 RGM": "53",
+            }
+            for ensemble_type in fixtures[endpoint]:
+                serials |= {
+                    device["serial_num"]: "" for device in ensemble_type["devices"]
+                }
+                serials.update(
+                    {
+                        key: int(
+                            f"{KNOWN_TYPES.get(ensemble_type['type'], '59')}0000000001"
+                        )
+                        + index
+                        for index, key in enumerate(
+                            sorted(
+                                [key for key, value in serials.items() if value == ""]
+                            )
+                        )
+                    }
+                )
+
+        return fixtures
+
+    async def fixture_collection(
+        self, additional_endpoints: list[str] | None = None
+    ) -> dict[str, Any]:
+        """
+        Collect Envoy endpoints to use for test fixture set
+        or diagnostics information.
+
+        Returns dict with endpoint data and request status log
+        for list of Envoy endpoints to collect. Standard used
+        list of endpoints is :any:`FIXTURE_LIST` and can be
+        appended by using the `additional_endpoints` parameter.
+
+        The endpoint data for each endpoint requested contains
+        the data as received from the Envoy. Serial numbers
+        for the Envoy, inverters, ensemble devices are replaced
+        by neutral generic numbers.
+
+        Used neutral serials:
+
+        - Envoy: 123456789012.
+        - inverter: 100000000nnn
+        - batteries: 3000000000nn
+        - Enpower device: 4000000000nn
+        - COLLAR: 5100000000nn
+        - C6 COMBINER CONTROLLER: 5400000000nn
+        - C6 RGM: 5300000000nn
+        - unknown ensemble devices: 5900000000nn
+
+        The matching endpoint request status log entries contain
+        the request status code, error information if any error
+        occurred and request time and duration.
+
+        for each endpoint return 2 dict entries:
+
+        .. code-block::
+
+            {
+                "endpoint": {request_reply_data},
+                "endpoint_log" :
+                    {
+                        "status": int,
+                        "error": str,
+                        "report_time": str,
+                        "duration_seconds": float,
+                    }
+            }
+
+
+
+        The error key in the endpoint log entry is only present when
+        an error occurs. In that case `status` will be 0.
+
+        :param additional_endpoints: List of additional endpoints
+            to append to standard list.
+        :returns: dict with endpoint data and request status entries
+            for each andpoint in list.
+        """
+        collection: dict[str, Any] = {}
+        last_endpoint = ""
+        request_start = time.monotonic()
+        try:
+            # remove multiple entries and maintain order
+            for end_point in list(
+                dict.fromkeys(FIXTURE_LIST + (additional_endpoints or []))
+            ):
+                # make sure we have leading /
+                last_endpoint = end_point if end_point[0] == "/" else f"/{end_point}"
+                request_start = time.monotonic()
+                _LOGGER.debug("getting %s", last_endpoint)
+                try:
+                    response: aiohttp.ClientResponse = await self._request(
+                        last_endpoint
+                    )
+                except aiohttp.ClientError as err:
+                    # try next endpoint if request fails on formats and other none timeout errors
+                    request_end = time.monotonic()
+                    collection[f"{last_endpoint}_log"] = {
+                        "error": f"{type(err).__name__ if not hasattr(err, 'status') else err.status}",
+                        "code": 0,
+                        "report_time": time.asctime(),
+                        "duration_seconds": round(request_end - request_start, 1),
+                    }
+                    _LOGGER.debug("Error getting %s: %s", last_endpoint, err)
+                    continue
+                try:
+                    collection[last_endpoint] = json_loads(
+                        last_endpoint, await response.read()
+                    )  # response.json(loads=orjson.loads)
+                except (orjson.JSONDecodeError, aiohttp.ContentTypeError):
+                    response_text = await response.text(errors="replace")
+                    collection[last_endpoint] = response_text.replace("\n", "")
+
+                request_end = time.monotonic()
+                collection[f"{last_endpoint}_log"] = {
+                    "code": response.status,
+                    "report_time": time.asctime(),
+                    "duration_seconds": round(request_end - request_start, 1),
+                }
+
+        # end the report on timeout, authentication and other envoy errors
+        except (TimeoutError, EnvoyError, EnvoyClientClosedError) as err:
+            # only return the request log in this case, will be last in result
+            request_end = time.monotonic()
+            collection[f"{last_endpoint}_log"] = {
+                "error": repr(err),
+                "code": 0,
+                "report_time": time.asctime(),
+                "duration_seconds": round(request_end - request_start, 1),
+            }
+            _LOGGER.debug("Error getting fixture endpoint %s: %s", last_endpoint, err)
+
+        try:
+            return self.anonymize_serials(collection)
+        except (KeyError, ValueError, IndexError, TypeError) as err:
+            # don't let failed anonymization break data creation
+            _LOGGER.debug("Fixture report serial anonymization failed %s", err)
+            return collection
