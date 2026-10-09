@@ -1984,11 +1984,13 @@ class Envoy:
                     _LOGGER.debug("Error getting %s: %s", last_endpoint, err)
                     continue
                 try:
-                    collection[last_endpoint] = json_loads(
-                        last_endpoint, await response.read()
-                    )  # response.json(loads=orjson.loads)
+                    async with response:  # release response on error
+                        collection[last_endpoint] = json_loads(
+                            last_endpoint, await response.read()
+                        )  # response.json(loads=orjson.loads)
                 except (orjson.JSONDecodeError, aiohttp.ContentTypeError):
-                    response_text = await response.text(errors="replace")
+                    async with response:  # release response on error
+                        response_text = await response.text(errors="replace")
                     collection[last_endpoint] = response_text.replace("\n", "")
 
                 request_end = time.monotonic()
