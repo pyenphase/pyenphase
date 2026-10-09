@@ -1870,14 +1870,31 @@ class Envoy:
                 device["serial_num"]: "" for device in fixtures[endpoint]["devices:"]
             }
 
+            # assign replacement serials in serial sequential order
+            serials.update(
+                {
+                    key: f"{300000000001 + index}"
+                    for index, key in enumerate(
+                        sorted([key for key, value in serials.items() if value == ""])
+                    )
+                }
+            )
+
+            fixtures[endpoint] = {
+                "devices:": [
+                    device | {"serial_num": serials[device["serial_num"]]}
+                    for device in fixtures[endpoint]["devices:"]
+                ]
+            }
+
         # add ensemble other serials
         if (endpoint := "/ivp/ensemble/inventory") in fixtures and fixtures[endpoint]:
             KNOWN_TYPES = {
-                "ENCHARGE": "30",
-                "ENPOWER": "40",
-                "COLLAR": "51",
-                "C6 COMBINER CONTROLLER": "52",
-                "C6 RGM": "53",
+                "ENCHARGE": "300000000001",
+                "ENPOWER": "400000000001",
+                "COLLAR": "510000000001",
+                "C6 COMBINER CONTROLLER": "520000000001",
+                "C6 RGM": "530000000001",
             }
             for ensemble_type in fixtures[endpoint]:
                 serials |= {
@@ -1885,10 +1902,7 @@ class Envoy:
                 }
                 serials.update(
                     {
-                        key: int(
-                            f"{KNOWN_TYPES.get(ensemble_type['type'], '59')}0000000001"
-                        )
-                        + index
+                        key: f"{int(KNOWN_TYPES.get(ensemble_type['type'], '590000000001')) + index}"
                         for index, key in enumerate(
                             sorted(
                                 [key for key, value in serials.items() if value == ""]
@@ -1896,6 +1910,17 @@ class Envoy:
                         )
                     }
                 )
+            # replace ensemble serials
+            fixtures[endpoint] = [
+                {
+                    "type": types["type"],
+                    "devices": [
+                        device | {"serial_num": serials[device["serial_num"]]}
+                        for device in types["devices"]
+                    ],
+                }
+                for types in fixtures[endpoint]
+            ]
 
         return fixtures
 

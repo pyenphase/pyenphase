@@ -137,6 +137,28 @@ async def test_fixture_collection(
         exception=asyncio.TimeoutError("Test timeoutexception"),
     )
 
+    # verify ensemble inventory serial anonymization
+    endpoint = "/ivp/ensemble/inventory"
+    for ensemble_type in fixtures_collection[endpoint]:
+        type = ensemble_type["type"]
+        for device in ensemble_type["devices"]:
+            if type == "ENCHARGE":
+                assert "300000000000" < device["serial_num"] < "300000000099"
+            elif type == "ENPOWER":
+                assert "400000000000" < device["serial_num"] < "400000000099"
+            elif type == "COLLAR":
+                assert "510000000000" < device["serial_num"] < "510000000099"
+            elif type == "C6 COMBINER CONTROLLER":
+                assert "520000000000" < device["serial_num"] < "520000000099"
+            elif type == "C6 RGM":
+                assert "530000000000" < device["serial_num"] < "530000000099"
+            else:
+                assert "590000000000" < device["serial_num"] < "590000000099"
+
+    endpoint = "/ivp/ensemble/power"
+    for device in fixtures_collection[endpoint]["devices:"]:
+        assert "300000000000" < device["serial_num"] < "300000000099"
+
     fixtures_collection = await envoy.fixture_collection()
 
     # validate we now have an error entry and failed endpoint is not in the list
