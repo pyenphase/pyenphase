@@ -1925,7 +1925,7 @@ class Envoy:
         return fixtures
 
     async def fixture_collection(
-        self, additional_endpoints: list[str] | None = None
+        self, additional_endpoints: list[str] | None = None, mask_serials: bool = True
     ) -> dict[str, Any]:
         """
         Collect Envoy endpoints to use for test fixture set
@@ -1937,9 +1937,10 @@ class Envoy:
         appended by using the `additional_endpoints` parameter.
 
         The endpoint data for each endpoint requested contains
-        the data as received from the Envoy. Serial numbers
-        for the Envoy, inverters, ensemble devices are replaced
-        by neutral generic numbers.
+        the data as received from the Envoy.
+
+        By default serial numbers for the Envoy, inverters,
+        ensemble devices are replaced by neutral generic numbers.
 
         Used neutral serials:
 
@@ -1978,6 +1979,8 @@ class Envoy:
 
         :param additional_endpoints: List of additional endpoints
             to append to standard list.
+        :param mask_serials: if True (default) replaces serials with
+            neutral values.
         :returns: dict with endpoint data and request status entries
             for each andpoint in list.
         """
@@ -2026,7 +2029,7 @@ class Envoy:
                 }
 
         # end the report on timeout, authentication and other envoy errors
-        except (TimeoutError, EnvoyError, EnvoyClientClosedError) as err:
+        except (asyncio.TimeoutError, EnvoyError, EnvoyClientClosedError) as err:
             # only return the request log in this case, will be last in result
             request_end = time.monotonic()
             collection[f"{last_endpoint}_log"] = {
@@ -2038,7 +2041,7 @@ class Envoy:
             _LOGGER.debug("Error getting fixture endpoint %s: %s", last_endpoint, err)
 
         try:
-            return self.anonymize_serials(collection)
+            return self.anonymize_serials(collection) if mask_serials else collection
         except (KeyError, ValueError, IndexError, TypeError) as err:
             # don't let failed anonymization break data creation
             _LOGGER.debug("Fixture report serial anonymization failed %s", err)
