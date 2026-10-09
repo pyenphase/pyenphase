@@ -1803,7 +1803,7 @@ class Envoy:
         # replace envoy serial with 123456789012
         if (endpoint := "/info") in fixtures:
             fixtures[endpoint] = re.sub(
-                r"<sn>.*</sn",
+                r"<sn>.*</sn>",
                 "<sn>123456789012</sn>",
                 fixtures[endpoint],
             )

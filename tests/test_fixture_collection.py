@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import re
 from typing import Any
 from unittest.mock import patch
 
@@ -63,6 +62,7 @@ async def test_fixture_collection(
 
     # override endpoints with serialnumbers to test serial anonimization
     info_xml = "<envoy_info><device><sn>210987654321</sn><software>D8.3.6087</software></device></envoy_info>"
+    info_xml_patched = "<envoy_info><device><sn>123456789012</sn><software>D8.3.6087</software></device></envoy_info>"
     override_mock(mock_aioresponse, "get", f"{full_host}/info", body=info_xml)
     inverters_json: list[dict[str, Any]] = [
         {
@@ -115,11 +115,6 @@ async def test_fixture_collection(
 
     # verify endpoints with serial anonimization
     assert "/info" in fixtures_collection
-    info_xml_patched = re.sub(
-        r"<sn>.*</sn",
-        "<sn>123456789012</sn>",
-        info_xml,
-    )
     assert fixtures_collection["/info"] == info_xml_patched
 
     assert "/api/v1/production/inverters" in fixtures_collection
