@@ -1826,7 +1826,7 @@ class Envoy:
         # EIM device contain envoy serial followed by EIMn
         serials.update(
             {
-                key: f"123456789012{key[: key.find('EIM')]}"
+                key: f"123456789012{key[key.find('EIM') :]}"
                 for key in sorted(
                     [
                         key
@@ -1840,7 +1840,7 @@ class Envoy:
         # assign replacement serials in serial sequential order
         serials.update(
             {
-                key: 100000000001 + index
+                key: f"{100000000001 + index}"
                 for index, key in enumerate(
                     sorted([key for key, value in serials.items() if value == ""])
                 )

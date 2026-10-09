@@ -124,7 +124,7 @@ async def test_fixture_collection(
 
     assert "/api/v1/production/inverters" in fixtures_collection
     inverters_json = [
-        inverter | {"serialNumber": 100000000001 + index}
+        inverter | {"serialNumber": f"{100000000001 + index}"}
         for index, inverter in enumerate(inverters_json)
     ]
     assert fixtures_collection["/api/v1/production/inverters"] == inverters_json
@@ -136,6 +136,15 @@ async def test_fixture_collection(
         f"{full_host}{endpoints[0]}",
         exception=asyncio.TimeoutError("Test timeoutexception"),
     )
+
+    # verify pdm devices inventory serial anonymization
+    endpoint = "/ivp/pdm/device_data"
+    for id in (pdm := fixtures_collection[endpoint]):
+        if id not in ("deviceCount", "deviceDataLimit"):
+            if pdm[id]["devName"] == "eim":
+                assert "123456789012EIM" in pdm[id]["sn"]
+            else:
+                assert "100000000000" < pdm[id]["sn"] < "100000000099"
 
     # verify ensemble inventory serial anonymization
     endpoint = "/ivp/ensemble/inventory"
