@@ -85,6 +85,41 @@ ENDPOINT_URL_HOME = "/home"
 
 # Include in docs to here
 
+#: List of endpoints reported by :py:meth:`Envoy.fixture_collection`
+FIXTURE_LIST = [
+    "/info",
+    URL_PRODUCTION_V1,
+    URL_PRODUCTION_INVERTERS,
+    URL_PRODUCTION_JSON,
+    URL_PRODUCTION,
+    URL_ENCHARGE_BATTERY,
+    URL_ENSEMBLE_INVENTORY,
+    URL_DRY_CONTACT_STATUS,
+    URL_ENSEMBLE_STATUS,
+    URL_ENSEMBLE_SECCTRL,
+    URL_GRID_RELAY,
+    URL_DRY_CONTACT_SETTINGS,
+    URL_TARIFF,
+    URL_GEN_CONFIG,
+    URL_GEN_SCHEDULE,
+    URL_GENERATOR,
+    URL_GEN_MODE,
+    ENDPOINT_URL_METERS,
+    ENDPOINT_URL_METERS_READINGS,
+    URL_DEVICE_DATA,
+    ENDPOINT_URL_HOME,
+    URL_INVENTORY,
+    URL_ACB_CONFIG,
+    # additional not yet used endpoints
+    URL_POWER_EXPORT,
+    "/ivp/ss/pel_settings",
+    "/ivp/sc/pvlimit",
+    "/ivp/sc/sched",
+    "/ivp/livedata/status",
+    "/ivp/pdm/energy",
+]
+
+
 LOCAL_TIMEOUT = aiohttp.ClientTimeout(
     # The envoy can be slow to respond but fast to connect to we
     # need to set a long timeout for the read and a short timeout
