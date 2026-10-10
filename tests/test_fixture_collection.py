@@ -27,25 +27,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.parametrize(
-    ("version", "endpoints"),
+    ("version"),
     [
-        (
-            "8.3.6087_storage_ct_drops",
-            [
-                "/ivp/meters/readings",
-                "/ivp/meters",
-            ],
-        ),
-        (
-            "8.3.5169_with_generator",
-            [
-                "/ivp/ensemble/generator",
-                "/ivp/meters/readings",
-                "/ivp/meters",
-            ],
-        ),
-    ],
-    ids=[
         "8.3.6087_storage_ct_drops",
         "8.3.5169_with_generator",
     ],
@@ -54,12 +37,11 @@ LOGGER = logging.getLogger(__name__)
 async def test_fixture_collection(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
-    endpoints: str,
     version: str,
 ) -> None:
     """Test fixture file data collection"""
     start_7_firmware_mock(mock_aioresponse)
-    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     envoy = await get_mock_envoy(test_client_session)
     full_host = endpoint_path(version, envoy.host)
 
@@ -103,20 +85,24 @@ async def test_fixture_collection(
     endpoint_to_fixture_file = {
         endpoint: endpoint_fixture_file(endpoint) for endpoint in FIXTURE_LIST
     }
-    # verify endpoints without serial anonimization
-    for endpoint in endpoints:
-        assert endpoint in fixtures_collection
-        try:
-            content = await load_json_fixture(
-                version, endpoint_to_fixture_file[endpoint]
+    for endpoint, file in endpoint_to_fixture_file.items():
+        if (
+            endpoint
+            not in (
+                "/info",
+                "/ivp/pdm/device_data",
+                "/ivp/ensemble/inventory",
+                "/ivp/ensemble/power",
             )
-            assert fixtures_collection[endpoint] == content
-        except orjson.JSONDecodeError:
-            string_content = await load_fixture(
-                version, endpoint_to_fixture_file[endpoint]
-            )
-            string_content = string_content.replace("\n", "")
-            assert fixtures_collection[endpoint] == string_content
+            and endpoint in files
+        ):
+            try:
+                content = await load_json_fixture(version, file)
+                assert fixtures_collection[endpoint] == content
+            except orjson.JSONDecodeError:
+                string_content = await load_fixture(version, file)
+                string_content = string_content.replace("\n", "")
+                assert fixtures_collection[endpoint] == string_content
 
     # verify endpoints with serial anonimization
     assert "/info" in fixtures_collection
@@ -185,20 +171,20 @@ async def test_fixture_collection(
     override_mock(
         mock_aioresponse,
         "get",
-        f"{full_host}{endpoints[0]}",
+        f"{full_host}/api/v1/production",
         exception=asyncio.TimeoutError("Test timeoutexception"),
     )
     fixtures_collection = await envoy.fixture_collection()
 
     # validate we now have an error entry and failed endpoint is not in the list
     assert fixtures_collection
-    assert endpoints[0] not in fixtures_collection
+    assert "/api/v1/production" not in fixtures_collection
     assert ("error", "TimeoutError('Test timeoutexception')") in fixtures_collection[
-        f"{endpoints[0]}_log"
+        "/api/v1/production_log"
     ].items()
-    assert ("code", 0) in fixtures_collection[f"{endpoints[0]}_log"].items()
+    assert ("code", 0) in fixtures_collection["/api/v1/production_log"].items()
     # verify endpoint failed in last in dict
-    assert list(fixtures_collection.keys())[-1] == f"{endpoints[0]}_log"
+    assert list(fixtures_collection.keys())[-1] == "/api/v1/production_log"
 
     # Test additional endpoints
     test_json: dict[str, str | int] = {"test": 1, "envoy": "1234"}

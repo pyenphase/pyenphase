@@ -1,6 +1,7 @@
 """Enphase Envoy class"""
 
 import asyncio
+import copy
 import logging
 import re
 import time
@@ -1783,7 +1784,7 @@ class Envoy:
                 "This feature requires Enphase Encharge or IQ Batteries."
             )
 
-    def anonymize_serials(self, fixtures: dict[str, Any]) -> dict[str, Any]:
+    def anonymize_serials(self, collected_fixtures: dict[str, Any]) -> dict[str, Any]:
         """
         Replace serial numbers by neutral values.
 
@@ -1793,23 +1794,29 @@ class Envoy:
           - batteries: 3000000000nn
           - Enpower device: 4000000000nn
           - COLLAR: 5100000000nn
-          - C6 COMBINER CONTROLLER: 5400000000nn
+          - C6 COMBINER CONTROLLER: 5200000000nn
           - C6 RGM: 5300000000nn
           - unknown ensemble devices: 5900000000nn
 
-        :param fixtures: dict with endpoints and their returned request data
-        :returns: updated dict with serials replaced
+        :param collected_fixtures: dict with endpoints and their returned request data
+        :returns: new dict with serials replaced
         """
+        fixtures = copy.deepcopy(collected_fixtures)
         # replace envoy serial with 123456789012
+        serials: dict[str, Any] = {}
+
         if (endpoint := "/info") in fixtures:
-            fixtures[endpoint] = re.sub(
-                r"<sn>.*</sn>",
-                "<sn>123456789012</sn>",
-                fixtures[endpoint],
-            )
+            # add envy serial from file to support testing
+            match = re.search(r"<sn>([^<]*)<\/sn>", fixtures[endpoint])
+            if match:
+                serials[match.group(1)] = "123456789012"
+
+        if TYPE_CHECKING:
+            assert self.serial_number is not None  # nosec
+        # add envoy serial
+        serials[self.serial_number] = "123456789012"
 
         # identify inverter and other device serials
-        serials: dict[str, Any] = {}
         if (endpoint := "/api/v1/production/inverters") in fixtures and fixtures[
             endpoint
         ]:
@@ -1847,23 +1854,6 @@ class Envoy:
             }
         )
 
-        # replace inverter and pdm device serials
-        if (endpoint := "/api/v1/production/inverters") in fixtures and fixtures[
-            endpoint
-        ]:
-            fixtures[endpoint] = [
-                inverter | {"serialNumber": serials[inverter["serialNumber"]]}
-                for inverter in fixtures[endpoint]
-            ]
-
-        if (endpoint := "/ivp/pdm/device_data") in fixtures and fixtures[endpoint]:
-            # "deviceCount" are "deviceDataLimit" are plain numbers, not dict
-            fixtures[endpoint] = {
-                id: device
-                | (0 if isinstance(device, int) else {"sn": serials[device["sn"]]})
-                for id, device in fixtures[endpoint].items()
-            }
-
         # add ensemble battery serials
         if (endpoint := "/ivp/ensemble/power") in fixtures and fixtures[endpoint]:
             serials |= {
@@ -1879,11 +1869,6 @@ class Envoy:
                     )
                 }
             )
-
-            fixtures[endpoint]["devices:"] = [
-                device | {"serial_num": serials[device["serial_num"]]}
-                for device in fixtures[endpoint]["devices:"]
-            ]
 
         # add ensemble other serials
         if (endpoint := "/ivp/ensemble/inventory") in fixtures and fixtures[endpoint]:
@@ -1908,12 +1893,19 @@ class Envoy:
                         )
                     }
                 )
-            # replace ensemble serials
-            for ensemble_type in fixtures[endpoint]:
-                ensemble_type["devices"] = [
-                    device | {"serial_num": serials[device["serial_num"]]}
-                    for device in ensemble_type["devices"]
-                ]
+
+        # replace known serials
+        for endpoint, data in fixtures.items():
+            if "_log" not in endpoint:
+                if endpoint == "/info":
+                    for original, replacement in serials.items():
+                        data = data.replace(original, replacement)
+                else:
+                    fixture_as_text = orjson.dumps(data).decode()
+                    for original, replacement in serials.items():
+                        fixture_as_text = fixture_as_text.replace(original, replacement)
+                    data = json_loads(endpoint, fixture_as_text)
+                fixtures[endpoint] = data
 
         return fixtures
 
