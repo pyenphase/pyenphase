@@ -30,20 +30,23 @@ LOGGER = logging.getLogger(__name__)
     ("version", "endpoints"),
     [
         (
-            "8.2.4286_with_3cts_and_battery_split",
+            "8.3.6087_storage_ct_drops",
             [
-                "/api/v1/production",
+                "/ivp/meters/readings",
+                "/ivp/meters",
             ],
         ),
         (
             "8.3.5169_with_generator",
             [
                 "/ivp/ensemble/generator",
+                "/ivp/meters/readings",
+                "/ivp/meters",
             ],
         ),
     ],
     ids=[
-        "8.2.4286",
+        "8.3.6087_storage_ct_drops",
         "8.3.5169_with_generator",
     ],
 )
@@ -64,16 +67,18 @@ async def test_fixture_collection(
     info_xml = "<envoy_info><device><sn>210987654321</sn><software>D8.3.6087</software></device></envoy_info>"
     info_xml_patched = "<envoy_info><device><sn>123456789012</sn><software>D8.3.6087</software></device></envoy_info>"
     override_mock(mock_aioresponse, "get", f"{full_host}/info", body=info_xml)
+
+    # use low test serial numbers to avoid pdm device serials sorted first
     inverters_json: list[dict[str, Any]] = [
         {
-            "serialNumber": "222222222222",
+            "serialNumber": "000000000001",
             "lastReportDate": 1791196789,
             "devType": 1,
             "lastReportWatts": 143,
             "maxReportWatts": 173,
         },
         {
-            "serialNumber": "333333333333",
+            "serialNumber": "000000000002",
             "lastReportDate": 1791196067,
             "devType": 1,
             "lastReportWatts": 155,
@@ -118,22 +123,31 @@ async def test_fixture_collection(
     assert fixtures_collection["/info"] == info_xml_patched
 
     assert "/api/v1/production/inverters" in fixtures_collection
-    inverters_json = [
-        inverter | {"serialNumber": f"{100000000001 + index}"}
-        for index, inverter in enumerate(inverters_json)
+    expected_inverters_json: list[dict[str, Any]] = [
+        {
+            "serialNumber": "100000000001",
+            "lastReportDate": 1791196789,
+            "devType": 1,
+            "lastReportWatts": 143,
+            "maxReportWatts": 173,
+        },
+        {
+            "serialNumber": "100000000002",
+            "lastReportDate": 1791196067,
+            "devType": 1,
+            "lastReportWatts": 155,
+            "maxReportWatts": 230,
+        },
     ]
-    assert fixtures_collection["/api/v1/production/inverters"] == inverters_json
-
-    # Verify timeout will end fixture collection
-    override_mock(
-        mock_aioresponse,
-        "get",
-        f"{full_host}{endpoints[0]}",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
+    assert (
+        fixtures_collection["/api/v1/production/inverters"] == expected_inverters_json
     )
 
     # verify pdm devices inventory serial anonymization
     endpoint = "/ivp/pdm/device_data"
+    assert endpoint in fixtures_collection
+    content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
+    assert len(fixtures_collection[endpoint]) == len(content)
     for id in (pdm := fixtures_collection[endpoint]):
         if id not in ("deviceCount", "deviceDataLimit"):
             if pdm[id]["devName"] == "eim":
@@ -143,6 +157,8 @@ async def test_fixture_collection(
 
     # verify ensemble inventory serial anonymization
     endpoint = "/ivp/ensemble/inventory"
+    content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
+    assert len(fixtures_collection[endpoint]) == len(content)
     for ensemble_type in fixtures_collection[endpoint]:
         type = ensemble_type["type"]
         for device in ensemble_type["devices"]:
@@ -160,9 +176,18 @@ async def test_fixture_collection(
                 assert "590000000000" < device["serial_num"] < "590000000099"
 
     endpoint = "/ivp/ensemble/power"
+    content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
+    assert len(fixtures_collection[endpoint]) == len(content)
     for device in fixtures_collection[endpoint]["devices:"]:
         assert "300000000000" < device["serial_num"] < "300000000099"
 
+    # Verify timeout will end fixture collection
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}{endpoints[0]}",
+        exception=asyncio.TimeoutError("Test timeoutexception"),
+    )
     fixtures_collection = await envoy.fixture_collection()
 
     # validate we now have an error entry and failed endpoint is not in the list
@@ -195,6 +220,19 @@ async def test_fixture_collection(
         status=200,
         repeat=True,
     )
+    # test with missing endpoints
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/ivp/ensemble/power",
+        status=404,
+    )
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/ivp/ensemble/inventory",
+        status=404,
+    )
 
     fixtures_collection = await envoy.fixture_collection(
         ["/test/my/endpoint", "/test/my/invalid_endpoint"]
@@ -206,10 +244,13 @@ async def test_fixture_collection(
     assert "/test/my/invalid_endpoint" in fixtures_collection
     assert "/test/my/invalid_endpoint_log" in fixtures_collection
     assert fixtures_collection["/test/my/invalid_endpoint"] == invalid_json
-
-    override_mock(mock_aioresponse, "get", f"{full_host}/info", body=info_xml)
+    assert "/ivp/ensemble/power_log" in fixtures_collection
+    assert ("code", 404) in fixtures_collection["/ivp/ensemble/power_log"].items()
+    assert "/ivp/ensemble/inventory_log" in fixtures_collection
+    assert ("code", 404) in fixtures_collection["/ivp/ensemble/inventory_log"].items()
 
     # test data error in anonymization
+    override_mock(mock_aioresponse, "get", f"{full_host}/info", body=info_xml)
     with patch(
         "pyenphase.Envoy.anonymize_serials",
         side_effect=KeyError,
