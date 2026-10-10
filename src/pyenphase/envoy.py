@@ -1880,12 +1880,10 @@ class Envoy:
                 }
             )
 
-            fixtures[endpoint] = {
-                "devices:": [
-                    device | {"serial_num": serials[device["serial_num"]]}
-                    for device in fixtures[endpoint]["devices:"]
-                ]
-            }
+            fixtures[endpoint]["devices:"] = [
+                device | {"serial_num": serials[device["serial_num"]]}
+                for device in fixtures[endpoint]["devices:"]
+            ]
 
         # add ensemble other serials
         if (endpoint := "/ivp/ensemble/inventory") in fixtures and fixtures[endpoint]:
@@ -1911,16 +1909,11 @@ class Envoy:
                     }
                 )
             # replace ensemble serials
-            fixtures[endpoint] = [
-                {
-                    "type": types["type"],
-                    "devices": [
-                        device | {"serial_num": serials[device["serial_num"]]}
-                        for device in types["devices"]
-                    ],
-                }
-                for types in fixtures[endpoint]
-            ]
+            for ensemble_type in fixtures[endpoint]:
+                ensemble_type["devices"] = [
+                    device | {"serial_num": serials[device["serial_num"]]}
+                    for device in ensemble_type["devices"]
+                ]
 
         return fixtures
 
