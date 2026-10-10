@@ -29,7 +29,7 @@ LOGGER = logging.getLogger(__name__)
 @pytest.mark.parametrize(
     ("version"),
     [
-        "8.3.6087_storage_ct_drops",
+        "8.3.5169_ACB_inventory",
         "8.3.5169_with_generator",
     ],
 )
@@ -90,11 +90,14 @@ async def test_fixture_collection(
             endpoint
             not in (
                 "/info",
+                "/api/v1/production/inverters",
                 "/ivp/pdm/device_data",
                 "/ivp/ensemble/inventory",
                 "/ivp/ensemble/power",
+                "/ivp/ensemble/status",
+                "/inventory.json?deleted=1",
             )
-            and endpoint in files
+            and file in files
         ):
             try:
                 content = await load_json_fixture(version, file)
@@ -145,9 +148,9 @@ async def test_fixture_collection(
     endpoint = "/ivp/ensemble/inventory"
     content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
     assert len(fixtures_collection[endpoint]) == len(content)
-    for ensemble_type in fixtures_collection[endpoint]:
-        type = ensemble_type["type"]
-        for device in ensemble_type["devices"]:
+    for inventory_type in fixtures_collection[endpoint]:
+        type = inventory_type["type"]
+        for device in inventory_type["devices"]:
             if type == "ENCHARGE":
                 assert "300000000000" < device["serial_num"] < "300000000099"
             elif type == "ENPOWER":
@@ -166,6 +169,22 @@ async def test_fixture_collection(
     assert len(fixtures_collection[endpoint]) == len(content)
     for device in fixtures_collection[endpoint]["devices:"]:
         assert "300000000000" < device["serial_num"] < "300000000099"
+
+    # verify inventory serial anonymization
+    endpoint = "/inventory.json?deleted=1"
+    content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
+    assert len(fixtures_collection[endpoint]) == len(content)
+    for inventory_type in fixtures_collection[endpoint]:
+        type = inventory_type["type"]
+        for device in inventory_type["devices"]:
+            if type in ("PCU", "ACB"):
+                assert "100000000000" < device["serial_num"] < "100000000099"
+            elif type == "NSRB":
+                assert "610000000000" < device["serial_num"] < "610000000099"
+            elif type == "ESUB":
+                assert "620000000000" < device["serial_num"] < "620000000099"
+            else:
+                assert "690000000000" < device["serial_num"] < "690000000099"
 
     # Verify timeout will end fixture collection
     override_mock(

@@ -85,8 +85,6 @@ def endpoint_fixture_file(endpoint: str) -> str:
         return "production"
     if endpoint == "/production.json?details=1":
         return "production.json"
-    if endpoint == "inventory.json?deleted=1":
-        return "inventory"
     return (
         endpoint[1:]
         .replace("/", "_")
@@ -558,6 +556,7 @@ async def prep_envoy(
         ("ivp_sc_pvlimit", "/ivp/sc/pvlimit"),
         ("ivp_ss_pel_settings", "/ivp/ss/pel_settings"),
         ("ivp_sc_sched", "/ivp/sc/sched"),
+        ("ivp_pdm_energy", "/ivp/pdm/energy"),
     ):
         if file in files:
             try:
