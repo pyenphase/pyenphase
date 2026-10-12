@@ -5,6 +5,7 @@ import copy
 import logging
 import re
 import time
+import traceback
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from functools import cached_property, partial
@@ -1823,7 +1824,6 @@ class Envoy:
 
         if TYPE_CHECKING:
             assert self.serial_number is not None  # nosec
-        # replace envoy serial with 123456789012
         serials[self.serial_number] = "envoy"
 
         # identify inverter and acb serials
@@ -1909,7 +1909,7 @@ class Envoy:
             }
         )
 
-        # replace known serials
+        # replace found serials
         for endpoint, data in fixtures.items():
             if "_log" not in endpoint:
                 if endpoint == "/info":
@@ -1943,18 +1943,28 @@ class Envoy:
         the data as received from the Envoy.
 
         By default serial numbers for the Envoy, inverters,
-        ensemble devices are replaced by neutral generic numbers.
+        ensemble devices are replaced at best effort by neutral
+        generic numbers. Depending on Envoy firmware version,
+        original serials may still be present. If any error
+        occurs during serial replacement, the data is returned
+        with partial translatedserials. This is signalled by
+        the presence of the `anonymization_aborted` key in the
+        returned dict. The key value contains the error.
 
         Used neutral serials:
 
         - Envoy: 123456789012.
-        - inverter: 100000000nnn
-        - batteries: 3000000000nn
-        - Enpower device: 4000000000nn
-        - COLLAR: 5100000000nn
-        - C6 COMBINER CONTROLLER: 5400000000nn
-        - C6 RGM: 5300000000nn
-        - unknown ensemble devices: 5900000000nn
+        - Inverter and ACB: 100000000nnn
+        - Ensemble devices
+          - encharge batteries: 3000000000nn
+          - Enpower device: 4000000000nn
+          - COLLAR: 5100000000nn
+          - C6 COMBINER CONTROLLER: 5200000000nn
+          - C6 RGM: 5300000000nn
+        - Other devices
+          - NSRB: 6100000000nn
+          - ESUB: 6200000000nn
+        - Unknown devices: 9900000000nn
 
         The matching endpoint request status log entries contain
         the request status code, error information if any error
@@ -1968,17 +1978,20 @@ class Envoy:
                 "endpoint": {request_reply_data},
                 "endpoint_log" :
                     {
-                        "status": int,
+                        "code": int,
                         "error": str,
                         "report_time": str,
                         "duration_seconds": float,
                     }
             }
 
-
-
         The error key in the endpoint log entry is only present when
-        an error occurs. In that case `status` will be 0.
+        an error occurs. In that case `code` will be 0.
+
+        If a timeout or client errors occur, the collection will be
+        aborted and only collected data is returned. This is signalled
+        by the presence of the `collection_aborted` key in the returned
+        dict. The key value contains the error message,
 
         :param additional_endpoints: List of additional endpoints
             to append to standard list.
@@ -1990,18 +2003,26 @@ class Envoy:
         collection: dict[str, Any] = {}
         last_endpoint = ""
         request_start = time.monotonic()
+        targets = list(dict.fromkeys(FIXTURE_LIST + (additional_endpoints or [])))
         try:
             # remove multiple entries and maintain order
-            for end_point in list(
-                dict.fromkeys(FIXTURE_LIST + (additional_endpoints or []))
-            ):
+            for end_point in targets:
                 # make sure we have leading /
-                last_endpoint = end_point if end_point[0] == "/" else f"/{end_point}"
+                last_endpoint = f"/{end_point.lstrip('/')}"
                 request_start = time.monotonic()
                 try:
                     response: aiohttp.ClientResponse = await self._request(
                         last_endpoint
                     )
+                    try:
+                        async with response:  # release response on error
+                            collection[last_endpoint] = json_loads(
+                                last_endpoint, await response.read()
+                            )  # response.json(loads=orjson.loads)
+                    except (orjson.JSONDecodeError, aiohttp.ContentTypeError):
+                        async with response:  # release response on error
+                            response_text = await response.text(errors="replace")
+                        collection[last_endpoint] = response_text.replace("\n", "")
                 except aiohttp.ClientError as err:
                     # try next endpoint if request fails on formats and other none timeout errors
                     request_end = time.monotonic()
@@ -2013,15 +2034,6 @@ class Envoy:
                     }
                     _LOGGER.debug("Error getting %s: %s", last_endpoint, err)
                     continue
-                try:
-                    async with response:  # release response on error
-                        collection[last_endpoint] = json_loads(
-                            last_endpoint, await response.read()
-                        )  # response.json(loads=orjson.loads)
-                except (orjson.JSONDecodeError, aiohttp.ContentTypeError):
-                    async with response:  # release response on error
-                        response_text = await response.text(errors="replace")
-                    collection[last_endpoint] = response_text.replace("\n", "")
 
                 request_end = time.monotonic()
                 collection[f"{last_endpoint}_log"] = {
@@ -2040,11 +2052,19 @@ class Envoy:
                 "report_time": time.asctime(),
                 "duration_seconds": round(request_end - request_start, 1),
             }
-            _LOGGER.debug("Error getting fixture endpoint %s: %s", last_endpoint, err)
+            _LOGGER.warning("Error getting fixture endpoint %s: %s", last_endpoint, err)
+            collection["collection_aborted"] = (
+                f"Error getting fixture endpoint: {last_endpoint} {traceback.format_exc()}"
+            )
 
-        try:
-            return self.anonymize_serials(collection) if mask_serials else collection
-        except (KeyError, ValueError, IndexError, TypeError) as err:
-            # don't let failed anonymization break data creation
-            _LOGGER.debug("Fixture report serial anonymization failed %s", err)
+        if not mask_serials:
             return collection
+        try:
+            collection = self.anonymize_serials(collection)
+        except (KeyError, ValueError, IndexError, TypeError) as err:
+            # don't let failed anonymization break data collection
+            _LOGGER.warning("Fixture report serial anonymization failed %s", err)
+            collection["anonymization_aborted"] = (
+                f"Fixture report serial anonymization failed: {traceback.format_exc()}"
+            )
+        return collection

@@ -72,22 +72,44 @@ async def test_fixture_collection(
     envoy = await get_mock_envoy(test_client_session)
     full_host = endpoint_path(version, envoy.host)
 
-    # override endpoints with serialnumbers to test serial anonimization
-    info_xml = "<envoy_info><device><sn>210987654321</sn><software>D8.3.6087</software></device></envoy_info>"
-    info_xml_patched = "<envoy_info><device><sn>923456789012</sn><software>D8.3.6087</software></device></envoy_info>"
-    override_mock(mock_aioresponse, "get", f"{full_host}/info", body=info_xml)
+    # map endpoint to fixture file and verify fixture_collection samples to file content
+    endpoint_to_fixture_file = {
+        endpoint: endpoint_fixture_file(endpoint) for endpoint in FIXTURE_LIST
+    }
 
-    # test fixtures_collection method
-    fixtures_collection: dict[str, Any] = await envoy.fixture_collection()
+    # test fixtures_collection method without serial anonymization
+    fixtures_collection: dict[str, Any] = await envoy.fixture_collection(
+        mask_serials=False
+    )
     # validate all fixture logs are created
     assert fixtures_collection
     for fixture in FIXTURE_LIST:
         assert f"{fixture}_log" in fixtures_collection
 
-    # map endpoint to fixture file and verify fixture_collection samples to file content
-    endpoint_to_fixture_file = {
-        endpoint: endpoint_fixture_file(endpoint) for endpoint in FIXTURE_LIST
-    }
+    for endpoint, file in endpoint_to_fixture_file.items():
+        if endpoint not in exclude and file in files:
+            assert "anonymization" not in fixtures_collection[f"{endpoint}_log"]
+            try:
+                content = await load_json_fixture(version, file)
+                assert fixtures_collection[endpoint] == content
+            except orjson.JSONDecodeError:
+                string_content = await load_fixture(version, file)
+                string_content = string_content.replace("\n", "")
+                assert fixtures_collection[endpoint] == string_content
+
+    # override envoy serial, use patched serials so we can test anonymized fixtures as well
+    info_xml = "<envoy_info><device><sn>210987654321</sn><software>D8.3.6087</software></device></envoy_info>"
+    info_xml_patched = "<envoy_info><device><sn>923456789012</sn><software>D8.3.6087</software></device></envoy_info>"
+    override_mock(mock_aioresponse, "get", f"{full_host}/info", body=info_xml)
+
+    # test fixtures_collection method with serial anonymization
+    fixtures_collection = await envoy.fixture_collection()
+    # validate all fixture logs are created
+    assert fixtures_collection
+    for fixture in FIXTURE_LIST:
+        assert f"{fixture}_log" in fixtures_collection
+
+    # verify all endpoints that don't contain serials
     for endpoint, file in endpoint_to_fixture_file.items():
         if (
             endpoint
@@ -104,15 +126,14 @@ async def test_fixture_collection(
             and endpoint not in exclude
             and file in files
         ):
+            assert not fixtures_collection[f"{endpoint}_log"]["anonymization"]
             try:
                 content = await load_json_fixture(version, file)
                 assert fixtures_collection[endpoint] == content
-                assert not fixtures_collection[f"{endpoint}_log"]["anonymization"]
             except orjson.JSONDecodeError:
                 string_content = await load_fixture(version, file)
                 string_content = string_content.replace("\n", "")
                 assert fixtures_collection[endpoint] == string_content
-                assert not fixtures_collection[f"{endpoint}_log"]["anonymization"]
 
     # verify endpoints with serial anonimization
     endpoint = "/info"
@@ -261,8 +282,9 @@ async def test_fixture_collection(
         "/api/v1/production_log"
     ].items()
     assert ("code", 0) in fixtures_collection["/api/v1/production_log"].items()
-    # verify endpoint failed in last in dict
-    assert list(fixtures_collection.keys())[-1] == "/api/v1/production_log"
+    # verify collection_aborted is in the list
+    assert "collection_aborted" in fixtures_collection
+    assert "Test timeoutexception" in fixtures_collection["collection_aborted"]
 
     # Test additional endpoints
     test_json: dict[str, str | int] = {"test": 1, "envoy": "1234"}
@@ -314,10 +336,32 @@ async def test_fixture_collection(
     assert ("code", 404) in fixtures_collection["/ivp/ensemble/inventory_log"].items()
 
     # test data error in anonymization
-    override_mock(mock_aioresponse, "get", f"{full_host}/info", body=info_xml)
+    override_mock(
+        mock_aioresponse, "get", f"{full_host}/info", body=info_xml, repeat=True
+    )
+    inverters_keyerror = ([{"maxReportWatts": 297}],)
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/api/v1/production/inverters",
+        payload=inverters_keyerror,
+    )
+    fixtures_collection = await envoy.fixture_collection()
+    assert fixtures_collection
+    assert "anonymization_aborted" in fixtures_collection
+    assert (
+        "Fixture report serial anonymization failed:"
+        in fixtures_collection["anonymization_aborted"]
+    )
+
     with patch(
         "pyenphase.Envoy.anonymize_serials",
         side_effect=KeyError,
     ):
         fixtures_collection = await envoy.fixture_collection()
     assert fixtures_collection["/info"] == info_xml
+    assert fixtures_collection
+    assert (
+        "Fixture report serial anonymization failed:"
+        in fixtures_collection["anonymization_aborted"]
+    )
