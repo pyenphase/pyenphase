@@ -10,7 +10,7 @@ import orjson
 import pytest
 from aioresponses import aioresponses
 
-from pyenphase.const import FIXTURE_LIST
+from pyenphase.const import DEVICE_TYPES, FIXTURE_LIST
 
 from .common import (
     endpoint_fixture_file,
@@ -29,15 +29,15 @@ LOGGER = logging.getLogger(__name__)
 @patch(
     "pyenphase.envoy.TYPE_SERIALS",
     {
-        "pcu": "101000000001",
-        "acb": "201000000001",
-        "encharge": "301000000001",
-        "enpower": "401000000001",
-        "collar": "511000000001",
-        "c6 combiner controller": "521000000001",
-        "c6 rgm": "531000000001",
-        "nsrb": "611000000001",
-        "esub": "621000000001",
+        "PCU": "101000000001",
+        "ACB": "201000000001",
+        "ENCHARGE": "301000000001",
+        "ENPOWER": "401000000001",
+        "COLLAR": "511000000001",
+        "C6 COMBINER CONTROLLER": "521000000001",
+        "C6 RGM": "531000000001",
+        "NSRB": "611000000001",
+        "ESUB": "621000000001",
     },
 )
 @patch("pyenphase.envoy.ENVOY_SERIAL", "923456789012")
@@ -99,6 +99,7 @@ async def test_fixture_collection(
                 "/ivp/ensemble/power",
                 "/ivp/ensemble/status",
                 "/inventory.json?deleted=1",
+                "/ivp/ensemble/status",
             )
             and endpoint not in exclude
             and file in files
@@ -144,9 +145,9 @@ async def test_fixture_collection(
         )
         for id in (pdm := fixtures_collection[endpoint]):
             if id not in ("deviceCount", "deviceDataLimit"):
-                if pdm[id]["devName"] == "eim":
+                if pdm[id]["devName"].upper() == "EIM":
                     assert "923456789012EIM" in pdm[id]["sn"]
-                elif pdm[id]["devName"] == "acb":
+                elif pdm[id]["devName"].upper() == "ACB":
                     assert "201000000000" < pdm[id]["sn"] < "201000000099"
                 else:
                     assert "101000000000" < pdm[id]["sn"] < "101000000099"
@@ -161,17 +162,17 @@ async def test_fixture_collection(
             ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
         )
         for inventory_type in fixtures_collection[endpoint]:
-            type = inventory_type["type"]
+            dev_type = inventory_type["type"]
             for device in inventory_type["devices"]:
-                if type == "ENCHARGE":
+                if dev_type == "ENCHARGE":
                     assert "301000000000" < device["serial_num"] < "301000000099"
-                elif type == "ENPOWER":
+                elif dev_type == "ENPOWER":
                     assert "401000000000" < device["serial_num"] < "401000000099"
-                elif type == "COLLAR":
+                elif dev_type == "COLLAR":
                     assert "511000000000" < device["serial_num"] < "511000000099"
-                elif type == "C6 COMBINER CONTROLLER":
+                elif dev_type == "C6 COMBINER CONTROLLER":
                     assert "521000000000" < device["serial_num"] < "521000000099"
-                elif type == "C6 RGM":
+                elif dev_type == "C6 RGM":
                     assert "531000000000" < device["serial_num"] < "531000000099"
                 else:
                     assert "991000000000" < device["serial_num"] < "991000000099"
@@ -197,18 +198,52 @@ async def test_fixture_collection(
             ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
         )
         for inventory_type in fixtures_collection[endpoint]:
-            type = inventory_type["type"]
+            dev_type = inventory_type["type"]
             for device in inventory_type["devices"]:
-                if type == "PCU":
+                if dev_type == "PCU":
                     assert "101000000000" < device["serial_num"] < "101000000099"
-                elif type == "ACB":
+                elif dev_type == "ACB":
                     assert "201000000000" < device["serial_num"] < "201000000099"
-                elif type == "NSRB":
+                elif dev_type == "NSRB":
                     assert "611000000000" < device["serial_num"] < "611000000099"
-                elif type == "ESUB":
+                elif dev_type == "ESUB":
                     assert "621000000000" < device["serial_num"] < "621000000099"
                 else:
                     assert "991000000000" < device["serial_num"] < "991000000099"
+
+    # verify ensemble status serial anonymization
+    endpoint = "/ivp/ensemble/status"
+    if endpoint not in exclude:
+        content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
+        assert len(fixtures_collection[endpoint]) == len(content)
+        assert not (
+            (len(fixtures_collection[endpoint]["inventory"]["serial_nums"]) > 0)
+            ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+        )
+        for serial_num, device in fixtures_collection[endpoint]["inventory"][
+            "serial_nums"
+        ].items():
+            dev_type = DEVICE_TYPES.get(device["device_type"], "unknown")
+            if dev_type == "pcu":
+                assert "101000000000" < serial_num < "101000000099"
+            elif dev_type == "ACB":
+                assert "201000000000" < serial_num < "201000000099"
+            if dev_type == "ENCHARGE":
+                assert "301000000000" < serial_num < "301000000099"
+            elif dev_type == "ENPOWER":
+                assert "401000000000" < serial_num < "401000000099"
+            elif dev_type == "COLLAR":
+                assert "511000000000" < serial_num < "511000000099"
+            elif dev_type == "C6 COMBINER CONTROLLER":
+                assert "521000000000" < serial_num < "521000000099"
+            elif dev_type == "C6 RGM":
+                assert "531000000000" < serial_num < "531000000099"
+            elif dev_type == "NSRB":
+                assert "611000000000" < serial_num < "611000000099"
+            elif dev_type == "ESUB":
+                assert "621000000000" < serial_num < "621000000099"
+            else:
+                assert "991000000000" < serial_num < "991000000099"
 
     # Verify timeout will end fixture collection
     override_mock(

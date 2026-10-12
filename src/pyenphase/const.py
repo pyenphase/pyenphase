@@ -210,13 +210,28 @@ PHASENAMES: list[str] = list(PhaseNames)
 ENVOY_SERIAL = "123456789012"
 UNKNOWN_SERIAL = "990000000001"
 TYPE_SERIALS = {
-    "pcu": "100000000001",
-    "acb": "200000000001",
-    "encharge": "300000000001",
-    "enpower": "400000000001",
-    "collar": "510000000001",
-    "c6 combiner controller": "520000000001",
-    "c6 rgm": "530000000001",
-    "nsrb": "610000000001",
-    "esub": "620000000001",
+    "PCU": "100000000001",
+    "ACB": "200000000001",
+    "ENCHARGE": "300000000001",
+    "ENPOWER": "400000000001",
+    "COLLAR": "510000000001",
+    "C6 COMBINER CONTROLLER": "520000000001",
+    "C6 RGM": "530000000001",
+    "NSRB": "610000000001",
+    "ESUB": "620000000001",
+}
+# map devtypes to names
+DEVICE_TYPES = {
+    1: "PCU",
+    11: "ACB",
+    12: "NSRB",
+    13: "ENCHARGE",
+    14: "ENCHARGE_pcu",
+    16: "ENCHARGE_bmu",
+    17: "ENPOWER",
+    19: "ESUB",
+    20: "ESUB",
+    27: "COLLAR",
+    115: "C6 RGM",
+    125: "C6 COMBINER CONTROLLER",
 }

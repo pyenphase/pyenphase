@@ -37,6 +37,7 @@ from .const import (
     AUTH_TOKEN_MIN_VERSION,
     DEFAULT_MAX_REQUEST_ATTEMPTS,
     DEFAULT_MAX_REQUEST_DELAY,
+    DEVICE_TYPES,
     ENDPOINT_URL_HOME,
     ENVOY_SERIAL,
     FIXTURE_LIST,
@@ -1830,9 +1831,9 @@ class Envoy:
             endpoint
         ]:
             serials |= {
-                inverter["serialNumber"]: "acb"
-                if inverter["devType"] == "11"
-                else "pcu"
+                inverter["serialNumber"]: DEVICE_TYPES.get(
+                    inverter["devType"], "UNKNOWN"
+                )
                 for inverter in fixtures[endpoint]
             }
 
@@ -1842,7 +1843,7 @@ class Envoy:
             serials |= {
                 fixtures[endpoint][device]["sn"]: fixtures[endpoint][device][
                     "devName"
-                ].lower()
+                ].upper()
                 for device in fixtures[endpoint]
                 if device not in ("deviceCount", "deviceDataLimit")
             }
@@ -1851,7 +1852,7 @@ class Envoy:
         if (endpoint := "/inventory.json?deleted=1") in fixtures and fixtures[endpoint]:
             for inventory_type in fixtures[endpoint]:
                 serials |= {
-                    device["serial_num"]: inventory_type["type"].lower()
+                    device["serial_num"]: inventory_type["type"]
                     for device in inventory_type["devices"]
                 }
 
@@ -1866,8 +1867,23 @@ class Envoy:
         if (endpoint := "/ivp/ensemble/inventory") in fixtures and fixtures[endpoint]:
             for inventory_type in fixtures[endpoint]:
                 serials |= {
-                    device["serial_num"]: inventory_type["type"].lower()
+                    device["serial_num"]: inventory_type["type"]
                     for device in inventory_type["devices"]
+                }
+
+        # add ensemble status serials
+        if (endpoint := "/ivp/ensemble/status") in fixtures and "inventory" in fixtures[
+            endpoint
+        ]:
+            for inventory in fixtures[endpoint]["inventory"].values():
+                serials |= {
+                    serial: DEVICE_TYPES.get(serial_data["device_type"], "unknown")
+                    for serial, serial_data in inventory.items()
+                }
+                serials |= {
+                    sub_serial: DEVICE_TYPES.get(sub["device_type"], "unknown")
+                    for serial_data in inventory.values()
+                    for sub_serial, sub in serial_data["submodules"].items()
                 }
 
         # assign replacement serials by types in serial sequential order
