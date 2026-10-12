@@ -43,10 +43,16 @@ LOGGER = logging.getLogger(__name__)
 @patch("pyenphase.envoy.ENVOY_SERIAL", "923456789012")
 @patch("pyenphase.envoy.UNKNOWN_SERIAL", "991000000001")
 @pytest.mark.parametrize(
-    ("version"),
+    ("version", "exclude"),
     [
+        ("8.3.5169_ACB_inventory", []),
+        ("8.3.5169_with_generator", []),
+        ("8.3.1598_collar", ["/ivp/pdm/device_data", "/inventory.json?deleted=1"]),
+    ],
+    ids=[
         "8.3.5169_ACB_inventory",
         "8.3.5169_with_generator",
+        "8.3.1598_collar",
     ],
 )
 @pytest.mark.asyncio
@@ -54,6 +60,7 @@ async def test_fixture_collection(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     version: str,
+    exclude: list[str],  # exclude from fixture tests
 ) -> None:
     """
     Test fixture file data collection.
@@ -93,6 +100,7 @@ async def test_fixture_collection(
                 "/ivp/ensemble/status",
                 "/inventory.json?deleted=1",
             )
+            and endpoint not in exclude
             and file in files
         ):
             try:
@@ -112,90 +120,95 @@ async def test_fixture_collection(
     assert fixtures_collection[f"{endpoint}_log"]["anonymization"]
 
     endpoint = "/api/v1/production/inverters"
-    assert endpoint in fixtures_collection
-    content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
-    assert len(fixtures_collection[endpoint]) == len(content)
-    assert fixtures_collection[f"{endpoint}_log"]["anonymization"]
-    for inverter in fixtures_collection[endpoint]:
-        if inverter["devType"] == 11:
-            assert "201000000000" < inverter["serialNumber"] < "201000000099"
-        else:
-            assert "101000000000" < inverter["serialNumber"] < "101000000099"
+    if endpoint not in exclude:
+        assert endpoint in fixtures_collection
+        content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
+        assert len(fixtures_collection[endpoint]) == len(content)
+        assert fixtures_collection[f"{endpoint}_log"]["anonymization"]
+        for inverter in fixtures_collection[endpoint]:
+            if inverter["devType"] == 11:
+                assert "201000000000" < inverter["serialNumber"] < "201000000099"
+            else:
+                assert "101000000000" < inverter["serialNumber"] < "101000000099"
 
     # verify pdm devices inventory serial anonymization
     endpoint = "/ivp/pdm/device_data"
-    assert endpoint in fixtures_collection
-    content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
-    assert len(fixtures_collection[endpoint]) == len(content)
-    # ^:  one of two true, not both true or both false
-    assert not (
-        (len(fixtures_collection[endpoint]) > 0)
-        ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
-    )
-    for id in (pdm := fixtures_collection[endpoint]):
-        if id not in ("deviceCount", "deviceDataLimit"):
-            if pdm[id]["devName"] == "eim":
-                assert "923456789012EIM" in pdm[id]["sn"]
-            elif pdm[id]["devName"] == "acb":
-                assert "201000000000" < pdm[id]["sn"] < "201000000099"
-            else:
-                assert "101000000000" < pdm[id]["sn"] < "101000000099"
+    if endpoint not in exclude:
+        assert endpoint in fixtures_collection
+        content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
+        assert len(fixtures_collection[endpoint]) == len(content)
+        # ^:  one of two true, not both true or both false
+        assert not (
+            (len(fixtures_collection[endpoint]) > 0)
+            ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+        )
+        for id in (pdm := fixtures_collection[endpoint]):
+            if id not in ("deviceCount", "deviceDataLimit"):
+                if pdm[id]["devName"] == "eim":
+                    assert "923456789012EIM" in pdm[id]["sn"]
+                elif pdm[id]["devName"] == "acb":
+                    assert "201000000000" < pdm[id]["sn"] < "201000000099"
+                else:
+                    assert "101000000000" < pdm[id]["sn"] < "101000000099"
 
     # verify ensemble inventory serial anonymization
     endpoint = "/ivp/ensemble/inventory"
-    content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
-    assert len(fixtures_collection[endpoint]) == len(content)
-    assert not (
-        (len(fixtures_collection[endpoint]) > 0)
-        ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
-    )
-    for inventory_type in fixtures_collection[endpoint]:
-        type = inventory_type["type"]
-        for device in inventory_type["devices"]:
-            if type == "ENCHARGE":
-                assert "301000000000" < device["serial_num"] < "301000000099"
-            elif type == "ENPOWER":
-                assert "401000000000" < device["serial_num"] < "401000000099"
-            elif type == "COLLAR":
-                assert "511000000000" < device["serial_num"] < "511000000099"
-            elif type == "C6 COMBINER CONTROLLER":
-                assert "521000000000" < device["serial_num"] < "521000000099"
-            elif type == "C6 RGM":
-                assert "531000000000" < device["serial_num"] < "531000000099"
-            else:
-                assert "991000000000" < device["serial_num"] < "991000000099"
+    if endpoint not in exclude:
+        content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
+        assert len(fixtures_collection[endpoint]) == len(content)
+        assert not (
+            (len(fixtures_collection[endpoint]) > 0)
+            ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+        )
+        for inventory_type in fixtures_collection[endpoint]:
+            type = inventory_type["type"]
+            for device in inventory_type["devices"]:
+                if type == "ENCHARGE":
+                    assert "301000000000" < device["serial_num"] < "301000000099"
+                elif type == "ENPOWER":
+                    assert "401000000000" < device["serial_num"] < "401000000099"
+                elif type == "COLLAR":
+                    assert "511000000000" < device["serial_num"] < "511000000099"
+                elif type == "C6 COMBINER CONTROLLER":
+                    assert "521000000000" < device["serial_num"] < "521000000099"
+                elif type == "C6 RGM":
+                    assert "531000000000" < device["serial_num"] < "531000000099"
+                else:
+                    assert "991000000000" < device["serial_num"] < "991000000099"
 
     endpoint = "/ivp/ensemble/power"
-    content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
-    assert len(fixtures_collection[endpoint]) == len(content)
-    assert not (
-        (len(fixtures_collection[endpoint]["devices:"]) > 0)
-        ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
-    )
-    for device in fixtures_collection[endpoint]["devices:"]:
-        assert "301000000000" < device["serial_num"] < "301000000099"
+    if endpoint not in exclude:
+        content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
+        assert len(fixtures_collection[endpoint]) == len(content)
+        assert not (
+            (len(fixtures_collection[endpoint]["devices:"]) > 0)
+            ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+        )
+        for device in fixtures_collection[endpoint]["devices:"]:
+            assert "301000000000" < device["serial_num"] < "301000000099"
 
     # verify inventory serial anonymization
     endpoint = "/inventory.json?deleted=1"
-    content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
-    assert len(fixtures_collection[endpoint]) == len(content)
-    assert not (
-        (len(fixtures_collection[endpoint]) > 0)
-        ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
-    )
-    for inventory_type in fixtures_collection[endpoint]:
-        type = inventory_type["type"]
-        for device in inventory_type["devices"]:
-            if type == "PCU":
-                assert "101000000000" < device["serial_num"] < "101000000099"
-            elif type == "ACB":
-                assert "201000000000" < device["serial_num"] < "201000000099"
-            elif type == "NSRB":
-                assert "611000000000" < device["serial_num"] < "611000000099"
-            elif type == "ESUB":
-                assert "621000000000" < device["serial_num"] < "621000000099"
-            else:
-                assert "991000000000" < device["serial_num"] < "991000000099"
+    if endpoint not in exclude:
+        content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
+        assert len(fixtures_collection[endpoint]) == len(content)
+        assert not (
+            (len(fixtures_collection[endpoint]) > 0)
+            ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+        )
+        for inventory_type in fixtures_collection[endpoint]:
+            type = inventory_type["type"]
+            for device in inventory_type["devices"]:
+                if type == "PCU":
+                    assert "101000000000" < device["serial_num"] < "101000000099"
+                elif type == "ACB":
+                    assert "201000000000" < device["serial_num"] < "201000000099"
+                elif type == "NSRB":
+                    assert "611000000000" < device["serial_num"] < "611000000099"
+                elif type == "ESUB":
+                    assert "621000000000" < device["serial_num"] < "621000000099"
+                else:
+                    assert "991000000000" < device["serial_num"] < "991000000099"
 
     # Verify timeout will end fixture collection
     override_mock(
