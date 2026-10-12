@@ -26,6 +26,22 @@ from .common import (
 LOGGER = logging.getLogger(__name__)
 
 
+@patch(
+    "pyenphase.envoy.TYPE_SERIALS",
+    {
+        "pcu": "101000000001",
+        "acb": "201000000001",
+        "encharge": "301000000001",
+        "enpower": "401000000001",
+        "collar": "511000000001",
+        "c6 combiner controller": "521000000001",
+        "c6 rgm": "531000000001",
+        "nsrb": "611000000001",
+        "esub": "621000000001",
+    },
+)
+@patch("pyenphase.envoy.ENVOY_SERIAL", "923456789012")
+@patch("pyenphase.envoy.UNKNOWN_SERIAL", "991000000001")
 @pytest.mark.parametrize(
     ("version"),
     [
@@ -39,7 +55,11 @@ async def test_fixture_collection(
     test_client_session: aiohttp.ClientSession,
     version: str,
 ) -> None:
-    """Test fixture file data collection"""
+    """
+    Test fixture file data collection.
+    Use different serials to test so we can test
+    anonymized fixtures in the future as well
+    """
     start_7_firmware_mock(mock_aioresponse)
     files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     envoy = await get_mock_envoy(test_client_session)
@@ -47,32 +67,8 @@ async def test_fixture_collection(
 
     # override endpoints with serialnumbers to test serial anonimization
     info_xml = "<envoy_info><device><sn>210987654321</sn><software>D8.3.6087</software></device></envoy_info>"
-    info_xml_patched = "<envoy_info><device><sn>123456789012</sn><software>D8.3.6087</software></device></envoy_info>"
+    info_xml_patched = "<envoy_info><device><sn>923456789012</sn><software>D8.3.6087</software></device></envoy_info>"
     override_mock(mock_aioresponse, "get", f"{full_host}/info", body=info_xml)
-
-    # use low test serial numbers to avoid pdm device serials sorted first
-    inverters_json: list[dict[str, Any]] = [
-        {
-            "serialNumber": "000000000001",
-            "lastReportDate": 1791196789,
-            "devType": 1,
-            "lastReportWatts": 143,
-            "maxReportWatts": 173,
-        },
-        {
-            "serialNumber": "000000000002",
-            "lastReportDate": 1791196067,
-            "devType": 1,
-            "lastReportWatts": 155,
-            "maxReportWatts": 230,
-        },
-    ]
-    override_mock(
-        mock_aioresponse,
-        "get",
-        f"{full_host}/api/v1/production/inverters",
-        payload=inverters_json,
-    )
 
     # test fixtures_collection method
     fixtures_collection: dict[str, Any] = await envoy.fixture_collection()
@@ -102,89 +98,104 @@ async def test_fixture_collection(
             try:
                 content = await load_json_fixture(version, file)
                 assert fixtures_collection[endpoint] == content
+                assert not fixtures_collection[f"{endpoint}_log"]["anonymization"]
             except orjson.JSONDecodeError:
                 string_content = await load_fixture(version, file)
                 string_content = string_content.replace("\n", "")
                 assert fixtures_collection[endpoint] == string_content
+                assert not fixtures_collection[f"{endpoint}_log"]["anonymization"]
 
     # verify endpoints with serial anonimization
-    assert "/info" in fixtures_collection
+    endpoint = "/info"
+    assert endpoint in fixtures_collection
     assert fixtures_collection["/info"] == info_xml_patched
+    assert fixtures_collection[f"{endpoint}_log"]["anonymization"]
 
-    assert "/api/v1/production/inverters" in fixtures_collection
-    expected_inverters_json: list[dict[str, Any]] = [
-        {
-            "serialNumber": "100000000001",
-            "lastReportDate": 1791196789,
-            "devType": 1,
-            "lastReportWatts": 143,
-            "maxReportWatts": 173,
-        },
-        {
-            "serialNumber": "100000000002",
-            "lastReportDate": 1791196067,
-            "devType": 1,
-            "lastReportWatts": 155,
-            "maxReportWatts": 230,
-        },
-    ]
-    assert (
-        fixtures_collection["/api/v1/production/inverters"] == expected_inverters_json
-    )
+    endpoint = "/api/v1/production/inverters"
+    assert endpoint in fixtures_collection
+    content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
+    assert len(fixtures_collection[endpoint]) == len(content)
+    assert fixtures_collection[f"{endpoint}_log"]["anonymization"]
+    for inverter in fixtures_collection[endpoint]:
+        if inverter["devType"] == 11:
+            assert "201000000000" < inverter["serialNumber"] < "201000000099"
+        else:
+            assert "101000000000" < inverter["serialNumber"] < "101000000099"
 
     # verify pdm devices inventory serial anonymization
     endpoint = "/ivp/pdm/device_data"
     assert endpoint in fixtures_collection
     content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
     assert len(fixtures_collection[endpoint]) == len(content)
+    # ^:  one of two true, not both true or both false
+    assert not (
+        (len(fixtures_collection[endpoint]) > 0)
+        ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+    )
     for id in (pdm := fixtures_collection[endpoint]):
         if id not in ("deviceCount", "deviceDataLimit"):
             if pdm[id]["devName"] == "eim":
-                assert "123456789012EIM" in pdm[id]["sn"]
+                assert "923456789012EIM" in pdm[id]["sn"]
+            elif pdm[id]["devName"] == "acb":
+                assert "201000000000" < pdm[id]["sn"] < "201000000099"
             else:
-                assert "100000000000" < pdm[id]["sn"] < "100000000099"
+                assert "101000000000" < pdm[id]["sn"] < "101000000099"
 
     # verify ensemble inventory serial anonymization
     endpoint = "/ivp/ensemble/inventory"
     content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
     assert len(fixtures_collection[endpoint]) == len(content)
+    assert not (
+        (len(fixtures_collection[endpoint]) > 0)
+        ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+    )
     for inventory_type in fixtures_collection[endpoint]:
         type = inventory_type["type"]
         for device in inventory_type["devices"]:
             if type == "ENCHARGE":
-                assert "300000000000" < device["serial_num"] < "300000000099"
+                assert "301000000000" < device["serial_num"] < "301000000099"
             elif type == "ENPOWER":
-                assert "400000000000" < device["serial_num"] < "400000000099"
+                assert "401000000000" < device["serial_num"] < "401000000099"
             elif type == "COLLAR":
-                assert "510000000000" < device["serial_num"] < "510000000099"
+                assert "511000000000" < device["serial_num"] < "511000000099"
             elif type == "C6 COMBINER CONTROLLER":
-                assert "520000000000" < device["serial_num"] < "520000000099"
+                assert "521000000000" < device["serial_num"] < "521000000099"
             elif type == "C6 RGM":
-                assert "530000000000" < device["serial_num"] < "530000000099"
+                assert "531000000000" < device["serial_num"] < "531000000099"
             else:
-                assert "590000000000" < device["serial_num"] < "590000000099"
+                assert "991000000000" < device["serial_num"] < "991000000099"
 
     endpoint = "/ivp/ensemble/power"
     content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
     assert len(fixtures_collection[endpoint]) == len(content)
+    assert not (
+        (len(fixtures_collection[endpoint]["devices:"]) > 0)
+        ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+    )
     for device in fixtures_collection[endpoint]["devices:"]:
-        assert "300000000000" < device["serial_num"] < "300000000099"
+        assert "301000000000" < device["serial_num"] < "301000000099"
 
     # verify inventory serial anonymization
     endpoint = "/inventory.json?deleted=1"
     content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
     assert len(fixtures_collection[endpoint]) == len(content)
+    assert not (
+        (len(fixtures_collection[endpoint]) > 0)
+        ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+    )
     for inventory_type in fixtures_collection[endpoint]:
         type = inventory_type["type"]
         for device in inventory_type["devices"]:
-            if type in ("PCU", "ACB"):
-                assert "100000000000" < device["serial_num"] < "100000000099"
+            if type == "PCU":
+                assert "101000000000" < device["serial_num"] < "101000000099"
+            elif type == "ACB":
+                assert "201000000000" < device["serial_num"] < "201000000099"
             elif type == "NSRB":
-                assert "610000000000" < device["serial_num"] < "610000000099"
+                assert "611000000000" < device["serial_num"] < "611000000099"
             elif type == "ESUB":
-                assert "620000000000" < device["serial_num"] < "620000000099"
+                assert "621000000000" < device["serial_num"] < "621000000099"
             else:
-                assert "690000000000" < device["serial_num"] < "690000000099"
+                assert "991000000000" < device["serial_num"] < "991000000099"
 
     # Verify timeout will end fixture collection
     override_mock(

@@ -205,3 +205,18 @@ class PhaseNames(enum.StrEnum):
 #:         print(production[PHASENAMES[phase]])
 #:
 PHASENAMES: list[str] = list(PhaseNames)
+
+# serials used to anonymize fixtire report data
+ENVOY_SERIAL = "123456789012"
+UNKNOWN_SERIAL = "990000000001"
+TYPE_SERIALS = {
+    "pcu": "100000000001",
+    "acb": "200000000001",
+    "encharge": "300000000001",
+    "enpower": "400000000001",
+    "collar": "510000000001",
+    "c6 combiner controller": "520000000001",
+    "c6 rgm": "530000000001",
+    "nsrb": "610000000001",
+    "esub": "620000000001",
+}

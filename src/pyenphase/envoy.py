@@ -38,6 +38,7 @@ from .const import (
     DEFAULT_MAX_REQUEST_ATTEMPTS,
     DEFAULT_MAX_REQUEST_DELAY,
     ENDPOINT_URL_HOME,
+    ENVOY_SERIAL,
     FIXTURE_LIST,
     GENERATOR_EXERCISE_DAYS,
     GENERATOR_MODES,
@@ -45,6 +46,8 @@ from .const import (
     LOCAL_TIMEOUT,
     MAX_PROBE_REQUEST_ATTEMPTS,
     MAX_PROBE_REQUEST_DELAY,
+    TYPE_SERIALS,
+    UNKNOWN_SERIAL,
     URL_ACB_CONFIG,
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
@@ -1788,18 +1791,22 @@ class Envoy:
         """
         Replace serial numbers by neutral values.
 
+        Deep copies collected_fixtures and replaces
+        known serial number key values with neutral
+        values. Returns new dict with neutral serials.
+
         - Envoy: 123456789012.
-        - inverter and ACB: 100000000nnn
+        - Inverter and ACB: 100000000nnn
         - Ensemble devices
-          - batteries: 3000000000nn
+          - encharge batteries: 3000000000nn
           - Enpower device: 4000000000nn
           - COLLAR: 5100000000nn
           - C6 COMBINER CONTROLLER: 5200000000nn
           - C6 RGM: 5300000000nn
-          - unknown ensemble devices: 5900000000nn
+        - Other devices
           - NSRB: 6100000000nn
           - ESUB: 6200000000nn
-          - unknown pdm devices: 6900000000nn
+        - Unknown devices: 9900000000nn
 
         :param collected_fixtures: dict with endpoints and their returned request data
         :returns: new dict with serials replaced
@@ -1811,121 +1818,80 @@ class Envoy:
         if (endpoint := "/info") in fixtures:
             match = re.search(r"<sn>([^<]*)<\/sn>", fixtures[endpoint])
             if match:
-                serials[match.group(1)] = "123456789012"
+                serials[match.group(1)] = "envoy"
 
         if TYPE_CHECKING:
             assert self.serial_number is not None  # nosec
         # replace envoy serial with 123456789012
-        serials[self.serial_number] = "123456789012"
+        serials[self.serial_number] = "envoy"
 
-        # identify inverter ACB serials
+        # identify inverter and acb serials
         if (endpoint := "/api/v1/production/inverters") in fixtures and fixtures[
             endpoint
         ]:
-            serials |= {inverter["serialNumber"]: "" for inverter in fixtures[endpoint]}
+            serials |= {
+                inverter["serialNumber"]: "acb"
+                if inverter["devType"] == "11"
+                else "pcu"
+                for inverter in fixtures[endpoint]
+            }
 
         # identify inverter and other device serials
         if (endpoint := "/ivp/pdm/device_data") in fixtures and fixtures[endpoint]:
             # "deviceCount" are "deviceDataLimit" are plain numbers, not dict
             serials |= {
-                fixtures[endpoint][device]["sn"]: ""
+                fixtures[endpoint][device]["sn"]: fixtures[endpoint][device][
+                    "devName"
+                ].lower()
                 for device in fixtures[endpoint]
                 if device not in ("deviceCount", "deviceDataLimit")
             }
 
-        # pdm devices EIM device contain envoy serial followed by EIMn
-        serials.update(
-            {
-                key: f"123456789012{key[key.find('EIM') :]}"
-                for key in sorted(
-                    [
-                        key
-                        for key, value in serials.items()
-                        if "EIM" in key and value == ""
-                    ]
-                )
-            }
-        )
-
-        # add inventory PCU serials
+        # add inventory serials
         if (endpoint := "/inventory.json?deleted=1") in fixtures and fixtures[endpoint]:
             for inventory_type in fixtures[endpoint]:
-                if inventory_type["type"] in ("PCU", "ACB"):
-                    serials |= {
-                        device["serial_num"]: "" for device in inventory_type["devices"]
-                    }
-
-        # assign replacement serials in serial sequential order
-        serials.update(
-            {
-                key: f"{100000000001 + index}"
-                for index, key in enumerate(
-                    sorted([key for key, value in serials.items() if value == ""])
-                )
-            }
-        )
+                serials |= {
+                    device["serial_num"]: inventory_type["type"].lower()
+                    for device in inventory_type["devices"]
+                }
 
         # add ensemble battery serials
         if (endpoint := "/ivp/ensemble/power") in fixtures and fixtures[endpoint]:
             serials |= {
-                device["serial_num"]: "" for device in fixtures[endpoint]["devices:"]
+                device["serial_num"]: "encharge"
+                for device in fixtures[endpoint]["devices:"]
             }
 
-            # assign replacement serials in serial sequential order
-            serials.update(
-                {
-                    key: f"{300000000001 + index}"
-                    for index, key in enumerate(
-                        sorted([key for key, value in serials.items() if value == ""])
-                    )
-                }
-            )
-
-        # add ensemble other serials
+        # add ensemble inventory serials
         if (endpoint := "/ivp/ensemble/inventory") in fixtures and fixtures[endpoint]:
-            ENSEMBLE_TYPES = {
-                "ENCHARGE": "300000000001",
-                "ENPOWER": "400000000001",
-                "COLLAR": "510000000001",
-                "C6 COMBINER CONTROLLER": "520000000001",
-                "C6 RGM": "530000000001",
-            }
             for inventory_type in fixtures[endpoint]:
                 serials |= {
-                    device["serial_num"]: "" for device in inventory_type["devices"]
+                    device["serial_num"]: inventory_type["type"].lower()
+                    for device in inventory_type["devices"]
                 }
-                serials.update(
-                    {
-                        key: f"{int(ENSEMBLE_TYPES.get(inventory_type['type'], '590000000001')) + index}"
-                        for index, key in enumerate(
-                            sorted(
-                                [key for key, value in serials.items() if value == ""]
-                            )
-                        )
-                    }
+
+        # assign replacement serials by types in serial sequential order
+        serials.update(
+            {
+                key: f"{int(TYPE_SERIALS.get(serials[key], UNKNOWN_SERIAL)) + index}"
+                for serial_type in set(serials.values())
+                if serial_type not in ("envoy", "eim")
+                for index, key in enumerate(
+                    sorted(
+                        [key for key, value in serials.items() if value == serial_type]
+                    )
                 )
-        # add inventory other serials
-        if (endpoint := "/inventory.json?deleted=1") in fixtures and fixtures[endpoint]:
-            INVENTORY_TYPES = {
-                "NSRB": "610000000001",
-                "ESUB": "620000000001",
             }
-            for inventory_type in fixtures[endpoint]:
-                if inventory_type["type"] in ("PCU", "ACB"):
-                    continue
-                serials |= {
-                    device["serial_num"]: "" for device in inventory_type["devices"]
-                }
-                serials.update(
-                    {
-                        key: f"{int(INVENTORY_TYPES.get(inventory_type['type'], '690000000001')) + index}"
-                        for index, key in enumerate(
-                            sorted(
-                                [key for key, value in serials.items() if value == ""]
-                            )
-                        )
-                    }
-                )
+        )
+
+        # envoy and pdm devices EIM device contain envoy serial followed by EIMn
+        serials.update(
+            {
+                key: f"{ENVOY_SERIAL}{key[key.find('EIM') :] if value == 'eim' else ''}"
+                for key, value in serials.items()
+                if value in ("envoy", "eim")
+            }
+        )
 
         # replace known serials
         for endpoint, data in fixtures.items():
@@ -1938,6 +1904,9 @@ class Envoy:
                     for original, replacement in serials.items():
                         fixture_as_text = fixture_as_text.replace(original, replacement)
                     data = json_loads(endpoint, fixture_as_text)
+                fixtures[f"{endpoint}_log"] |= {
+                    "anonymization": (data != collected_fixtures[endpoint])
+                }
                 fixtures[endpoint] = data
 
         return fixtures
