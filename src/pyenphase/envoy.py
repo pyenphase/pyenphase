@@ -1798,7 +1798,8 @@ class Envoy:
         values. Returns new dict with neutral serials.
 
         - Envoy: 123456789012.
-        - Inverter and ACB: 100000000nnn
+        - Inverter: 100000000nnn
+        - ACB: 200000000nnn
         - Ensemble devices
           - encharge batteries: 3000000000nn
           - Enpower device: 4000000000nn
@@ -1808,6 +1809,8 @@ class Envoy:
         - Other devices
           - NSRB: 6100000000nn
           - ESUB: 6200000000nn
+          - ENCHARGE PCU: 6300000000nn
+          - ENCHARGE BMU: 6400000000nn
         - Unknown devices: 9900000000nn
 
         :param collected_fixtures: dict with endpoints and their returned request data
@@ -1816,15 +1819,15 @@ class Envoy:
         fixtures = copy.deepcopy(collected_fixtures)
         serials: dict[str, Any] = {}
 
-        # add envy serial from file to support testing
+        # add envoy serial from file to support testing
         if (endpoint := "/info") in fixtures:
             match = re.search(r"<sn>([^<]*)<\/sn>", fixtures[endpoint])
             if match:
-                serials[match.group(1)] = "envoy"
+                serials[match.group(1)] = "ENVOY"
 
         if TYPE_CHECKING:
             assert self.serial_number is not None  # nosec
-        serials[self.serial_number] = "envoy"
+        serials[self.serial_number] = "ENVOY"
 
         # identify inverter and acb serials
         if (endpoint := "/api/v1/production/inverters") in fixtures and fixtures[
@@ -1859,7 +1862,7 @@ class Envoy:
         # add ensemble battery serials
         if (endpoint := "/ivp/ensemble/power") in fixtures and fixtures[endpoint]:
             serials |= {
-                device["serial_num"]: "encharge"
+                device["serial_num"]: "ENCHARGE"
                 for device in fixtures[endpoint]["devices:"]
             }
 
@@ -1877,21 +1880,31 @@ class Envoy:
         ]:
             for inventory in fixtures[endpoint]["inventory"].values():
                 serials |= {
-                    serial: DEVICE_TYPES.get(serial_data["device_type"], "unknown")
+                    serial: DEVICE_TYPES.get(serial_data["device_type"], "UNKNOWN")
                     for serial, serial_data in inventory.items()
                 }
                 serials |= {
-                    sub_serial: DEVICE_TYPES.get(sub["device_type"], "unknown")
+                    sub_serial: DEVICE_TYPES.get(sub["device_type"], "UNKNOWN")
                     for serial_data in inventory.values()
                     for sub_serial, sub in serial_data["submodules"].items()
                 }
 
         # assign replacement serials by types in serial sequential order
+        print(f"*** Serials 1 {serials}")
+        print(f"*** sets 1 {(set(serials.values()))} ")
+
+        for serial_type in set(serials.values()):
+            for key, value in serials.items():
+                if value == serial_type:
+                    print(
+                        f"*** sorted {key} {value} {serial_type} {TYPE_SERIALS.get(serials[key])}"
+                    )
+
         serials.update(
             {
                 key: f"{int(TYPE_SERIALS.get(serials[key], UNKNOWN_SERIAL)) + index}"
                 for serial_type in set(serials.values())
-                if serial_type not in ("envoy", "eim")
+                if serial_type not in ("ENVOY", "EIM")
                 for index, key in enumerate(
                     sorted(
                         [key for key, value in serials.items() if value == serial_type]
@@ -1899,15 +1912,17 @@ class Envoy:
                 )
             }
         )
+        print(f"*** Serials 2 {serials}")
 
         # envoy and pdm devices EIM device contain envoy serial followed by EIMn
         serials.update(
             {
-                key: f"{ENVOY_SERIAL}{key[key.find('EIM') :] if value == 'eim' else ''}"
+                key: f"{ENVOY_SERIAL}{key[key.find('EIM') :] if value == 'EIM' else ''}"
                 for key, value in serials.items()
-                if value in ("envoy", "eim")
+                if value in ("ENVOY", "EIM")
             }
         )
+        print(f"*** Serials 3 {serials}")
 
         # replace found serials
         for endpoint, data in fixtures.items():
@@ -1947,14 +1962,15 @@ class Envoy:
         generic numbers. Depending on Envoy firmware version,
         original serials may still be present. If any error
         occurs during serial replacement, the data is returned
-        with partial translatedserials. This is signalled by
+        with partial translated serials. This is signalled by
         the presence of the `anonymization_aborted` key in the
         returned dict. The key value contains the error.
 
         Used neutral serials:
 
         - Envoy: 123456789012.
-        - Inverter and ACB: 100000000nnn
+        - Inverter: 100000000nnn
+        - ACB: 200000000nnn
         - Ensemble devices
           - encharge batteries: 3000000000nn
           - Enpower device: 4000000000nn
@@ -1964,6 +1980,8 @@ class Envoy:
         - Other devices
           - NSRB: 6100000000nn
           - ESUB: 6200000000nn
+          - ENCHARGE PCU: 6300000000nn
+          - ENCHARGE BMU: 6400000000nn
         - Unknown devices: 9900000000nn
 
         The matching endpoint request status log entries contain

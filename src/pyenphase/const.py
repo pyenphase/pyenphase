@@ -219,15 +219,18 @@ TYPE_SERIALS = {
     "C6 RGM": "530000000001",
     "NSRB": "610000000001",
     "ESUB": "620000000001",
+    "ENCH_PCU": "630000000001",
+    "ENCH_BMU": "640000000001",
 }
-# map devtypes to names
+# map devtypes to names,
+# each value should have entry in type_serials
 DEVICE_TYPES = {
     1: "PCU",
     11: "ACB",
     12: "NSRB",
     13: "ENCHARGE",
-    14: "ENCHARGE_pcu",
-    16: "ENCHARGE_bmu",
+    14: "ENCH_PCU",
+    16: "ENCH_BMU",
     17: "ENPOWER",
     19: "ESUB",
     20: "ESUB",

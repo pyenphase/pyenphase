@@ -10,7 +10,7 @@ import orjson
 import pytest
 from aioresponses import aioresponses
 
-from pyenphase.const import DEVICE_TYPES, FIXTURE_LIST
+from pyenphase.const import DEVICE_TYPES, FIXTURE_LIST, TYPE_SERIALS
 
 from .common import (
     endpoint_fixture_file,
@@ -38,6 +38,8 @@ LOGGER = logging.getLogger(__name__)
         "C6 RGM": "531000000001",
         "NSRB": "611000000001",
         "ESUB": "621000000001",
+        "ENCH_PCU": "630000000001",
+        "ENCH_BMU": "640000000001",
     },
 )
 @patch("pyenphase.envoy.ENVOY_SERIAL", "923456789012")
@@ -71,6 +73,9 @@ async def test_fixture_collection(
     files = await prep_envoy(mock_aioresponse, "127.0.0.1", version)
     envoy = await get_mock_envoy(test_client_session)
     full_host = endpoint_path(version, envoy.host)
+
+    # verify DEVICE_TYPES values and TYPE_SERIALS keys match
+    assert list(DEVICE_TYPES.values()).sort() == list(TYPE_SERIALS.keys()).sort()
 
     # map endpoint to fixture file and verify fixture_collection samples to file content
     endpoint_to_fixture_file = {
