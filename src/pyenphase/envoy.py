@@ -1890,13 +1890,6 @@ class Envoy:
                 }
 
         # assign replacement serials by types in serial sequential order
-        for serial_type in set(serials.values()):
-            for key, value in serials.items():
-                if value == serial_type:
-                    print(
-                        f"*** sorted {key} {value} {serial_type} {TYPE_SERIALS.get(serials[key])}"
-                    )
-
         serials.update(
             {
                 key: f"{int(TYPE_SERIALS.get(serials[key], UNKNOWN_SERIAL)) + index}"
