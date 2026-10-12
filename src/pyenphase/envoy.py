@@ -1890,9 +1890,6 @@ class Envoy:
                 }
 
         # assign replacement serials by types in serial sequential order
-        print(f"*** Serials 1 {serials}")
-        print(f"*** sets 1 {(set(serials.values()))} ")
-
         for serial_type in set(serials.values()):
             for key, value in serials.items():
                 if value == serial_type:
@@ -1912,7 +1909,6 @@ class Envoy:
                 )
             }
         )
-        print(f"*** Serials 2 {serials}")
 
         # envoy and pdm devices EIM device contain envoy serial followed by EIMn
         serials.update(
@@ -1922,11 +1918,10 @@ class Envoy:
                 if value in ("ENVOY", "EIM")
             }
         )
-        print(f"*** Serials 3 {serials}")
 
         # replace found serials
         for endpoint, data in fixtures.items():
-            if "_log" not in endpoint:
+            if not endpoint.endswith("_log") and f"{endpoint}_log" in fixtures:
                 if endpoint == "/info":
                     for original, replacement in serials.items():
                         data = data.replace(original, replacement)
