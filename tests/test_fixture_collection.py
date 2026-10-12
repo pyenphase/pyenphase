@@ -250,11 +250,11 @@ async def test_fixture_collection(
             "serial_nums"
         ].items():
             dev_type = DEVICE_TYPES.get(device["device_type"], "unknown")
-            if dev_type == "pcu":
+            if dev_type == "PCU":
                 assert "101000000000" < serial_num < "101000000099"
             elif dev_type == "ACB":
                 assert "201000000000" < serial_num < "201000000099"
-            if dev_type == "ENCHARGE":
+            elif dev_type == "ENCHARGE":
                 assert "301000000000" < serial_num < "301000000099"
             elif dev_type == "ENPOWER":
                 assert "401000000000" < serial_num < "401000000099"
