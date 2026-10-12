@@ -75,7 +75,7 @@ async def test_fixture_collection(
     full_host = endpoint_path(version, envoy.host)
 
     # verify DEVICE_TYPES values and TYPE_SERIALS keys match
-    assert list(DEVICE_TYPES.values()).sort() == list(TYPE_SERIALS.keys()).sort()
+    assert sorted(set(DEVICE_TYPES.values())) == sorted(TYPE_SERIALS)
 
     # map endpoint to fixture file and verify fixture_collection samples to file content
     endpoint_to_fixture_file = {
