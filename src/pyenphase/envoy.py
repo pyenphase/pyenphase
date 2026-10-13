@@ -2052,7 +2052,7 @@ class Envoy:
                         async with response:  # release response on error
                             response_text = await response.text(errors="replace")
                         collection[last_endpoint] = response_text.replace("\n", "")
-                except aiohttp.ClientError as err:
+                except (aiohttp.ClientError, EnvoyAuthenticationRequired) as err:
                     # try next endpoint if request fails on formats and other none timeout errors
                     request_end = time.monotonic()
                     collection[f"{last_endpoint}_log"] = {
@@ -2090,7 +2090,7 @@ class Envoy:
             return collection
         try:
             collection = self.anonymize_serials(collection)
-        except (KeyError, ValueError, IndexError, TypeError) as err:
+        except (KeyError, ValueError, IndexError, TypeError, AttributeError) as err:
             # don't let failed anonymization break data collection
             _LOGGER.warning("Fixture report serial anonymization failed %s", err)
             collection["anonymization_aborted_log"] = (
