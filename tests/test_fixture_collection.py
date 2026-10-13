@@ -93,7 +93,7 @@ async def test_fixture_collection(
         assert f"{fixture}_log" in fixtures_collection
 
     assert "collection_aborted_log" not in fixtures_collection
-    assert "anonymization_aborted_log" not in fixtures_collection
+    assert "anonymization_errors_log" not in fixtures_collection
 
     for endpoint, file in endpoint_to_fixture_file.items():
         if endpoint not in exclude and file in files:
@@ -117,7 +117,7 @@ async def test_fixture_collection(
     # validate all fixture logs are created
     assert fixtures_collection
     assert "collection_aborted_log" not in fixtures_collection
-    assert "anonymization_aborted_log" not in fixtures_collection
+    assert "anonymization_errors_log" not in fixtures_collection
 
     for fixture in FIXTURE_LIST:
         assert f"{fixture}_log" in fixtures_collection
@@ -288,7 +288,7 @@ async def test_fixture_collection(
     assert envoy.data
     anonymized_raw = envoy.anonymize_serials(envoy.data.raw)
     assert "collection_aborted_log" not in anonymized_raw
-    assert "anonymization_aborted_log" not in anonymized_raw
+    assert "anonymization_errors_log" not in anonymized_raw
 
     # verify raw entries serial mapping is the same
     for endpoint in anonymized_raw:
@@ -326,7 +326,7 @@ async def test_fixture_collection(
         status=200,
         repeat=True,
     )
-    # test conent-type application/json fallback to text
+    # test content-type application/json fallback to text
     invalid_json = "invalid json"
     override_mock(
         mock_aioresponse,
@@ -371,7 +371,12 @@ async def test_fixture_collection(
     assert ("code", 404) in fixtures_collection["/ivp/ensemble/power_log"].items()
     assert "/ivp/ensemble/inventory_log" in fixtures_collection
     assert ("code", 404) in fixtures_collection["/ivp/ensemble/inventory_log"].items()
-
+    assert fixtures_collection
+    assert "anonymization_errors_log" in fixtures_collection
+    assert (
+        "Error for /info 'no sn match'"
+        in fixtures_collection["anonymization_errors_log"]
+    )
     # test data error in anonymization
     override_mock(
         mock_aioresponse, "get", f"{full_host}/info", body=info_xml, repeat=True
@@ -383,22 +388,125 @@ async def test_fixture_collection(
         f"{full_host}/api/v1/production/inverters",
         payload=inverters_keyerror,
     )
-    fixtures_collection = await envoy.fixture_collection()
-    assert fixtures_collection
-    assert "anonymization_aborted_log" in fixtures_collection
-    assert (
-        "Fixture report serial anonymization failed:"
-        in fixtures_collection["anonymization_aborted_log"]
+    # test with data errors
+    invalid_device_data: dict[str, Any] = {
+        "553648384": {
+            "sn": "202305037927",
+            "active": True,
+            "modGone": False,
+            "channels": [],
+        }
+    }
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/ivp/pdm/device_data",
+        payload=invalid_device_data,
+        status=200,
+    )
+    # test with data errors
+    invalid_inventory_data: list[dict[str, Any]] = [
+        {
+            "type": "PCU",
+            "devices": [
+                {
+                    "part_num": "800-01331-r02",
+                    "installed": "1750786534",
+                },
+            ],
+        },
+    ]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/inventory.json?deleted=1",
+        payload=invalid_inventory_data,
+        status=200,
+    )
+    # test with data errors
+    invalid_power_data: dict[str, Any] = {
+        "devices:": ["hello", "world"],
+    }
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/ivp/ensemble/power",
+        payload=invalid_power_data,
+        status=200,
+    )
+    # test with data errors
+    invalid_ensemble_data: list[dict[str, Any]] = [
+        {
+            "type": "ENCHARGE",
+            "devices": [
+                {
+                    "part_num": "836-01250-r00",
+                }
+            ],
+        }
+    ]
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/ivp/ensemble/inventory",
+        payload=invalid_ensemble_data,
+        status=200,
+    )
+    # test with data errors
+    invalid_status_data: dict[str, Any] = {
+        "inventory": {
+            "serial_nums": {
+                "482520020939": {
+                    "DEVICE_TYPE": 27,
+                    "com_interface_str": "CAN",
+                    "device_id": "482520020939",
+                }
+            }
+        }
+    }
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/ivp/ensemble/status",
+        payload=invalid_status_data,
+        status=200,
     )
 
-    with patch(
-        "pyenphase.Envoy.anonymize_serials",
-        side_effect=KeyError,
+    fixtures_collection = await envoy.fixture_collection()
+    assert fixtures_collection
+    assert fixtures_collection["/info"] == info_xml_patched
+    assert "anonymization_errors_log" in fixtures_collection
+    assert (
+        "Error for /api/v1/production/inverters 'serialNumber'"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+    assert (
+        "Error for /ivp/pdm/device_data 'devName'"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+    assert (
+        "Error for /inventory.json?deleted=1 'serial_num'"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+    assert (
+        "Error for /ivp/ensemble/power string indices must be integers, not 'str'"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+    assert (
+        "Error for /ivp/ensemble/inventory 'serial_num'"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+    assert (
+        "Error for /ivp/ensemble/status 'device_type'"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+
+    # test any error leaking is raised
+    with (
+        patch(
+            "pyenphase.Envoy.anonymize_serials",
+            side_effect=FileExistsError,
+        ),
+        pytest.raises(FileExistsError),
     ):
         fixtures_collection = await envoy.fixture_collection()
-    assert fixtures_collection["/info"] == info_xml
-    assert fixtures_collection
-    assert (
-        "Fixture report serial anonymization failed:"
-        in fixtures_collection["anonymization_aborted_log"]
-    )

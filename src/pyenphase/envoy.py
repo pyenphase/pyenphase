@@ -1789,24 +1789,27 @@ class Envoy:
                 "This feature requires Enphase Encharge or IQ Batteries."
             )
 
+    ANONYMIZATION_EXC = (KeyError, ValueError, IndexError, TypeError, AttributeError)
+
     def anonymize_serials(self, collected_fixtures: dict[str, Any]) -> dict[str, Any]:
         """
         Replace serial numbers by neutral values.
 
-        Deep copies collected_fixtures and replaces
-        known serial number key values with neutral
-        values. Returns new dict with neutral serials.
+        Deep copies collected_fixtures and replace
+        serial numbers for the Envoy, inverters, ensemble
+        and pdm devices at best effort by neutral
+        generic numbers.
 
-        Serial numbers for the Envoy, inverters, ensemble
-        and pdm devices are replaced at best effort by neutral
-        generic numbers. Depending on Envoy firmware version,
+        Depending on Envoy firmware version and configuration,
         original serials may still be present. If any error
         occurs during serial replacement, the data is returned
         with partial translated serials. This is signalled by
-        the presence of the `anonymization_aborted_log` key in the
-        returned dict. The key value contains the error. Callers
-        should check for this key and decide how to handle it.
+        the presence of the `anonymization_errors_log` key in
+        the returned dict. The key value contains a list of
+        occurred errors. Callers should check for this key
+        and decide how to handle it.
 
+        Neutral serial numbers assigned:
 
         - Envoy: 123456789012.
         - Inverter: 100000000nnn
@@ -1828,80 +1831,103 @@ class Envoy:
             request data. Only entries that start with / and do
             not end in _log are anonymized.
         :returns: New dict with serials replaced. Key
-            anonymization_aborted_log will be present if
-            anomyzation had errors and was aborted.
+            anonymization_errors_log will be present if
+            anomyzation had errors and could not anonymize
+            all entries.
         """
         fixtures = copy.deepcopy(collected_fixtures)
+        anonymization_errors: list[str] = []
         serials: dict[str, Any] = {}
+
+        # Add our Envoy serial
+        if self.serial_number is not None:
+            serials[self.serial_number] = "ENVOY"
 
         # add envoy serial from file to support testing
         if (endpoint := "/info") in fixtures:
             match = re.search(r"<sn>([^<]*)<\/sn>", fixtures[endpoint])
             if match:
                 serials[match.group(1)] = "ENVOY"
-
-        if self.serial_number is not None:
-            serials[self.serial_number] = "ENVOY"
+            else:
+                anonymization_errors.append(f"Error for {endpoint} 'no sn match'")
 
         # identify inverter and acb serials
         if (endpoint := "/api/v1/production/inverters") in fixtures and fixtures[
             endpoint
         ]:
-            serials |= {
-                inverter["serialNumber"]: DEVICE_TYPES.get(
-                    inverter["devType"], "UNKNOWN"
-                )
-                for inverter in fixtures[endpoint]
-            }
+            try:
+                serials |= {
+                    inverter["serialNumber"]: DEVICE_TYPES.get(
+                        inverter["devType"], "UNKNOWN"
+                    )
+                    for inverter in fixtures[endpoint]
+                }
+            except self.ANONYMIZATION_EXC as exc:
+                anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # identify inverter and other device serials
         if (endpoint := "/ivp/pdm/device_data") in fixtures and fixtures[endpoint]:
-            # "deviceCount" are "deviceDataLimit" are plain numbers, not dict
-            serials |= {
-                fixtures[endpoint][device]["sn"]: fixtures[endpoint][device][
-                    "devName"
-                ].upper()
-                for device in fixtures[endpoint]
-                if device not in ("deviceCount", "deviceDataLimit")
-            }
+            try:
+                # "deviceCount" are "deviceDataLimit" are plain numbers, not dict
+                serials |= {
+                    fixtures[endpoint][device]["sn"]: fixtures[endpoint][device][
+                        "devName"
+                    ].upper()
+                    for device in fixtures[endpoint]
+                    if device not in ("deviceCount", "deviceDataLimit")
+                }
+            except self.ANONYMIZATION_EXC as exc:
+                anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add inventory serials
         if (endpoint := "/inventory.json?deleted=1") in fixtures and fixtures[endpoint]:
-            for inventory_type in fixtures[endpoint]:
-                serials |= {
-                    device["serial_num"]: inventory_type["type"]
-                    for device in inventory_type["devices"]
-                }
+            try:
+                for inventory_type in fixtures[endpoint]:
+                    serials |= {
+                        device["serial_num"]: inventory_type["type"]
+                        for device in inventory_type["devices"]
+                    }
+            except self.ANONYMIZATION_EXC as exc:
+                anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add ensemble battery serials
         if (endpoint := "/ivp/ensemble/power") in fixtures and fixtures[endpoint]:
-            serials |= {
-                device["serial_num"]: "ENCHARGE"
-                for device in fixtures[endpoint]["devices:"]
-            }
+            try:
+                serials |= {
+                    device["serial_num"]: "ENCHARGE"
+                    for device in fixtures[endpoint]["devices:"]
+                }
+            except self.ANONYMIZATION_EXC as exc:
+                anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add ensemble inventory serials
         if (endpoint := "/ivp/ensemble/inventory") in fixtures and fixtures[endpoint]:
-            for inventory_type in fixtures[endpoint]:
-                serials |= {
-                    device["serial_num"]: inventory_type["type"]
-                    for device in inventory_type["devices"]
-                }
+            try:
+                for inventory_type in fixtures[endpoint]:
+                    serials |= {
+                        device["serial_num"]: inventory_type["type"]
+                        for device in inventory_type["devices"]
+                    }
+            except self.ANONYMIZATION_EXC as exc:
+                anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add ensemble status serials
         if (endpoint := "/ivp/ensemble/status") in fixtures and "inventory" in fixtures[
             endpoint
         ]:
-            for inventory in fixtures[endpoint]["inventory"].values():
-                serials |= {
-                    serial: DEVICE_TYPES.get(serial_data["device_type"], "UNKNOWN")
-                    for serial, serial_data in inventory.items()
-                }
-                serials |= {
-                    sub_serial: DEVICE_TYPES.get(sub["device_type"], "UNKNOWN")
-                    for serial_data in inventory.values()
-                    for sub_serial, sub in serial_data["submodules"].items()
-                }
+            try:
+                for inventory in fixtures[endpoint]["inventory"].values():
+                    serials |= {
+                        serial: DEVICE_TYPES.get(serial_data["device_type"], "UNKNOWN")
+                        for serial, serial_data in inventory.items()
+                    }
+                    serials |= {
+                        sub_serial: DEVICE_TYPES.get(sub["device_type"], "UNKNOWN")
+                        for serial_data in inventory.values()
+                        for sub_serial, sub in serial_data["submodules"].items()
+                    }
+            except self.ANONYMIZATION_EXC as exc:
+                anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # assign replacement serials by types in serial sequential order
         serials.update(
@@ -1916,7 +1942,6 @@ class Envoy:
                 )
             }
         )
-
         # envoy and pdm devices EIM device contain envoy serial followed by EIMn
         serials.update(
             {
@@ -1931,6 +1956,7 @@ class Envoy:
             if not endpoint.endswith("_log") and endpoint.startswith("/"):
                 data = fixtures[endpoint]
                 if endpoint == "/info":
+                    print(f"*** {data}")
                     for original, replacement in serials.items():
                         data = data.replace(original, replacement)
                 else:
@@ -1943,6 +1969,9 @@ class Envoy:
                     "anonymization": (data != collected_fixtures[endpoint])
                 }
                 fixtures[endpoint] = data
+
+        if len(anonymization_errors) > 0:
+            fixtures["anonymization_errors_log"] = anonymization_errors
 
         return fixtures
 
@@ -1961,13 +1990,22 @@ class Envoy:
         The endpoint data for each endpoint requested contains
         the data as received from the Envoy.
 
-        By default serial numbers for the Envoy, inverters,
-        ensemble devices are replaced at best effort by neutral
-        generic numbers. Depending on Envoy firmware version,
-        original serials may still be present. If any error
-        occurs during serial replacement, the data is returned
-        with partial translated serials. This is signalled by
-        the presence of the `anonymization_aborted_log` key in the
+        A timeout or Envoy error aborts the data collection and
+        only the partial collected data is returned. This is
+        signalled by the presence of the `collection_aborted_log`
+        key in the returned dict, its value contains the error.
+        Authentication errors for an endpoint and Other client
+        errors are logged per endpoint_log dict key and collection
+        continues.
+
+        By default and at best effort, serial numbers for the Envoy,
+        inverters, ACB and ensemble devices in the data are replaced
+        by neutral generic numbers. Depending on Envoy firmware
+        version, original serials may still be present.
+
+        If any error occurs during serial replacement, the data is
+        returned with partial translated serials. This is signalled
+        by the presence of the `anonymization_errors_log` key in the
         returned dict. The key value contains the error. Callers
         should check for this key and decide how to handle it.
 
@@ -2014,11 +2052,6 @@ class Envoy:
         an error occurs. In that case `code` will be 0. The
         anonymyzation key is only present if anonymyzation was requested.
 
-        A timeout or Envoy error aborts collection and only collected data
-        is returned. This is signalled by the presence of the
-        `collection_aborted_log` key in the returned dict which value
-        contains the error. Other client errors are logged per endpoint
-        and collection continues.
 
         :param additional_endpoints: List of additional endpoints
             to append to standard list.
@@ -2086,14 +2119,4 @@ class Envoy:
                 f"Error getting fixture endpoint: {last_endpoint} {traceback.format_exc()}"
             )
 
-        if not mask_serials:
-            return collection
-        try:
-            collection = self.anonymize_serials(collection)
-        except (KeyError, ValueError, IndexError, TypeError, AttributeError) as err:
-            # don't let failed anonymization break data collection
-            _LOGGER.warning("Fixture report serial anonymization failed %s", err)
-            collection["anonymization_aborted_log"] = (
-                f"Fixture report serial anonymization failed: {traceback.format_exc()}"
-            )
-        return collection
+        return self.anonymize_serials(collection) if mask_serials else collection
