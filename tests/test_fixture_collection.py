@@ -134,7 +134,6 @@ async def test_fixture_collection(
                 "/ivp/ensemble/power",
                 "/ivp/ensemble/status",
                 "/inventory.json?deleted=1",
-                "/ivp/ensemble/status",
             )
             and endpoint not in exclude
             and file in files
@@ -370,7 +369,7 @@ async def test_fixture_collection(
     override_mock(
         mock_aioresponse, "get", f"{full_host}/info", body=info_xml, repeat=True
     )
-    inverters_keyerror = ([{"maxReportWatts": 297}],)
+    inverters_keyerror = [{"maxReportWatts": 297}]
     override_mock(
         mock_aioresponse,
         "get",
