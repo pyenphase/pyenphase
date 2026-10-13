@@ -1929,6 +1929,12 @@ class Envoy:
             except self.ANONYMIZATION_EXC as exc:
                 anonymization_errors.append(f"Error for {endpoint} {exc}")
 
+        # group all unknown types into unknown group
+        serials = {
+            k: (v if v in TYPE_SERIALS or v in ("ENVOY", "EIM") else "UNKNOWN")
+            for k, v in serials.items()
+        }
+
         # assign replacement serials by types in serial sequential order
         serials.update(
             {
