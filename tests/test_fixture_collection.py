@@ -349,10 +349,17 @@ async def test_fixture_collection(
         f"{full_host}/ivp/ensemble/inventory",
         status=404,
     )
-
+    info_xml_nosn = "<envoy_info><device><nosn>210987654321</nosn><software>D8.3.6087</software></device></envoy_info>"
+    override_mock(
+        mock_aioresponse, "get", f"{full_host}/info", body=info_xml_nosn, repeat=True
+    )
+    sn = envoy.serial_number
+    envoy._firmware._serial_number = None
     fixtures_collection = await envoy.fixture_collection(
         ["/test/my/endpoint", "/test/my/invalid_endpoint"]
     )
+    envoy._firmware._serial_number = sn
+
     assert fixtures_collection
     assert "/test/my/endpoint" in fixtures_collection
     assert "/test/my/endpoint_log" in fixtures_collection

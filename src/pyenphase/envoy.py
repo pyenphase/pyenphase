@@ -1797,6 +1797,17 @@ class Envoy:
         known serial number key values with neutral
         values. Returns new dict with neutral serials.
 
+        Serial numbers for the Envoy, inverters, ensemble
+        and pdm devices are replaced at best effort by neutral
+        generic numbers. Depending on Envoy firmware version,
+        original serials may still be present. If any error
+        occurs during serial replacement, the data is returned
+        with partial translated serials. This is signalled by
+        the presence of the `anonymization_aborted_log` key in the
+        returned dict. The key value contains the error. Callers
+        should check for this key and decide how to handle it.
+
+
         - Envoy: 123456789012.
         - Inverter: 100000000nnn
         - ACB: 200000000nnn
@@ -1816,7 +1827,9 @@ class Envoy:
         :param collected_fixtures: dict with endpoints and their
             request data. Only entries that start with / and do
             not end in _log are anonymized.
-        :returns: new dict with serials replaced
+        :returns: New dict with serials replaced. Key
+            anonymization_aborted_log will be present if
+            anomyzation had errors and was aborted.
         """
         fixtures = copy.deepcopy(collected_fixtures)
         serials: dict[str, Any] = {}
@@ -1827,9 +1840,8 @@ class Envoy:
             if match:
                 serials[match.group(1)] = "ENVOY"
 
-        if TYPE_CHECKING:
-            assert self.serial_number is not None  # nosec
-        serials[self.serial_number] = "ENVOY"
+        if self.serial_number is not None:
+            serials[self.serial_number] = "ENVOY"
 
         # identify inverter and acb serials
         if (endpoint := "/api/v1/production/inverters") in fixtures and fixtures[
