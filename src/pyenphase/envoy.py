@@ -1888,33 +1888,35 @@ class Envoy:
         # add inventory serials
         if (endpoint := "/inventory.json?deleted=1") in fixtures and fixtures[endpoint]:
             for inventory_type in fixtures[endpoint]:
-                for device in inventory_type["devices"]:
-                    try:
+                try:
+                    for device in inventory_type["devices"]:
                         serials |= {device["serial_num"]: inventory_type["type"]}
-                    except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
-                        anonymization_errors.append(f"Error for {endpoint} {exc}")
+                except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
+                    anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add ensemble battery serials
         if (endpoint := "/ivp/ensemble/power") in fixtures and fixtures[endpoint]:
-            for device in fixtures[endpoint]["devices:"]:
-                try:
+            try:
+                for device in fixtures[endpoint]["devices:"]:
                     serials |= {device["serial_num"]: "ENCHARGE"}
-                except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
-                    anonymization_errors.append(f"Error for {endpoint} {exc}")
+            except self.ANONYMIZATION_EXC as exc:
+                anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add ensemble inventory serials
         if (endpoint := "/ivp/ensemble/inventory") in fixtures and fixtures[endpoint]:
             for inventory_type in fixtures[endpoint]:
-                for device in inventory_type["devices"]:
-                    try:
+                try:
+                    for device in inventory_type["devices"]:
                         serials |= {device["serial_num"]: inventory_type["type"]}
-                    except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
-                        anonymization_errors.append(f"Error for {endpoint} {exc}")
+                except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
+                    anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add ensemble status serials
-        if (endpoint := "/ivp/ensemble/status") in fixtures and "inventory" in fixtures[
-            endpoint
-        ]:
+        if (
+            (endpoint := "/ivp/ensemble/status") in fixtures
+            and "inventory" in fixtures[endpoint]
+            and isinstance(fixtures[endpoint]["inventory"], dict)
+        ):
             for inventory in fixtures[endpoint]["inventory"].values():
                 for serial, serial_data in inventory.items():
                     try:

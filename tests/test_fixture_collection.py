@@ -342,12 +342,14 @@ async def test_fixture_collection(
         "get",
         f"{full_host}/ivp/ensemble/power",
         status=404,
+        body="<html>404</html>",
     )
     override_mock(
         mock_aioresponse,
         "get",
         f"{full_host}/ivp/ensemble/inventory",
         status=404,
+        body="<html>404</html>",
     )
     info_xml_nosn = "<envoy_info><device><nosn>210987654321</nosn><software>D8.3.6087</software></device></envoy_info>"
     override_mock(
