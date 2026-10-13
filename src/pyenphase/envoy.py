@@ -1861,79 +1861,83 @@ class Envoy:
         if (endpoint := "/api/v1/production/inverters") in fixtures and fixtures[
             endpoint
         ]:
-            try:
-                serials |= {
-                    inverter["serialNumber"]: DEVICE_TYPES.get(
-                        inverter["devType"], "UNKNOWN"
-                    )
-                    for inverter in fixtures[endpoint]
-                }
-            except self.ANONYMIZATION_EXC as exc:
-                anonymization_errors.append(f"Error for {endpoint} {exc}")
+            for inverter in fixtures[endpoint]:
+                try:
+                    serials |= {
+                        inverter["serialNumber"]: DEVICE_TYPES.get(
+                            inverter["devType"], "UNKNOWN"
+                        )
+                    }
+                except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
+                    anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # identify inverter and other device serials
         if (endpoint := "/ivp/pdm/device_data") in fixtures and fixtures[endpoint]:
-            try:
+            for device in fixtures[endpoint]:
                 # "deviceCount" are "deviceDataLimit" are plain numbers, not dict
-                serials |= {
-                    fixtures[endpoint][device]["sn"]: fixtures[endpoint][device][
-                        "devName"
-                    ].upper()
-                    for device in fixtures[endpoint]
-                    if device not in ("deviceCount", "deviceDataLimit")
-                }
-            except self.ANONYMIZATION_EXC as exc:
-                anonymization_errors.append(f"Error for {endpoint} {exc}")
+                if device not in ("deviceCount", "deviceDataLimit"):
+                    try:
+                        serials |= {
+                            fixtures[endpoint][device]["sn"]: fixtures[endpoint][
+                                device
+                            ]["devName"].upper()
+                        }
+                    except self.ANONYMIZATION_EXC as exc:
+                        anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add inventory serials
         if (endpoint := "/inventory.json?deleted=1") in fixtures and fixtures[endpoint]:
-            try:
-                for inventory_type in fixtures[endpoint]:
-                    serials |= {
-                        device["serial_num"]: inventory_type["type"]
-                        for device in inventory_type["devices"]
-                    }
-            except self.ANONYMIZATION_EXC as exc:
-                anonymization_errors.append(f"Error for {endpoint} {exc}")
+            for inventory_type in fixtures[endpoint]:
+                for device in inventory_type["devices"]:
+                    try:
+                        serials |= {device["serial_num"]: inventory_type["type"]}
+                    except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
+                        anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add ensemble battery serials
         if (endpoint := "/ivp/ensemble/power") in fixtures and fixtures[endpoint]:
-            try:
-                serials |= {
-                    device["serial_num"]: "ENCHARGE"
-                    for device in fixtures[endpoint]["devices:"]
-                }
-            except self.ANONYMIZATION_EXC as exc:
-                anonymization_errors.append(f"Error for {endpoint} {exc}")
+            for device in fixtures[endpoint]["devices:"]:
+                try:
+                    serials |= {device["serial_num"]: "ENCHARGE"}
+                except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
+                    anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add ensemble inventory serials
         if (endpoint := "/ivp/ensemble/inventory") in fixtures and fixtures[endpoint]:
-            try:
-                for inventory_type in fixtures[endpoint]:
-                    serials |= {
-                        device["serial_num"]: inventory_type["type"]
-                        for device in inventory_type["devices"]
-                    }
-            except self.ANONYMIZATION_EXC as exc:
-                anonymization_errors.append(f"Error for {endpoint} {exc}")
+            for inventory_type in fixtures[endpoint]:
+                for device in inventory_type["devices"]:
+                    try:
+                        serials |= {device["serial_num"]: inventory_type["type"]}
+                    except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
+                        anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add ensemble status serials
         if (endpoint := "/ivp/ensemble/status") in fixtures and "inventory" in fixtures[
             endpoint
         ]:
-            try:
-                for inventory in fixtures[endpoint]["inventory"].values():
-                    serials |= {
-                        serial: DEVICE_TYPES.get(serial_data["device_type"], "UNKNOWN")
-                        for serial, serial_data in inventory.items()
-                    }
-                    serials |= {
-                        sub_serial: DEVICE_TYPES.get(sub["device_type"], "UNKNOWN")
-                        for serial_data in inventory.values()
-                        for sub_serial, sub in serial_data["submodules"].items()
-                    }
-            except self.ANONYMIZATION_EXC as exc:
-                anonymization_errors.append(f"Error for {endpoint} {exc}")
+            for inventory in fixtures[endpoint]["inventory"].values():
+                for serial, serial_data in inventory.items():
+                    try:
+                        serials |= {
+                            serial: DEVICE_TYPES.get(
+                                serial_data["device_type"], "UNKNOWN"
+                            )
+                        }
+
+                        for sub_serial, sub in serial_data["submodules"].items():
+                            try:
+                                serials |= {
+                                    sub_serial: DEVICE_TYPES.get(
+                                        sub["device_type"], "UNKNOWN"
+                                    )
+                                }
+                            except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
+                                anonymization_errors.append(
+                                    f"Error for {endpoint} {exc}"
+                                )
+
+                    except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
+                        anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # group all unknown types into unknown group
         serials = {

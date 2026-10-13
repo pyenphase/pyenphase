@@ -460,7 +460,18 @@ async def test_fixture_collection(
                     "DEVICE_TYPE": 27,
                     "com_interface_str": "CAN",
                     "device_id": "482520020939",
-                }
+                },
+                "482520020940": {
+                    "device_type": 27,
+                    "com_interface_str": "CAN",
+                    "device_id": "482520020940",
+                    "submodules": {
+                        "482523040548": {
+                            "device_TYPE": 31,
+                            "admin_state": 1,
+                        }
+                    },
+                },
             }
         }
     }
