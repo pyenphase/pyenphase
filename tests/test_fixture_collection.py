@@ -44,7 +44,6 @@ LOGGER = logging.getLogger(__name__)
     },
 )
 @patch("pyenphase.envoy.ENVOY_SERIAL", "923456789012")
-@patch("pyenphase.envoy.UNKNOWN_SERIAL", "999999999901")
 @pytest.mark.parametrize(
     ("version", "exclude"),
     [
@@ -207,10 +206,9 @@ async def test_fixture_collection(
                     assert "521000000000" < device["serial_num"] < "521000000099"
                 elif dev_type == "C6 RGM":
                     assert "531000000000" < device["serial_num"] < "531000000099"
-                elif dev_type == "UNKNOWN":
-                    assert "991000000000" < device["serial_num"] < "991000000099"
                 else:
-                    assert "999999999001" < device["serial_num"] < "999999999099"
+                    # must be unknown
+                    assert "991000000000" < device["serial_num"] < "991000000099"
 
     endpoint = "/ivp/ensemble/power"
     if endpoint not in exclude:
@@ -243,10 +241,9 @@ async def test_fixture_collection(
                     assert "611000000000" < device["serial_num"] < "611000000099"
                 elif dev_type == "ESUB":
                     assert "621000000000" < device["serial_num"] < "621000000099"
-                elif dev_type == "UNKNOWN":
-                    assert "991000000000" < device["serial_num"] < "991000000099"
                 else:
-                    assert "999999999001" < device["serial_num"] < "999999999099"
+                    # must be unknown
+                    assert "991000000000" < device["serial_num"] < "991000000099"
 
     # verify ensemble status serial anonymization
     endpoint = "/ivp/ensemble/status"
@@ -279,10 +276,9 @@ async def test_fixture_collection(
                 assert "611000000000" < serial_num < "611000000099"
             elif dev_type == "ESUB":
                 assert "621000000000" < serial_num < "621000000099"
-            elif dev_type == "UNKNOWN":
-                assert "991000000000" < serial_num < "991000000099"
             else:
-                assert "999999999001" < serial_num < "999999999099"
+                # must be unknown
+                assert "991000000000" < serial_num < "991000000099"
 
     # anonymize raw data
     assert envoy.data

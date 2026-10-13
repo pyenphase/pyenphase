@@ -208,7 +208,6 @@ PHASENAMES: list[str] = list(PhaseNames)
 
 # serials used to anonymize fixtire report data
 ENVOY_SERIAL = "123456789012"
-UNKNOWN_SERIAL = "999999999001"
 TYPE_SERIALS = {
     "PCU": "100000000001",
     "ACB": "200000000001",

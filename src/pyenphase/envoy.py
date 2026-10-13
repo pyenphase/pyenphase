@@ -49,7 +49,6 @@ from .const import (
     MAX_PROBE_REQUEST_ATTEMPTS,
     MAX_PROBE_REQUEST_DELAY,
     TYPE_SERIALS,
-    UNKNOWN_SERIAL,
     URL_ACB_CONFIG,
     URL_DRY_CONTACT_SETTINGS,
     URL_DRY_CONTACT_STATUS,
@@ -1950,7 +1949,7 @@ class Envoy:
         # assign replacement serials by types in serial sequential order
         serials.update(
             {
-                key: f"{int(TYPE_SERIALS.get(serials[key], UNKNOWN_SERIAL)) + index}"
+                key: f"{int(TYPE_SERIALS[serials[key]]) + index}"
                 for serial_type in set(serials.values())
                 if serial_type not in ("ENVOY", "EIM")
                 for index, key in enumerate(
