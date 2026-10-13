@@ -1942,7 +1942,7 @@ class Envoy:
         or diagnostics information.
 
         Returns dict with endpoint data and request status log
-        for list of Envoy endpoints to collect. Standard used
+        for a list of Envoy endpoints to collect. Standard used
         list of endpoints is :any:`FIXTURE_LIST` and can be
         appended by using the `additional_endpoints` parameter.
 
@@ -1956,7 +1956,8 @@ class Envoy:
         occurs during serial replacement, the data is returned
         with partial translated serials. This is signalled by
         the presence of the `anonymization_aborted_log` key in the
-        returned dict. The key value contains the error.
+        returned dict. The key value contains the error. Callers
+        should check for this key and decide how to handle it.
 
         Used neutral serials:
 
@@ -1978,7 +1979,8 @@ class Envoy:
 
         The matching endpoint request status log entries contain
         the request status code, error information if any error
-        occurred and request time and duration.
+        occurred,request time and duration and anonymization
+        applied or not if anonymyzation is requested
 
         for each endpoint return 2 dict entries:
 
@@ -1992,16 +1994,19 @@ class Envoy:
                         "error": str,
                         "report_time": str,
                         "duration_seconds": float,
+                        "anonymization": bool
                     }
             }
 
         The error key in the endpoint log entry is only present when
-        an error occurs. In that case `code` will be 0.
+        an error occurs. In that case `code` will be 0. The
+        anonymyzation key is only present if anonymyzation was requested.
 
-        If a timeout or client errors occur, the collection will be
-        aborted and only collected data is returned. This is signalled
-        by the presence of the `collection_aborted_log` key in the returned
-        dict. The key value contains the error message,
+        A timeout or Envoy error aborts collection and only collected data
+        is returned. This is signalled by the presence of the
+        `collection_aborted_log` key in the returned dict which value
+        contains the error. Other client errors are logged per endpoint
+        and collection continues.
 
         :param additional_endpoints: List of additional endpoints
             to append to standard list.

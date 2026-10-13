@@ -208,7 +208,7 @@ PHASENAMES: list[str] = list(PhaseNames)
 
 # serials used to anonymize fixtire report data
 ENVOY_SERIAL = "123456789012"
-UNKNOWN_SERIAL = "990000000001"
+UNKNOWN_SERIAL = "999999999001"
 TYPE_SERIALS = {
     "PCU": "100000000001",
     "ACB": "200000000001",
@@ -221,6 +221,7 @@ TYPE_SERIALS = {
     "ESUB": "620000000001",
     "ENCH_PCU": "630000000001",
     "ENCH_BMU": "640000000001",
+    "UNKNOWN": "990000000001",
 }
 # map devtypes to names,
 # each value should have entry in type_serials
@@ -237,4 +238,5 @@ DEVICE_TYPES = {
     27: "COLLAR",
     115: "C6 RGM",
     125: "C6 COMBINER CONTROLLER",
+    0: "UNKNOWN",
 }
