@@ -91,6 +91,9 @@ async def test_fixture_collection(
     for fixture in FIXTURE_LIST:
         assert f"{fixture}_log" in fixtures_collection
 
+    assert "collection_aborted_log" not in fixtures_collection
+    assert "anonymization_aborted_log" not in fixtures_collection
+
     for endpoint, file in endpoint_to_fixture_file.items():
         if endpoint not in exclude and file in files:
             assert "anonymization" not in fixtures_collection[f"{endpoint}_log"]
@@ -109,8 +112,12 @@ async def test_fixture_collection(
 
     # test fixtures_collection method with serial anonymization
     fixtures_collection = await envoy.fixture_collection()
+
     # validate all fixture logs are created
     assert fixtures_collection
+    assert "collection_aborted_log" not in fixtures_collection
+    assert "anonymization_aborted_log" not in fixtures_collection
+
     for fixture in FIXTURE_LIST:
         assert f"{fixture}_log" in fixtures_collection
 
@@ -271,6 +278,18 @@ async def test_fixture_collection(
             else:
                 assert "991000000000" < serial_num < "991000000099"
 
+    # anonymize raw data
+    assert envoy.data
+    anonymized_raw = envoy.anonymize_serials(envoy.data.raw)
+    assert "collection_aborted_log" not in anonymized_raw
+    assert "anonymization_aborted_log" not in anonymized_raw
+
+    # verify raw entries serial mapping is the same
+    for endpoint in anonymized_raw:
+        assert endpoint in fixtures_collection
+        if not endpoint.endswith("_log") and endpoint.startswith("/"):
+            assert anonymized_raw[endpoint] == fixtures_collection[endpoint]
+
     # Verify timeout will end fixture collection
     override_mock(
         mock_aioresponse,
@@ -287,9 +306,9 @@ async def test_fixture_collection(
         "/api/v1/production_log"
     ].items()
     assert ("code", 0) in fixtures_collection["/api/v1/production_log"].items()
-    # verify collection_aborted is in the list
-    assert "collection_aborted" in fixtures_collection
-    assert "Test timeoutexception" in fixtures_collection["collection_aborted"]
+    # verify collection_aborted_log is in the list
+    assert "collection_aborted_log" in fixtures_collection
+    assert "Test timeoutexception" in fixtures_collection["collection_aborted_log"]
 
     # Test additional endpoints
     test_json: dict[str, str | int] = {"test": 1, "envoy": "1234"}
@@ -353,10 +372,10 @@ async def test_fixture_collection(
     )
     fixtures_collection = await envoy.fixture_collection()
     assert fixtures_collection
-    assert "anonymization_aborted" in fixtures_collection
+    assert "anonymization_aborted_log" in fixtures_collection
     assert (
         "Fixture report serial anonymization failed:"
-        in fixtures_collection["anonymization_aborted"]
+        in fixtures_collection["anonymization_aborted_log"]
     )
 
     with patch(
@@ -368,5 +387,5 @@ async def test_fixture_collection(
     assert fixtures_collection
     assert (
         "Fixture report serial anonymization failed:"
-        in fixtures_collection["anonymization_aborted"]
+        in fixtures_collection["anonymization_aborted_log"]
     )

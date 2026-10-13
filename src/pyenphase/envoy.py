@@ -1813,7 +1813,9 @@ class Envoy:
           - ENCHARGE BMU: 6400000000nn
         - Unknown devices: 9900000000nn
 
-        :param collected_fixtures: dict with endpoints and their returned request data
+        :param collected_fixtures: dict with endpoints and their
+            request data. Only entries that start with / and do
+            not end in _log are anonymized.
         :returns: new dict with serials replaced
         """
         fixtures = copy.deepcopy(collected_fixtures)
@@ -1913,8 +1915,9 @@ class Envoy:
         )
 
         # replace found serials
-        for endpoint, data in fixtures.items():
-            if not endpoint.endswith("_log") and f"{endpoint}_log" in fixtures:
+        for endpoint in list(fixtures):
+            if not endpoint.endswith("_log") and endpoint.startswith("/"):
+                data = fixtures[endpoint]
                 if endpoint == "/info":
                     for original, replacement in serials.items():
                         data = data.replace(original, replacement)
@@ -1923,7 +1926,8 @@ class Envoy:
                     for original, replacement in serials.items():
                         fixture_as_text = fixture_as_text.replace(original, replacement)
                     data = json_loads(endpoint, fixture_as_text)
-                fixtures[f"{endpoint}_log"] |= {
+                # this may add new key if _log entry not in fixtures yet
+                fixtures[f"{endpoint}_log"] = fixtures.get(f"{endpoint}_log", {}) | {
                     "anonymization": (data != collected_fixtures[endpoint])
                 }
                 fixtures[endpoint] = data
@@ -1951,7 +1955,7 @@ class Envoy:
         original serials may still be present. If any error
         occurs during serial replacement, the data is returned
         with partial translated serials. This is signalled by
-        the presence of the `anonymization_aborted` key in the
+        the presence of the `anonymization_aborted_log` key in the
         returned dict. The key value contains the error.
 
         Used neutral serials:
@@ -1996,7 +2000,7 @@ class Envoy:
 
         If a timeout or client errors occur, the collection will be
         aborted and only collected data is returned. This is signalled
-        by the presence of the `collection_aborted` key in the returned
+        by the presence of the `collection_aborted_log` key in the returned
         dict. The key value contains the error message,
 
         :param additional_endpoints: List of additional endpoints
@@ -2004,7 +2008,9 @@ class Envoy:
         :param mask_serials: if True (default) replaces serials with
             neutral values.
         :returns: dict with endpoint data and request status entries
-            for each andpoint in list.
+            for each andpoint in list. Keys collection_aborted_log
+            and anonymization_aborted_log  will be present if data
+            collection or anomyzation had errors.
         """
         collection: dict[str, Any] = {}
         last_endpoint = ""
@@ -2059,7 +2065,7 @@ class Envoy:
                 "duration_seconds": round(request_end - request_start, 1),
             }
             _LOGGER.warning("Error getting fixture endpoint %s: %s", last_endpoint, err)
-            collection["collection_aborted"] = (
+            collection["collection_aborted_log"] = (
                 f"Error getting fixture endpoint: {last_endpoint} {traceback.format_exc()}"
             )
 
@@ -2070,7 +2076,7 @@ class Envoy:
         except (KeyError, ValueError, IndexError, TypeError) as err:
             # don't let failed anonymization break data collection
             _LOGGER.warning("Fixture report serial anonymization failed %s", err)
-            collection["anonymization_aborted"] = (
+            collection["anonymization_aborted_log"] = (
                 f"Fixture report serial anonymization failed: {traceback.format_exc()}"
             )
         return collection
