@@ -1920,7 +1920,7 @@ class Envoy:
         # envoy and pdm devices EIM device contain envoy serial followed by EIMn
         serials.update(
             {
-                key: f"{ENVOY_SERIAL}{key[key.find('EIM') :] if value == 'EIM' else ''}"
+                key: f"{ENVOY_SERIAL}{key[key.find('EIM') :] if key.find('EIM') != -1 else ''}"
                 for key, value in serials.items()
                 if value in ("ENVOY", "EIM")
             }
