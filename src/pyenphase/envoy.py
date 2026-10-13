@@ -1956,7 +1956,6 @@ class Envoy:
             if not endpoint.endswith("_log") and endpoint.startswith("/"):
                 data = fixtures[endpoint]
                 if endpoint == "/info":
-                    print(f"*** {data}")
                     for original, replacement in serials.items():
                         data = data.replace(original, replacement)
                 else:
