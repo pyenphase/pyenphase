@@ -2058,7 +2058,7 @@ class Envoy:
             neutral values.
         :returns: dict with endpoint data and request status entries
             for each andpoint in list. Keys collection_aborted_log
-            and anonymization_aborted_log  will be present if data
+            and anonymization_errors_log  will be present if data
             collection or anomyzation had errors.
         """
         collection: dict[str, Any] = {}
