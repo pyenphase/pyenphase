@@ -97,7 +97,7 @@ async def test_fixture_collection(
 
     for endpoint, file in endpoint_to_fixture_file.items():
         if endpoint not in exclude and file in files:
-            assert "anonymization" not in fixtures_collection[f"{endpoint}_log"]
+            assert "modified" not in fixtures_collection[f"{endpoint}_log"]
             try:
                 content = await load_json_fixture(version, file)
                 assert fixtures_collection[endpoint] == content
@@ -138,7 +138,7 @@ async def test_fixture_collection(
             and endpoint not in exclude
             and file in files
         ):
-            assert not fixtures_collection[f"{endpoint}_log"]["anonymization"]
+            assert not fixtures_collection[f"{endpoint}_log"]["modified"]
             try:
                 content = await load_json_fixture(version, file)
                 assert fixtures_collection[endpoint] == content
@@ -151,14 +151,14 @@ async def test_fixture_collection(
     endpoint = "/info"
     assert endpoint in fixtures_collection
     assert fixtures_collection["/info"] == info_xml_patched
-    assert fixtures_collection[f"{endpoint}_log"]["anonymization"]
+    assert fixtures_collection[f"{endpoint}_log"]["modified"]
 
     endpoint = "/api/v1/production/inverters"
     if endpoint not in exclude:
         assert endpoint in fixtures_collection
         content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
         assert len(fixtures_collection[endpoint]) == len(content)
-        assert fixtures_collection[f"{endpoint}_log"]["anonymization"]
+        assert fixtures_collection[f"{endpoint}_log"]["modified"]
         for inverter in fixtures_collection[endpoint]:
             if inverter["devType"] == 11:
                 assert "201000000000" < inverter["serialNumber"] < "201000000099"
@@ -174,7 +174,7 @@ async def test_fixture_collection(
         # ^:  one of two true, not both true or both false
         assert not (
             (len(fixtures_collection[endpoint]) > 0)
-            ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+            ^ fixtures_collection[f"{endpoint}_log"]["modified"]
         )
         for id in (pdm := fixtures_collection[endpoint]):
             if id not in ("deviceCount", "deviceDataLimit"):
@@ -192,7 +192,7 @@ async def test_fixture_collection(
         assert len(fixtures_collection[endpoint]) == len(content)
         assert not (
             (len(fixtures_collection[endpoint]) > 0)
-            ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+            ^ fixtures_collection[f"{endpoint}_log"]["modified"]
         )
         for inventory_type in fixtures_collection[endpoint]:
             dev_type = inventory_type["type"]
@@ -218,7 +218,7 @@ async def test_fixture_collection(
         assert len(fixtures_collection[endpoint]) == len(content)
         assert not (
             (len(fixtures_collection[endpoint]["devices:"]) > 0)
-            ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+            ^ fixtures_collection[f"{endpoint}_log"]["modified"]
         )
         for device in fixtures_collection[endpoint]["devices:"]:
             assert "301000000000" < device["serial_num"] < "301000000099"
@@ -230,7 +230,7 @@ async def test_fixture_collection(
         assert len(fixtures_collection[endpoint]) == len(content)
         assert not (
             (len(fixtures_collection[endpoint]) > 0)
-            ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+            ^ fixtures_collection[f"{endpoint}_log"]["modified"]
         )
         for inventory_type in fixtures_collection[endpoint]:
             dev_type = inventory_type["type"]
@@ -255,7 +255,7 @@ async def test_fixture_collection(
         assert len(fixtures_collection[endpoint]) == len(content)
         assert not (
             (len(fixtures_collection[endpoint]["inventory"]["serial_nums"]) > 0)
-            ^ fixtures_collection[f"{endpoint}_log"]["anonymization"]
+            ^ fixtures_collection[f"{endpoint}_log"]["modified"]
         )
         for serial_num, device in fixtures_collection[endpoint]["inventory"][
             "serial_nums"

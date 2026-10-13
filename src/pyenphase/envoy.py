@@ -1809,6 +1809,12 @@ class Envoy:
         occurred errors. Callers should check for this key
         and decide how to handle it.
 
+        The matching endpoint log dict entry will be updated
+        with a key 'modified' if any changes where applied to it.
+        If the <endpoint>_log entry is not present, it is created
+        if a modification is applied.
+
+
         Neutral serial numbers assigned:
 
         - Envoy: 123456789012.
@@ -1975,7 +1981,7 @@ class Envoy:
                     data = json_loads(endpoint, fixture_as_text)
                 # this may add new key if _log entry not in fixtures yet
                 fixtures[f"{endpoint}_log"] = fixtures.get(f"{endpoint}_log", {}) | {
-                    "anonymization": (data != collected_fixtures[endpoint])
+                    "modified": (data != collected_fixtures[endpoint])
                 }
                 fixtures[endpoint] = data
 
@@ -2053,7 +2059,7 @@ class Envoy:
                         "error": str,
                         "report_time": str,
                         "duration_seconds": float,
-                        "anonymization": bool
+                        "modified": bool
                     }
             }
 
