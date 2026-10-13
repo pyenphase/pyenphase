@@ -2134,4 +2134,13 @@ class Envoy:
                 f"Error getting fixture endpoint: {last_endpoint} {traceback.format_exc()}"
             )
 
-        return self.anonymize_serials(collection) if mask_serials else collection
+        if not mask_serials:
+            return collection
+        anonymized_collection = self.anonymize_serials(collection)
+        if "anonymization_errors_log" in anonymized_collection:
+            _LOGGER.warning(
+                "Fixture collection anonymization had errors, verify data %s",
+                anonymized_collection["anonymization_errors_log"],
+            )
+
+        return anonymized_collection
