@@ -1951,16 +1951,20 @@ class Envoy:
             }
         )
 
-        # replace found serials
+        # replace found serials, longest serials first.
         for endpoint in list(fixtures):
             if not endpoint.endswith("_log") and endpoint.startswith("/"):
                 data = fixtures[endpoint]
                 if endpoint == "/info":
-                    for original, replacement in serials.items():
+                    for original, replacement in sorted(
+                        serials.items(), key=lambda x: len(x[0]), reverse=True
+                    ):
                         data = data.replace(original, replacement)
                 else:
                     fixture_as_text = orjson.dumps(data).decode()
-                    for original, replacement in serials.items():
+                    for original, replacement in sorted(
+                        serials.items(), key=lambda x: len(x[0]), reverse=True
+                    ):
                         fixture_as_text = fixture_as_text.replace(original, replacement)
                     data = json_loads(endpoint, fixture_as_text)
                 # this may add new key if _log entry not in fixtures yet
