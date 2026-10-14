@@ -1850,7 +1850,7 @@ class Envoy:
 
         # add envoy serial from file to support testing
         if (endpoint := "/info") in fixtures:
-            match = re.search(r"<sn>([^<]*)<\/sn>", fixtures[endpoint])
+            match = re.search(r"<sn>([^<]+)<\/sn>", fixtures[endpoint])
             if match:
                 serials[match.group(1)] = "ENVOY"
             else:

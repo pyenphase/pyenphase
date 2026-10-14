@@ -325,7 +325,6 @@ async def test_fixture_collection(
         f"{full_host}/test/my/endpoint",
         payload=test_json,
         status=200,
-        repeat=True,
     )
     # test content-type application/json fallback to text
     invalid_json = "invalid json"
@@ -335,7 +334,6 @@ async def test_fixture_collection(
         f"{full_host}/test/my/invalid_endpoint",
         body=invalid_json,
         status=200,
-        repeat=True,
     )
     # test with missing endpoints
     override_mock(
@@ -379,6 +377,21 @@ async def test_fixture_collection(
     assert "/ivp/ensemble/inventory_log" in fixtures_collection
     assert ("code", 404) in fixtures_collection["/ivp/ensemble/inventory_log"].items()
 
+    # verify anomymization errors
+    assert "anonymization_errors_log" in fixtures_collection
+    assert (
+        "Error for /info 'no sn match'"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+
+    # test with missing Envoy serial
+    info_xml_nosn = "<envoy_info><device><sn></sn><software>D8.3.6087</software></device></envoy_info>"
+    override_mock(
+        mock_aioresponse, "get", f"{full_host}/info", body=info_xml_nosn, repeat=True
+    )
+    fixtures_collection = await envoy.fixture_collection(
+        ["/test/my/endpoint", "/test/my/invalid_endpoint"]
+    )
     # verify anomymization errors
     assert "anonymization_errors_log" in fixtures_collection
     assert (
