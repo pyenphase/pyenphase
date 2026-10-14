@@ -85,6 +85,41 @@ ENDPOINT_URL_HOME = "/home"
 
 # Include in docs to here
 
+#: List of endpoints reported by :py:meth:`Envoy.fixture_collection`
+FIXTURE_LIST = [
+    "/info",
+    URL_PRODUCTION_V1,
+    URL_PRODUCTION_INVERTERS,
+    URL_PRODUCTION_JSON,
+    URL_PRODUCTION,
+    URL_ENCHARGE_BATTERY,
+    URL_ENSEMBLE_INVENTORY,
+    URL_DRY_CONTACT_STATUS,
+    URL_ENSEMBLE_STATUS,
+    URL_ENSEMBLE_SECCTRL,
+    URL_GRID_RELAY,
+    URL_DRY_CONTACT_SETTINGS,
+    URL_TARIFF,
+    URL_GEN_CONFIG,
+    URL_GEN_SCHEDULE,
+    URL_GENERATOR,
+    URL_GEN_MODE,
+    ENDPOINT_URL_METERS,
+    ENDPOINT_URL_METERS_READINGS,
+    URL_DEVICE_DATA,
+    ENDPOINT_URL_HOME,
+    URL_INVENTORY,
+    URL_ACB_CONFIG,
+    # additional not yet used endpoints
+    URL_POWER_EXPORT,
+    "/ivp/ss/pel_settings",
+    "/ivp/sc/pvlimit",
+    "/ivp/sc/sched",
+    "/ivp/livedata/status",
+    "/ivp/pdm/energy",
+]
+
+
 LOCAL_TIMEOUT = aiohttp.ClientTimeout(
     # The envoy can be slow to respond but fast to connect to we
     # need to set a long timeout for the read and a short timeout
@@ -170,3 +205,37 @@ class PhaseNames(enum.StrEnum):
 #:         print(production[PHASENAMES[phase]])
 #:
 PHASENAMES: list[str] = list(PhaseNames)
+
+# serials used to anonymize fixtire report data
+ENVOY_SERIAL = "123456789012"
+TYPE_SERIALS = {
+    "PCU": "100000000001",
+    "ACB": "200000000001",
+    "ENCHARGE": "300000000001",
+    "ENPOWER": "400000000001",
+    "COLLAR": "510000000001",
+    "C6 COMBINER CONTROLLER": "520000000001",
+    "C6 RGM": "530000000001",
+    "NSRB": "610000000001",
+    "ESUB": "620000000001",
+    "ENCH_PCU": "630000000001",
+    "ENCH_BMU": "640000000001",
+    "UNKNOWN": "990000000001",
+}
+# map devtypes to names,
+# each value should have entry in type_serials
+DEVICE_TYPES = {
+    1: "PCU",
+    11: "ACB",
+    12: "NSRB",
+    13: "ENCHARGE",
+    14: "ENCH_PCU",
+    16: "ENCH_BMU",
+    17: "ENPOWER",
+    19: "ESUB",
+    20: "ESUB",
+    27: "COLLAR",
+    115: "C6 RGM",
+    125: "C6 COMBINER CONTROLLER",
+    0: "UNKNOWN",
+}

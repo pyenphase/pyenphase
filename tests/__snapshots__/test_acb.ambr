@@ -19877,7 +19877,7 @@
     'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
-      '12122012100000': dict({
+      '122012100000': dict({
         'ac_current': 0.0,
         'ac_frequency': 50.103,
         'ac_voltage': 235.848,
@@ -19890,10 +19890,10 @@
         'last_report_watts': 0,
         'lifetime_energy': 564107,
         'max_report_watts': 242,
-        'serial_number': '12122012100000',
+        'serial_number': '122012100000',
         'temperature': 25,
       }),
-      '122012100000': dict({
+      '122012200000': dict({
         'ac_current': 0.0,
         'ac_frequency': 50.086,
         'ac_voltage': 238.64,
@@ -19906,7 +19906,7 @@
         'last_report_watts': 0,
         'lifetime_energy': 555079,
         'max_report_watts': 243,
-        'serial_number': '122012100000',
+        'serial_number': '122012200000',
         'temperature': 25,
       }),
       '122013000000': dict({
@@ -20696,7 +20696,7 @@
           ]),
           'devName': 'pcu',
           'modGone': True,
-          'sn': '12122012100000',
+          'sn': '122012100000',
         }),
         '553648896': dict({
           'active': True,
@@ -20748,7 +20748,7 @@
           ]),
           'devName': 'pcu',
           'modGone': True,
-          'sn': '122012100000',
+          'sn': '122012200000',
         }),
         '704643328': dict({
           'active': True,
@@ -21360,7 +21360,7 @@
     'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
-      '12122012100000': dict({
+      '122012100000': dict({
         'ac_current': 0.0,
         'ac_frequency': 50.103,
         'ac_voltage': 235.848,
@@ -21373,10 +21373,10 @@
         'last_report_watts': 0,
         'lifetime_energy': 564107,
         'max_report_watts': 242,
-        'serial_number': '12122012100000',
+        'serial_number': '122012100000',
         'temperature': 25,
       }),
-      '122012100000': dict({
+      '122012200000': dict({
         'ac_current': 0.0,
         'ac_frequency': 50.086,
         'ac_voltage': 238.64,
@@ -21389,7 +21389,7 @@
         'last_report_watts': 0,
         'lifetime_energy': 555079,
         'max_report_watts': 243,
-        'serial_number': '122012100000',
+        'serial_number': '122012200000',
         'temperature': 25,
       }),
       '122013000000': dict({
@@ -22179,7 +22179,7 @@
           ]),
           'devName': 'pcu',
           'modGone': True,
-          'sn': '12122012100000',
+          'sn': '122012100000',
         }),
         '553648896': dict({
           'active': True,
@@ -22231,7 +22231,7 @@
           ]),
           'devName': 'pcu',
           'modGone': True,
-          'sn': '122012100000',
+          'sn': '122012200000',
         }),
         '704643328': dict({
           'active': True,
@@ -22843,7 +22843,7 @@
     'generator_mode': None,
     'generator_schedule': None,
     'inverters': dict({
-      '12122012100000': dict({
+      '122012100000': dict({
         'ac_current': 0.0,
         'ac_frequency': 50.103,
         'ac_voltage': 235.848,
@@ -22856,10 +22856,10 @@
         'last_report_watts': 0,
         'lifetime_energy': 564107,
         'max_report_watts': 242,
-        'serial_number': '12122012100000',
+        'serial_number': '122012100000',
         'temperature': 25,
       }),
-      '122012100000': dict({
+      '122012200000': dict({
         'ac_current': 0.0,
         'ac_frequency': 50.086,
         'ac_voltage': 238.64,
@@ -22872,7 +22872,7 @@
         'last_report_watts': 0,
         'lifetime_energy': 555079,
         'max_report_watts': 243,
-        'serial_number': '122012100000',
+        'serial_number': '122012200000',
         'temperature': 25,
       }),
       '122013000000': dict({
@@ -23662,7 +23662,7 @@
           ]),
           'devName': 'pcu',
           'modGone': True,
-          'sn': '12122012100000',
+          'sn': '122012100000',
         }),
         '553648896': dict({
           'active': True,
@@ -23714,7 +23714,7 @@
           ]),
           'devName': 'pcu',
           'modGone': True,
-          'sn': '122012100000',
+          'sn': '122012200000',
         }),
         '704643328': dict({
           'active': True,
