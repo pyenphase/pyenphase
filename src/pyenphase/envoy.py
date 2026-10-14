@@ -1947,18 +1947,26 @@ class Envoy:
         }
 
         # assign replacement serials by types in serial sequential order
-        serials.update(
-            {
-                key: f"{int(TYPE_SERIALS[serials[key]]) + index}"
-                for serial_type in set(serials.values())
-                if serial_type not in ("ENVOY", "EIM")
-                for index, key in enumerate(
-                    sorted(
-                        [key for key, value in serials.items() if value == serial_type]
+        try:
+            serials.update(
+                {
+                    key: f"{int(TYPE_SERIALS[serials[key]]) + index}"
+                    for serial_type in set(serials.values())
+                    if serial_type not in ("ENVOY", "EIM")
+                    for index, key in enumerate(
+                        sorted(
+                            [
+                                key
+                                for key, value in serials.items()
+                                if value == serial_type
+                            ]
+                        )
                     )
-                )
-            }
-        )
+                }
+            )
+        except self.ANONYMIZATION_EXC as exc:
+            anonymization_errors.append(f"Error during serial sequencing {exc}")
+
         # envoy and pdm devices EIM device contain envoy serial followed by EIMn
         serials.update(
             {
@@ -1972,18 +1980,25 @@ class Envoy:
         for endpoint in list(fixtures):
             if not endpoint.endswith("_log") and endpoint.startswith("/"):
                 data = fixtures[endpoint]
-                if endpoint == "/info":
-                    for original, replacement in sorted(
-                        serials.items(), key=lambda x: len(x[0]), reverse=True
-                    ):
-                        data = data.replace(original, replacement)
-                else:
-                    fixture_as_text = orjson.dumps(data).decode()
-                    for original, replacement in sorted(
-                        serials.items(), key=lambda x: len(x[0]), reverse=True
-                    ):
-                        fixture_as_text = fixture_as_text.replace(original, replacement)
-                    data = json_loads(endpoint, fixture_as_text)
+                try:
+                    if endpoint == "/info":
+                        for original, replacement in sorted(
+                            serials.items(), key=lambda x: len(x[0]), reverse=True
+                        ):
+                            data = data.replace(original, replacement)
+                    else:
+                        fixture_as_text = orjson.dumps(data).decode()
+                        for original, replacement in sorted(
+                            serials.items(), key=lambda x: len(x[0]), reverse=True
+                        ):
+                            fixture_as_text = fixture_as_text.replace(
+                                original, replacement
+                            )
+                        data = json_loads(endpoint, fixture_as_text)
+                except self.ANONYMIZATION_EXC as exc:
+                    anonymization_errors.append(
+                        f"Error during serial replacement for {endpoint} {exc}"
+                    )
                 # this may add new key if _log entry not in fixtures yet
                 fixtures[f"{endpoint}_log"] = fixtures.get(f"{endpoint}_log", {}) | {
                     "modified": (data != collected_fixtures[endpoint])
