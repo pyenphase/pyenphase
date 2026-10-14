@@ -534,7 +534,7 @@ async def test_fixture_collection(
         in fixtures_collection["anonymization_errors_log"]
     )
     assert (
-        "Error for /ivp/ensemble/status 'device_type'"
+        "Error for submodule /ivp/ensemble/status 'device_type'"
         in fixtures_collection["anonymization_errors_log"]
     )
 
@@ -562,6 +562,17 @@ async def test_fixture_collection(
         payload=invalid_power_data,
         status=200,
     )
+
+    # test with data errors, malformed inventory ensemble
+    invalid_status_data = {"inventory": {"serial_nums": "482520020939"}}
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/ivp/ensemble/status",
+        payload=invalid_status_data,
+        status=200,
+    )
+
     fixtures_collection = await envoy.fixture_collection()
     assert fixtures_collection
     assert "anonymization_errors_log" in fixtures_collection
@@ -571,6 +582,71 @@ async def test_fixture_collection(
     )
     assert (
         "Error during serial replacement for /ivp/ensemble/power object of type 'int' has no len()"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+    assert (
+        "Malformed inventory /ivp/ensemble/status"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+
+    # test with data errors, malformed inventory ensemble
+    invalid_status_data = {"inventory": {"serial_nums": "482520020939"}}
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/ivp/ensemble/status",
+        payload=invalid_status_data,
+        status=200,
+    )
+
+    fixtures_collection = await envoy.fixture_collection()
+    assert fixtures_collection
+    assert "anonymization_errors_log" in fixtures_collection
+    assert (
+        "Malformed inventory /ivp/ensemble/status"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+
+    # test with data errors, malformed ensemble inventory serial_nums and submodules
+    invalid_status_data = {
+        "inventory": {
+            "serial_nums": {
+                "482520020939": "device_type",
+                "482520020940": {
+                    "device_type": 27,
+                    "com_interface_str": "CAN",
+                    "device_id": "482520020940",
+                    "submodules": "482523040548",
+                },
+                "482520020941": {
+                    "device_type": 27,
+                    "com_interface_str": "CAN",
+                    "device_id": "482520020941",
+                    "submodules": {"482523040549": "device_type"},
+                },
+            }
+        }
+    }
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/ivp/ensemble/status",
+        payload=invalid_status_data,
+        status=200,
+    )
+    fixtures_collection = await envoy.fixture_collection()
+    assert fixtures_collection
+    assert "anonymization_errors_log" in fixtures_collection
+    assert (
+        "Malformed serial_nums data /ivp/ensemble/status"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+    assert (
+        "Malformed submodules /ivp/ensemble/status"
+        in fixtures_collection["anonymization_errors_log"]
+    )
+    assert (
+        "Malformed submodules subserial /ivp/ensemble/status"
         in fixtures_collection["anonymization_errors_log"]
     )
 

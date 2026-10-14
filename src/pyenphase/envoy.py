@@ -1911,34 +1911,61 @@ class Envoy:
                     anonymization_errors.append(f"Error for {endpoint} {exc}")
 
         # add ensemble status serials
-        if (
-            (endpoint := "/ivp/ensemble/status") in fixtures
-            and "inventory" in fixtures[endpoint]
-            and isinstance(fixtures[endpoint]["inventory"], dict)
-        ):
-            for inventory in fixtures[endpoint]["inventory"].values():
-                for serial, serial_data in inventory.items():
-                    try:
-                        serials |= {
-                            serial: DEVICE_TYPES.get(
-                                serial_data["device_type"], "UNKNOWN"
-                            )
-                        }
-
-                        for sub_serial, sub in serial_data["submodules"].items():
-                            try:
-                                serials |= {
-                                    sub_serial: DEVICE_TYPES.get(
-                                        sub["device_type"], "UNKNOWN"
-                                    )
-                                }
-                            except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
+        if (endpoint := "/ivp/ensemble/status") in fixtures:
+            if not (
+                "inventory" in fixtures[endpoint]
+                and isinstance(fixtures[endpoint]["inventory"], dict)
+                and "serial_nums" in fixtures[endpoint]["inventory"]
+                and isinstance(fixtures[endpoint]["inventory"]["serial_nums"], dict)
+            ):
+                anonymization_errors.append(f"Malformed inventory {endpoint}")
+            else:
+                for serial, serial_data in fixtures[endpoint]["inventory"][
+                    "serial_nums"
+                ].items():
+                    if isinstance(serial_data, dict):
+                        try:
+                            serials |= {
+                                serial: DEVICE_TYPES.get(
+                                    serial_data["device_type"],
+                                    "UNKNOWN",
+                                )
+                            }
+                            if "submodules" in serial_data and isinstance(
+                                serial_data["submodules"], dict
+                            ):
+                                for sub_serial, sub_serial_data in serial_data[
+                                    "submodules"
+                                ].items():
+                                    if isinstance(sub_serial_data, dict):
+                                        try:
+                                            serials |= {
+                                                sub_serial: DEVICE_TYPES.get(
+                                                    sub_serial_data["device_type"],
+                                                    "UNKNOWN",
+                                                )
+                                            }
+                                        except self.ANONYMIZATION_EXC as exc:
+                                            anonymization_errors.append(
+                                                f"Error for submodule {endpoint} {exc}"
+                                            )
+                                    else:
+                                        anonymization_errors.append(
+                                            f"Malformed submodules subserial {endpoint}"
+                                        )
+                            else:
                                 anonymization_errors.append(
-                                    f"Error for {endpoint} {exc}"
+                                    f"Malformed submodules {endpoint}"
                                 )
 
-                    except self.ANONYMIZATION_EXC as exc:  # noqa: PERF203
-                        anonymization_errors.append(f"Error for {endpoint} {exc}")
+                        except self.ANONYMIZATION_EXC as exc:
+                            anonymization_errors.append(
+                                f"Error for {endpoint} {exc} {traceback.format_exc()}"
+                            )
+                    else:
+                        anonymization_errors.append(
+                            f"Malformed serial_nums data {endpoint}"
+                        )
 
         # group all unknown types into unknown group
         serials = {
