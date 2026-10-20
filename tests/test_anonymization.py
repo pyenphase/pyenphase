@@ -407,7 +407,10 @@ async def test_anonymization_inventory() -> None:
     anonymized_fixtures = anonymize_serials(fixtures, strict=True)
     assert endpoint not in anonymized_fixtures
     assert "anonymization_errors_log" in anonymized_fixtures
-    assert any(f"Error on {endpoint} TypeError" in log for log in result)
+    assert any(
+        f"Error on {endpoint} TypeError" in log
+        for log in anonymized_fixtures["anonymization_errors_log"]
+    )
 
     # test automatic serial anonymization in strict mode with serial sequencing error
 
