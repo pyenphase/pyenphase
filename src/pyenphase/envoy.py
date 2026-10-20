@@ -49,6 +49,7 @@ from .const import (
     URL_GEN_MODE,
     URL_GEN_SCHEDULE,
     URL_GRID_RELAY,
+    URL_INVENTORY,
     URL_TARIFF,
     SupportedFeatures,
 )
@@ -634,6 +635,36 @@ class Envoy:
             except EnvoyError as exc:
                 _LOGGER.debug("Failure getting interface information %s", exc)
         return self._interface_settings
+
+    async def inventory_scan(self) -> dict[str, str]:
+        """
+        Return the running firmware of each active inverter and AC Battery.
+
+        Reads /inventory.json?deleted=1. Logs a failed request or an unusable
+        reply at debug level and returns an empty dictionary.
+
+        :raises EnvoyClientClosedError: when aiohttp client is closed
+        :return: firmware keyed by serial number
+        """
+        firmware: dict[str, str] = {}
+        try:
+            inventory = await self._json_request(URL_INVENTORY, None)
+            for item in inventory:
+                if item.get("type") not in ("PCU", "ACB"):
+                    continue
+                for device in item.get("devices", []):
+                    # admin_state 0 marks a decommissioned device
+                    if (
+                        isinstance(device, dict)
+                        and device.get("admin_state") != 0
+                        and (serial := device.get("serial_num"))
+                        and (version := device.get("img_pnum_running"))
+                    ):
+                        firmware[str(serial)] = version
+        except (EnvoyError, AttributeError, TypeError) as exc:
+            _LOGGER.debug("Failure getting inventory firmware %s", exc)
+            return {}
+        return firmware
 
     @property
     def host(self) -> str:

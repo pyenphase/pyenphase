@@ -83,3 +83,13 @@ This is the updater for base inverter data. It only provides data for individual
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.energy_produced`      | not available                                                               |     |
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.energy_today`         | not available                                                               |     |
 | {py:attr}`~pyenphase.models.inverter.EnvoyInverter.last_report_duration` | not available                                                               |     |
+
+## Firmware
+
+{py:meth}`~pyenphase.Envoy.inventory_scan` returns the running firmware of each active inverter and AC Battery from `/inventory.json?deleted=1`, keyed by serial number. Applications call the method on their own schedule, for example at startup. The method logs a failed request or an unusable reply at debug level and returns an empty dictionary.
+
+```python
+firmware = await envoy.inventory_scan()
+for serial, version in firmware.items():
+    print(serial, version)
+```
