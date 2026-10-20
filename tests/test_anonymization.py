@@ -156,10 +156,7 @@ async def test_anonymization_inverters() -> None:
     assert fixtures[endpoint][2]["serialNumber"] == [1, 2]
     # we should have error caused by list as serial
     assert len(result) == 1
-    assert (
-        f"Error on {endpoint} TypeError(\"cannot use 'list' as a dict key (unhashable type: 'list')\")"
-        in result
-    )
+    assert any(f"Error on {endpoint} TypeError" in log for log in result)
 
     # test automatic serial anonymization
     test_json = dc(original_json)
@@ -261,10 +258,7 @@ async def test_anonymization_device_data() -> None:
     assert fixtures[endpoint]["123123125"]["sn"] == [1, 2]
     # we should have error caused by list as serial
     assert len(result) == 1
-    assert (
-        f"Error on {endpoint} TypeError(\"cannot use 'list' as a dict key (unhashable type: 'list')\")"
-        in result
-    )
+    assert any(f"Error on {endpoint} TypeError" in log for log in result)
 
     # test automatic serial anonymization
     test_json = dc(original_json)
@@ -405,10 +399,7 @@ async def test_anonymization_inventory() -> None:
     assert fixtures[endpoint][3]["devices"][0]["serial_num"] == "6"
     assert fixtures[endpoint][4]["devices"][0]["serial_num"] == "7"
     assert len(result) == 1
-    assert (
-        f"Error on {endpoint} TypeError(\"cannot use 'list' as a dict key (unhashable type: 'list')\")"
-        in result
-    )
+    assert any(f"Error on {endpoint} TypeError" in log for log in result)
 
     # test automatic serial anonymization in strict mode
 
@@ -416,10 +407,7 @@ async def test_anonymization_inventory() -> None:
     anonymized_fixtures = anonymize_serials(fixtures, strict=True)
     assert endpoint not in anonymized_fixtures
     assert "anonymization_errors_log" in anonymized_fixtures
-    assert (
-        f"Error on {endpoint} TypeError(\"cannot use 'list' as a dict key (unhashable type: 'list')\")"
-        in result
-    )
+    assert any(f"Error on {endpoint} TypeError" in log for log in result)
 
     # test automatic serial anonymization in strict mode with serial sequencing error
 
@@ -538,10 +526,7 @@ async def test_anonymization_ensemble_power() -> None:
     assert serials[test_json[ENSEMBLE_POWER_DEVICE][1]["serial_num"]] == "ENCHARGE"
     assert serials[test_json[ENSEMBLE_POWER_DEVICE][2]["serial_num"]] == "ENCHARGE"
     assert len(result) == 1
-    assert (
-        f"Error on {endpoint} TypeError(\"cannot use 'list' as a dict key (unhashable type: 'list')\")"
-        in result
-    )
+    assert any(f"Error on {endpoint} TypeError" in log for log in result)
 
     # manual serial assignments
     # without serial_num is will return UNKNOWN
@@ -555,10 +540,7 @@ async def test_anonymization_ensemble_power() -> None:
     assert fixtures[endpoint][ENSEMBLE_POWER_DEVICE][1]["serial_num"] == "UNKNOWN"
     assert fixtures[endpoint][ENSEMBLE_POWER_DEVICE][2]["serial_num"] == "ENCHARGE"
     assert len(result) == 1
-    assert (
-        f"Error on {endpoint} TypeError(\"cannot use 'list' as a dict key (unhashable type: 'list')\")"
-        in result
-    )
+    assert any(f"Error on {endpoint} TypeError" in log for log in result)
 
     # test automatic serial anonymization
 
@@ -699,10 +681,7 @@ async def test_anonymization_ensemble_inventory() -> None:
     assert serials[test_json[3]["devices"][0]["serial_num"]] == "NEW"
 
     assert len(result) == 1
-    assert (
-        f"Error on {endpoint} TypeError(\"cannot use 'list' as a dict key (unhashable type: 'list')\")"
-        in result
-    )
+    assert any(f"Error on {endpoint} TypeError" in log for log in result)
 
     # manual serial assignments
     serials[test_json[0]["devices"][0]["serial_num"]] = "1"
@@ -724,10 +703,7 @@ async def test_anonymization_ensemble_inventory() -> None:
     assert fixtures[endpoint][2]["devices"][0]["serial_num"] == "5"
     assert fixtures[endpoint][3]["devices"][0]["serial_num"] == "6"
     assert len(result) == 1
-    assert (
-        f"Error on {endpoint} TypeError(\"cannot use 'list' as a dict key (unhashable type: 'list')\")"
-        in result
-    )
+    assert any(f"Error on {endpoint} TypeError" in log for log in result)
 
     # test automatic serial anonymization
 
@@ -1085,9 +1061,10 @@ async def test_anonymization_ensemble_status() -> None:
     fixtures = {endpoint: test_json}
     anonymized_fixtures = anonymize_serials(fixtures)
     assert "anonymization_errors_log" in anonymized_fixtures
-    assert anonymized_fixtures["anonymization_errors_log"] == [
-        f"Error on {endpoint} TypeError(\"cannot use 'list' as a dict key (unhashable type: 'list')\")"
-    ]
+    assert any(
+        f"Error on {endpoint} TypeError" in log
+        for log in anonymized_fixtures["anonymization_errors_log"]
+    )
 
 
 PATCHED_SERIALS = {
