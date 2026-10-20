@@ -38,9 +38,8 @@ def anonymize_info(
             if scan_only:
                 serials[match.group(2)] = "ENVOY"
             else:
-                fixtures[endpoint] = re.sub(
+                fixtures[endpoint] = data.replace(
                     match.group(1),
                     f"<sn>{serials.get(match.group(2), 'UNKNOWN')}</sn>",
-                    data,
                 )
     return endpoint, anonymization_errors
