@@ -185,11 +185,11 @@ def anonymize_serials(
             _LOGGER.debug("Anonymizer in strict mode, removing %s from data", endpoint)
             fixtures.pop(endpoint, None)
 
-    # add or update endpoint>_log key with 'modified' entry
+    # add or update endpoint>_log key with 'serials_changed' entry
     for endpoint in list(fixtures):
         if not endpoint.endswith("_log") and endpoint.startswith("/"):
             fixtures[f"{endpoint}_log"] = fixtures.get(f"{endpoint}_log", {}) | {
-                "modified": (fixtures[endpoint] != endpoint_data[endpoint])
+                "serials_changed": (fixtures[endpoint] != endpoint_data[endpoint])
             }
 
     if len(anonymization_errors) > 0:

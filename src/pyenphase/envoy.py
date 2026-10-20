@@ -1798,7 +1798,7 @@ class Envoy:
         status log for a list of Envoy endpoints to collect. Standard used
         list of endpoints is :any:`FIXTURE_LIST` and can be appended by using
         the `additional_endpoints` parameter. The standard list is ignored when
-        skiP_standard is True.
+        skip_standard is True.
 
         The endpoint data for each endpoint requested contains the data as received
         from the Envoy. and can be JSON or text.
@@ -1835,21 +1835,19 @@ class Envoy:
                         "report_time": str,
                         "duration_seconds": float,
                         "serials_changed": bool
-                        "masking_error": bool
                     }
             }
 
         The error key in the endpoint log entry is only present when
         an error occurs. In that case `code` will be set to 0. The
-        serials_changed and masking_error keys are only present
-        if serial masking was requested.
+        serials_changed key is only present if serial masking was requested.
 
 
         :param additional_endpoints: List of additional endpoints
             to append to the standard list.
         :param mask_serials: if True replaces serials with
             neutral values.
-        :param strict_masking: If Tue remove endpoints with failed masking
+        :param strict_masking: If True remove endpoints with failed masking
             from data
         :param skip_standard: do not use the standard list if True
         :returns: dict with endpoint data and request status entries

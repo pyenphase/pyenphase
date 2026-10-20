@@ -1171,7 +1171,7 @@ async def test_anonymization(
         assert len(anonymized_fixtures[endpoint]) == len(content)
         assert not (
             (len(anonymized_fixtures[endpoint]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["modified"]
+            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
         )
         for inverter in anonymized_fixtures[endpoint]:
             sn_start = PATCHED_SERIALS[DEVICE_TYPES[inverter["devType"]]]
@@ -1186,7 +1186,7 @@ async def test_anonymization(
         # ^:  one of two true, not both true or both false
         assert not (
             (len(anonymized_fixtures[endpoint]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["modified"]
+            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
         )
         for id in (pdm := anonymized_fixtures[endpoint]):
             if id not in ("deviceCount", "deviceDataLimit"):
@@ -1204,7 +1204,7 @@ async def test_anonymization(
         assert len(anonymized_fixtures[endpoint]) == len(content)
         assert not (
             (len(anonymized_fixtures[endpoint]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["modified"]
+            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
         )
         for inventory_type in anonymized_fixtures[endpoint]:
             dev_type = inventory_type["type"]
@@ -1219,7 +1219,7 @@ async def test_anonymization(
         assert len(anonymized_fixtures[endpoint]) == len(content)
         assert not (
             (len(anonymized_fixtures[endpoint][ENSEMBLE_POWER_DEVICE]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["modified"]
+            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
         )
         for device in anonymized_fixtures[endpoint][ENSEMBLE_POWER_DEVICE]:
             sn_start = PATCHED_SERIALS["ENCHARGE"]
@@ -1232,7 +1232,7 @@ async def test_anonymization(
         assert len(anonymized_fixtures[endpoint]) == len(content)
         assert not (
             (len(anonymized_fixtures[endpoint]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["modified"]
+            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
         )
         for inventory_type in anonymized_fixtures[endpoint]:
             dev_type = inventory_type["type"]
@@ -1247,7 +1247,7 @@ async def test_anonymization(
         assert len(anonymized_fixtures[endpoint]) == len(content)
         assert not (
             (len(anonymized_fixtures[endpoint]["inventory"]["serial_nums"]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["modified"]
+            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
         )
         for serial_num, device in anonymized_fixtures[endpoint]["inventory"][
             "serial_nums"
@@ -1273,6 +1273,6 @@ async def test_anonymization(
             assert anonymized_raw[endpoint] == anonymized_fixtures[endpoint]
             assert f"{endpoint}_log" in anonymized_raw
             assert (
-                anonymized_raw[f"{endpoint}_log"]["modified"]
-                == anonymized_fixtures[f"{endpoint}_log"]["modified"]
+                anonymized_raw[f"{endpoint}_log"]["serials_changed"]
+                == anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
             )
