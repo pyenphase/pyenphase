@@ -85,7 +85,8 @@ ENDPOINT_URL_HOME = "/home"
 
 # Include in docs to here
 
-#: List of endpoints reported by :py:meth:`Envoy.fixture_collection`
+#: List of endpoints reported by :py:meth:`pyenphase.Envoy.fixture_collection.`
+#: see :ref:`endpoint JSON<endpoint-json>` for endpoint data descriptions.
 FIXTURE_LIST = [
     "/info",
     URL_PRODUCTION_V1,
@@ -206,8 +207,11 @@ class PhaseNames(enum.StrEnum):
 #:
 PHASENAMES: list[str] = list(PhaseNames)
 
-# serials used to anonymize fixtire report data
+# serials used to anonymize fixture report data
 ENVOY_SERIAL = "123456789012"
+
+#: map device names to start of replacement serial number ranges
+#: for use in :py:meth:`~pyenphase.anonymization`
 TYPE_SERIALS = {
     "PCU": "100000000001",
     "ACB": "200000000001",
@@ -222,8 +226,10 @@ TYPE_SERIALS = {
     "ENCH_BMU": "640000000001",
     "UNKNOWN": "990000000001",
 }
-# map devtypes to names,
-# each value should have entry in type_serials
+
+# for anonymization each value should have entry in type_serials
+#: map devtypes to names in :any:`TYPE_SERIALS`
+#: for use in :py:meth:`~pyenphase.anonymization`
 DEVICE_TYPES = {
     1: "PCU",
     11: "ACB",
@@ -239,3 +245,4 @@ DEVICE_TYPES = {
     125: "C6 COMBINER CONTROLLER",
     0: "UNKNOWN",
 }
+ANONYMIZATION_EXC = (KeyError, ValueError, IndexError, TypeError, AttributeError)
