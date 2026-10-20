@@ -85,7 +85,7 @@ ENDPOINT_URL_HOME = "/home"
 
 # Include in docs to here
 
-#: List of endpoints reported by :py:meth:`pyenphase.Envoy.fixture_collection.`
+#: List of endpoints reported by :py:meth:`pyenphase.Envoy.fixture_collection`
 #: see :ref:`endpoint JSON<endpoint-json>` for endpoint data descriptions.
 FIXTURE_LIST = [
     "/info",
@@ -211,7 +211,7 @@ PHASENAMES: list[str] = list(PhaseNames)
 ENVOY_SERIAL = "123456789012"
 
 #: map device names to start of replacement serial number ranges
-#: for use in :py:meth:`~pyenphase.anonymization`
+#: for use in :py:func:`~pyenphase.anonymization.anonymize_serials`
 TYPE_SERIALS = {
     "PCU": "100000000001",
     "ACB": "200000000001",
@@ -229,7 +229,7 @@ TYPE_SERIALS = {
 
 # for anonymization each value should have entry in type_serials
 #: map devtypes to names in :any:`TYPE_SERIALS`
-#: for use in :py:meth:`~pyenphase.anonymization`
+#: for use in :py:func:`~pyenphase.anonymization.anonymize_serials`
 DEVICE_TYPES = {
     1: "PCU",
     11: "ACB",
