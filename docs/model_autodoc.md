@@ -378,6 +378,62 @@
   :member-order: groupwise
 ```
 
+(anonymization_models)=
+
+## Anonymization
+
+Models for anonymization of serial numbers in Envoy endpoint data.
+
+---
+
+```{eval-rst}
+.. automodule:: pyenphase.models.envoy_anonymize
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: groupwise
+```
+
+---
+
+```{eval-rst}
+.. automodule:: pyenphase.models.inverter_anonymize
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: groupwise
+```
+
+---
+
+```{eval-rst}
+.. automodule:: pyenphase.models.inventory_anonymize
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: groupwise
+```
+
+---
+
+```{eval-rst}
+.. automodule:: pyenphase.models.device_data_anonymize
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: groupwise
+```
+
+---
+
+```{eval-rst}
+.. automodule:: pyenphase.models.ensemble_anonymize
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: groupwise
+```
+
 # Utilities
 
 ## JSON
@@ -395,6 +451,18 @@ Helper functions for JSON.
   :members: NO_VERIFY_SSL_CONTEXT, SSL_CONTEXT, create_no_verify_ssl_context, create_default_ssl_context
   :show-inheritance:
 
+```
+
+## Anonymization
+
+Helper function to anonymize serial numbers in {py:class}`raw data<pyenphase.EnvoyData.raw>` or fixture data created by {py:meth}`fixture_collection<pyenphase.Envoy.fixture_collection>`. See [anonymization models](#anonymization_models) for specific endpoint anonymization and [endpoint json](./endpoint_json.md) for endpoint data details.
+
+```{eval-rst}
+.. automodule:: pyenphase.anonymization
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :member-order: groupwise
 ```
 
 # Exceptions
