@@ -15,6 +15,7 @@ from pyenphase.models.inventory_anonymize import anonymize_inventory
 from pyenphase.models.inverter_anonymize import anonymize_inverters
 
 from .const import (
+    ANONYMIZATION_ERROR_KEY,
     ANONYMIZATION_EXC,
     ENVOY_SERIAL,
     TYPE_SERIALS,
@@ -193,6 +194,8 @@ def anonymize_serials(
             }
 
     if len(anonymization_errors) > 0:
-        fixtures["anonymization_errors_log"] = list(anonymization_errors)
+        fixtures[ANONYMIZATION_ERROR_KEY] = fixtures.get(
+            ANONYMIZATION_ERROR_KEY, []
+        ) + list(anonymization_errors)
 
     return fixtures

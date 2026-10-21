@@ -246,3 +246,4 @@ DEVICE_TYPES = {
     0: "UNKNOWN",
 }
 ANONYMIZATION_EXC = (KeyError, ValueError, IndexError, TypeError, AttributeError)
+ANONYMIZATION_ERROR_KEY = "anonymization_errors_log"

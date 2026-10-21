@@ -33,6 +33,7 @@ from .auth import (
     EnvoyTokenAuth,
 )
 from .const import (
+    ANONYMIZATION_ERROR_KEY,
     AUTH_TOKEN_MIN_VERSION,
     DEFAULT_MAX_REQUEST_ATTEMPTS,
     DEFAULT_MAX_REQUEST_DELAY,
@@ -1928,10 +1929,10 @@ class Envoy:
         anonymized_collection = anonymize_serials(
             collection, self.serial_number, strict=strict_masking
         )
-        if "anonymization_errors_log" in anonymized_collection:
+        if ANONYMIZATION_ERROR_KEY in anonymized_collection:
             _LOGGER.warning(
                 "Fixture collection anonymization had errors, verify data %s",
-                anonymized_collection["anonymization_errors_log"],
+                anonymized_collection[ANONYMIZATION_ERROR_KEY],
             )
 
         return anonymized_collection

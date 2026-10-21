@@ -11,6 +11,7 @@ import pytest
 from aioresponses import aioresponses
 
 from pyenphase.const import (
+    ANONYMIZATION_ERROR_KEY,
     DEVICE_TYPES,
     FIXTURE_LIST,
     TYPE_SERIALS,
@@ -95,7 +96,7 @@ async def test_fixture_collection(
         assert "duration_seconds" in fixtures_collection[f"{fixture}_log"]
 
     assert "collection_aborted_log" not in fixtures_collection
-    assert "anonymization_errors_log" not in fixtures_collection
+    assert ANONYMIZATION_ERROR_KEY not in fixtures_collection
 
     # compare fixture_collection data to file content
     for endpoint, file in endpoint_to_fixture_file.items():
@@ -188,10 +189,10 @@ async def test_fixture_collection(
         fixtures_collection = await envoy.fixture_collection(
             ["/test/my/endpoint", "/test/my/invalid_endpoint"], mask_serials=True
         )
-    assert "anonymization_errors_log" in fixtures_collection
+    assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert (
         "Error during serial sequencing KeyError('UNKNOWN')"
-        in fixtures_collection["anonymization_errors_log"]
+        in fixtures_collection[ANONYMIZATION_ERROR_KEY]
     )
     assert "/info" in fixtures_collection
 
@@ -203,17 +204,17 @@ async def test_fixture_collection(
             mask_serials=True,
             strict_masking=True,
         )
-    assert "anonymization_errors_log" in fixtures_collection
+    assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert (
         "Error during serial sequencing KeyError('UNKNOWN')"
-        in fixtures_collection["anonymization_errors_log"]
+        in fixtures_collection[ANONYMIZATION_ERROR_KEY]
     )
     assert "/info" not in fixtures_collection
 
-    anonymized_fixtures: dict[str, Any] = {"anonymization_errors_log": "Yes"}
+    anonymized_fixtures: dict[str, Any] = {ANONYMIZATION_ERROR_KEY: "Yes"}
     with patch("pyenphase.envoy.anonymize_serials", return_value=anonymized_fixtures):
         fixtures_collection = await envoy.fixture_collection(
             mask_serials=True,
         )
-    assert "anonymization_errors_log" in fixtures_collection
+    assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert fixtures_collection == anonymized_fixtures

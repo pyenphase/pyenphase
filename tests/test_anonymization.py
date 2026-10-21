@@ -11,7 +11,13 @@ import pytest
 from aioresponses import aioresponses
 
 from pyenphase.anonymization import anonymize_serials
-from pyenphase.const import DEVICE_TYPES, ENVOY_SERIAL, FIXTURE_LIST, TYPE_SERIALS
+from pyenphase.const import (
+    ANONYMIZATION_ERROR_KEY,
+    DEVICE_TYPES,
+    ENVOY_SERIAL,
+    FIXTURE_LIST,
+    TYPE_SERIALS,
+)
 from pyenphase.models.device_data_anonymize import anonymize_device_data
 from pyenphase.models.ensemble_anonymize import (
     anonymize_ensemble_inventory,
@@ -86,7 +92,7 @@ async def test_anonymization_info() -> None:
         fixtures = {endpoint: source}
         anonymized_fixtures = anonymize_serials(fixtures, "564738292011")
         assert anonymized_fixtures[endpoint] == original_xml_anonymized
-        assert "anonymization_errors_log" not in anonymized_fixtures
+        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
     # test non str format is ignored and returned as-is
     for source in (
@@ -100,7 +106,7 @@ async def test_anonymization_info() -> None:
         fixtures = {endpoint: source}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == source
-        assert "anonymization_errors_log" not in anonymized_fixtures
+        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
 
 @pytest.mark.asyncio
@@ -179,7 +185,7 @@ async def test_anonymization_inverters() -> None:
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert "anonymization_errors_log" not in anonymized_fixtures
+        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
     # test malformed data is returned as is
     test_json = dc(original_json)
@@ -199,7 +205,7 @@ async def test_anonymization_inverters() -> None:
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert "anonymization_errors_log" not in anonymized_fixtures
+        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
 
 @pytest.mark.asyncio
@@ -277,7 +283,7 @@ async def test_anonymization_device_data() -> None:
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert "anonymization_errors_log" not in anonymized_fixtures
+        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
     test_json = dc(original_json)
     expected_json = dc(original_json_anonymized)
@@ -295,7 +301,7 @@ async def test_anonymization_device_data() -> None:
     fixtures = {endpoint: test_json}
     anonymized_fixtures = anonymize_serials(fixtures)
     assert anonymized_fixtures[endpoint] == expected_json
-    assert "anonymization_errors_log" not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
 
 @pytest.mark.asyncio
@@ -406,10 +412,10 @@ async def test_anonymization_inventory() -> None:
     fixtures = {endpoint: dc(hold_json)}
     anonymized_fixtures = anonymize_serials(fixtures, strict=True)
     assert endpoint not in anonymized_fixtures
-    assert "anonymization_errors_log" in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert any(
         f"Error on {endpoint} TypeError" in log
-        for log in anonymized_fixtures["anonymization_errors_log"]
+        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
     # test automatic serial anonymization in strict mode with serial sequencing error
@@ -418,10 +424,10 @@ async def test_anonymization_inventory() -> None:
     with patch("pyenphase.anonymization.TYPE_SERIALS", {"PCU": "1", "ACB": 2}):
         anonymized_fixtures = anonymize_serials(fixtures, strict=True)
     assert endpoint not in anonymized_fixtures
-    assert "anonymization_errors_log" in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert (
         "Error during serial sequencing KeyError('UNKNOWN')"
-        in anonymized_fixtures["anonymization_errors_log"]
+        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
     # test automatic serial anonymization in regular mode with serial sequencing error
@@ -430,10 +436,10 @@ async def test_anonymization_inventory() -> None:
     with patch("pyenphase.anonymization.TYPE_SERIALS", {"PCU": "1", "ACB": 2}):
         anonymized_fixtures = anonymize_serials(fixtures)
     assert endpoint in anonymized_fixtures
-    assert "anonymization_errors_log" in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert (
         "Error during serial sequencing KeyError('UNKNOWN')"
-        in anonymized_fixtures["anonymization_errors_log"]
+        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
     # test automatic serial anonymization in regular mode
@@ -464,7 +470,7 @@ async def test_anonymization_inventory() -> None:
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert "anonymization_errors_log" not in anonymized_fixtures
+        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
     del test_json[0]["devices"][1]["serial_num"]
     # missing serial_num will sho as UNKNOWN type
@@ -485,7 +491,7 @@ async def test_anonymization_inventory() -> None:
     fixtures = {endpoint: test_json}
     anonymized_fixtures = anonymize_serials(fixtures)
     assert anonymized_fixtures[endpoint] == expected_json
-    assert "anonymization_errors_log" not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
 
 @pytest.mark.asyncio
@@ -570,7 +576,7 @@ async def test_anonymization_ensemble_power() -> None:
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert "anonymization_errors_log" not in anonymized_fixtures
+        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
     # test with incorrect formats
     test_json[ENSEMBLE_POWER_DEVICE].extend(
@@ -605,7 +611,7 @@ async def test_anonymization_ensemble_power() -> None:
     fixtures = {endpoint: test_json}
     anonymized_fixtures = anonymize_serials(fixtures)
     assert anonymized_fixtures[endpoint] == expected_json
-    assert "anonymization_errors_log" not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
 
 @pytest.mark.asyncio
@@ -734,7 +740,7 @@ async def test_anonymization_ensemble_inventory() -> None:
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert "anonymization_errors_log" not in anonymized_fixtures
+        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
     test_json.extend(
         [
@@ -798,7 +804,7 @@ async def test_anonymization_ensemble_inventory() -> None:
     fixtures = {endpoint: test_json}
     anonymized_fixtures = anonymize_serials(fixtures)
     assert anonymized_fixtures[endpoint] == expected_json
-    assert "anonymization_errors_log" not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
 
 @pytest.mark.asyncio
@@ -976,7 +982,7 @@ async def test_anonymization_ensemble_status() -> None:
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert "anonymization_errors_log" not in anonymized_fixtures
+        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
     test_json["inventory"]["serial_nums"].update(
         {
@@ -1015,9 +1021,9 @@ async def test_anonymization_ensemble_status() -> None:
 
     fixtures = {endpoint: dc(test_json)}
     anonymized_fixtures = anonymize_serials(fixtures)
-    assert "anonymization_errors_log" not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
     assert anonymized_fixtures[endpoint] == expected_json
-    assert "anonymization_errors_log" not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
     test_json["inventory"]["serial_nums"].update(
         {
@@ -1063,10 +1069,10 @@ async def test_anonymization_ensemble_status() -> None:
 
     fixtures = {endpoint: test_json}
     anonymized_fixtures = anonymize_serials(fixtures)
-    assert "anonymization_errors_log" in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert any(
         f"Error on {endpoint} TypeError" in log
-        for log in anonymized_fixtures["anonymization_errors_log"]
+        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
 
