@@ -56,9 +56,9 @@ def anonymize_serials(
     If strict = True then failed serial masking will be removed from the result.
 
     A matching '<endpoint>_log' dict entry will be added or updated with
-    a boolean 'modified' key that signals if the endpoint data was
+    a boolean 'serials_changed' key that signals if the endpoint data was
     changed by the masking. If the '<endpoint>_log' exists when calling
-    masking it will be checked for the presence of the key 'status'. If
+    masking it will be checked for the presence of the key 'code'. If
     present and its value is not 200 (HTML status) the endpoint will be
     considered invalid and excluded from masking.
 
