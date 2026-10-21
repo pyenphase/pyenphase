@@ -100,7 +100,7 @@ async def test_fixture_collection(
     # compare fixture_collection data to file content
     for endpoint, file in endpoint_to_fixture_file.items():
         if endpoint not in exclude and file in files:
-            assert "modified" not in fixtures_collection[f"{endpoint}_log"]
+            assert "serials_changed" not in fixtures_collection[f"{endpoint}_log"]
             try:
                 content = await load_json_fixture(version, file)
                 assert fixtures_collection[endpoint] == content
