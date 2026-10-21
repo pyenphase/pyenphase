@@ -1883,6 +1883,9 @@ class Envoy:
                         async with response:  # release response on error
                             response_text = await response.text(errors="replace")
                         collection[last_endpoint] = response_text.replace("\n", "")
+                except asyncio.TimeoutError:
+                    # includes aiohttp ServerTimeoutError subclasses, abort collection
+                    raise
                 except (aiohttp.ClientError, EnvoyAuthenticationRequired) as err:
                     # try next endpoint if request fails on formats and other none timeout errors
                     request_end = time.monotonic()
