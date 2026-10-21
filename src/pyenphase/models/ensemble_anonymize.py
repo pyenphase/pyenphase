@@ -186,19 +186,13 @@ def anonymize_ensemble_status(
         target: dict[str, Any], mask_with: str, serials: dict[str, str]
     ) -> None:
         # replace serials in dict keys
-        # prevent target entries without serials entry leaking serial patch with unique string serial
-        serials |= {
-            k: f"{mask_with}{idx}" for idx, k in enumerate(target) if k not in serials
+        # prevent target entries without serials entry leaking serial, patch with unique string serial
+        renamed = {
+            serials.get(k, f"{mask_with}{i}"): v
+            for i, (k, v) in enumerate(target.items())
         }
-        new_serials: dict[str, Any] = {
-            substitute: v
-            for k, v in target.items()
-            for original, substitute in serials.items()
-            if k == original
-        }
-        for original in serials:
-            target.pop(original, None)
-        target.update(new_serials)
+        target.clear()
+        target.update(renamed)
 
     if (
         usable_fixture((endpoint := "/ivp/ensemble/status"), fixtures, dict)
