@@ -251,6 +251,9 @@ def anonymize_ensemble_status(
             elif scan_only:
                 serials |= {serial: "UNKNOWN"}
 
+            else:
+                anonymization_errors.add(f"Unexpected data type for {endpoint}")
+
         if not scan_only:
             # serials are key in dict, need to replace keys
             new_keys(serial_nums, "SERIAL", serials)

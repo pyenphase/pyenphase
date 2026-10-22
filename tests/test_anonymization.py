@@ -1025,7 +1025,7 @@ async def test_anonymization_ensemble_status() -> None:
     expected_json = dc(original_json_anonymized)
 
     for source_json, anonymized_json, has_type_error in (
-        (dc(test_json), expected_json, False),
+        (dc(test_json), expected_json, True),
         ("some text data", "some text data", True),
         (1, 1, True),
         ({"hello": "world"}, {"hello": "world"}, False),
@@ -1079,9 +1079,12 @@ async def test_anonymization_ensemble_status() -> None:
 
     fixtures = {endpoint: dc(test_json)}
     anonymized_fixtures = anonymize_serials(fixtures)
-    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
     assert anonymized_fixtures[endpoint] == expected_json
-    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+    assert (
+        f"Unexpected data type for {endpoint}"
+        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    )
 
     test_json["inventory"]["serial_nums"].update(
         {
