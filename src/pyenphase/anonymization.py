@@ -204,9 +204,10 @@ def anonymize_serials(
             and endpoint not in endpoint_processed
         ):
             try:
+                known_serials = [s for s in serials if isinstance(s, str) and s]
                 if any(
                     serial in orjson.dumps(fixtures[endpoint]).decode()
-                    for serial in serials
+                    for serial in known_serials
                 ):
                     endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
                     anonymization_errors.add(f"Masked serials also found in {endpoint}")
