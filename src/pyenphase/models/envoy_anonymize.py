@@ -45,7 +45,10 @@ def anonymize_info(
                     match.group(1),
                     f"<sn>{serials.get(match.group(2), 'UNKNOWN')}</sn>",
                 )
-
+        else:
+            anonymization_errors.add(
+                f"Unexpected data type for {endpoint}, no <sn>serial</sn> found"
+            )
     elif state == FIXTURE_STATE.TYPE_ERROR:
         anonymization_errors.add(f"Unexpected data type for {endpoint}")
 

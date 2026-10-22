@@ -99,11 +99,11 @@ async def test_anonymization_info() -> None:
         ({"<sn>": "123456</sn>"}, True),
         (["<sn>123456</sn>"], True),
         (1, True),
-        ("", False),
+        ("", True),
         ([1, 2], True),
         (
             "<envoy_info><device><nosn>1</nosn><software>D8.3.6087</software></device></envoy_info>",
-            False,
+            True,
         ),
     ):
         fixtures = {endpoint: source}
@@ -113,9 +113,9 @@ async def test_anonymization_info() -> None:
             assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
         else:
             assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-            assert (
-                f"Unexpected data type for {endpoint}"
-                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+            assert any(
+                f"Unexpected data type for {endpoint}" in log
+                for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
             )
 
 
