@@ -167,6 +167,8 @@ def anonymize_serials(
         anonymization_errors.add(f"Error during serial sequencing {exc!r}")
         if strict:
             for endpoint in endpoint_processed:
+                if endpoint not in fixtures:
+                    continue
                 _LOGGER.debug(
                     "Anonymizer in strict mode, removing %s from data", endpoint
                 )
