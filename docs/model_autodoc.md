@@ -465,6 +465,17 @@ Helper function to anonymize serial numbers in {py:class}`raw data<pyenphase.Env
   :member-order: groupwise
 ```
 
+## Helpers
+
+Miscelanious helper functions.
+
+```{eval-rst}
+.. automodule:: pyenphase.utilities
+  :members:
+  :show-inheritance:
+
+```
+
 # Exceptions
 
 ```{eval-rst}
