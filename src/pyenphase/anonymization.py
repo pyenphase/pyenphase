@@ -20,6 +20,7 @@ from .const import (
     ANONYMIZATION_ERROR_KEY,
     ANONYMIZATION_EXC,
     ENVOY_SERIAL,
+    MASK_STATE,
     TYPE_SERIALS,
 )
 
@@ -56,16 +57,16 @@ def anonymize_serials(
     contains a list of occurred errors. Callers should check for this key
     and decide how to handle it.
 
-    If strict == True, then failed serial masking entries will be removed
+    If strict == True, failed serial masking entries will be removed
     from the result.
 
     A matching '<endpoint>_log' dict entry will be added or updated with
-    a boolean 'serials_changed' key that signals if the endpoint data was
-    changed by the masking.
+    a 'mask_state' key of type :any:`MASK_STATE` that signals the
+    resulting status of the masking.
 
-    If the '<endpoint>_log' exists when calling masking it will be checked
+    If the '<endpoint>_log' exists when masking, it will be checked
     for the presence of the key 'code'. If present and its value is not
-    200 (HTML status) the endpoint will be considered invalid and excluded
+    200 (HTML status) the endpoint data will be considered invalid and excluded
     from masking.
 
     Generics serial numbers assigned to mask originals:
@@ -94,7 +95,7 @@ def anonymize_serials(
     :param strict: if True then failed anonymizations will be removed from
         the result. Default False
     :returns: New dict copy of collected_fixtures with serials replaced.
-        Key 'anonymization_errors_log' will be present if anomyzation had
+        Key 'anonymization_errors_log' will be present if anonymization had
         errors and could not anonymize all entries.
     """
     fixtures = copy.deepcopy(endpoint_data)
@@ -102,6 +103,13 @@ def anonymize_serials(
     serials: dict[str, Any] = {}
     endpoint_processed: list[str] = []
     endpoint_status: dict[str, Any] = {}
+
+    def add_log(
+        endpoint: str, endpoint_fixtures: dict[str, Any], log_entry: dict[str, Any]
+    ) -> None:
+        endpoint_fixtures[f"{endpoint}_log"] = (
+            endpoint_fixtures.get(f"{endpoint}_log", {}) | log_entry
+        )
 
     # Add the Envoy serial
     if envoy_serial:
@@ -122,6 +130,7 @@ def anonymize_serials(
                 result,
             )
             endpoint_status[endpoint] = len(result)
+            add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
 
     # group all unknown device types into unknown group
     serials = {
@@ -162,6 +171,7 @@ def anonymize_serials(
                     "Anonymizer in strict mode, removing %s from data", endpoint
                 )
                 fixtures.pop(endpoint, None)
+                add_log(endpoint, fixtures, {"mask_state": MASK_STATE.REMOVED})
 
     # envoy and pdm EIM device contain envoy serial followed by EIMn
     serials.update(
@@ -184,6 +194,7 @@ def anonymize_serials(
                 result,
             )
             endpoint_status[endpoint] = endpoint_status.get(endpoint, len(result))
+            add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
 
     # scan for known serials in all endpoints and signal for strict removal if found
     for endpoint in list(fixtures):
@@ -199,11 +210,14 @@ def anonymize_serials(
                 ):
                     endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
                     anonymization_errors.add(f"Masked serials also found in {endpoint}")
+                    add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
+
             except ANONYMIZATION_EXC as exc:
                 endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
                 anonymization_errors.add(
                     f"Error during serial replacement for {endpoint} {exc!r}"
                 )
+                add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
                 continue
 
     # in strict modus remove failed endpoints
@@ -211,13 +225,24 @@ def anonymize_serials(
         for endpoint in endpoint_status:
             _LOGGER.debug("Anonymizer in strict mode, removing %s from data", endpoint)
             fixtures.pop(endpoint, None)
+            add_log(endpoint, fixtures, {"mask_state": MASK_STATE.REMOVED})
 
-    # add or update endpoint_log key with 'serials_changed' entry
+    # mark endpoint_log entry for unchanged endpoints
     for endpoint in list(fixtures):
-        if not endpoint.endswith("_log") and endpoint.startswith("/"):
-            fixtures[f"{endpoint}_log"] = fixtures.get(f"{endpoint}_log", {}) | {
-                "serials_changed": (fixtures[endpoint] != endpoint_data[endpoint])
-            }
+        if (
+            not endpoint.endswith("_log")
+            and endpoint.startswith("/")
+            and "mask_state" not in fixtures.get(f"{endpoint}_log", {})
+        ):
+            add_log(
+                endpoint,
+                fixtures,
+                {
+                    "mask_state": MASK_STATE.MASKED
+                    if (fixtures[endpoint] != endpoint_data[endpoint])
+                    else MASK_STATE.UNCHANGED
+                },
+            )
 
     # Add anonymization errors to returned dict
     if len(anonymization_errors) > 0:

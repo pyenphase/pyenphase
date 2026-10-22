@@ -255,3 +255,14 @@ class FIXTURE_STATE(enum.Enum):
     UNUSABLE = 0  #: Endpoint is missing, or is of specified type and <endpoint>_log['code'] is present and not 200
     USABLE = 1  #: Endpoint is present, is of specified type and <endpoint>_log['code'] == 200 or not present
     TYPE_ERROR = 2  #: Endpoint is present but not of specified type
+
+
+class MASK_STATE(enum.StrEnum):
+    """Result of endpoint anonymization returned by :py:func:`~pyenphase.anonymization.anonymize_serials`."""
+
+    UNCHANGED = "unchanged"  #: Endpoint data was not changed by anonymization
+    MASKED = (
+        "masked"  #: Endpoint data was changed by anonymization and no errors occurred
+    )
+    FAILED = "failed"  #: Endpoint data was changed by anonymization but errors occurred and change may be incomplete
+    REMOVED = "removed"  #: Endpoint is removed from data as failures occurred and strict mode is enabled

@@ -16,6 +16,7 @@ from pyenphase.const import (
     DEVICE_TYPES,
     ENVOY_SERIAL,
     FIXTURE_LIST,
+    MASK_STATE,
     TYPE_SERIALS,
 )
 from pyenphase.models.device_data_anonymize import anonymize_device_data
@@ -1159,7 +1160,7 @@ PATCHED_ENVOY_SERIAL = "923456789012"
 @pytest.mark.parametrize(
     ("version", "exclude"),
     [
-        ("8.3.5169_ACB_inventory", []),
+        ("8.3.5169_ACB_inventory", ["/ivp/ensemble/inventory"]),
         ("8.3.5169_with_generator", []),
         ("8.3.1598_collar", ["/ivp/pdm/device_data", "/inventory.json?deleted=1"]),
     ],
@@ -1251,7 +1252,10 @@ async def test_anonymization(
         assert len(anonymized_fixtures[endpoint]) == len(content)
         assert not (
             (len(anonymized_fixtures[endpoint]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
+            ^ (
+                anonymized_fixtures[f"{endpoint}_log"]["mask_state"]
+                in (MASK_STATE.MASKED, MASK_STATE.UNCHANGED)
+            )
         )
         for inverter in anonymized_fixtures[endpoint]:
             sn_start = PATCHED_SERIALS[DEVICE_TYPES[inverter["devType"]]]
@@ -1266,7 +1270,10 @@ async def test_anonymization(
         # ^:  one of two true, not both true or both false
         assert not (
             (len(anonymized_fixtures[endpoint]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
+            ^ (
+                anonymized_fixtures[f"{endpoint}_log"]["mask_state"]
+                in (MASK_STATE.MASKED, MASK_STATE.UNCHANGED)
+            )
         )
         for id in (pdm := anonymized_fixtures[endpoint]):
             if id not in ("deviceCount", "deviceDataLimit"):
@@ -1284,7 +1291,10 @@ async def test_anonymization(
         assert len(anonymized_fixtures[endpoint]) == len(content)
         assert not (
             (len(anonymized_fixtures[endpoint]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
+            ^ (
+                anonymized_fixtures[f"{endpoint}_log"]["mask_state"]
+                in (MASK_STATE.MASKED, MASK_STATE.UNCHANGED)
+            )
         )
         for inventory_type in anonymized_fixtures[endpoint]:
             dev_type = inventory_type["type"]
@@ -1298,8 +1308,11 @@ async def test_anonymization(
         content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
         assert len(anonymized_fixtures[endpoint]) == len(content)
         assert not (
-            (len(anonymized_fixtures[endpoint][ENSEMBLE_POWER_DEVICE]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
+            (len(anonymized_fixtures[endpoint]) > 0)
+            ^ (
+                anonymized_fixtures[f"{endpoint}_log"]["mask_state"]
+                in (MASK_STATE.MASKED, MASK_STATE.UNCHANGED)
+            )
         )
         for device in anonymized_fixtures[endpoint][ENSEMBLE_POWER_DEVICE]:
             sn_start = PATCHED_SERIALS["ENCHARGE"]
@@ -1312,7 +1325,10 @@ async def test_anonymization(
         assert len(anonymized_fixtures[endpoint]) == len(content)
         assert not (
             (len(anonymized_fixtures[endpoint]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
+            ^ (
+                anonymized_fixtures[f"{endpoint}_log"]["mask_state"]
+                in (MASK_STATE.MASKED, MASK_STATE.UNCHANGED)
+            )
         )
         for inventory_type in anonymized_fixtures[endpoint]:
             dev_type = inventory_type["type"]
@@ -1326,8 +1342,11 @@ async def test_anonymization(
         content = await load_json_fixture(version, endpoint_to_fixture_file[endpoint])
         assert len(anonymized_fixtures[endpoint]) == len(content)
         assert not (
-            (len(anonymized_fixtures[endpoint]["inventory"]["serial_nums"]) > 0)
-            ^ anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
+            (len(anonymized_fixtures[endpoint]) > 0)
+            ^ (
+                anonymized_fixtures[f"{endpoint}_log"]["mask_state"]
+                in (MASK_STATE.MASKED, MASK_STATE.UNCHANGED)
+            )
         )
         for serial_num, device in anonymized_fixtures[endpoint]["inventory"][
             "serial_nums"
@@ -1368,6 +1387,6 @@ async def test_anonymization(
             assert anonymized_raw[endpoint] == anonymized_fixtures[endpoint]
             assert f"{endpoint}_log" in anonymized_raw
             assert (
-                anonymized_raw[f"{endpoint}_log"]["serials_changed"]
-                == anonymized_fixtures[f"{endpoint}_log"]["serials_changed"]
+                anonymized_raw[f"{endpoint}_log"]["mask_state"]
+                == anonymized_fixtures[f"{endpoint}_log"]["mask_state"]
             )

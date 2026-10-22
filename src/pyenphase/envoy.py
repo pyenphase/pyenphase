@@ -1821,7 +1821,8 @@ class Envoy:
         replaced by neutral generic numbers. Depending on Envoy firmware version, original
         serials may still be present with this option enabled. If any errors occur during serial
         masking, the data may still contain original serial numbers. Set strict_masking True to
-        exclude these error endpoints from the data.
+        exclude these error endpoints from the data. See
+        :py:meth:`~pyenphase.anonymization.anonymize_serials` for further details.
 
         For each endpoint returns 2 dict entries:
 
@@ -1835,13 +1836,13 @@ class Envoy:
                         "error": str,
                         "report_time": str,
                         "duration_seconds": float,
-                        "serials_changed": bool
+                        "mask_state": MASK_STATE
                     }
             }
 
         The error key in the endpoint log entry is only present when
         an error occurs. In that case `code` will be set to 0. The
-        serials_changed key is only present if serial masking was requested.
+        mask_state key is only present if serial masking was requested.
 
 
         :param additional_endpoints: List of additional endpoints
