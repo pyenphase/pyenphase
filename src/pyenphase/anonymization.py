@@ -4,6 +4,8 @@ import copy
 import logging
 from typing import Any
 
+import orjson
+
 from pyenphase.models.device_data_anonymize import anonymize_device_data
 from pyenphase.models.ensemble_anonymize import (
     anonymize_ensemble_inventory,
@@ -183,13 +185,34 @@ def anonymize_serials(
             )
             endpoint_status[endpoint] = endpoint_status.get(endpoint, len(result))
 
+    # scan for known serials in all endpoints and signal for strict removal if found
+    for endpoint in list(fixtures):
+        if (
+            not endpoint.endswith("_log")
+            and endpoint.startswith("/")
+            and endpoint not in endpoint_processed
+        ):
+            try:
+                if any(
+                    serial in orjson.dumps(fixtures[endpoint]).decode()
+                    for serial in serials
+                ):
+                    endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
+                    anonymization_errors.add(f"Masked serials also found in {endpoint}")
+            except ANONYMIZATION_EXC as exc:
+                endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
+                anonymization_errors.add(
+                    f"Error during serial replacement for {endpoint} {exc!r}"
+                )
+                continue
+
     # in strict modus remove failed endpoints
     if strict and len(endpoint_status):
         for endpoint in endpoint_status:
             _LOGGER.debug("Anonymizer in strict mode, removing %s from data", endpoint)
             fixtures.pop(endpoint, None)
 
-    # add or update endpoint>_log key with 'serials_changed' entry
+    # add or update endpoint_log key with 'serials_changed' entry
     for endpoint in list(fixtures):
         if not endpoint.endswith("_log") and endpoint.startswith("/"):
             fixtures[f"{endpoint}_log"] = fixtures.get(f"{endpoint}_log", {}) | {
@@ -201,5 +224,4 @@ def anonymize_serials(
         fixtures[ANONYMIZATION_ERROR_KEY] = fixtures.get(
             ANONYMIZATION_ERROR_KEY, []
         ) + list(anonymization_errors)
-
     return fixtures

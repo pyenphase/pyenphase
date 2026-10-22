@@ -39,7 +39,7 @@ from .common import (
     start_7_firmware_mock,
 )
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 ENSEMBLE_POWER_DEVICE = "devices:"
 
@@ -1191,8 +1191,18 @@ async def test_anonymization(
         mock_aioresponse, "get", f"{full_host}/info", body=info_xml, repeat=True
     )
 
+    # and endpoint not in known anonimyzed set and containing known serial
+    mock_aioresponse.get(
+        f"{full_host}/my_endpoint",
+        payload={"test": "this is the envoy serial 210987654321"},
+        status=200,
+        repeat=True,
+    )
+
     # obtain fixtures_collection without serial anonymization
-    fixtures = await envoy.fixture_collection(mask_serials=False)
+    fixtures = await envoy.fixture_collection(
+        additional_endpoints=["/my_endpoint"], mask_serials=False
+    )
 
     # map endpoints to fixture file
     endpoint_to_fixture_file = {
@@ -1330,6 +1340,21 @@ async def test_anonymization(
                 subdev_type = DEVICE_TYPES.get(sub_device["device_type"], "UNKNOWN")
                 sub_sn_start = PATCHED_SERIALS[subdev_type.upper()]
                 assert sub_sn_start <= sub_serial < str(int(sub_sn_start) + 99)
+
+    # Verify serials in non-masked endpoints are signalled
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+    assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
+        "Masked serials also found in /my_endpoint"
+    ]
+
+    # test dumps error handling
+    with patch("pyenphase.anonymization.orjson.dumps", side_effect=ValueError):
+        strict_anonymized_fixtures = anonymize_serials(fixtures, strict=True)
+    assert ANONYMIZATION_ERROR_KEY in strict_anonymized_fixtures
+    assert any(
+        "Error during serial replacement for" in log
+        for log in strict_anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    )
 
     # test anonymize of raw data
     assert envoy.data
