@@ -178,7 +178,7 @@ def anonymize_serials(
         {
             key: f"{ENVOY_SERIAL}{key[key.find('EIM') :] if key.find('EIM') != -1 else ''}"
             for key, value in serials.items()
-            if value in ("ENVOY", "EIM")
+            if value in ("ENVOY", "EIM") and isinstance(key, str) and key
         }
     )
 
