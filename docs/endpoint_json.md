@@ -73,7 +73,7 @@ This is the endpoint used for basic inverter production data. If the [device_dat
 
 (endpoint_inventory)=
 
-## /inventory
+## /inventory.json?deleted=1
 
 (endpoint_inventory_description)=
 
