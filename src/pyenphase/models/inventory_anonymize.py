@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pyenphase.const import ANONYMIZATION_EXC
+from pyenphase.const import ANONYMIZATION_EXC, FIXTURE_STATE
 from pyenphase.utilities import usable_fixture
 
 
@@ -49,7 +49,11 @@ def anonymize_inventory(
     :returns: endpoint used and set of error descriptions occurred, empty if none
     """
     anonymization_errors: set[str] = set()
-    if usable_fixture((endpoint := "/inventory.json?deleted=1"), fixtures, list):
+    if (
+        state := usable_fixture(
+            (endpoint := "/inventory.json?deleted=1"), fixtures, list
+        )
+    ) == FIXTURE_STATE.USABLE:
         for inv_type in fixtures[endpoint]:
             if (
                 isinstance(inv_type, dict)
@@ -68,4 +72,8 @@ def anonymize_inventory(
                                 )
                         except ANONYMIZATION_EXC as exc:
                             anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+
+    elif state == FIXTURE_STATE.TYPE_ERROR:
+        anonymization_errors.add(f"Unexpected data type for {endpoint}")
+
     return endpoint, anonymization_errors

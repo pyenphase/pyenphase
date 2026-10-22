@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pyenphase.const import ANONYMIZATION_EXC
+from pyenphase.const import ANONYMIZATION_EXC, FIXTURE_STATE
 from pyenphase.utilities import usable_fixture
 
 
@@ -44,7 +44,9 @@ def anonymize_device_data(
     :returns: endpoint used and set of error descriptions occurred, empty if none
     """
     anonymization_errors: set[str] = set()
-    if usable_fixture((endpoint := "/ivp/pdm/device_data"), fixtures, dict):
+    if (
+        state := usable_fixture((endpoint := "/ivp/pdm/device_data"), fixtures, dict)
+    ) == FIXTURE_STATE.USABLE:
         for device in fixtures[endpoint].values():
             # "deviceCount" are "deviceDataLimit" are plain numbers, not dict
             if isinstance(device, dict) and "sn" in device:
@@ -56,4 +58,8 @@ def anonymize_device_data(
                         device["sn"] = serials.get(device["sn"], "UNKNOWN")
                 except ANONYMIZATION_EXC as exc:
                     anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+
+    elif state == FIXTURE_STATE.TYPE_ERROR:
+        anonymization_errors.add(f"Unexpected data type for {endpoint}")
+
     return endpoint, anonymization_errors

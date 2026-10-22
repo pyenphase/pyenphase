@@ -3,6 +3,7 @@
 import re
 from typing import Any
 
+from pyenphase.const import FIXTURE_STATE
 from pyenphase.utilities import usable_fixture
 
 
@@ -32,7 +33,9 @@ def anonymize_info(
     :returns: endpoint used and set of error descriptions occurred, empty if none
     """
     anonymization_errors: set[str] = set()
-    if usable_fixture((endpoint := "/info"), fixtures, str):
+    if (
+        state := usable_fixture((endpoint := "/info"), fixtures, str)
+    ) == FIXTURE_STATE.USABLE:
         match = re.search(r"(<sn>([^<]+)<\/sn>)", (data := fixtures[endpoint]))
         if match:
             if scan_only:
@@ -42,4 +45,8 @@ def anonymize_info(
                     match.group(1),
                     f"<sn>{serials.get(match.group(2), 'UNKNOWN')}</sn>",
                 )
+
+    elif state == FIXTURE_STATE.TYPE_ERROR:
+        anonymization_errors.add(f"Unexpected data type for {endpoint}")
+
     return endpoint, anonymization_errors

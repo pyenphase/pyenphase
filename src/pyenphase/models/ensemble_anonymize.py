@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pyenphase.const import ANONYMIZATION_EXC
+from pyenphase.const import ANONYMIZATION_EXC, FIXTURE_STATE
 from pyenphase.utilities import device_type_name, usable_fixture
 
 
@@ -47,7 +47,8 @@ def anonymize_ensemble_power(
     """
     anonymization_errors: set[str] = set()
     if (
-        usable_fixture((endpoint := "/ivp/ensemble/power"), fixtures, dict)
+        (state := usable_fixture((endpoint := "/ivp/ensemble/power"), fixtures, dict))
+        == FIXTURE_STATE.USABLE
         and "devices:" in (power_data := fixtures[endpoint])
         and isinstance((devices := power_data["devices:"]), list)
     ):
@@ -62,6 +63,10 @@ def anonymize_ensemble_power(
                         )
                 except ANONYMIZATION_EXC as exc:
                     anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+
+    elif state == FIXTURE_STATE.TYPE_ERROR:
+        anonymization_errors.add(f"Unexpected data type for {endpoint}")
+
     return endpoint, anonymization_errors
 
 
@@ -110,7 +115,9 @@ def anonymize_ensemble_inventory(
     :returns: endpoint used and set of error descriptions occurred, empty if none
     """
     anonymization_errors: set[str] = set()
-    if usable_fixture((endpoint := "/ivp/ensemble/inventory"), fixtures, list):
+    if (
+        state := usable_fixture((endpoint := "/ivp/ensemble/inventory"), fixtures, list)
+    ) == FIXTURE_STATE.USABLE:
         for inv_type in fixtures[endpoint]:
             if (
                 isinstance(inv_type, dict)
@@ -129,6 +136,10 @@ def anonymize_ensemble_inventory(
                                 )
                         except ANONYMIZATION_EXC as exc:
                             anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+
+    elif state == FIXTURE_STATE.TYPE_ERROR:
+        anonymization_errors.add(f"Unexpected data type for {endpoint}")
+
     return endpoint, anonymization_errors
 
 
@@ -195,7 +206,8 @@ def anonymize_ensemble_status(
         target.update(renamed)
 
     if (
-        usable_fixture((endpoint := "/ivp/ensemble/status"), fixtures, dict)
+        (state := usable_fixture((endpoint := "/ivp/ensemble/status"), fixtures, dict))
+        == FIXTURE_STATE.USABLE
         and "inventory" in fixtures[endpoint]
         and isinstance((inventory := fixtures[endpoint]["inventory"]), dict)
         and "serial_nums" in inventory
@@ -242,5 +254,8 @@ def anonymize_ensemble_status(
         if not scan_only:
             # serials are key in dict, need to replace keys
             new_keys(serial_nums, "SERIAL", serials)
+
+    elif state == FIXTURE_STATE.TYPE_ERROR:
+        anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
     return endpoint, anonymization_errors

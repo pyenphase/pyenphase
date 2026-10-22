@@ -44,9 +44,9 @@ def anonymize_serials(
     locations for the Envoy, inverters, ensemble and pdm devices by
     generic values and returns the new dict.
 
-    Replacement is on best effort as depending on actual Envoy
-    firmware version and configuration, original serials may still be
-    present upon completion.
+    Replacement is on best effort based on current knowledge of Envoy
+    local API. Depending on actual Envoy firmware version running in the Envoy
+    and its configuration, original serials may still be present upon completion.
 
     If any error occurs during serial replacement, the data may be returned
     with partial replaced serials. Any error is signalled by the presence of
@@ -54,14 +54,17 @@ def anonymize_serials(
     contains a list of occurred errors. Callers should check for this key
     and decide how to handle it.
 
-    If strict = True then failed serial masking will be removed from the result.
+    If strict == True, then failed serial masking entries will be removed
+    from the result.
 
     A matching '<endpoint>_log' dict entry will be added or updated with
     a boolean 'serials_changed' key that signals if the endpoint data was
-    changed by the masking. If the '<endpoint>_log' exists when calling
-    masking it will be checked for the presence of the key 'code'. If
-    present and its value is not 200 (HTML status) the endpoint will be
-    considered invalid and excluded from masking.
+    changed by the masking.
+
+    If the '<endpoint>_log' exists when calling masking it will be checked
+    for the presence of the key 'code'. If present and its value is not
+    200 (HTML status) the endpoint will be considered invalid and excluded
+    from masking.
 
     Generics serial numbers assigned to mask originals:
 
@@ -193,6 +196,7 @@ def anonymize_serials(
                 "serials_changed": (fixtures[endpoint] != endpoint_data[endpoint])
             }
 
+    # Add anonymization errors to returned dict
     if len(anonymization_errors) > 0:
         fixtures[ANONYMIZATION_ERROR_KEY] = fixtures.get(
             ANONYMIZATION_ERROR_KEY, []

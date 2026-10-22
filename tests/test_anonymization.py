@@ -95,18 +95,28 @@ async def test_anonymization_info() -> None:
         assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
 
     # test non str format is ignored and returned as-is
-    for source in (
-        {"<sn>": "123456</sn>"},
-        ["<sn>123456</sn>"],
-        1,
-        "",
-        [1, 2],
-        "<envoy_info><device><nosn>1</nosn><software>D8.3.6087</software></device></envoy_info>",
+    for source, has_type_error in (
+        ({"<sn>": "123456</sn>"}, True),
+        (["<sn>123456</sn>"], True),
+        (1, True),
+        ("", False),
+        ([1, 2], True),
+        (
+            "<envoy_info><device><nosn>1</nosn><software>D8.3.6087</software></device></envoy_info>",
+            False,
+        ),
     ):
         fixtures = {endpoint: source}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == source
-        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        if not has_type_error:
+            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        else:
+            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+            assert (
+                f"Unexpected data type for {endpoint}"
+                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+            )
 
 
 @pytest.mark.asyncio
@@ -175,17 +185,24 @@ async def test_anonymization_inverters() -> None:
     # replace second dict by string
     test_json[2] = "482020200002"
     expected_json[2] = "482020200002"
-    for source_json, anonymized_json in (
-        (dc(original_json), original_json_anonymized),
-        ({"maxReportWatts": 297}, {"maxReportWatts": 297}),
-        ("maxReportWatts: 297", "maxReportWatts: 297"),
-        (1, 1),
-        (test_json, expected_json),
+    for source_json, anonymized_json, has_type_error in (
+        (dc(original_json), original_json_anonymized, False),
+        ({"maxReportWatts": 297}, {"maxReportWatts": 297}, True),
+        ("maxReportWatts: 297", "maxReportWatts: 297", True),
+        (1, 1, True),
+        (test_json, expected_json, False),
     ):
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        if not has_type_error:
+            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        else:
+            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+            assert (
+                f"Unexpected data type for {endpoint}"
+                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+            )
 
     # test malformed data is returned as is
     test_json = dc(original_json)
@@ -274,16 +291,23 @@ async def test_anonymization_device_data() -> None:
     original_json_anonymized["123123125"]["sn"] = f"{int(TYPE_SERIALS['PCU']) + 1}"
     expected_json: Any = dc(original_json_anonymized)
 
-    for source_json, anonymized_json in (
-        (dc(original_json), expected_json),
-        ("some text data", "some text data"),
-        (1, 1),
-        ({"test": test_json}, {"test": test_json}),
+    for source_json, anonymized_json, has_type_error in (
+        (dc(original_json), expected_json, False),
+        ("some text data", "some text data", True),
+        (1, 1, True),
+        ({"test": test_json}, {"test": test_json}, False),
     ):
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        if not has_type_error:
+            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        else:
+            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+            assert (
+                f"Unexpected data type for {endpoint}"
+                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+            )
 
     test_json = dc(original_json)
     expected_json = dc(original_json_anonymized)
@@ -410,11 +434,17 @@ async def test_anonymization_inventory() -> None:
     # test automatic serial anonymization in strict mode
 
     fixtures = {endpoint: dc(hold_json)}
+    fixtures["/info"] = {}
     anonymized_fixtures = anonymize_serials(fixtures, strict=True)
     assert endpoint not in anonymized_fixtures
+    assert "/info" not in anonymized_fixtures
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert any(
         f"Error on {endpoint} TypeError" in log
+        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+    assert any(
+        "Unexpected data type for /info" in log
         for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
@@ -460,17 +490,24 @@ async def test_anonymization_inventory() -> None:
     test_json = dc(original_json)
     expected_json: Any = dc(original_json_anonymized)
 
-    for source_json, anonymized_json in (
-        (dc(test_json), expected_json),
-        ("some text data", "some text data"),
-        (1, 1),
-        ({"test": test_json}, {"test": test_json}),
-        ([test_json], [test_json]),
+    for source_json, anonymized_json, has_type_error in (
+        (dc(test_json), expected_json, False),
+        ("some text data", "some text data", True),
+        (1, 1, True),
+        ({"test": test_json}, {"test": test_json}, True),
+        ([test_json], [test_json], False),
     ):
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        if not has_type_error:
+            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        else:
+            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+            assert (
+                f"Unexpected data type for {endpoint}"
+                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+            )
 
     del test_json[0]["devices"][1]["serial_num"]
     # missing serial_num will sho as UNKNOWN type
@@ -567,16 +604,23 @@ async def test_anonymization_ensemble_power() -> None:
     test_json = dc(original_json)
     expected_json = dc(original_json_anonymized)
 
-    for source_json, anonymized_json in (
-        (test_json, expected_json),
-        ("some text data", "some text data"),
-        (1, 1),
-        (["hello", "world"], ["hello", "world"]),
+    for source_json, anonymized_json, has_type_error in (
+        (test_json, expected_json, False),
+        ("some text data", "some text data", True),
+        (1, 1, True),
+        (["hello", "world"], ["hello", "world"], True),
     ):
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        if not has_type_error:
+            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        else:
+            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+            assert (
+                f"Unexpected data type for {endpoint}"
+                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+            )
 
     # test with incorrect formats
     test_json[ENSEMBLE_POWER_DEVICE].extend(
@@ -731,16 +775,23 @@ async def test_anonymization_ensemble_inventory() -> None:
     test_json = dc(original_json)
     expected_json = dc(original_json_anonymized)
 
-    for source_json, anonymized_json in (
-        (test_json, expected_json),
-        ("some text data", "some text data"),
-        (1, 1),
-        ({"hello": "world"}, {"hello": "world"}),
+    for source_json, anonymized_json, has_type_error in (
+        (test_json, expected_json, False),
+        ("some text data", "some text data", True),
+        (1, 1, True),
+        ({"hello": "world"}, {"hello": "world"}, True),
     ):
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        if not has_type_error:
+            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        else:
+            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+            assert (
+                f"Unexpected data type for {endpoint}"
+                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+            )
 
     test_json.extend(
         [
@@ -973,16 +1024,23 @@ async def test_anonymization_ensemble_status() -> None:
 
     expected_json = dc(original_json_anonymized)
 
-    for source_json, anonymized_json in (
-        (dc(test_json), expected_json),
-        ("some text data", "some text data"),
-        (1, 1),
-        ({"hello": "world"}, {"hello": "world"}),
+    for source_json, anonymized_json, has_type_error in (
+        (dc(test_json), expected_json, False),
+        ("some text data", "some text data", True),
+        (1, 1, True),
+        ({"hello": "world"}, {"hello": "world"}, False),
     ):
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        if not has_type_error:
+            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        else:
+            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+            assert (
+                f"Unexpected data type for {endpoint}"
+                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+            )
 
     test_json["inventory"]["serial_nums"].update(
         {
@@ -1277,8 +1335,8 @@ async def test_anonymization(
 
     # verify raw entries serial mapping is the same as fixtures
     for endpoint in anonymized_raw:
-        assert endpoint in anonymized_fixtures
         if not endpoint.endswith("_log") and endpoint.startswith("/"):
+            assert endpoint in anonymized_fixtures
             assert anonymized_raw[endpoint] == anonymized_fixtures[endpoint]
             assert f"{endpoint}_log" in anonymized_raw
             assert (
