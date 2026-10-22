@@ -258,7 +258,12 @@ def anonymize_ensemble_status(
             # serials are key in dict, need to replace keys
             new_keys(serial_nums, "SERIAL", serials)
 
-    elif state == FIXTURE_STATE.TYPE_ERROR:
+    elif (
+        state == FIXTURE_STATE.USABLE
+        and isinstance(fixtures[endpoint].get("inventory"), dict)
+        and "serial_nums" in fixtures[endpoint]["inventory"]
+        and not isinstance(fixtures[endpoint]["inventory"]["serial_nums"], dict)
+    ) or state == FIXTURE_STATE.TYPE_ERROR:
         anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
     return endpoint, anonymization_errors
