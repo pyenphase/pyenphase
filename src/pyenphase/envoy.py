@@ -1796,8 +1796,9 @@ class Envoy:
         or test fixtures.
 
         Returns a dict containing endpoint data and a request status log
-        for successfully collected Envoy endpoints. Failed endpoints have
-        a log only.
+        for successfully collected Envoy endpoints. Failed endpoints with
+        non-2xx HTTP responses keep their body, and callers must check `code`
+        in the `<endpoint>_log` entry.
 
         Standard used list of endpoints is :any:`FIXTURE_LIST`, it can be
         appended using the `additional_endpoints` parameter or ignored
@@ -1828,8 +1829,8 @@ class Envoy:
         :py:class:`~pyenphase.const.MASK_STATE`. Masking uses
         :py:meth:`~pyenphase.anonymization.anonymize_serials`.
 
-        For each successfully collected endpoint returns 2 dict entries, for failed endpoints
-        only the `<endpoint>_log` entry is present:
+        For each successfully collected endpoint returns 2 dict entries, failed endpoints
+        may only have the `<endpoint>_log` entry present:
 
         .. code-block::
 
@@ -1858,8 +1859,9 @@ class Envoy:
             from data, default False.
         :param skip_standard: If True do not use the standard list, default False
         :returns: dict with endpoint data and request status entries for
-            successfully collected endpoints. Failed endpoints have status
-            entries only.
+            successfully collected endpoints. With both `mask_serials` and
+            `stict_masking` enabled, endpoints that failed the masking only
+            have status entries only.
         """
         collection: dict[str, Any] = {}
         endpoint = ""
