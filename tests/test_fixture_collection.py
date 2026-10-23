@@ -176,6 +176,7 @@ async def test_fixture_collection(
     assert "/test/my/invalid_endpoint" in fixtures_collection
     assert "/test/my/invalid_endpoint_log" in fixtures_collection
     assert fixtures_collection["/test/my/invalid_endpoint"] == invalid_json
+    assert "<sn>923456789012</sn>" in fixtures_collection["/info"]
 
     # verify handling of missing endpoints
     assert "/ivp/ensemble/power_log" in fixtures_collection
