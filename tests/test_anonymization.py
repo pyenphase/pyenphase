@@ -24,6 +24,7 @@ from pyenphase.models.ensemble_anonymize import (
     anonymize_ensemble_inventory,
     anonymize_ensemble_power,
     anonymize_ensemble_status,
+    new_keys,
 )
 from pyenphase.models.envoy_anonymize import anonymize_info
 from pyenphase.models.inventory_anonymize import anonymize_inventory
@@ -1390,3 +1391,33 @@ async def test_anonymization(
                 anonymized_raw[f"{endpoint}_log"]["mask_state"]
                 == anonymized_fixtures[f"{endpoint}_log"]["mask_state"]
             )
+
+
+@pytest.mark.asyncio
+async def test_ensemble_new_keys() -> None:
+    """Test serial anonymization for info endpoint."""
+    serials: dict[str, Any] = {}
+    target: dict[str, Any] = {}
+
+    mask_with: str = "test"
+    serials = {"1": "11", "2": "PCU", "3": "PCU", "4": "14", "7": "PCU"}
+    target = {
+        "1": "original1",
+        "2": "originalPCU1",
+        "3": "originalPCU2",
+        "4": "original4",
+        "5": "original5",
+        "6": "original6",
+        "7": "original7",
+    }
+    expected_target = {
+        "11": "original1",
+        "PCU1": "originalPCU1",
+        "PCU2": "originalPCU2",
+        "14": "original4",
+        "test4": "original5",
+        "test5": "original6",
+        "PCU4": "original7",
+    }
+    new_keys(target, mask_with, serials)
+    assert target == expected_target

@@ -1,5 +1,6 @@
 """Anonymization for ensemble endpoint containing serial numbers."""
 
+from collections import Counter
 from typing import Any
 
 from pyenphase.const import ANONYMIZATION_EXC, FIXTURE_STATE
@@ -143,6 +144,22 @@ def anonymize_ensemble_inventory(
     return endpoint, anonymization_errors
 
 
+def new_keys(target: dict[str, Any], mask_with: str, serials: dict[str, str]) -> None:
+    # replace serials in dict keys
+    # prevent target entries without serials entry leaking serial, patch with unique string serial
+    serial_counts = {k: v for k, v in Counter(serials.values()).items() if v > 1}
+    unique_serials = {
+        k: f"{v}{i}" if v in serial_counts else v
+        for i, (k, v) in enumerate(serials.items())
+    }
+    renamed = {
+        unique_serials.get(k, f"{mask_with}{i}"): v
+        for i, (k, v) in enumerate(target.items())
+    }
+    target.clear()
+    target.update(renamed)
+
+
 def anonymize_ensemble_status(
     serials: dict[str, str], fixtures: dict[str, Any], scan_only: bool
 ) -> tuple[str, set[str]]:
@@ -192,18 +209,6 @@ def anonymize_ensemble_status(
     """
     anonymization_errors: set[str] = set()
     subidx: int = 0
-
-    def new_keys(
-        target: dict[str, Any], mask_with: str, serials: dict[str, str]
-    ) -> None:
-        # replace serials in dict keys
-        # prevent target entries without serials entry leaking serial, patch with unique string serial
-        renamed = {
-            serials.get(k, f"{mask_with}{i}"): v
-            for i, (k, v) in enumerate(target.items())
-        }
-        target.clear()
-        target.update(renamed)
 
     if (
         (state := usable_fixture((endpoint := "/ivp/ensemble/status"), fixtures, dict))
