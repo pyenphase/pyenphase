@@ -1862,50 +1862,50 @@ class Envoy:
             entries only.
         """
         collection: dict[str, Any] = {}
-        last_endpoint = ""
+        endpoint = ""
         request_start = time.monotonic()
         targets = list(
             dict.fromkeys(
-                (FIXTURE_LIST if not skip_standard else [])
-                + (additional_endpoints or [])
+                f"/{end_point.lstrip('/')}"
+                for end_point in (
+                    (FIXTURE_LIST if not skip_standard else [])
+                    + (additional_endpoints or [])
+                )
             )
         )
         try:
             # remove multiple entries and maintain order
-            for end_point in targets:
+            for endpoint in targets:
                 # make sure we have leading /
-                last_endpoint = f"/{end_point.lstrip('/')}"
                 request_start = time.monotonic()
                 try:
-                    response: aiohttp.ClientResponse = await self._request(
-                        last_endpoint
-                    )
+                    response: aiohttp.ClientResponse = await self._request(endpoint)
                     try:
                         async with response:  # release response on error
-                            collection[last_endpoint] = json_loads(
-                                last_endpoint, await response.read()
+                            collection[endpoint] = json_loads(
+                                endpoint, await response.read()
                             )  # response.json(loads=orjson.loads)
                     except (orjson.JSONDecodeError, aiohttp.ContentTypeError):
                         async with response:  # release response on error
                             response_text = await response.text(errors="replace")
-                        collection[last_endpoint] = response_text.replace("\n", "")
+                        collection[endpoint] = response_text.replace("\n", "")
                 except asyncio.TimeoutError:
                     # includes aiohttp ServerTimeoutError subclasses, abort collection
                     raise
                 except (aiohttp.ClientError, EnvoyAuthenticationRequired) as err:
                     # try next endpoint if request fails on formats and other none timeout errors
                     request_end = time.monotonic()
-                    collection[f"{last_endpoint}_log"] = {
+                    collection[f"{endpoint}_log"] = {
                         "error": f"{err!r}",
                         "code": 0,
                         "report_time": time.asctime(),
                         "duration_seconds": round(request_end - request_start, 1),
                     }
-                    _LOGGER.debug("Error getting %s: %s", last_endpoint, repr(err))
+                    _LOGGER.debug("Error getting %s: %s", endpoint, repr(err))
                     continue
 
                 request_end = time.monotonic()
-                collection[f"{last_endpoint}_log"] = {
+                collection[f"{endpoint}_log"] = {
                     "code": response.status,
                     "report_time": time.asctime(),
                     "duration_seconds": round(request_end - request_start, 1),
@@ -1915,17 +1915,17 @@ class Envoy:
         except (asyncio.TimeoutError, EnvoyError, EnvoyClientClosedError) as err:
             # only return the request log in this case, will be last in result
             request_end = time.monotonic()
-            collection[f"{last_endpoint}_log"] = {
+            collection[f"{endpoint}_log"] = {
                 "error": repr(err),
                 "code": 0,
                 "report_time": time.asctime(),
                 "duration_seconds": round(request_end - request_start, 1),
             }
             _LOGGER.warning(
-                "Error getting fixture endpoint %s: %s", last_endpoint, repr(err)
+                "Error getting fixture endpoint %s: %s", endpoint, repr(err)
             )
             collection["collection_aborted_log"] = (
-                f"Error getting fixture endpoint: {last_endpoint} {err!r}"
+                f"Error getting fixture endpoint: {endpoint} {err!r}"
             )
 
         if not mask_serials:
