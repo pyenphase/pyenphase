@@ -33,7 +33,7 @@ URL_ENSEMBLE_STATUS = "/ivp/ensemble/status"
 URL_ENSEMBLE_SECCTRL = "/ivp/ensemble/secctrl"
 URL_ENCHARGE_BATTERY = "/ivp/ensemble/power"
 URL_GRID_RELAY = "/ivp/ensemble/relay"
-URL_POWER_EXPORT = "/uvp/ss/pel_settings"
+URL_POWER_EXPORT = "/ivp/ss/pel_settings"
 URL_TARIFF = "/admin/lib/tariff"
 URL_ACB_CONFIG = "/admin/lib/acb_config"
 # ?deleted=1 requests that the Envoy include decommissioned devices in the response;
@@ -113,7 +113,6 @@ FIXTURE_LIST = [
     URL_ACB_CONFIG,
     # additional not yet used endpoints
     URL_POWER_EXPORT,
-    "/ivp/ss/pel_settings",
     "/ivp/sc/pvlimit",
     "/ivp/sc/sched",
     "/ivp/livedata/status",
