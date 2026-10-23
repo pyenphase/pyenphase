@@ -1795,42 +1795,47 @@ class Envoy:
         Collect Envoy endpoints data to use for diagnostics information
         or test fixtures.
 
-        Returns dict keyed by endpoint containing endpoint data and request
-        status log for a list of Envoy endpoints to collect. Standard used
-        list of endpoints is :any:`FIXTURE_LIST` and can be appended by using
-        the `additional_endpoints` parameter. The standard list is ignored when
-        skip_standard is True.
+        Returns a dict containing endpoint data and a request status log
+        for successfully collected Envoy endpoints. Failed endpoints have
+        a log only.
 
-        The endpoint data for each endpoint requested contains the data as received
-        from the Envoy. and can be JSON or text.
+        Standard used list of endpoints is :any:`FIXTURE_LIST`, it can be
+        appended using the `additional_endpoints` parameter or ignored
+        using the `skip_standard` parameter.
 
-        For each endpoint a matching <endpoint>_log dict entry is created that
-        reports the result of the data retrieval. The <endpoint>_log entry itself
+        The endpoint data for each successfully collected endpoint contains
+        the data received from the Envoy and can be JSON or text.
+
+        For each endpoint a matching `<endpoint>_log` dict entry is created that
+        reports the result of the data retrieval. The `<endpoint>_log` entry itself
         is a dict with multiple keys reporting the request status code, error information
         if any error occurred, request time and duration and if serial masking
-        was requested, it resulted in changed data or not.
+        was requested, the status of the masking.
 
         A timeout or Envoy error aborts the data collection and only the partial
         collected data is returned. This is signalled by the presence of the
         `collection_aborted_log` key in the returned dict, its value contains the
         error. Authentication and other client errors errors for an endpoint are
-        logged in the <endpoint>_log dict key and collection continues.
+        logged in the `<endpoint>_log` dict key and collection continues.
 
         Optional and at best effort, masking or anonymization of serial numbers for the Envoy,
         inverters and various devices can be used. In the data these serial numbers can be
         replaced by neutral generic numbers. Depending on Envoy firmware version, original
         serials may still be present with this option enabled. If any errors occur during serial
-        masking, the data may still contain original serial numbers. Set strict_masking True to
-        exclude these error endpoints from the data. See
-        :py:meth:`~pyenphase.anonymization.anonymize_serials` for further details.
+        masking, the data may still contain original serial numbers. Set `strict_masking` True to
+        exclude these error endpoints from the data. When masking is requested, the `<endpoint>_log`
+        will contain a `mask_state` entry reporting the result of the masking as
+        :py:class:`~pyenphase.const.MASK_STATE`. Masking uses
+        :py:meth:`~pyenphase.anonymization.anonymize_serials`.
 
-        For each endpoint returns 2 dict entries:
+        For each successfully collected endpoint returns 2 dict entries, for failed endpoints
+        only the `<endpoint>_log` entry is present:
 
         .. code-block::
 
             {
                 "endpoint": {request_reply_data},
-                "endpoint_log" :
+                "<endpoint>_log" :
                     {
                         "code": int,
                         "error": str,
@@ -1840,22 +1845,21 @@ class Envoy:
                     }
             }
 
-        The error key in the endpoint log entry is only present when
-        an error occurs. In that case `code` will be set to 0. The
-        mask_state key is only present if serial masking was requested.
-
+        The error key in the `<endpoint>_log` entry is only present when
+        an error occurs during data collection. In that case `code` will be
+        set to 0. The mask_state key is only present if serial masking was
+        requested.
 
         :param additional_endpoints: List of additional endpoints
             to append to the standard list.
         :param mask_serials: if True replaces serials with
-            neutral values.
+            neutral values, default False.
         :param strict_masking: If True remove endpoints with failed masking
-            from data
-        :param skip_standard: do not use the standard list if True
-        :returns: dict with endpoint data and request status entries
-            for each andpoint in list. Keys 'collection_aborted_log'
-            and 'anonymization_errors_log'  will be present if data
-            collection or masking had errors.
+            from data, default False.
+        :param skip_standard: If True do not use the standard list, default False
+        :returns: dict with endpoint data and request status entries for
+            successfully collected endpoints. Failed endpoints have status
+            entries only.
         """
         collection: dict[str, Any] = {}
         last_endpoint = ""
