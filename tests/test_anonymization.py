@@ -1196,7 +1196,7 @@ async def test_anonymization(
     # and endpoint not in known anonimyzed set and containing known serial
     mock_aioresponse.get(
         f"{full_host}/my_endpoint",
-        payload={"test": "this is the envoy serial 210987654321"},
+        payload={"test": "this is the envoy serial '210987654321!"},
         status=200,
         repeat=True,
     )

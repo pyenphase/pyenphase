@@ -2,6 +2,7 @@
 
 import copy
 import logging
+import re
 from typing import Any
 
 import orjson
@@ -199,6 +200,8 @@ def anonymize_serials(
             add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
 
     # scan for known serials in all endpoints and signal for strict removal if found
+    known_serials = [s for s in serials if isinstance(s, str) and s and len(s) > 6]
+    pattern = re.compile(f"(?<![0-9A-Za-z])({'|'.join(known_serials)})(?![0-9A-Za-z])")
     for endpoint in list(fixtures):
         if (
             not endpoint.endswith("_log")
@@ -206,11 +209,7 @@ def anonymize_serials(
             and endpoint not in endpoint_processed
         ):
             try:
-                known_serials = [s for s in serials if isinstance(s, str) and s]
-                if any(
-                    serial in orjson.dumps(fixtures[endpoint]).decode()
-                    for serial in known_serials
-                ):
+                if re.search(pattern, orjson.dumps(fixtures[endpoint]).decode()):
                     endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
                     anonymization_errors.add(f"Masked serials also found in {endpoint}")
                     add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
