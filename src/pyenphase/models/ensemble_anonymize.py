@@ -149,7 +149,7 @@ def new_keys(target: dict[str, Any], mask_with: str, serials: dict[str, str]) ->
     # prevent target entries without serials entry leaking serial, patch with unique string serial
     serial_counts = {k: v for k, v in Counter(serials.values()).items() if v > 1}
     unique_serials = {
-        k: f"{v}{i}" if v in serial_counts else v
+        k: f"{v or 'BLANK'}{i}" if v in serial_counts else v
         for i, (k, v) in enumerate(serials.items())
     }
     renamed = {

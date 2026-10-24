@@ -861,6 +861,42 @@ async def test_anonymization_ensemble_inventory() -> None:
 
 
 @pytest.mark.asyncio
+async def test_ensemble_status_new_keys() -> None:
+    """Test serial anonymization for info endpoint."""
+    serials: dict[str, Any] = {}
+    target: dict[str, Any] = {}
+
+    mask_with: str = "test"
+    serials = {
+        "123456789012": "1",
+        "234567890123": "PCU",
+        "36789012": "PCU",
+        "123456": "4",
+        "456789012345": "PCU",
+    }
+    target = {
+        "123456789012": "original1",
+        "234567890123": "originalPCU1",
+        "36789012": "originalPCU2",
+        "123456": "original4",
+        "6789012": "original5",
+        "567890123456": "original6",
+        "456789012345": "original7",
+    }
+    expected_target = {
+        "1": "original1",
+        "PCU1": "originalPCU1",
+        "PCU2": "originalPCU2",
+        "4": "original4",
+        "test4": "original5",
+        "test5": "original6",
+        "PCU4": "original7",
+    }
+    new_keys(target, mask_with, serials)
+    assert target == expected_target
+
+
+@pytest.mark.asyncio
 async def test_anonymization_ensemble_status() -> None:
     """Test serial anonymization for ensemble status endpoint."""
     endpoint = "/ivp/ensemble/status"
@@ -907,6 +943,44 @@ async def test_anonymization_ensemble_status() -> None:
     serials: dict[str, Any] = {}
     test_json: Any = dc(original_json)
 
+    # add serials to test multiple devtype and blank serial replacements
+    test_json["inventory"]["serial_nums"].update(
+        {
+            "482000020946": {
+                "device_type": 27,
+                "device_id": "482000020946",
+                "submodules": {
+                    "482000020947": {
+                        "device_type": 20,
+                    }
+                },
+            },
+            "482000020948": {
+                "device_type": 27,
+                "device_id": "482000020948",
+                "submodules": {
+                    "482000020949": {
+                        "device_type": 20,
+                    },
+                    "482000020950": {
+                        "device_type": 20,
+                    },
+                },
+            },
+            "482000020951": {
+                "device_type": 27,
+                "device_id": "482000020951",
+                "submodules": {
+                    "482000020952": {
+                        "device_type": 20,
+                    },
+                    "482000020953": {
+                        "device_type": 20,
+                    },
+                },
+            },
+        }
+    )
     fixtures = {endpoint: test_json}
     status_serials = list(test_json["inventory"]["serial_nums"])
     status_sub_serials = [
@@ -926,7 +1000,7 @@ async def test_anonymization_ensemble_status() -> None:
         )
     for serial in status_sub_serials:
         assert serial in serials
-        assert serials[serial] == "UNKNOWN"
+        assert serials[serial] in ("ESUB", "UNKNOWN")
     assert len(result) == 0
 
     # manual serial assignments
@@ -938,6 +1012,15 @@ async def test_anonymization_ensemble_status() -> None:
     del serials["482000020939"]
     del serials["482000020944"]
     del serials["482000020945"]
+    # Leave some at their original type to test
+    serials["482000020947"] = "MULTIPLE"
+    serials["482000020948"] = "MULTIPLE"
+    serials["482000020949"] = "MULTIPLE"
+    serials["482000020950"] = "MULTIPLE"
+    # test blank serial replacements
+    serials["482000020951"] = ""
+    serials["482000020952"] = ""
+    serials["482000020953"] = ""
 
     # test serial replacement
     used_endpoint, result = anonymize_ensemble_status(
@@ -952,6 +1035,13 @@ async def test_anonymization_ensemble_status() -> None:
     # last entries had serials removed from serials, should show fallback serials
     assert test_json["inventory"]["serial_nums"]["4"]["submodules"]["SUBSERIAL10"]
     assert test_json["inventory"]["serial_nums"]["4"]["submodules"]["SUBSERIAL11"]
+    assert test_json["inventory"]["serial_nums"]["8"]["submodules"]["MULTIPLE5"]
+    assert test_json["inventory"]["serial_nums"]["MULTIPLE6"]["device_id"] == "MULTIPLE"
+    assert test_json["inventory"]["serial_nums"]["MULTIPLE6"]["submodules"]["MULTIPLE7"]
+    assert test_json["inventory"]["serial_nums"]["MULTIPLE6"]["submodules"]["MULTIPLE8"]
+    assert test_json["inventory"]["serial_nums"]["BLANK9"]["device_id"] == ""
+    assert test_json["inventory"]["serial_nums"]["BLANK9"]["submodules"]["BLANK10"]
+    assert test_json["inventory"]["serial_nums"]["BLANK9"]["submodules"]["BLANK11"]
     # should not have errors
     assert len(result) == 0
 
@@ -1391,33 +1481,3 @@ async def test_anonymization(
                 anonymized_raw[f"{endpoint}_log"]["mask_state"]
                 == anonymized_fixtures[f"{endpoint}_log"]["mask_state"]
             )
-
-
-@pytest.mark.asyncio
-async def test_ensemble_new_keys() -> None:
-    """Test serial anonymization for info endpoint."""
-    serials: dict[str, Any] = {}
-    target: dict[str, Any] = {}
-
-    mask_with: str = "test"
-    serials = {"1": "11", "2": "PCU", "3": "PCU", "4": "14", "7": "PCU"}
-    target = {
-        "1": "original1",
-        "2": "originalPCU1",
-        "3": "originalPCU2",
-        "4": "original4",
-        "5": "original5",
-        "6": "original6",
-        "7": "original7",
-    }
-    expected_target = {
-        "11": "original1",
-        "PCU1": "originalPCU1",
-        "PCU2": "originalPCU2",
-        "14": "original4",
-        "test4": "original5",
-        "test5": "original6",
-        "PCU4": "original7",
-    }
-    new_keys(target, mask_with, serials)
-    assert target == expected_target
