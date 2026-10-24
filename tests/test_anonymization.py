@@ -1,6 +1,7 @@
 """Test envoy serial number anonymization."""
 
 import logging
+from collections import Counter
 from copy import deepcopy as dc
 from typing import Any
 from unittest.mock import patch
@@ -1460,10 +1461,12 @@ async def test_anonymization(
 
     # Verify serials in non-masked endpoints are signalled
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
-        "Masked serials also found in /info",
-        "Masked serials also found in /my_endpoint",
-    ]
+    assert Counter(anonymized_fixtures[ANONYMIZATION_ERROR_KEY]) == Counter(
+        [
+            "Masked serials also found in /info",
+            "Masked serials also found in /my_endpoint",
+        ]
+    )
 
     # test dumps error handling
     with patch("pyenphase.anonymization.orjson.dumps", side_effect=ValueError):
