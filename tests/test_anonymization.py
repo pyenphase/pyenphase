@@ -459,15 +459,48 @@ async def test_anonymization_inventory() -> None:
         for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
-    # test automatic serial anonymization in strict mode with serial sequencing error
+    # test automatic serial anonymization in strict mode with
+    # serial sequencing and regex errors
 
     fixtures = {endpoint: dc(original_json)}
-    with patch("pyenphase.anonymization.TYPE_SERIALS", {"PCU": "1", "ACB": 2}):
+    with (
+        patch("pyenphase.anonymization.TYPE_SERIALS", {"PCU": "1", "ACB": 2}),
+        patch(
+            "pyenphase.anonymization.re.compile",
+            side_effect=re.error("Test failed compile"),
+        ),
+    ):
         anonymized_fixtures = anonymize_serials(fixtures, strict=True)
     assert endpoint not in anonymized_fixtures
+    assert f"{endpoint}_log" in anonymized_fixtures
+    assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
+    assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert (
         "Error during serial sequencing KeyError('UNKNOWN')"
+        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+    assert (
+        "Error during serial replacement for regex compile PatternError('Test failed compile')"
+        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+
+    # test strict mode with regex compile errors remove entries
+    fixtures = {endpoint: dc(original_json)}
+    with (
+        patch(
+            "pyenphase.anonymization.re.compile",
+            side_effect=re.error("Test failed compile"),
+        ),
+    ):
+        anonymized_fixtures = anonymize_serials(fixtures, strict=True)
+    assert endpoint not in anonymized_fixtures
+    assert f"{endpoint}_log" in anonymized_fixtures
+    assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
+    assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+    assert (
+        "Error during serial replacement for regex compile PatternError('Test failed compile')"
         in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
@@ -477,12 +510,29 @@ async def test_anonymization_inventory() -> None:
     with patch("pyenphase.anonymization.TYPE_SERIALS", {"PCU": "1", "ACB": 2}):
         anonymized_fixtures = anonymize_serials(fixtures)
     assert endpoint in anonymized_fixtures
+    assert f"{endpoint}_log" in anonymized_fixtures
+    assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
+    assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert (
         "Error during serial sequencing KeyError('UNKNOWN')"
         in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
+    with patch(
+        "pyenphase.anonymization.re.compile",
+        side_effect=re.error("Test failed compile"),
+    ):
+        anonymized_fixtures = anonymize_serials(fixtures)
+    assert endpoint in anonymized_fixtures
+    assert f"{endpoint}_log" in anonymized_fixtures
+    assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
+    assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+    assert (
+        "Error during serial replacement for regex compile PatternError('Test failed compile')"
+        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    )
     # test automatic serial anonymization in regular mode
 
     original_json_anonymized: Any = dc(original_json)
