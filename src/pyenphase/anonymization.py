@@ -201,26 +201,30 @@ def anonymize_serials(
 
     # scan for known serials in all endpoints and signal for strict removal if found
     known_serials = [s for s in serials if isinstance(s, str) and s and len(s) > 6]
-    pattern = re.compile(f"(?<![0-9A-Za-z])({'|'.join(known_serials)})(?![0-9A-Za-z])")
-    for endpoint in list(fixtures):
-        if (
-            not endpoint.endswith("_log")
-            and endpoint.startswith("/")
-            and endpoint not in endpoint_processed
-        ):
-            try:
-                if re.search(pattern, orjson.dumps(fixtures[endpoint]).decode()):
-                    endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
-                    anonymization_errors.add(f"Masked serials also found in {endpoint}")
-                    add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
+    if known_serials:
+        pattern = re.compile(
+            f"(?<![0-9A-Za-z])({'|'.join(known_serials)})(?![0-9A-Za-z])"
+        )
+        for endpoint in list(fixtures):
+            if not endpoint.endswith("_log") and endpoint.startswith("/"):
+                try:
+                    match = re.search(
+                        pattern, orjson.dumps(fixtures[endpoint]).decode()
+                    )
+                    if match:
+                        endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
+                        anonymization_errors.add(
+                            f"Masked serials also found in {endpoint}"
+                        )
+                        add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
 
-            except ANONYMIZATION_EXC as exc:
-                endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
-                anonymization_errors.add(
-                    f"Error during serial replacement for {endpoint} {exc!r}"
-                )
-                add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
-                continue
+                except ANONYMIZATION_EXC as exc:
+                    endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
+                    anonymization_errors.add(
+                        f"Error during serial replacement for {endpoint} {exc!r}"
+                    )
+                    add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
+                    continue
 
     # in strict modus remove failed endpoints
     if strict and len(endpoint_status):

@@ -1278,7 +1278,7 @@ async def test_anonymization(
     assert sorted(set(DEVICE_TYPES.values())) == sorted(TYPE_SERIALS)
 
     # test fixtures_collection method with serial anonymization
-    info_xml = "<envoy_info><device><sn>210987654321</sn><software>D8.3.6087</software></device></envoy_info>"
+    info_xml = "<envoy_info><device><sn>210987654321</sn><software>D8.3.6087</software></device>210987654321</envoy_info>"
     override_mock(
         mock_aioresponse, "get", f"{full_host}/info", body=info_xml, repeat=True
     )
@@ -1331,7 +1331,7 @@ async def test_anonymization(
                 assert anonymized_fixtures[endpoint] == string_content
 
     # verify endpoints with serial anonimization
-    info_xml_anonymized = f"<envoy_info><device><sn>{PATCHED_ENVOY_SERIAL}</sn><software>D8.3.6087</software></device></envoy_info>"
+    info_xml_anonymized = f"<envoy_info><device><sn>{PATCHED_ENVOY_SERIAL}</sn><software>D8.3.6087</software></device>210987654321</envoy_info>"
     endpoint = "/info"
     assert endpoint in anonymized_fixtures
     assert anonymized_fixtures["/info"] == info_xml_anonymized
@@ -1454,7 +1454,8 @@ async def test_anonymization(
     # Verify serials in non-masked endpoints are signalled
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
-        "Masked serials also found in /my_endpoint"
+        "Masked serials also found in /info",
+        "Masked serials also found in /my_endpoint",
     ]
 
     # test dumps error handling
