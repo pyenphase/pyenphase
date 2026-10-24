@@ -53,7 +53,7 @@
     },
     "553648640": {
         "devName": "pcu",
-        "sn": "12122012100000",
+        "sn": "122012100000",
         "active": true,
         "modGone": true,
         "channels": [
@@ -105,7 +105,7 @@
     },
     "553648896": {
         "devName": "pcu",
-        "sn": "122012100000",
+        "sn": "122012200000",
         "active": true,
         "modGone": true,
         "channels": [

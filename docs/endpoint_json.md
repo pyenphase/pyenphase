@@ -1,3 +1,5 @@
+(endpoint-json)=
+
 # Endpoint JSON
 
 This section describes the Envoy data used by the library.
@@ -13,6 +15,8 @@ The endpoints used by the library are:
 :end-before: Include in docs to here
 :literal:
 ```
+
+(endpoint_info)=
 
 ## /info
 
@@ -52,15 +56,93 @@ Also see [Known Issues](known_issues.md#production--consumption-data).
 :language: json
 ```
 
+(endpoint_inverters)=
+
 ## /api/v1/production/inverters
 
 ### description
 
-This is the endpoint used for basic inverter production data.
+This is the endpoint used for basic inverter production data. If the [device_data](#ivppdmdevice_data) endpoint is also available, the latter one will be used for inverter data.
 
 ### JSON
 
 ```{literalinclude} ./json_data/api_v1_production_inverters.json
+:language: json
+
+```
+
+(endpoint_inventory)=
+
+## /inventory.json?deleted=1
+
+(endpoint_inventory_description)=
+
+### description
+
+This endpoint provides details on configured devices used by the Envoy. It is not currently used for data collection, but it is included in {py:meth}`~pyenphase.Envoy.fixture_collection` data for background details.
+
+(endpoint_inventory_json)=
+
+### JSON
+
+```{literalinclude} ./json_data/inventory.json
+:language: json
+
+```
+
+(endpoint_ensemble_inventory)=
+
+## /ivp/ensemble/inventory
+
+(endpoint_ensemble_inventory_description)=
+
+### description
+
+This is the endpoint with the inventory of Ensemble devices.
+
+(endpoint_ensemble_inventory_json)=
+
+### JSON
+
+```{literalinclude} ./json_data/ivp_ensemble_inventory.json
+:language: json
+
+```
+
+(endpoint_ensemble_power)=
+
+## /ivp/ensemble/power
+
+(endpoint_ensemble_power_description)=
+
+### description
+
+This is the endpoint with actual power data of Ensemble batteries.
+
+(endpoint_ensemble_power_json)=
+
+### JSON
+
+```{literalinclude} ./json_data/ivp_ensemble_power.json
+:language: json
+
+```
+
+(endpoint_ensemble_status)=
+
+## /ivp/ensemble/status
+
+(endpoint_ensemble_status_description)=
+
+### description
+
+This is the endpoint with the installation status of Ensemble devices.
+
+(endpoint_ensemble_status_json)=
+
+### JSON
+
+```{literalinclude} ./json_data/ivp_ensemble_status.json
 :language: json
 
 ```
@@ -91,11 +173,13 @@ This is the endpoint used for CT meter readings.
 
 ```
 
+(endpoint_device_data)=
+
 ## /ivp/pdm/device_data
 
 ### description
 
-This is the endpoint used for detailed inverter data.
+This is the endpoint used for detailed inverter data. If this endpoint is available, it will be used for inverter data instead of the [inverter endpoint](#apiv1productioninverters)
 
 Also see [Known Issues](known_issues.md#inverter-device-data).
 

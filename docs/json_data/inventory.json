@@ -1,0 +1,90 @@
+[
+  {
+    "type": "PCU",
+    "devices": [
+      {
+        "part_num": "800-01331-r02",
+        "installed": "1750786534",
+        "serial_num": "555555550001",
+        "device_status": ["envoy.global.ok"],
+        "last_rpt_date": "1785593319",
+        "admin_state": 2,
+        "dev_type": 1,
+        "created_date": "1750786534",
+        "img_load_date": "0",
+        "img_pnum_running": "521-00005-r06-v02.61.01",
+        "ptpn": "549-00040-r01-v02.61.01",
+        "chaneid": 1627390225,
+        "device_control": [
+          {
+            "gficlearset": false
+          }
+        ],
+        "producing": true,
+        "communicating": true,
+        "provisioned": true,
+        "operating": true,
+        "phase": "ph-a"
+      },
+      {
+        "part_num": "800-01331-r02",
+        "installed": "1750786537",
+        "serial_num": "555555550002",
+        "device_status": ["envoy.global.ok"],
+        "last_rpt_date": "1785593227",
+        "admin_state": 2,
+        "dev_type": 1,
+        "created_date": "1750786537",
+        "img_load_date": "0",
+        "img_pnum_running": "521-00005-r06-v02.61.01",
+        "ptpn": "549-00040-r01-v02.61.01",
+        "chaneid": 1627390481,
+        "device_control": [
+          {
+            "gficlearset": false
+          }
+        ],
+        "producing": true,
+        "communicating": true,
+        "provisioned": true,
+        "operating": true,
+        "phase": "ph-a"
+      }
+    ]
+  },
+  {
+    "type": "ACB",
+    "devices": []
+  },
+  {
+    "type": "NSRB",
+    "devices": []
+  },
+  {
+    "type": "ESUB",
+    "devices": [
+      {
+        "part_num": "800-01855-r01",
+        "installed": "1750786738",
+        "serial_num": "202020200001",
+        "device_status": ["envoy.global.ok"],
+        "last_rpt_date": "1785593318",
+        "admin_state": 1,
+        "dev_type": 19,
+        "created_date": "1750786738",
+        "img_load_date": "0",
+        "img_pnum_running": "523-00001-r01-v01.18.00",
+        "ptpn": "551-00064-r01-v01.18.00",
+        "chaneid": 1929380113,
+        "device_control": [
+          {
+            "gficlearset": false
+          }
+        ],
+        "producing": false,
+        "communicating": true,
+        "operating": true
+      }
+    ]
+  }
+]
