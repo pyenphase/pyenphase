@@ -166,8 +166,8 @@ def anonymize_serials(
             repr(exc),
         )
         anonymization_errors.add(f"Error during serial sequencing {exc!r}")
-        if strict:
-            for endpoint in endpoint_processed:
+        for endpoint in endpoint_processed:
+            if strict:
                 if endpoint not in fixtures:
                     continue
                 _LOGGER.debug(
@@ -175,6 +175,8 @@ def anonymize_serials(
                 )
                 fixtures.pop(endpoint, None)
                 add_log(endpoint, fixtures, {"mask_state": MASK_STATE.REMOVED})
+            else:
+                add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
 
     # envoy and pdm EIM device contain envoy serial followed by EIMn
     serials.update(
