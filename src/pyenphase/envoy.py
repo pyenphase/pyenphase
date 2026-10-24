@@ -1858,6 +1858,8 @@ class Envoy:
         :param strict_masking: If True remove endpoints with failed masking
             from data, default False.
         :param skip_standard: If True do not use the standard list, default False
+        :raises EnvoyAuthenticationRequired: if no prior authentication with the Envoy
+            was done, see :py:meth:`Envoy.authenticate`.
         :returns: dict with endpoint data and request status entries for
             successfully collected endpoints. With both `mask_serials` and
             `stict_masking` enabled, endpoints that failed the masking only
