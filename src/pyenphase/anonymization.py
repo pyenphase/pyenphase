@@ -209,6 +209,11 @@ def anonymize_serials(
                 f"(?<![0-9A-Za-z])({'|'.join(map(re.escape, known_serials))})(?![0-9A-Za-z])"
             )
         except re.error as exc:
+            for endpoint in endpoint_processed:
+                if endpoint not in fixtures:
+                    continue
+                add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
+                endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
             anonymization_errors.add(
                 f"Error during serial replacement for regex compile {exc!r}"
             )
