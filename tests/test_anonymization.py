@@ -1,6 +1,7 @@
 """Test envoy serial number anonymization."""
 
 import logging
+import re
 from collections import Counter
 from copy import deepcopy as dc
 from typing import Any
@@ -1474,6 +1475,18 @@ async def test_anonymization(
     assert ANONYMIZATION_ERROR_KEY in strict_anonymized_fixtures
     assert any(
         "Error during serial replacement for" in log
+        for log in strict_anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+
+    # test regex error handling
+    with patch(
+        "pyenphase.anonymization.re.compile",
+        side_effect=re.error("Test failed compile"),
+    ):
+        strict_anonymized_fixtures = anonymize_serials(fixtures, strict=True)
+    assert ANONYMIZATION_ERROR_KEY in strict_anonymized_fixtures
+    assert any(
+        "Error during serial replacement for regex" in log
         for log in strict_anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
