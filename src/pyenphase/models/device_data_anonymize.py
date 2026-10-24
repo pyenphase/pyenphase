@@ -47,7 +47,7 @@ def anonymize_device_data(
     if (
         state := usable_fixture((endpoint := "/ivp/pdm/device_data"), fixtures, dict)
     ) == FIXTURE_STATE.USABLE:
-        for device in fixtures[endpoint].values():
+        for name, device in fixtures[endpoint].items():
             # "deviceCount" are "deviceDataLimit" are plain numbers, not dict
             if isinstance(device, dict) and "sn" in device:
                 dName = v if isinstance(v := device.get("devName"), str) else "UNKNOWN"
@@ -58,6 +58,12 @@ def anonymize_device_data(
                         device["sn"] = serials.get(device["sn"], "UNKNOWN")
                 except ANONYMIZATION_EXC as exc:
                     anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+            else:
+                if name not in (
+                    "deviceCount",
+                    "deviceDataLimit",
+                ):
+                    anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
     elif state == FIXTURE_STATE.TYPE_ERROR:
         anonymization_errors.add(f"Unexpected data type for {endpoint}")

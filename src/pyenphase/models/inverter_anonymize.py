@@ -59,6 +59,8 @@ def anonymize_inverters(
                         )
                 except ANONYMIZATION_EXC as exc:
                     anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+            else:
+                anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
     elif state == FIXTURE_STATE.TYPE_ERROR:
         anonymization_errors.add(f"Unexpected data type for {endpoint}")

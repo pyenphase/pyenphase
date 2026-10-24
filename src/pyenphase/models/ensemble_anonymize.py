@@ -64,8 +64,10 @@ def anonymize_ensemble_power(
                         )
                 except ANONYMIZATION_EXC as exc:
                     anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+            else:
+                anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
-    elif state == FIXTURE_STATE.TYPE_ERROR:
+    elif state in (FIXTURE_STATE.USABLE, FIXTURE_STATE.TYPE_ERROR):
         anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
     return endpoint, anonymization_errors
@@ -137,6 +139,10 @@ def anonymize_ensemble_inventory(
                                 )
                         except ANONYMIZATION_EXC as exc:
                             anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+                    else:
+                        anonymization_errors.add(f"Unexpected data type for {endpoint}")
+            else:
+                anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
     elif state == FIXTURE_STATE.TYPE_ERROR:
         anonymization_errors.add(f"Unexpected data type for {endpoint}")
@@ -247,11 +253,17 @@ def anonymize_ensemble_status(
                                 anonymization_errors.add(f"Error on {endpoint} {exc!r}")
                         elif scan_only:
                             serials |= {sub_serial: "UNKNOWN"}
+                        else:
+                            anonymization_errors.add(
+                                f"Unexpected data type for {endpoint}"
+                            )
 
                     if not scan_only:
                         # serials are key in dict, need to replace keys
                         new_keys(sub_modules, f"SUBSERIAL{subidx}", serials)
                         subidx += 1
+                else:
+                    anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
             elif scan_only:
                 serials |= {serial: "UNKNOWN"}
@@ -263,12 +275,7 @@ def anonymize_ensemble_status(
             # serials are key in dict, need to replace keys
             new_keys(serial_nums, "SERIAL", serials)
 
-    elif (
-        state == FIXTURE_STATE.USABLE
-        and isinstance(fixtures[endpoint].get("inventory"), dict)
-        and "serial_nums" in fixtures[endpoint]["inventory"]
-        and not isinstance(fixtures[endpoint]["inventory"]["serial_nums"], dict)
-    ) or state == FIXTURE_STATE.TYPE_ERROR:
+    elif state in (FIXTURE_STATE.USABLE, FIXTURE_STATE.TYPE_ERROR):
         anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
     return endpoint, anonymization_errors

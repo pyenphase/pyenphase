@@ -192,7 +192,7 @@ async def test_anonymization_inverters() -> None:
         ({"maxReportWatts": 297}, {"maxReportWatts": 297}, True),
         ("maxReportWatts: 297", "maxReportWatts: 297", True),
         (1, 1, True),
-        (test_json, expected_json, False),
+        (test_json, expected_json, True),
     ):
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
@@ -217,14 +217,21 @@ async def test_anonymization_inverters() -> None:
     expected_json[1]["serialNumber"] = TYPE_SERIALS["UNKNOWN"]
     expected_json[1]["devType"] = [1, 2]
 
-    for source_json, anonymized_json in (
-        (test_json, expected_json),
-        ([{"maxReportWatts": 297}], [{"maxReportWatts": 297}]),
+    for source_json, anonymized_json, has_type_error in (
+        (test_json, expected_json, True),
+        ([{"maxReportWatts": 297}], [{"maxReportWatts": 297}], True),
     ):
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
         assert anonymized_fixtures[endpoint] == anonymized_json
-        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        if not has_type_error:
+            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        else:
+            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+            assert (
+                f"Unexpected data type for {endpoint}"
+                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+            )
 
 
 @pytest.mark.asyncio
@@ -297,7 +304,7 @@ async def test_anonymization_device_data() -> None:
         (dc(original_json), expected_json, False),
         ("some text data", "some text data", True),
         (1, 1, True),
-        ({"test": test_json}, {"test": test_json}, False),
+        ({"test": test_json}, {"test": test_json}, True),
     ):
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
@@ -327,7 +334,7 @@ async def test_anonymization_device_data() -> None:
     fixtures = {endpoint: test_json}
     anonymized_fixtures = anonymize_serials(fixtures)
     assert anonymized_fixtures[endpoint] == expected_json
-    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
 
 
 @pytest.mark.asyncio
@@ -497,7 +504,7 @@ async def test_anonymization_inventory() -> None:
         ("some text data", "some text data", True),
         (1, 1, True),
         ({"test": test_json}, {"test": test_json}, True),
-        ([test_json], [test_json], False),
+        ([test_json], [test_json], True),
     ):
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
@@ -530,7 +537,7 @@ async def test_anonymization_inventory() -> None:
     fixtures = {endpoint: test_json}
     anonymized_fixtures = anonymize_serials(fixtures)
     assert anonymized_fixtures[endpoint] == expected_json
-    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
 
 
 @pytest.mark.asyncio
@@ -657,7 +664,7 @@ async def test_anonymization_ensemble_power() -> None:
     fixtures = {endpoint: test_json}
     anonymized_fixtures = anonymize_serials(fixtures)
     assert anonymized_fixtures[endpoint] == expected_json
-    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
 
 
 @pytest.mark.asyncio
@@ -857,7 +864,7 @@ async def test_anonymization_ensemble_inventory() -> None:
     fixtures = {endpoint: test_json}
     anonymized_fixtures = anonymize_serials(fixtures)
     assert anonymized_fixtures[endpoint] == expected_json
-    assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
 
 
 @pytest.mark.asyncio
@@ -1001,7 +1008,7 @@ async def test_anonymization_ensemble_status() -> None:
     for serial in status_sub_serials:
         assert serial in serials
         assert serials[serial] in ("ESUB", "UNKNOWN")
-    assert len(result) == 0
+    assert len(result) == 1
 
     # manual serial assignments
 
@@ -1043,7 +1050,7 @@ async def test_anonymization_ensemble_status() -> None:
     assert test_json["inventory"]["serial_nums"]["BLANK9"]["submodules"]["BLANK10"]
     assert test_json["inventory"]["serial_nums"]["BLANK9"]["submodules"]["BLANK11"]
     # should not have errors
-    assert len(result) == 0
+    assert len(result) == 1
 
     # test automatic serial anonymization
 
@@ -1120,7 +1127,7 @@ async def test_anonymization_ensemble_status() -> None:
         (dc(test_json), expected_json, True),
         ("some text data", "some text data", True),
         (1, 1, True),
-        ({"hello": "world"}, {"hello": "world"}, False),
+        ({"hello": "world"}, {"hello": "world"}, True),
     ):
         fixtures = {endpoint: source_json}
         anonymized_fixtures = anonymize_serials(fixtures)
