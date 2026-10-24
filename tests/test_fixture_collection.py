@@ -10,12 +10,14 @@ import orjson
 import pytest
 from aioresponses import aioresponses
 
+from pyenphase import Envoy
 from pyenphase.const import (
     ANONYMIZATION_ERROR_KEY,
     DEVICE_TYPES,
     FIXTURE_LIST,
     TYPE_SERIALS,
 )
+from pyenphase.exceptions import EnvoyAuthenticationRequired
 
 from .common import (
     endpoint_fixture_file,
@@ -219,3 +221,12 @@ async def test_fixture_collection(
         )
     assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert fixtures_collection == anonymized_fixtures
+
+
+@pytest.mark.asyncio
+async def test_fixture_collection_unauthorized() -> None:
+    """Test fixture file data collection while not authorized."""
+    envoy = Envoy("127.0.0.1")
+    with pytest.raises(EnvoyAuthenticationRequired):
+        await envoy.fixture_collection()
+    await envoy.close()

@@ -1863,6 +1863,10 @@ class Envoy:
             `stict_masking` enabled, endpoints that failed the masking only
             have status entries only.
         """
+        if self.auth is None:
+            raise EnvoyAuthenticationRequired(
+                "You must authenticate to the Envoy before making requests."
+            )
         collection: dict[str, Any] = {}
         endpoint = ""
         request_start = time.monotonic()
@@ -1896,6 +1900,8 @@ class Envoy:
                     raise
                 except (aiohttp.ClientError, EnvoyAuthenticationRequired) as err:
                     # try next endpoint if request fails on formats and other none timeout errors
+                    # some Envoy endpoints may return 404 while auth has been successful
+                    # and show here with EnvoyAuthenticationRequired, continue the loop.
                     request_end = time.monotonic()
                     collection[f"{endpoint}_log"] = {
                         "error": f"{err!r}",
