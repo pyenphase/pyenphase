@@ -102,7 +102,7 @@ def anonymize_serials(
     fixtures = copy.deepcopy(endpoint_data)
     anonymization_errors: set[str] = set()
     serials: dict[str, Any] = {}
-    endpoint_processed: list[str] = []
+    endpoint_processed: dict[str, Any] = {}
     endpoint_status: dict[str, Any] = {}
 
     def add_log(
@@ -120,18 +120,20 @@ def anonymize_serials(
     for anonymizer in ANONYMIZERS:
         cur_count = len(serials)
         endpoint, result = anonymizer(serials, fixtures, scan_only=True)
-        endpoint_processed.append(endpoint)
-        if len(result):
-            anonymization_errors.update(result)
-            _LOGGER.debug(
-                "Anonymizer scan for %s returned %s serials, %s errors: %s",
-                endpoint,
-                len(serials) - cur_count,
-                len(result),
-                result,
-            )
-            endpoint_status[endpoint] = len(result)
-            add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
+        if endpoint:
+            # if endpoint was in fixtures add to processed list
+            endpoint_processed[endpoint] = anonymizer
+            if len(result):
+                anonymization_errors.update(result)
+                _LOGGER.debug(
+                    "Anonymizer scan for %s returned %s serials, %s errors: %s",
+                    endpoint,
+                    len(serials) - cur_count,
+                    len(result),
+                    result,
+                )
+                endpoint_status[endpoint] = len(result)
+                add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
 
     # group all unknown device types into unknown group
     serials = {
@@ -167,8 +169,6 @@ def anonymize_serials(
         )
         anonymization_errors.add(f"Error during serial sequencing {exc!r}")
         for endpoint in endpoint_processed:
-            if endpoint not in fixtures:
-                continue
             if strict:
                 _LOGGER.debug(
                     "Anonymizer in strict mode, removing %s from data", endpoint
@@ -188,9 +188,10 @@ def anonymize_serials(
     )
 
     # replace serials
-    for anonymizer in ANONYMIZERS:
+    for anonymizer in endpoint_processed.values():
         endpoint, result = anonymizer(serials, fixtures, scan_only=False)
-        if len(result):
+        # if blank endpoint it was not present in the fixtures, skip it.
+        if endpoint and len(result):
             anonymization_errors.update(result)
             _LOGGER.debug(
                 "Anonymizer serial replacement for %s returned %s errors: %s",
