@@ -49,7 +49,15 @@ def anonymize_info(
             anonymization_errors.add(
                 f"Unexpected data type for {endpoint}, no <sn>serial</sn> found"
             )
+
+    elif state == FIXTURE_STATE.MISSING:
+        return "", anonymization_errors
+
     elif state == FIXTURE_STATE.TYPE_ERROR:
         anonymization_errors.add(f"Unexpected data type for {endpoint}")
+
+    else:
+        # signal unusable data that may contain some serials or not
+        anonymization_errors.add(f"Unusable data for {endpoint}")
 
     return endpoint, anonymization_errors

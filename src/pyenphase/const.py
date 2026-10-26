@@ -251,9 +251,10 @@ ANONYMIZATION_ERROR_KEY = "anonymization_errors_log"
 class FIXTURE_STATE(enum.Enum):
     """Result of fixture usability check returned by :py:func:`~pyenphase.utilities.usable_fixture`."""
 
-    UNUSABLE = 0  #: Endpoint is missing, or is of specified type and <endpoint>_log['code'] is present and not 200
-    USABLE = 1  #: Endpoint is present, is of specified type and <endpoint>_log['code'] == 200 or not present
+    UNUSABLE = 0  #: Endpoint is present, is of specified type, <endpoint>_log['code'] is present but not 200
+    USABLE = 1  #: Endpoint is present, is of specified type, <endpoint>_log['code'] == 200 or not present and defaulted to 200
     TYPE_ERROR = 2  #: Endpoint is present but not of specified type
+    MISSING = 3  #: Endpoint is not present
 
 
 class MASK_STATE(enum.StrEnum):

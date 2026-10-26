@@ -45,13 +45,19 @@ def usable_fixture(
     Verify if fixtures[endpoint] exists and is of expected data type.
 
     Verify if endpoint has companion fixtures[endpoint_log] with [code]
-    field and if so its value is 200. If either is missing let it default
+    field and if so, its value is 200. If either is missing let it default
     to 200.
 
-    If endpoint is present, of specified type and code is 200, return
-    return :any:`FIXTURE_STATE.USABLE`. If endpoint is present but not of specified
-    data type, return :any:`FIXTURE_STATE.TYPE_ERROR`.  Otherwise return
-    :any:`FIXTURE_STATE.UNUSABLE`.
+    - If endpoint is not present return :any:`FIXTURE_STATE.MISSING`.
+    - If endpoint is present, of specified type and code is 200,
+      return :any:`FIXTURE_STATE.USABLE`.
+    - If endpoint is present but not of specified
+      data type, return :any:`FIXTURE_STATE.TYPE_ERROR`.
+    - Otherwise return :any:`FIXTURE_STATE.UNUSABLE`.
+
+    The UNUSABLE state signals a non-200 HTTP code is found,
+    while the data is of expected type. Valid information may
+    or may not be present, the state just signals the HTTP code.
 
     :param endpoint: endpoint in fixtures to verify
     :param fixtures: dict keyed by endpoint names and
@@ -60,7 +66,7 @@ def usable_fixture(
     :return: evaluated state of endpoint entry in fixtures
     """
     if endpoint not in fixtures:
-        return FIXTURE_STATE.UNUSABLE
+        return FIXTURE_STATE.MISSING
     code_ok = fixtures.get(f"{endpoint}_log", {}).get("code", 200) == 200
     if not isinstance(fixtures.get(endpoint), kind):
         return FIXTURE_STATE.TYPE_ERROR if code_ok else FIXTURE_STATE.UNUSABLE

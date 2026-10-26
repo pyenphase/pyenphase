@@ -67,8 +67,15 @@ def anonymize_ensemble_power(
             else:
                 anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
+    elif state == FIXTURE_STATE.MISSING:
+        return "", anonymization_errors
+
     elif state in (FIXTURE_STATE.USABLE, FIXTURE_STATE.TYPE_ERROR):
         anonymization_errors.add(f"Unexpected data type for {endpoint}")
+
+    else:
+        # signal unusable data that may contain some serials or not
+        anonymization_errors.add(f"Unusable data for {endpoint}")
 
     return endpoint, anonymization_errors
 
@@ -144,8 +151,15 @@ def anonymize_ensemble_inventory(
             else:
                 anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
+    elif state == FIXTURE_STATE.MISSING:
+        return "", anonymization_errors
+
     elif state == FIXTURE_STATE.TYPE_ERROR:
         anonymization_errors.add(f"Unexpected data type for {endpoint}")
+
+    else:
+        # signal unusable data that may contain some serials or not
+        anonymization_errors.add(f"Unusable data for {endpoint}")
 
     return endpoint, anonymization_errors
 
@@ -275,7 +289,15 @@ def anonymize_ensemble_status(
             # serials are key in dict, need to replace keys
             new_keys(serial_nums, "SERIAL", serials)
 
-    elif state in (FIXTURE_STATE.USABLE, FIXTURE_STATE.TYPE_ERROR):
+    elif state == FIXTURE_STATE.MISSING:
+        return "", anonymization_errors
+
+    elif state in (FIXTURE_STATE.TYPE_ERROR, FIXTURE_STATE.USABLE):
+        # if USABLE then no inventory dict or no inventory[serial_nums] dict
         anonymization_errors.add(f"Unexpected data type for {endpoint}")
+
+    else:
+        # signal unusable data that may contain some serials or not
+        anonymization_errors.add(f"Unusable data for {endpoint}")
 
     return endpoint, anonymization_errors

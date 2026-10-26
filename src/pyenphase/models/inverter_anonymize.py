@@ -62,7 +62,14 @@ def anonymize_inverters(
             else:
                 anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
+    elif state == FIXTURE_STATE.MISSING:
+        return "", anonymization_errors
+
     elif state == FIXTURE_STATE.TYPE_ERROR:
         anonymization_errors.add(f"Unexpected data type for {endpoint}")
+
+    else:
+        # signal unusable data that may contain some serials or not
+        anonymization_errors.add(f"Unusable data for {endpoint}")
 
     return endpoint, anonymization_errors

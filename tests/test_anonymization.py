@@ -1,6 +1,5 @@
 """Test envoy serial number anonymization."""
 
-import logging
 import re
 from collections import Counter
 from copy import deepcopy as dc
@@ -43,9 +42,78 @@ from .common import (
     start_7_firmware_mock,
 )
 
-_LOGGER = logging.getLogger(__name__)
-
 ENSEMBLE_POWER_DEVICE = "devices:"
+
+
+def verify_expected_type_and_http_error(test_json: Any, endpoint: str) -> None:
+    """Test expected data type present with HTTP errors in endpoint_log in standard and strict mode"""
+    # test with expected type and non-200 http status
+    fixtures: dict[str, Any] = {endpoint: test_json, f"{endpoint}_log": {"code": 203}}
+    anonymized_fixtures = anonymize_serials(fixtures)
+
+    # In standard modde non http 200 status should return unchanged data flagged as unusable
+    assert anonymized_fixtures[endpoint] == test_json
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+    assert (
+        f"Unusable data for {endpoint}" in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+    assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
+    assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
+
+    # test with expected type and non-200 http status in strict mode
+    fixtures = {endpoint: test_json, f"{endpoint}_log": {"code": 203}}
+    anonymized_fixtures = anonymize_serials(fixtures, strict=True)
+
+    # In strict modde non http 200 status should not data flagged as removed
+    assert endpoint not in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+    assert (
+        f"Unusable data for {endpoint}" in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+    assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
+    assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
+
+
+def verify_formats(
+    source: Any, endpoint: str, expected: Any, result: MASK_STATE
+) -> None:
+    """Test fixture data anonymization in standard and strict mode"""
+    fixtures = {endpoint: source}
+
+    # standard mode
+    anonymized_fixtures = anonymize_serials(fixtures)
+    assert anonymized_fixtures[endpoint] == expected
+    assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == result
+    # if expected result is UNCHANGED or MASKED there should not be anynymization errors
+    if result in (MASK_STATE.UNCHANGED, MASK_STATE.MASKED):
+        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+    # Otherwise there unexpected data should be flagged
+    else:
+        assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+        assert any(
+            f"Unexpected data type for {endpoint}" in log
+            for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+        )
+
+    # strict mode. any failed state becomes removed
+    fixtures = {endpoint: source}
+    anonymized_fixtures = anonymize_serials(fixtures, strict=True)
+    # if expected result is UNCHANGED or MASKED there should not be anynymization errors
+    if result in (MASK_STATE.UNCHANGED, MASK_STATE.MASKED):
+        assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == result
+        assert anonymized_fixtures[endpoint] == expected
+        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+    # Otherwise, in strict mode,  data should be removed
+    else:
+        assert (
+            anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
+        )
+        assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+        assert endpoint not in anonymized_fixtures
+        assert any(
+            f"Unexpected data type for {endpoint}" in log
+            for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+        )
 
 
 @pytest.mark.asyncio
@@ -87,40 +155,30 @@ async def test_anonymization_info() -> None:
         == "<envoy_info><device><sn>UNKNOWN</sn><software>D8.3.6087</software></device></envoy_info>"
     )
 
-    # test automatic serial anonymization
+    # test automatic serial anonymization with various formats
     test_xml = dc(original_xml)
-    for source in (
-        test_xml,
-        "<envoy_info><device><sn> 1 </sn><software>D8.3.6087</software></device></envoy_info>",
-    ):
-        fixtures = {endpoint: source}
-        anonymized_fixtures = anonymize_serials(fixtures, "564738292011")
-        assert anonymized_fixtures[endpoint] == original_xml_anonymized
-        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
-
-    # test non str format is ignored and returned as-is
-    for source, has_type_error in (
-        ({"<sn>": "123456</sn>"}, True),
-        (["<sn>123456</sn>"], True),
-        (1, True),
-        ("", True),
-        ([1, 2], True),
+    for source, expected, result in (  # type: ignore
+        (test_xml, original_xml_anonymized, MASK_STATE.MASKED),
+        ({"<sn>": "123456</sn>"}, None, MASK_STATE.FAILED),
+        (["<sn>123456</sn>"], None, MASK_STATE.FAILED),
+        (1, None, MASK_STATE.FAILED),
+        ("", None, MASK_STATE.FAILED),
+        ([1, 2], None, MASK_STATE.FAILED),
         (
             "<envoy_info><device><nosn>1</nosn><software>D8.3.6087</software></device></envoy_info>",
-            True,
+            None,
+            MASK_STATE.FAILED,
+        ),
+        (
+            "<envoy_info><device><nosn> 1 </nosn><software>D8.3.6087</software></device></envoy_info>",
+            None,
+            MASK_STATE.FAILED,
         ),
     ):
-        fixtures = {endpoint: source}
-        anonymized_fixtures = anonymize_serials(fixtures)
-        assert anonymized_fixtures[endpoint] == source
-        if not has_type_error:
-            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
-        else:
-            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-            assert any(
-                f"Unexpected data type for {endpoint}" in log
-                for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-            )
+        verify_formats(source, endpoint, expected or source, result)  # type: ignore
+
+    # test expected data type and non-200 http status
+    verify_expected_type_and_http_error("", endpoint)
 
 
 @pytest.mark.asyncio
@@ -186,54 +244,35 @@ async def test_anonymization_inverters() -> None:
     original_json_anonymized[2]["serialNumber"] = TYPE_SERIALS["ACB"]
     expected_json: Any = dc(original_json_anonymized)
 
-    # replace second dict by string
+    # first test: replace second dict by string
     test_json[2] = "482020200002"
     expected_json[2] = "482020200002"
-    for source_json, anonymized_json, has_type_error in (
-        (dc(original_json), original_json_anonymized, False),
-        ({"maxReportWatts": 297}, {"maxReportWatts": 297}, True),
-        ("maxReportWatts: 297", "maxReportWatts: 297", True),
-        (1, 1, True),
-        (test_json, expected_json, True),
-    ):
-        fixtures = {endpoint: source_json}
-        anonymized_fixtures = anonymize_serials(fixtures)
-        assert anonymized_fixtures[endpoint] == anonymized_json
-        if not has_type_error:
-            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
-        else:
-            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-            assert (
-                f"Unexpected data type for {endpoint}"
-                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-            )
 
-    # test malformed data is returned as is
-    test_json = dc(original_json)
-    expected_json = dc(original_json_anonymized)
-    # no serial number
-    del test_json[0]["serialNumber"]
-    del expected_json[0]["serialNumber"]
+    # second test: malformed data is returned as is
+    test_json2 = dc(original_json)
+    expected_json2 = dc(original_json_anonymized)
+    # no serial number key
+    del test_json2[0]["serialNumber"]
+    del expected_json2[0]["serialNumber"]
     # devType as list should come back as unknown
-    test_json[1]["devType"] = [1, 2]
-    expected_json[1]["serialNumber"] = TYPE_SERIALS["UNKNOWN"]
-    expected_json[1]["devType"] = [1, 2]
+    test_json2[1]["devType"] = [1, 2]
+    expected_json2[1]["serialNumber"] = TYPE_SERIALS["UNKNOWN"]
+    expected_json2[1]["devType"] = [1, 2]
 
-    for source_json, anonymized_json, has_type_error in (
-        (test_json, expected_json, True),
-        ([{"maxReportWatts": 297}], [{"maxReportWatts": 297}], True),
+    # test in standard and strict modes
+    for source, expected, result in (  # type: ignore
+        (dc(original_json), original_json_anonymized, MASK_STATE.MASKED),
+        ({"maxReportWatts": 297}, None, MASK_STATE.FAILED),
+        ("maxReportWatts: 297", None, MASK_STATE.FAILED),
+        (1, None, MASK_STATE.FAILED),
+        (test_json, expected_json, MASK_STATE.FAILED),
+        (test_json2, expected_json2, MASK_STATE.FAILED),
+        ([{"maxReportWatts": 297}], None, MASK_STATE.FAILED),
     ):
-        fixtures = {endpoint: source_json}
-        anonymized_fixtures = anonymize_serials(fixtures)
-        assert anonymized_fixtures[endpoint] == anonymized_json
-        if not has_type_error:
-            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
-        else:
-            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-            assert (
-                f"Unexpected data type for {endpoint}"
-                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-            )
+        verify_formats(source, endpoint, expected or source, result)  # type: ignore
+
+    # test expected data type and non-200 http status
+    verify_expected_type_and_http_error([], endpoint)
 
 
 @pytest.mark.asyncio
@@ -300,29 +339,9 @@ async def test_anonymization_device_data() -> None:
     original_json_anonymized["123123123"]["sn"] = f"{ENVOY_SERIAL}EIM1"
     original_json_anonymized["123123124"]["sn"] = TYPE_SERIALS["PCU"]
     original_json_anonymized["123123125"]["sn"] = f"{int(TYPE_SERIALS['PCU']) + 1}"
-    expected_json: Any = dc(original_json_anonymized)
-
-    for source_json, anonymized_json, has_type_error in (
-        (dc(original_json), expected_json, False),
-        ("some text data", "some text data", True),
-        (1, 1, True),
-        ({"test": test_json}, {"test": test_json}, True),
-    ):
-        fixtures = {endpoint: source_json}
-        anonymized_fixtures = anonymize_serials(fixtures)
-        assert anonymized_fixtures[endpoint] == anonymized_json
-        if not has_type_error:
-            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
-        else:
-            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-            assert (
-                f"Unexpected data type for {endpoint}"
-                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-            )
-
-    test_json = dc(original_json)
     expected_json = dc(original_json_anonymized)
 
+    # test with missing fields
     del test_json["123123123"]["devName"]
     del expected_json["123123123"]["devName"]
     # missing devName becomes UNKNOWN group
@@ -333,10 +352,17 @@ async def test_anonymization_device_data() -> None:
     # last one is now first in PCU group
     expected_json["123123125"]["sn"] = TYPE_SERIALS["PCU"]
 
-    fixtures = {endpoint: test_json}
-    anonymized_fixtures = anonymize_serials(fixtures)
-    assert anonymized_fixtures[endpoint] == expected_json
-    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+    for source, expected, result in (  # type: ignore
+        (dc(original_json), original_json_anonymized, MASK_STATE.MASKED),
+        ("some text data", None, MASK_STATE.FAILED),
+        (1, None, MASK_STATE.FAILED),
+        ({"test": test_json}, None, MASK_STATE.FAILED),
+        (test_json, expected_json, MASK_STATE.FAILED),
+        ({}, None, MASK_STATE.UNCHANGED),
+    ):
+        verify_formats(source, endpoint, expected or source, result)  # type: ignore
+
+    verify_expected_type_and_http_error({}, endpoint)
 
 
 @pytest.mark.asyncio
@@ -413,6 +439,7 @@ async def test_anonymization_inventory() -> None:
             serials[test_json[i]["devices"][0]["serial_num"]]
             == ["PCU", "ACB", "NSRB", "ESUB", "NEW"][i]
         )
+
     # manual serial assignments
     serials[test_json[0]["devices"][0]["serial_num"]] = "1"
     # missing serial will return UNKNOWN
@@ -442,13 +469,15 @@ async def test_anonymization_inventory() -> None:
     assert len(result) == 1
     assert any(f"Error on {endpoint} TypeError" in log for log in result)
 
-    # test automatic serial anonymization in strict mode
+    # test automatic serial anonymization in strict mode removes failed entries
 
     fixtures = {endpoint: dc(hold_json)}
     fixtures["/info"] = {}
     anonymized_fixtures = anonymize_serials(fixtures, strict=True)
     assert endpoint not in anonymized_fixtures
     assert "/info" not in anonymized_fixtures
+    assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
+    assert anonymized_fixtures["/info_log"]["mask_state"] == MASK_STATE.REMOVED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert any(
         f"Error on {endpoint} TypeError" in log
@@ -459,9 +488,61 @@ async def test_anonymization_inventory() -> None:
         for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
-    # test automatic serial anonymization in strict mode with
-    # serial sequencing and regex errors
+    # test automatic serial anonymization in regular mode
 
+    original_json_anonymized: Any = dc(original_json)
+    original_json_anonymized[0]["devices"][0]["serial_num"] = TYPE_SERIALS["PCU"]
+    original_json_anonymized[0]["devices"][1]["serial_num"] = (
+        f"{int(TYPE_SERIALS['PCU']) + 1}"
+    )
+    original_json_anonymized[0]["devices"][2]["serial_num"] = (
+        f"{int(TYPE_SERIALS['PCU']) + 2}"
+    )
+    original_json_anonymized[1]["devices"][0]["serial_num"] = TYPE_SERIALS["ACB"]
+    original_json_anonymized[2]["devices"][0]["serial_num"] = TYPE_SERIALS["NSRB"]
+    original_json_anonymized[3]["devices"][0]["serial_num"] = TYPE_SERIALS["ESUB"]
+    original_json_anonymized[4]["devices"][0]["serial_num"] = TYPE_SERIALS["UNKNOWN"]
+
+    test_json = dc(original_json)
+    expected_json: Any = dc(original_json_anonymized)
+
+    for source, expected, result in (  # type: ignore
+        (dc(test_json), expected_json, MASK_STATE.MASKED),
+        ("some text data", None, MASK_STATE.FAILED),
+        (1, None, MASK_STATE.FAILED),
+        ({"test": test_json}, None, MASK_STATE.FAILED),
+        ([test_json], None, MASK_STATE.FAILED),
+        ([], None, MASK_STATE.UNCHANGED),
+    ):
+        verify_formats(source, endpoint, expected or source, result)  # type: ignore
+
+    del test_json[0]["devices"][1]["serial_num"]
+    # missing serial_num will sho as UNKNOWN type
+    del expected_json[0]["devices"][1]["serial_num"]
+    # assignemt shift one with previous moving to unknown
+    expected_json[0]["devices"][2]["serial_num"] = f"{int(TYPE_SERIALS['PCU']) + 1}"
+    del test_json[1]["devices"]
+    del expected_json[1]["devices"]
+    del test_json[2]["type"]
+    del expected_json[2]["type"]
+    # mssining serial no in unknown
+    expected_json[2]["devices"][0]["serial_num"] = TYPE_SERIALS["UNKNOWN"]
+    test_json[4]["type"] = [1, 2]
+    expected_json[4]["type"] = [1, 2]
+    # existing unknown moves 1 number up
+    expected_json[4]["devices"][0]["serial_num"] = f"{int(TYPE_SERIALS['UNKNOWN']) + 1}"
+
+    fixtures = {endpoint: test_json}
+    anonymized_fixtures = anonymize_serials(fixtures)
+    assert anonymized_fixtures[endpoint] == expected_json
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+
+    # test with expected type and non-200 http status
+    verify_expected_type_and_http_error([], endpoint)
+
+    # some wider test for anonymization code body
+
+    # test automatic serial anonymization  errors in strict mode removes entries
     fixtures = {endpoint: dc(original_json)}
     with (
         patch("pyenphase.anonymization.TYPE_SERIALS", {"PCU": "1", "ACB": 2}),
@@ -485,7 +566,7 @@ async def test_anonymization_inventory() -> None:
         in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
-    # test strict mode with regex compile errors remove entries
+    # test strict mode with regex compile errors removes entries
     fixtures = {endpoint: dc(original_json)}
     with (
         patch(
@@ -505,7 +586,6 @@ async def test_anonymization_inventory() -> None:
     )
 
     # test automatic serial anonymization in regular mode with serial sequencing error
-
     fixtures = {endpoint: dc(original_json)}
     with patch("pyenphase.anonymization.TYPE_SERIALS", {"PCU": "1", "ACB": 2}):
         anonymized_fixtures = anonymize_serials(fixtures)
@@ -519,6 +599,7 @@ async def test_anonymization_inventory() -> None:
         in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
+    # test regular mode with regex compile errors flags entries as failed
     with patch(
         "pyenphase.anonymization.re.compile",
         side_effect=re.error("Test failed compile"),
@@ -533,63 +614,6 @@ async def test_anonymization_inventory() -> None:
         "Error during serial replacement for regex compile PatternError('Test failed compile')"
         in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
-    # test automatic serial anonymization in regular mode
-
-    original_json_anonymized: Any = dc(original_json)
-    original_json_anonymized[0]["devices"][0]["serial_num"] = TYPE_SERIALS["PCU"]
-    original_json_anonymized[0]["devices"][1]["serial_num"] = (
-        f"{int(TYPE_SERIALS['PCU']) + 1}"
-    )
-    original_json_anonymized[0]["devices"][2]["serial_num"] = (
-        f"{int(TYPE_SERIALS['PCU']) + 2}"
-    )
-    original_json_anonymized[1]["devices"][0]["serial_num"] = TYPE_SERIALS["ACB"]
-    original_json_anonymized[2]["devices"][0]["serial_num"] = TYPE_SERIALS["NSRB"]
-    original_json_anonymized[3]["devices"][0]["serial_num"] = TYPE_SERIALS["ESUB"]
-    original_json_anonymized[4]["devices"][0]["serial_num"] = TYPE_SERIALS["UNKNOWN"]
-
-    test_json = dc(original_json)
-    expected_json: Any = dc(original_json_anonymized)
-
-    for source_json, anonymized_json, has_type_error in (
-        (dc(test_json), expected_json, False),
-        ("some text data", "some text data", True),
-        (1, 1, True),
-        ({"test": test_json}, {"test": test_json}, True),
-        ([test_json], [test_json], True),
-    ):
-        fixtures = {endpoint: source_json}
-        anonymized_fixtures = anonymize_serials(fixtures)
-        assert anonymized_fixtures[endpoint] == anonymized_json
-        if not has_type_error:
-            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
-        else:
-            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-            assert (
-                f"Unexpected data type for {endpoint}"
-                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-            )
-
-    del test_json[0]["devices"][1]["serial_num"]
-    # missing serial_num will sho as UNKNOWN type
-    del expected_json[0]["devices"][1]["serial_num"]
-    # assignemt shift one with previous moving to unknown
-    expected_json[0]["devices"][2]["serial_num"] = f"{int(TYPE_SERIALS['PCU']) + 1}"
-    del test_json[1]["devices"]
-    del expected_json[1]["devices"]
-    del test_json[2]["type"]
-    del expected_json[2]["type"]
-    # mssining serial no in unknown
-    expected_json[2]["devices"][0]["serial_num"] = TYPE_SERIALS["UNKNOWN"]
-    test_json[4]["type"] = [1, 2]
-    expected_json[4]["type"] = [1, 2]
-    # existing unknown moves 1 number up
-    expected_json[4]["devices"][0]["serial_num"] = f"{int(TYPE_SERIALS['UNKNOWN']) + 1}"
-
-    fixtures = {endpoint: test_json}
-    anonymized_fixtures = anonymize_serials(fixtures)
-    assert anonymized_fixtures[endpoint] == expected_json
-    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
 
 
 @pytest.mark.asyncio
@@ -665,26 +689,9 @@ async def test_anonymization_ensemble_power() -> None:
     test_json = dc(original_json)
     expected_json = dc(original_json_anonymized)
 
-    for source_json, anonymized_json, has_type_error in (
-        (test_json, expected_json, False),
-        ("some text data", "some text data", True),
-        (1, 1, True),
-        (["hello", "world"], ["hello", "world"], True),
-    ):
-        fixtures = {endpoint: source_json}
-        anonymized_fixtures = anonymize_serials(fixtures)
-        assert anonymized_fixtures[endpoint] == anonymized_json
-        if not has_type_error:
-            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
-        else:
-            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-            assert (
-                f"Unexpected data type for {endpoint}"
-                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-            )
-
-    # test with incorrect formats
-    test_json[ENSEMBLE_POWER_DEVICE].extend(
+    # second test with incorrect formats
+    test_json2 = dc(original_json)
+    test_json2[ENSEMBLE_POWER_DEVICE].extend(
         [
             [],
             "Hello world",
@@ -703,20 +710,27 @@ async def test_anonymization_ensemble_power() -> None:
         ]
     )
 
-    expected_json = dc(original_json_anonymized)
-    expected_json[ENSEMBLE_POWER_DEVICE].append([])
+    expected_json2 = dc(original_json_anonymized)
+    expected_json2[ENSEMBLE_POWER_DEVICE].append([])
     for i in range(4, 9):
-        expected_json[ENSEMBLE_POWER_DEVICE].append(
-            dc(test_json[ENSEMBLE_POWER_DEVICE][i])
+        expected_json2[ENSEMBLE_POWER_DEVICE].append(
+            dc(test_json2[ENSEMBLE_POWER_DEVICE][i])
         )
     # non str serials should show device type in serial
     for i in range(5, 8):
-        expected_json[ENSEMBLE_POWER_DEVICE][i]["serial_num"] = "ENCHARGE"
+        expected_json2[ENSEMBLE_POWER_DEVICE][i]["serial_num"] = "ENCHARGE"
 
-    fixtures = {endpoint: test_json}
-    anonymized_fixtures = anonymize_serials(fixtures)
-    assert anonymized_fixtures[endpoint] == expected_json
-    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+    for source, expected, result in (  # type: ignore
+        (test_json, expected_json, MASK_STATE.MASKED),
+        ("some text data", None, MASK_STATE.FAILED),
+        (1, None, MASK_STATE.FAILED),
+        (["hello", "world"], None, MASK_STATE.FAILED),
+        (test_json2, expected_json2, MASK_STATE.FAILED),
+    ):
+        verify_formats(source, endpoint, expected or source, result)  # type: ignore
+
+    # test with expected type and non-200 http status
+    verify_expected_type_and_http_error([], endpoint)
 
 
 @pytest.mark.asyncio
@@ -836,25 +850,8 @@ async def test_anonymization_ensemble_inventory() -> None:
     test_json = dc(original_json)
     expected_json = dc(original_json_anonymized)
 
-    for source_json, anonymized_json, has_type_error in (
-        (test_json, expected_json, False),
-        ("some text data", "some text data", True),
-        (1, 1, True),
-        ({"hello": "world"}, {"hello": "world"}, True),
-    ):
-        fixtures = {endpoint: source_json}
-        anonymized_fixtures = anonymize_serials(fixtures)
-        assert anonymized_fixtures[endpoint] == anonymized_json
-        if not has_type_error:
-            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
-        else:
-            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-            assert (
-                f"Unexpected data type for {endpoint}"
-                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-            )
-
-    test_json.extend(
+    test_json2 = dc(original_json)
+    test_json2.extend(
         [
             {},
             {
@@ -906,17 +903,23 @@ async def test_anonymization_ensemble_inventory() -> None:
             },
         ]
     )
-
-    expected_json = dc(original_json_anonymized)
+    expected_json2 = dc(original_json_anonymized)
     for i in range(4, 12):
-        expected_json.append(dc(test_json[i]))
+        expected_json2.append(dc(test_json2[i]))
     for i in range(9, 12):
-        expected_json[i]["devices"][0]["serial_num"] = "UNKNOWN"
+        expected_json2[i]["devices"][0]["serial_num"] = "UNKNOWN"
 
-    fixtures = {endpoint: test_json}
-    anonymized_fixtures = anonymize_serials(fixtures)
-    assert anonymized_fixtures[endpoint] == expected_json
-    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+    for source, expected, result in (  # type: ignore
+        (test_json, expected_json, MASK_STATE.MASKED),
+        ("some text data", None, MASK_STATE.FAILED),
+        (1, None, MASK_STATE.FAILED),
+        ({"hello": "world"}, None, MASK_STATE.FAILED),
+        (test_json2, expected_json2, MASK_STATE.FAILED),
+    ):
+        verify_formats(source, endpoint, expected or source, result)  # type: ignore
+
+    # test with expected type and non-200 http status
+    verify_expected_type_and_http_error([], endpoint)
 
 
 @pytest.mark.asyncio
@@ -969,6 +972,7 @@ async def test_anonymization_ensemble_status() -> None:
                 "482000020939": {
                     "device_type": 27,
                     "device_id": "482000020939",
+                    "submodules": {},
                 },
                 "482000020940": {
                     "device_type": 27,
@@ -1060,7 +1064,7 @@ async def test_anonymization_ensemble_status() -> None:
     for serial in status_sub_serials:
         assert serial in serials
         assert serials[serial] in ("ESUB", "UNKNOWN")
-    assert len(result) == 1
+    assert len(result) == 0
 
     # manual serial assignments
 
@@ -1092,8 +1096,8 @@ async def test_anonymization_ensemble_status() -> None:
     # last entry has different serial in ke and device_id field for testing
     assert test_json["inventory"]["serial_nums"]["4"]["device_id"] == "5"
     # last entries had serials removed from serials, should show fallback serials
-    assert test_json["inventory"]["serial_nums"]["4"]["submodules"]["SUBSERIAL10"]
-    assert test_json["inventory"]["serial_nums"]["4"]["submodules"]["SUBSERIAL11"]
+    assert test_json["inventory"]["serial_nums"]["4"]["submodules"]["SUBSERIAL20"]
+    assert test_json["inventory"]["serial_nums"]["4"]["submodules"]["SUBSERIAL21"]
     assert test_json["inventory"]["serial_nums"]["8"]["submodules"]["MULTIPLE5"]
     assert test_json["inventory"]["serial_nums"]["MULTIPLE6"]["device_id"] == "MULTIPLE"
     assert test_json["inventory"]["serial_nums"]["MULTIPLE6"]["submodules"]["MULTIPLE7"]
@@ -1102,35 +1106,17 @@ async def test_anonymization_ensemble_status() -> None:
     assert test_json["inventory"]["serial_nums"]["BLANK9"]["submodules"]["BLANK10"]
     assert test_json["inventory"]["serial_nums"]["BLANK9"]["submodules"]["BLANK11"]
     # should not have errors
-    assert len(result) == 1
+    assert len(result) == 0
 
     # test automatic serial anonymization
 
-    test_json = dc(original_json)
-    # add malformed dict
-    test_json["inventory"]["serial_nums"].update(
-        {
-            "482000020946": [
-                "device_type",
-                27,
-                "device_id",
-                "482000020947",
-                {
-                    "submodules": {
-                        "482000020948": {
-                            "device_type": 31,
-                        }
-                    }
-                },
-            ]
-        }
-    )
     original_json_anonymized: Any = {
         "inventory": {
             "serial_nums": {
                 "510000000001": {
                     "device_type": 27,
                     "device_id": "510000000001",
+                    "submodules": {},
                 },
                 "510000000002": {
                     "device_type": 27,
@@ -1153,47 +1139,55 @@ async def test_anonymization_ensemble_status() -> None:
                         },
                     },
                 },
-                "990000000004": [
-                    "device_type",
-                    27,
-                    "device_id",
-                    "482000020947",
-                    {
-                        "submodules": {
-                            "482000020948": {
-                                "device_type": 31,
-                            }
-                        }
-                    },
-                ],
             }
         },
         "secctrl": {
             "shutdown": False,
         },
     }
-
+    test_json = dc(original_json)
     expected_json = dc(original_json_anonymized)
 
-    for source_json, anonymized_json, has_type_error in (
-        (dc(test_json), expected_json, True),
-        ("some text data", "some text data", True),
-        (1, 1, True),
-        ({"hello": "world"}, {"hello": "world"}, True),
-    ):
-        fixtures = {endpoint: source_json}
-        anonymized_fixtures = anonymize_serials(fixtures)
-        assert anonymized_fixtures[endpoint] == anonymized_json
-        if not has_type_error:
-            assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
-        else:
-            assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-            assert (
-                f"Unexpected data type for {endpoint}"
-                in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-            )
+    test_json2 = dc(test_json)
+    expected_json2 = dc(original_json_anonymized)
+    # add malformed dict
+    test_json2["inventory"]["serial_nums"].update(
+        {
+            "482000020946": [
+                "device_type",
+                27,
+                "device_id",
+                "482000020947",
+                {
+                    "submodules": {
+                        "482000020948": {
+                            "device_type": 31,
+                        }
+                    }
+                },
+            ]
+        }
+    )
+    expected_json2["inventory"]["serial_nums"].update(
+        {
+            "990000000004": [
+                "device_type",
+                27,
+                "device_id",
+                "482000020947",
+                {
+                    "submodules": {
+                        "482000020948": {
+                            "device_type": 31,
+                        }
+                    }
+                },
+            ],
+        }
+    )
 
-    test_json["inventory"]["serial_nums"].update(
+    test_json3 = dc(test_json2)
+    test_json3["inventory"]["serial_nums"].update(
         {
             "482000020949": {
                 "DEVICE_TYPE": 27,
@@ -1210,8 +1204,8 @@ async def test_anonymization_ensemble_status() -> None:
         }
     )
 
-    expected_json = dc(original_json_anonymized)
-    expected_json["inventory"]["serial_nums"].update(
+    expected_json3 = dc(expected_json2)
+    expected_json3["inventory"]["serial_nums"].update(
         {
             "990000000005": {
                 "DEVICE_TYPE": 27,
@@ -1228,16 +1222,8 @@ async def test_anonymization_ensemble_status() -> None:
         }
     )
 
-    fixtures = {endpoint: dc(test_json)}
-    anonymized_fixtures = anonymize_serials(fixtures)
-    assert anonymized_fixtures[endpoint] == expected_json
-    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    assert (
-        f"Unexpected data type for {endpoint}"
-        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-    )
-
-    test_json["inventory"]["serial_nums"].update(
+    test_json4 = dc(test_json3)
+    test_json4["inventory"]["serial_nums"].update(
         {
             "482000020952": {
                 "device_type": 27,
@@ -1278,14 +1264,47 @@ async def test_anonymization_ensemble_status() -> None:
             },
         },
     )
-
-    fixtures = {endpoint: test_json}
-    anonymized_fixtures = anonymize_serials(fixtures)
-    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    assert any(
-        f"Error on {endpoint} TypeError" in log
-        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    expected_json4 = dc(expected_json3)
+    expected_json4["inventory"]["serial_nums"].update(
+        {
+            "510000000006": {
+                "device_type": 27,
+                "device_id": [2, 7],
+                "submodules": {"990000000007": {"device_TYPE": [2, 7]}},
+            },
+            "510000000007": {
+                "device_type": 27,
+                "device_id": "510000000007",
+                "submodules": {"990000000008": {"device_type": [2, 7]}},
+            },
+            "510000000008": {
+                "device_type": 27,
+                "device_id": "510000000008",
+                "id": 6,
+                "submodules": {"990000000009": ["device_type", [2, 7]]},
+            },
+            "990000000009": {
+                "device_type": 27,
+                "device_id": "990000000009",
+                "id": 6,
+                "submodules": {"990000000009": [1, 2]},
+            },
+        }
     )
+
+    for source, expected, result in (  # type: ignore
+        (test_json, expected_json, MASK_STATE.MASKED),
+        ("some text data", None, MASK_STATE.FAILED),
+        (1, None, MASK_STATE.FAILED),
+        ({"hello": "world"}, None, MASK_STATE.FAILED),
+        (test_json2, expected_json2, MASK_STATE.FAILED),
+        # (test_json3, expected_json3, MASK_STATE.FAILED),
+        (test_json4, expected_json4, MASK_STATE.FAILED),
+    ):
+        verify_formats(source, endpoint, expected or source, result)  # type: ignore
+
+    # test with expected type and non-200 http status
+    verify_expected_type_and_http_error({}, endpoint)
 
 
 PATCHED_SERIALS = {
@@ -1517,6 +1536,16 @@ async def test_anonymization(
             "Masked serials also found in /info",
             "Masked serials also found in /my_endpoint",
         ]
+        + (
+            ["Unusable data for /ivp/pdm/device_data"]
+            if "/ivp/pdm/device_data" in exclude
+            else []
+        )
+        + (
+            ["Unusable data for /inventory.json?deleted=1"]
+            if "/inventory.json?deleted=1" in exclude
+            else []
+        )
     )
 
     # test dumps error handling
@@ -1555,3 +1584,14 @@ async def test_anonymization(
                 anonymized_raw[f"{endpoint}_log"]["mask_state"]
                 == anonymized_fixtures[f"{endpoint}_log"]["mask_state"]
             )
+
+    mock_aioresponse.get(
+        f"{full_host}/my_endpoint_203",
+        payload={"test": "this is the test for status error"},
+        status=203,
+        repeat=True,
+    )
+
+    override_mock(
+        mock_aioresponse, "get", f"{full_host}/info", body=info_xml, repeat=True
+    )
