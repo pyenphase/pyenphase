@@ -112,7 +112,7 @@ async def test_fixture_collection_snapshots(
     # track fixture and/or code change impact
     # ignore report time and duration in <endpoint>_log
     assert fixtures_collection == snapshot(
-        exclude=props("report_time", "duration_time")
+        exclude=props("report_time", "duration_seconds")
     )
 
 

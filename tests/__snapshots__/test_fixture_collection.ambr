@@ -3,7 +3,6 @@
   dict({
     '/admin/lib/acb_config_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/admin/lib/acb_config')",
     }),
     '/admin/lib/tariff': dict({
@@ -243,7 +242,6 @@
     }),
     '/admin/lib/tariff_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/api/v1/production': dict({
@@ -375,12 +373,10 @@
     ]),
     '/api/v1/production/inverters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/api/v1/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/home': dict({
@@ -470,19 +466,16 @@
     }),
     '/home_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/info': '<?xml version="1.0" encoding="utf-8"?><envoy_info>  <time>1752974744</time>  <device>    <sn>923456789012</sn>    <pn>800-02409-r03</pn>    <software>D8.3.1598</software>    <euaid>4c8675</euaid>    <seqnum>0</seqnum>    <apiver>1</apiver>    <imeter>true</imeter>  </device>  <web-tokens>true</web-tokens>  <package name="agf">    <pn>500-00012-r01</pn>    <version>02.02.00</version>    <build>333216</build>  </package>  <package name="app">    <pn>500-00002-r01</pn>    <version>08.03.1598</version>    <build>a7517c</build>  </package>  <package name="backbone">    <pn>500-00010-r01</pn>    <version>07.00.20</version>    <build>176d57</build>  </package>  <package name="boot">    <pn>590-00019-r01</pn>    <version>02.00.01</version>    <build>2569cb</build>  </package>  <package name="devimg">    <pn>500-00004-r01</pn>    <version>01.02.542</version>    <build>a71cfc</build>  </package>  <package name="essimg">    <pn>500-00020-r01</pn>    <version>99.19.20</version>    <build>20d706</build>  </package>  <package name="ffuimg">    <pn>500-00022-r01</pn>    <version>01.00.04</version>    <build>2cd3479</build>  </package>  <package name="geo">    <pn>500-00008-r01</pn>    <version>02.01.24</version>    <build>a74d96</build>  </package>  <package name="kernel">    <pn>500-00011-r02</pn>    <version>04.04.225</version>    <build>08bedf</build>  </package>  <package name="meter">    <pn>500-00013-r01</pn>    <version>03.02.08</version>    <build>a7517c</build>  </package>  <package name="pkgsec">    <pn>500-00021-r01</pn>    <version>01.00.00</version>    <build>9a696d</build>  </package>  <package name="rootfs">    <pn>500-00001-r01</pn>    <version>02.00.00</version>    <build>1211</build>  </package>  <package name="rootfs-full">    <pn>500-00001-r01</pn>    <version>02.00.00</version>    <build>1211</build>  </package>  <package name="security">    <pn>500-00016-r01</pn>    <version>02.00.00</version>    <build>54a6dc</build>  </package>  <build_info>    <build_id>-FRA-799-merge-master-enable-prod:pkg-Jun-16-25-15:59:25</build_id>    <build_time_gmt>1750089959</build_time_gmt>    <release_stage>700-GA</release_stage>    <release_ver>02.00.337</release_ver>  </build_info></envoy_info>',
     '/info_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/inventory.json?deleted=1': '',
     '/inventory.json?deleted=1_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.FAILED: 'failed'>,
     }),
     '/ivp/ensemble/dry_contacts': dict({
@@ -507,7 +500,6 @@
     }),
     '/ivp/ensemble/dry_contacts_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/generator': dict({
@@ -523,7 +515,6 @@
     }),
     '/ivp/ensemble/generator_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/inventory': list([
@@ -651,7 +642,6 @@
     ]),
     '/ivp/ensemble/inventory_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/ensemble/power': dict({
@@ -672,12 +662,10 @@
     }),
     '/ivp/ensemble/power_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/ensemble/relay_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/ensemble/relay')",
     }),
     '/ivp/ensemble/secctrl': dict({
@@ -726,7 +714,6 @@
     }),
     '/ivp/ensemble/secctrl_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/status': dict({
@@ -1117,12 +1104,10 @@
     }),
     '/ivp/ensemble/status_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/livedata/status_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/livedata/status')",
     }),
     '/ivp/meters': list([
@@ -1761,23 +1746,19 @@
     ]),
     '/ivp/meters/readings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/meters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/pdm/device_data': '',
     '/ivp/pdm/device_data_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.FAILED: 'failed'>,
     }),
     '/ivp/pdm/energy_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/pdm/energy')",
     }),
     '/ivp/sc/pvlimit': dict({
@@ -1786,12 +1767,10 @@
     }),
     '/ivp/sc/pvlimit_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/sc/sched_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/sc/sched')",
     }),
     '/ivp/ss/dry_contact_settings': dict({
@@ -1896,27 +1875,23 @@
     }),
     '/ivp/ss/dry_contact_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_config': dict({
     }),
     '/ivp/ss/gen_config_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_mode': '',
     '/ivp/ss/gen_mode_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_schedule': dict({
     }),
     '/ivp/ss/gen_schedule_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/pel_settings': dict({
@@ -1935,7 +1910,6 @@
     }),
     '/ivp/ss/pel_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production': dict({
@@ -2271,12 +2245,10 @@
     }),
     '/production.json?details=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     'anonymization_errors_log': list([
@@ -2289,7 +2261,6 @@
   dict({
     '/admin/lib/acb_config_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/admin/lib/acb_config')",
     }),
     '/admin/lib/tariff': dict({
@@ -2529,7 +2500,6 @@
     }),
     '/admin/lib/tariff_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/api/v1/production': dict({
       'wattHoursLifetime': 0,
@@ -2660,11 +2630,9 @@
     ]),
     '/api/v1/production/inverters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/api/v1/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/home': dict({
       'comm': dict({
@@ -2753,17 +2721,14 @@
     }),
     '/home_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/info': '<?xml version="1.0" encoding="utf-8"?><envoy_info>  <time>1752974744</time>  <device>    <sn>123456789012</sn>    <pn>800-02409-r03</pn>    <software>D8.3.1598</software>    <euaid>4c8675</euaid>    <seqnum>0</seqnum>    <apiver>1</apiver>    <imeter>true</imeter>  </device>  <web-tokens>true</web-tokens>  <package name="agf">    <pn>500-00012-r01</pn>    <version>02.02.00</version>    <build>333216</build>  </package>  <package name="app">    <pn>500-00002-r01</pn>    <version>08.03.1598</version>    <build>a7517c</build>  </package>  <package name="backbone">    <pn>500-00010-r01</pn>    <version>07.00.20</version>    <build>176d57</build>  </package>  <package name="boot">    <pn>590-00019-r01</pn>    <version>02.00.01</version>    <build>2569cb</build>  </package>  <package name="devimg">    <pn>500-00004-r01</pn>    <version>01.02.542</version>    <build>a71cfc</build>  </package>  <package name="essimg">    <pn>500-00020-r01</pn>    <version>99.19.20</version>    <build>20d706</build>  </package>  <package name="ffuimg">    <pn>500-00022-r01</pn>    <version>01.00.04</version>    <build>2cd3479</build>  </package>  <package name="geo">    <pn>500-00008-r01</pn>    <version>02.01.24</version>    <build>a74d96</build>  </package>  <package name="kernel">    <pn>500-00011-r02</pn>    <version>04.04.225</version>    <build>08bedf</build>  </package>  <package name="meter">    <pn>500-00013-r01</pn>    <version>03.02.08</version>    <build>a7517c</build>  </package>  <package name="pkgsec">    <pn>500-00021-r01</pn>    <version>01.00.00</version>    <build>9a696d</build>  </package>  <package name="rootfs">    <pn>500-00001-r01</pn>    <version>02.00.00</version>    <build>1211</build>  </package>  <package name="rootfs-full">    <pn>500-00001-r01</pn>    <version>02.00.00</version>    <build>1211</build>  </package>  <package name="security">    <pn>500-00016-r01</pn>    <version>02.00.00</version>    <build>54a6dc</build>  </package>  <build_info>    <build_id>-FRA-799-merge-master-enable-prod:pkg-Jun-16-25-15:59:25</build_id>    <build_time_gmt>1750089959</build_time_gmt>    <release_stage>700-GA</release_stage>    <release_ver>02.00.337</release_ver>  </build_info></envoy_info>',
     '/info_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/inventory.json?deleted=1': '',
     '/inventory.json?deleted=1_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/dry_contacts': dict({
       'dry_contacts': list([
@@ -2787,7 +2752,6 @@
     }),
     '/ivp/ensemble/dry_contacts_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/generator': dict({
       'admin_mode': 0,
@@ -2802,7 +2766,6 @@
     }),
     '/ivp/ensemble/generator_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/inventory': list([
       dict({
@@ -2929,7 +2892,6 @@
     ]),
     '/ivp/ensemble/inventory_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/power': dict({
       'devices:': list([
@@ -2949,11 +2911,9 @@
     }),
     '/ivp/ensemble/power_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/relay_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/ensemble/relay')",
     }),
     '/ivp/ensemble/secctrl': dict({
@@ -3002,7 +2962,6 @@
     }),
     '/ivp/ensemble/secctrl_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/status': dict({
       'inventory': dict({
@@ -3392,11 +3351,9 @@
     }),
     '/ivp/ensemble/status_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/livedata/status_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/livedata/status')",
     }),
     '/ivp/meters': list([
@@ -4035,20 +3992,16 @@
     ]),
     '/ivp/meters/readings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/meters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/pdm/device_data': '',
     '/ivp/pdm/device_data_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
     }),
     '/ivp/pdm/energy_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/pdm/energy')",
     }),
     '/ivp/sc/pvlimit': dict({
@@ -4057,11 +4010,9 @@
     }),
     '/ivp/sc/pvlimit_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/sc/sched_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/sc/sched')",
     }),
     '/ivp/ss/dry_contact_settings': dict({
@@ -4166,24 +4117,20 @@
     }),
     '/ivp/ss/dry_contact_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/gen_config': dict({
     }),
     '/ivp/ss/gen_config_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/gen_mode': '',
     '/ivp/ss/gen_mode_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/gen_schedule': dict({
     }),
     '/ivp/ss/gen_schedule_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/pel_settings': dict({
       'Comm_Time_Loss': 0.0,
@@ -4201,7 +4148,6 @@
     }),
     '/ivp/ss/pel_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/production': dict({
       'consumption': list([
@@ -4536,11 +4482,9 @@
     }),
     '/production.json?details=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
   })
 # ---
@@ -4548,7 +4492,6 @@
   dict({
     '/admin/lib/acb_config_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/admin/lib/acb_config')",
     }),
     '/admin/lib/tariff': dict({
@@ -4788,7 +4731,6 @@
     }),
     '/admin/lib/tariff_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/api/v1/production': dict({
@@ -4920,12 +4862,10 @@
     ]),
     '/api/v1/production/inverters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/api/v1/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/home': dict({
@@ -5015,18 +4955,15 @@
     }),
     '/home_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/info': '<?xml version="1.0" encoding="utf-8"?><envoy_info>  <time>1752974744</time>  <device>    <sn>923456789012</sn>    <pn>800-02409-r03</pn>    <software>D8.3.1598</software>    <euaid>4c8675</euaid>    <seqnum>0</seqnum>    <apiver>1</apiver>    <imeter>true</imeter>  </device>  <web-tokens>true</web-tokens>  <package name="agf">    <pn>500-00012-r01</pn>    <version>02.02.00</version>    <build>333216</build>  </package>  <package name="app">    <pn>500-00002-r01</pn>    <version>08.03.1598</version>    <build>a7517c</build>  </package>  <package name="backbone">    <pn>500-00010-r01</pn>    <version>07.00.20</version>    <build>176d57</build>  </package>  <package name="boot">    <pn>590-00019-r01</pn>    <version>02.00.01</version>    <build>2569cb</build>  </package>  <package name="devimg">    <pn>500-00004-r01</pn>    <version>01.02.542</version>    <build>a71cfc</build>  </package>  <package name="essimg">    <pn>500-00020-r01</pn>    <version>99.19.20</version>    <build>20d706</build>  </package>  <package name="ffuimg">    <pn>500-00022-r01</pn>    <version>01.00.04</version>    <build>2cd3479</build>  </package>  <package name="geo">    <pn>500-00008-r01</pn>    <version>02.01.24</version>    <build>a74d96</build>  </package>  <package name="kernel">    <pn>500-00011-r02</pn>    <version>04.04.225</version>    <build>08bedf</build>  </package>  <package name="meter">    <pn>500-00013-r01</pn>    <version>03.02.08</version>    <build>a7517c</build>  </package>  <package name="pkgsec">    <pn>500-00021-r01</pn>    <version>01.00.00</version>    <build>9a696d</build>  </package>  <package name="rootfs">    <pn>500-00001-r01</pn>    <version>02.00.00</version>    <build>1211</build>  </package>  <package name="rootfs-full">    <pn>500-00001-r01</pn>    <version>02.00.00</version>    <build>1211</build>  </package>  <package name="security">    <pn>500-00016-r01</pn>    <version>02.00.00</version>    <build>54a6dc</build>  </package>  <build_info>    <build_id>-FRA-799-merge-master-enable-prod:pkg-Jun-16-25-15:59:25</build_id>    <build_time_gmt>1750089959</build_time_gmt>    <release_stage>700-GA</release_stage>    <release_ver>02.00.337</release_ver>  </build_info></envoy_info>',
     '/info_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/inventory.json?deleted=1_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.REMOVED: 'removed'>,
     }),
     '/ivp/ensemble/dry_contacts': dict({
@@ -5051,7 +4988,6 @@
     }),
     '/ivp/ensemble/dry_contacts_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/generator': dict({
@@ -5067,7 +5003,6 @@
     }),
     '/ivp/ensemble/generator_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/inventory': list([
@@ -5195,7 +5130,6 @@
     ]),
     '/ivp/ensemble/inventory_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/ensemble/power': dict({
@@ -5216,12 +5150,10 @@
     }),
     '/ivp/ensemble/power_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/ensemble/relay_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/ensemble/relay')",
     }),
     '/ivp/ensemble/secctrl': dict({
@@ -5270,7 +5202,6 @@
     }),
     '/ivp/ensemble/secctrl_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/status': dict({
@@ -5661,12 +5592,10 @@
     }),
     '/ivp/ensemble/status_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/livedata/status_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/livedata/status')",
     }),
     '/ivp/meters': list([
@@ -6305,22 +6234,18 @@
     ]),
     '/ivp/meters/readings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/meters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/pdm/device_data_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.REMOVED: 'removed'>,
     }),
     '/ivp/pdm/energy_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/pdm/energy')",
     }),
     '/ivp/sc/pvlimit': dict({
@@ -6329,12 +6254,10 @@
     }),
     '/ivp/sc/pvlimit_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/sc/sched_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/sc/sched')",
     }),
     '/ivp/ss/dry_contact_settings': dict({
@@ -6439,27 +6362,23 @@
     }),
     '/ivp/ss/dry_contact_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_config': dict({
     }),
     '/ivp/ss/gen_config_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_mode': '',
     '/ivp/ss/gen_mode_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_schedule': dict({
     }),
     '/ivp/ss/gen_schedule_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/pel_settings': dict({
@@ -6478,7 +6397,6 @@
     }),
     '/ivp/ss/pel_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production': dict({
@@ -6814,12 +6732,10 @@
     }),
     '/production.json?details=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     'anonymization_errors_log': list([
@@ -6832,7 +6748,6 @@
   dict({
     '/admin/lib/acb_config_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/admin/lib/acb_config')",
     }),
     '/admin/lib/tariff': dict({
@@ -7066,7 +6981,6 @@
     }),
     '/admin/lib/tariff_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/api/v1/production': dict({
@@ -7114,12 +7028,10 @@
     ]),
     '/api/v1/production/inverters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/api/v1/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/home': dict({
@@ -7199,13 +7111,11 @@
     }),
     '/home_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/info': '<?xml version="1.0" encoding="UTF-8"?><envoy_info>\t<time>1781991518</time>\t<device>\t\t<sn>923456789012</sn>\t\t<pn>800-00554-r03</pn>\t\t<software>D8.3.5169</software>\t\t<euaid>4c8675</euaid>\t\t<seqnum>0</seqnum>\t\t<apiver>1</apiver>\t\t<imeter>true</imeter>\t</device>\t<web-tokens>true</web-tokens>\t<package name="agf">\t\t<pn>500-00012-r01</pn>\t\t<version>02.02.00</version>\t\t<build>31d2e7</build>\t</package>\t<package name="app">\t\t<pn>500-00002-r01</pn>\t\t<version>08.03.5169</version>\t\t<build>d123b2</build>\t</package>\t<package name="backbone">\t\t<pn>500-00010-r01</pn>\t\t<version>07.00.20</version>\t\t<build>176d57</build>\t</package>\t<package name="boot">\t\t<pn>590-00018-r01</pn>\t\t<version>02.00.01</version>\t\t<build>2569cb</build>\t</package>\t<package name="devimg">\t\t<pn>500-00005-r01</pn>\t\t<version>01.02.536</version>\t\t<build>66b5c8</build>\t</package>\t<package name="essimg">\t\t<pn>500-00020-r01</pn>\t\t<version>31.43.13</version>\t\t<build>b60ff5</build>\t</package>\t<package name="ffuimg">\t\t<pn>500-00022-r01</pn>\t\t<version>01.00.04</version>\t\t<build>2cd3479</build>\t</package>\t<package name="geo">\t\t<pn>500-00008-r01</pn>\t\t<version>02.01.24</version>\t\t<build>a74d96</build>\t</package>\t<package name="kernel">\t\t<pn>500-00011-r02</pn>\t\t<version>04.04.225</version>\t\t<build>08bedf</build>\t</package>\t<package name="meter">\t\t<pn>500-00013-r01</pn>\t\t<version>03.02.08</version>\t\t<build>91ea9b</build>\t</package>\t<package name="patch">\t\t<pn>500-00016-r01</pn>\t\t<version>01.00.00</version>\t\t<build>33024</build>\t</package>\t<package name="rootfs">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="rootfs-full">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="security">\t\t<pn>500-00016-r01</pn>\t\t<version>02.00.00</version>\t\t<build>54a6dc</build>\t</package>\t<build_info>\t\t<build_id>-FRA-799-merge-master-enable-prod:pkg-Apr-20-26-03:39:48</build_id>\t\t<build_time_gmt>1776656808</build_time_gmt>\t\t<release_stage>700-GA</release_stage>\t\t<release_ver>02.00.1514</release_ver>\t</build_info></envoy_info>',
     '/info_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/inventory.json?deleted=1': list([
@@ -7376,7 +7286,6 @@
     ]),
     '/inventory.json?deleted=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/ensemble/dry_contacts': dict({
@@ -7401,7 +7310,6 @@
     }),
     '/ivp/ensemble/dry_contacts_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/generator': dict({
@@ -7417,14 +7325,12 @@
     }),
     '/ivp/ensemble/generator_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/inventory': list([
     ]),
     '/ivp/ensemble/inventory_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/power': dict({
@@ -7433,12 +7339,10 @@
     }),
     '/ivp/ensemble/power_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/relay_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/ensemble/relay')",
     }),
     '/ivp/ensemble/secctrl': dict({
@@ -7486,7 +7390,6 @@
     }),
     '/ivp/ensemble/secctrl_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/status': dict({
@@ -7551,12 +7454,10 @@
     }),
     '/ivp/ensemble/status_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/livedata/status_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/livedata/status')",
     }),
     '/ivp/meters': list([
@@ -7795,12 +7696,10 @@
     ]),
     '/ivp/meters/readings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/meters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/pdm/device_data': dict({
@@ -8271,7 +8170,6 @@
     }),
     '/ivp/pdm/device_data_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/pdm/energy': dict({
@@ -8306,7 +8204,6 @@
     }),
     '/ivp/pdm/energy_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/sc/pvlimit': dict({
@@ -8315,12 +8212,10 @@
     }),
     '/ivp/sc/pvlimit_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/sc/sched_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/sc/sched')",
     }),
     '/ivp/ss/dry_contact_settings': dict({
@@ -8385,27 +8280,23 @@
     }),
     '/ivp/ss/dry_contact_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_config': dict({
     }),
     '/ivp/ss/gen_config_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_mode': '',
     '/ivp/ss/gen_mode_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_schedule': dict({
     }),
     '/ivp/ss/gen_schedule_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/pel_settings': dict({
@@ -8424,7 +8315,6 @@
     }),
     '/ivp/ss/pel_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production': dict({
@@ -8603,12 +8493,10 @@
     }),
     '/production.json?details=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
   })
@@ -8617,7 +8505,6 @@
   dict({
     '/admin/lib/acb_config_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/admin/lib/acb_config')",
     }),
     '/admin/lib/tariff': dict({
@@ -8851,7 +8738,6 @@
     }),
     '/admin/lib/tariff_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/api/v1/production': dict({
       'wattHoursLifetime': 1692970,
@@ -8898,11 +8784,9 @@
     ]),
     '/api/v1/production/inverters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/api/v1/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/home': dict({
       'comm': dict({
@@ -8981,12 +8865,10 @@
     }),
     '/home_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/info': '<?xml version="1.0" encoding="UTF-8"?><envoy_info>\t<time>1781991518</time>\t<device>\t\t<sn>122035000000</sn>\t\t<pn>800-00554-r03</pn>\t\t<software>D8.3.5169</software>\t\t<euaid>4c8675</euaid>\t\t<seqnum>0</seqnum>\t\t<apiver>1</apiver>\t\t<imeter>true</imeter>\t</device>\t<web-tokens>true</web-tokens>\t<package name="agf">\t\t<pn>500-00012-r01</pn>\t\t<version>02.02.00</version>\t\t<build>31d2e7</build>\t</package>\t<package name="app">\t\t<pn>500-00002-r01</pn>\t\t<version>08.03.5169</version>\t\t<build>d123b2</build>\t</package>\t<package name="backbone">\t\t<pn>500-00010-r01</pn>\t\t<version>07.00.20</version>\t\t<build>176d57</build>\t</package>\t<package name="boot">\t\t<pn>590-00018-r01</pn>\t\t<version>02.00.01</version>\t\t<build>2569cb</build>\t</package>\t<package name="devimg">\t\t<pn>500-00005-r01</pn>\t\t<version>01.02.536</version>\t\t<build>66b5c8</build>\t</package>\t<package name="essimg">\t\t<pn>500-00020-r01</pn>\t\t<version>31.43.13</version>\t\t<build>b60ff5</build>\t</package>\t<package name="ffuimg">\t\t<pn>500-00022-r01</pn>\t\t<version>01.00.04</version>\t\t<build>2cd3479</build>\t</package>\t<package name="geo">\t\t<pn>500-00008-r01</pn>\t\t<version>02.01.24</version>\t\t<build>a74d96</build>\t</package>\t<package name="kernel">\t\t<pn>500-00011-r02</pn>\t\t<version>04.04.225</version>\t\t<build>08bedf</build>\t</package>\t<package name="meter">\t\t<pn>500-00013-r01</pn>\t\t<version>03.02.08</version>\t\t<build>91ea9b</build>\t</package>\t<package name="patch">\t\t<pn>500-00016-r01</pn>\t\t<version>01.00.00</version>\t\t<build>33024</build>\t</package>\t<package name="rootfs">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="rootfs-full">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="security">\t\t<pn>500-00016-r01</pn>\t\t<version>02.00.00</version>\t\t<build>54a6dc</build>\t</package>\t<build_info>\t\t<build_id>-FRA-799-merge-master-enable-prod:pkg-Apr-20-26-03:39:48</build_id>\t\t<build_time_gmt>1776656808</build_time_gmt>\t\t<release_stage>700-GA</release_stage>\t\t<release_ver>02.00.1514</release_ver>\t</build_info></envoy_info>',
     '/info_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/inventory.json?deleted=1': list([
       dict({
@@ -9156,7 +9038,6 @@
     ]),
     '/inventory.json?deleted=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/dry_contacts': dict({
       'dry_contacts': list([
@@ -9180,7 +9061,6 @@
     }),
     '/ivp/ensemble/dry_contacts_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/generator': dict({
       'admin_mode': 0,
@@ -9195,13 +9075,11 @@
     }),
     '/ivp/ensemble/generator_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/inventory': list([
     ]),
     '/ivp/ensemble/inventory_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/power': dict({
       'devices:': list([
@@ -9209,11 +9087,9 @@
     }),
     '/ivp/ensemble/power_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/relay_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/ensemble/relay')",
     }),
     '/ivp/ensemble/secctrl': dict({
@@ -9261,7 +9137,6 @@
     }),
     '/ivp/ensemble/secctrl_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/status': dict({
       'inventory': dict({
@@ -9325,11 +9200,9 @@
     }),
     '/ivp/ensemble/status_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/livedata/status_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/livedata/status')",
     }),
     '/ivp/meters': list([
@@ -9568,11 +9441,9 @@
     ]),
     '/ivp/meters/readings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/meters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/pdm/device_data': dict({
       '553648384': dict({
@@ -10042,7 +9913,6 @@
     }),
     '/ivp/pdm/device_data_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/pdm/energy': dict({
       'consumption': dict({
@@ -10076,7 +9946,6 @@
     }),
     '/ivp/pdm/energy_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/sc/pvlimit': dict({
       'enable': False,
@@ -10084,11 +9953,9 @@
     }),
     '/ivp/sc/pvlimit_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/sc/sched_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/sc/sched')",
     }),
     '/ivp/ss/dry_contact_settings': dict({
@@ -10153,24 +10020,20 @@
     }),
     '/ivp/ss/dry_contact_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/gen_config': dict({
     }),
     '/ivp/ss/gen_config_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/gen_mode': '',
     '/ivp/ss/gen_mode_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/gen_schedule': dict({
     }),
     '/ivp/ss/gen_schedule_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/pel_settings': dict({
       'Comm_Time_Loss': 0.0,
@@ -10188,7 +10051,6 @@
     }),
     '/ivp/ss/pel_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/production': dict({
       'consumption': list([
@@ -10366,11 +10228,9 @@
     }),
     '/production.json?details=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
   })
 # ---
@@ -10378,7 +10238,6 @@
   dict({
     '/admin/lib/acb_config_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/admin/lib/acb_config')",
     }),
     '/admin/lib/tariff': dict({
@@ -10612,7 +10471,6 @@
     }),
     '/admin/lib/tariff_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/api/v1/production': dict({
@@ -10660,12 +10518,10 @@
     ]),
     '/api/v1/production/inverters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/api/v1/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/home': dict({
@@ -10745,13 +10601,11 @@
     }),
     '/home_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/info': '<?xml version="1.0" encoding="UTF-8"?><envoy_info>\t<time>1781991518</time>\t<device>\t\t<sn>923456789012</sn>\t\t<pn>800-00554-r03</pn>\t\t<software>D8.3.5169</software>\t\t<euaid>4c8675</euaid>\t\t<seqnum>0</seqnum>\t\t<apiver>1</apiver>\t\t<imeter>true</imeter>\t</device>\t<web-tokens>true</web-tokens>\t<package name="agf">\t\t<pn>500-00012-r01</pn>\t\t<version>02.02.00</version>\t\t<build>31d2e7</build>\t</package>\t<package name="app">\t\t<pn>500-00002-r01</pn>\t\t<version>08.03.5169</version>\t\t<build>d123b2</build>\t</package>\t<package name="backbone">\t\t<pn>500-00010-r01</pn>\t\t<version>07.00.20</version>\t\t<build>176d57</build>\t</package>\t<package name="boot">\t\t<pn>590-00018-r01</pn>\t\t<version>02.00.01</version>\t\t<build>2569cb</build>\t</package>\t<package name="devimg">\t\t<pn>500-00005-r01</pn>\t\t<version>01.02.536</version>\t\t<build>66b5c8</build>\t</package>\t<package name="essimg">\t\t<pn>500-00020-r01</pn>\t\t<version>31.43.13</version>\t\t<build>b60ff5</build>\t</package>\t<package name="ffuimg">\t\t<pn>500-00022-r01</pn>\t\t<version>01.00.04</version>\t\t<build>2cd3479</build>\t</package>\t<package name="geo">\t\t<pn>500-00008-r01</pn>\t\t<version>02.01.24</version>\t\t<build>a74d96</build>\t</package>\t<package name="kernel">\t\t<pn>500-00011-r02</pn>\t\t<version>04.04.225</version>\t\t<build>08bedf</build>\t</package>\t<package name="meter">\t\t<pn>500-00013-r01</pn>\t\t<version>03.02.08</version>\t\t<build>91ea9b</build>\t</package>\t<package name="patch">\t\t<pn>500-00016-r01</pn>\t\t<version>01.00.00</version>\t\t<build>33024</build>\t</package>\t<package name="rootfs">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="rootfs-full">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="security">\t\t<pn>500-00016-r01</pn>\t\t<version>02.00.00</version>\t\t<build>54a6dc</build>\t</package>\t<build_info>\t\t<build_id>-FRA-799-merge-master-enable-prod:pkg-Apr-20-26-03:39:48</build_id>\t\t<build_time_gmt>1776656808</build_time_gmt>\t\t<release_stage>700-GA</release_stage>\t\t<release_ver>02.00.1514</release_ver>\t</build_info></envoy_info>',
     '/info_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/inventory.json?deleted=1': list([
@@ -10922,7 +10776,6 @@
     ]),
     '/inventory.json?deleted=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/ensemble/dry_contacts': dict({
@@ -10947,7 +10800,6 @@
     }),
     '/ivp/ensemble/dry_contacts_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/generator': dict({
@@ -10963,14 +10815,12 @@
     }),
     '/ivp/ensemble/generator_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/inventory': list([
     ]),
     '/ivp/ensemble/inventory_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/power': dict({
@@ -10979,12 +10829,10 @@
     }),
     '/ivp/ensemble/power_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/relay_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/ensemble/relay')",
     }),
     '/ivp/ensemble/secctrl': dict({
@@ -11032,7 +10880,6 @@
     }),
     '/ivp/ensemble/secctrl_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/status': dict({
@@ -11097,12 +10944,10 @@
     }),
     '/ivp/ensemble/status_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/livedata/status_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/livedata/status')",
     }),
     '/ivp/meters': list([
@@ -11341,12 +11186,10 @@
     ]),
     '/ivp/meters/readings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/meters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/pdm/device_data': dict({
@@ -11817,7 +11660,6 @@
     }),
     '/ivp/pdm/device_data_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/pdm/energy': dict({
@@ -11852,7 +11694,6 @@
     }),
     '/ivp/pdm/energy_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/sc/pvlimit': dict({
@@ -11861,12 +11702,10 @@
     }),
     '/ivp/sc/pvlimit_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/sc/sched_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/sc/sched')",
     }),
     '/ivp/ss/dry_contact_settings': dict({
@@ -11931,27 +11770,23 @@
     }),
     '/ivp/ss/dry_contact_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_config': dict({
     }),
     '/ivp/ss/gen_config_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_mode': '',
     '/ivp/ss/gen_mode_log': dict({
       'code': 404,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_schedule': dict({
     }),
     '/ivp/ss/gen_schedule_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/pel_settings': dict({
@@ -11970,7 +11805,6 @@
     }),
     '/ivp/ss/pel_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production': dict({
@@ -12149,12 +11983,10 @@
     }),
     '/production.json?details=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
   })
@@ -12163,7 +11995,6 @@
   dict({
     '/admin/lib/acb_config_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/admin/lib/acb_config')",
     }),
     '/admin/lib/tariff': dict({
@@ -12434,7 +12265,6 @@
     }),
     '/admin/lib/tariff_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/api/v1/production': dict({
@@ -12587,12 +12417,10 @@
     ]),
     '/api/v1/production/inverters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/api/v1/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/home': dict({
@@ -12688,13 +12516,11 @@
     }),
     '/home_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/info': '<?xml version="1.0" encoding="UTF-8"?><envoy_info>\t<time>1785593316</time>\t<device>\t\t<sn>923456789012</sn>\t\t<pn>800-00647-r11</pn>\t\t<software>D8.3.5169</software>\t\t<euaid>4c8675</euaid>\t\t<seqnum>0</seqnum>\t\t<apiver>1</apiver>\t\t<imeter>true</imeter>\t</device>\t<web-tokens>true</web-tokens>\t<package name="agf">\t\t<pn>500-00012-r01</pn>\t\t<version>02.02.00</version>\t\t<build>31d2e7</build>\t</package>\t<package name="app">\t\t<pn>500-00002-r01</pn>\t\t<version>08.03.5169</version>\t\t<build>d123b2</build>\t</package>\t<package name="backbone">\t\t<pn>500-00010-r01</pn>\t\t<version>07.00.20</version>\t\t<build>176d57</build>\t</package>\t<package name="boot">\t\t<pn>590-00019-r01</pn>\t\t<version>02.00.01</version>\t\t<build>2569cb</build>\t</package>\t<package name="devimg">\t\t<pn>500-00004-r01</pn>\t\t<version>01.02.550</version>\t\t<build>66b5c8</build>\t</package>\t<package name="essimg">\t\t<pn>500-00020-r01</pn>\t\t<version>31.43.13</version>\t\t<build>b60ff5</build>\t</package>\t<package name="ffuimg">\t\t<pn>500-00022-r01</pn>\t\t<version>01.00.04</version>\t\t<build>2cd3479</build>\t</package>\t<package name="geo">\t\t<pn>500-00008-r01</pn>\t\t<version>02.01.24</version>\t\t<build>a74d96</build>\t</package>\t<package name="kernel">\t\t<pn>500-00011-r02</pn>\t\t<version>04.04.225</version>\t\t<build>08bedf</build>\t</package>\t<package name="meter">\t\t<pn>500-00013-r01</pn>\t\t<version>03.02.08</version>\t\t<build>91ea9b</build>\t</package>\t<package name="patch">\t\t<pn>500-00016-r01</pn>\t\t<version>01.00.00</version>\t\t<build>33536</build>\t</package>\t<package name="pkgsec">\t\t<pn>500-00021-r01</pn>\t\t<version>01.00.00</version>\t\t<build>0fdc14</build>\t</package>\t<package name="rootfs">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="rootfs-full">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="security">\t\t<pn>500-00016-r01</pn>\t\t<version>02.00.00</version>\t\t<build>54a6dc</build>\t</package>\t<build_info>\t\t<build_id>-FRA-799-merge-master-enable-prod:pkg-Apr-20-26-03:39:48</build_id>\t\t<build_time_gmt>1776656808</build_time_gmt>\t\t<release_stage>700-GA</release_stage>\t\t<release_ver>02.00.1514</release_ver>\t</build_info></envoy_info>',
     '/info_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/inventory.json?deleted=1': list([
@@ -13265,7 +13091,6 @@
     ]),
     '/inventory.json?deleted=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/ensemble/dry_contacts': dict({
@@ -13290,7 +13115,6 @@
     }),
     '/ivp/ensemble/dry_contacts_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/generator': dict({
@@ -13306,7 +13130,6 @@
     }),
     '/ivp/ensemble/generator_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/inventory': list([
@@ -13348,7 +13171,6 @@
     ]),
     '/ivp/ensemble/inventory_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/ensemble/power': dict({
@@ -13357,12 +13179,10 @@
     }),
     '/ivp/ensemble/power_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/relay_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/ensemble/relay')",
     }),
     '/ivp/ensemble/secctrl': dict({
@@ -13410,7 +13230,6 @@
     }),
     '/ivp/ensemble/secctrl_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/status': dict({
@@ -13522,12 +13341,10 @@
     }),
     '/ivp/ensemble/status_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/livedata/status_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/livedata/status')",
     }),
     '/ivp/meters': list([
@@ -13766,12 +13583,10 @@
     ]),
     '/ivp/meters/readings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/meters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/pdm/device_data': dict({
@@ -15080,7 +14895,6 @@
     }),
     '/ivp/pdm/device_data_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/pdm/energy': dict({
@@ -15115,7 +14929,6 @@
     }),
     '/ivp/pdm/energy_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/sc/pvlimit': dict({
@@ -15124,12 +14937,10 @@
     }),
     '/ivp/sc/pvlimit_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/sc/sched_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/sc/sched')",
     }),
     '/ivp/ss/dry_contact_settings': dict({
@@ -15214,7 +15025,6 @@
     }),
     '/ivp/ss/dry_contact_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_config': dict({
@@ -15234,7 +15044,6 @@
     }),
     '/ivp/ss/gen_config_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_mode': dict({
@@ -15243,7 +15052,6 @@
     }),
     '/ivp/ss/gen_mode_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_schedule': dict({
@@ -15286,7 +15094,6 @@
     }),
     '/ivp/ss/gen_schedule_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/pel_settings': dict({
@@ -15305,7 +15112,6 @@
     }),
     '/ivp/ss/pel_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production': dict({
@@ -15482,12 +15288,10 @@
     }),
     '/production.json?details=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
   })
@@ -15496,7 +15300,6 @@
   dict({
     '/admin/lib/acb_config_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/admin/lib/acb_config')",
     }),
     '/admin/lib/tariff': dict({
@@ -15767,7 +15570,6 @@
     }),
     '/admin/lib/tariff_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/api/v1/production': dict({
       'wattHoursLifetime': 11567547,
@@ -15919,11 +15721,9 @@
     ]),
     '/api/v1/production/inverters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/api/v1/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/home': dict({
       'comm': dict({
@@ -16018,12 +15818,10 @@
     }),
     '/home_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/info': '<?xml version="1.0" encoding="UTF-8"?><envoy_info>\t<time>1785593316</time>\t<device>\t\t<sn>202439990001</sn>\t\t<pn>800-00647-r11</pn>\t\t<software>D8.3.5169</software>\t\t<euaid>4c8675</euaid>\t\t<seqnum>0</seqnum>\t\t<apiver>1</apiver>\t\t<imeter>true</imeter>\t</device>\t<web-tokens>true</web-tokens>\t<package name="agf">\t\t<pn>500-00012-r01</pn>\t\t<version>02.02.00</version>\t\t<build>31d2e7</build>\t</package>\t<package name="app">\t\t<pn>500-00002-r01</pn>\t\t<version>08.03.5169</version>\t\t<build>d123b2</build>\t</package>\t<package name="backbone">\t\t<pn>500-00010-r01</pn>\t\t<version>07.00.20</version>\t\t<build>176d57</build>\t</package>\t<package name="boot">\t\t<pn>590-00019-r01</pn>\t\t<version>02.00.01</version>\t\t<build>2569cb</build>\t</package>\t<package name="devimg">\t\t<pn>500-00004-r01</pn>\t\t<version>01.02.550</version>\t\t<build>66b5c8</build>\t</package>\t<package name="essimg">\t\t<pn>500-00020-r01</pn>\t\t<version>31.43.13</version>\t\t<build>b60ff5</build>\t</package>\t<package name="ffuimg">\t\t<pn>500-00022-r01</pn>\t\t<version>01.00.04</version>\t\t<build>2cd3479</build>\t</package>\t<package name="geo">\t\t<pn>500-00008-r01</pn>\t\t<version>02.01.24</version>\t\t<build>a74d96</build>\t</package>\t<package name="kernel">\t\t<pn>500-00011-r02</pn>\t\t<version>04.04.225</version>\t\t<build>08bedf</build>\t</package>\t<package name="meter">\t\t<pn>500-00013-r01</pn>\t\t<version>03.02.08</version>\t\t<build>91ea9b</build>\t</package>\t<package name="patch">\t\t<pn>500-00016-r01</pn>\t\t<version>01.00.00</version>\t\t<build>33536</build>\t</package>\t<package name="pkgsec">\t\t<pn>500-00021-r01</pn>\t\t<version>01.00.00</version>\t\t<build>0fdc14</build>\t</package>\t<package name="rootfs">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="rootfs-full">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="security">\t\t<pn>500-00016-r01</pn>\t\t<version>02.00.00</version>\t\t<build>54a6dc</build>\t</package>\t<build_info>\t\t<build_id>-FRA-799-merge-master-enable-prod:pkg-Apr-20-26-03:39:48</build_id>\t\t<build_time_gmt>1776656808</build_time_gmt>\t\t<release_stage>700-GA</release_stage>\t\t<release_ver>02.00.1514</release_ver>\t</build_info></envoy_info>',
     '/info_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/inventory.json?deleted=1': list([
       dict({
@@ -16593,7 +16391,6 @@
     ]),
     '/inventory.json?deleted=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/dry_contacts': dict({
       'dry_contacts': list([
@@ -16617,7 +16414,6 @@
     }),
     '/ivp/ensemble/dry_contacts_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/generator': dict({
       'admin_mode': 2,
@@ -16632,7 +16428,6 @@
     }),
     '/ivp/ensemble/generator_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/inventory': list([
       dict({
@@ -16673,7 +16468,6 @@
     ]),
     '/ivp/ensemble/inventory_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/power': dict({
       'devices:': list([
@@ -16681,11 +16475,9 @@
     }),
     '/ivp/ensemble/power_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/relay_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/ensemble/relay')",
     }),
     '/ivp/ensemble/secctrl': dict({
@@ -16733,7 +16525,6 @@
     }),
     '/ivp/ensemble/secctrl_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ensemble/status': dict({
       'inventory': dict({
@@ -16844,11 +16635,9 @@
     }),
     '/ivp/ensemble/status_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/livedata/status_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/livedata/status')",
     }),
     '/ivp/meters': list([
@@ -17087,11 +16876,9 @@
     ]),
     '/ivp/meters/readings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/meters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/pdm/device_data': dict({
       '553648384': dict({
@@ -18399,7 +18186,6 @@
     }),
     '/ivp/pdm/device_data_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/pdm/energy': dict({
       'consumption': dict({
@@ -18433,7 +18219,6 @@
     }),
     '/ivp/pdm/energy_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/sc/pvlimit': dict({
       'enable': False,
@@ -18441,11 +18226,9 @@
     }),
     '/ivp/sc/pvlimit_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/sc/sched_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/sc/sched')",
     }),
     '/ivp/ss/dry_contact_settings': dict({
@@ -18530,7 +18313,6 @@
     }),
     '/ivp/ss/dry_contact_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/gen_config': dict({
       'charge_from_generator': True,
@@ -18549,7 +18331,6 @@
     }),
     '/ivp/ss/gen_config_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/gen_mode': dict({
       'gen_cmd': 'on',
@@ -18557,7 +18338,6 @@
     }),
     '/ivp/ss/gen_mode_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/gen_schedule': dict({
       'default_soc': dict({
@@ -18599,7 +18379,6 @@
     }),
     '/ivp/ss/gen_schedule_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/ivp/ss/pel_settings': dict({
       'Comm_Time_Loss': 0.0,
@@ -18617,7 +18396,6 @@
     }),
     '/ivp/ss/pel_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/production': dict({
       'consumption': list([
@@ -18793,11 +18571,9 @@
     }),
     '/production.json?details=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
     '/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
     }),
   })
 # ---
@@ -18805,7 +18581,6 @@
   dict({
     '/admin/lib/acb_config_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/admin/lib/acb_config')",
     }),
     '/admin/lib/tariff': dict({
@@ -19076,7 +18851,6 @@
     }),
     '/admin/lib/tariff_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/api/v1/production': dict({
@@ -19229,12 +19003,10 @@
     ]),
     '/api/v1/production/inverters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/api/v1/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/home': dict({
@@ -19330,13 +19102,11 @@
     }),
     '/home_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/info': '<?xml version="1.0" encoding="UTF-8"?><envoy_info>\t<time>1785593316</time>\t<device>\t\t<sn>923456789012</sn>\t\t<pn>800-00647-r11</pn>\t\t<software>D8.3.5169</software>\t\t<euaid>4c8675</euaid>\t\t<seqnum>0</seqnum>\t\t<apiver>1</apiver>\t\t<imeter>true</imeter>\t</device>\t<web-tokens>true</web-tokens>\t<package name="agf">\t\t<pn>500-00012-r01</pn>\t\t<version>02.02.00</version>\t\t<build>31d2e7</build>\t</package>\t<package name="app">\t\t<pn>500-00002-r01</pn>\t\t<version>08.03.5169</version>\t\t<build>d123b2</build>\t</package>\t<package name="backbone">\t\t<pn>500-00010-r01</pn>\t\t<version>07.00.20</version>\t\t<build>176d57</build>\t</package>\t<package name="boot">\t\t<pn>590-00019-r01</pn>\t\t<version>02.00.01</version>\t\t<build>2569cb</build>\t</package>\t<package name="devimg">\t\t<pn>500-00004-r01</pn>\t\t<version>01.02.550</version>\t\t<build>66b5c8</build>\t</package>\t<package name="essimg">\t\t<pn>500-00020-r01</pn>\t\t<version>31.43.13</version>\t\t<build>b60ff5</build>\t</package>\t<package name="ffuimg">\t\t<pn>500-00022-r01</pn>\t\t<version>01.00.04</version>\t\t<build>2cd3479</build>\t</package>\t<package name="geo">\t\t<pn>500-00008-r01</pn>\t\t<version>02.01.24</version>\t\t<build>a74d96</build>\t</package>\t<package name="kernel">\t\t<pn>500-00011-r02</pn>\t\t<version>04.04.225</version>\t\t<build>08bedf</build>\t</package>\t<package name="meter">\t\t<pn>500-00013-r01</pn>\t\t<version>03.02.08</version>\t\t<build>91ea9b</build>\t</package>\t<package name="patch">\t\t<pn>500-00016-r01</pn>\t\t<version>01.00.00</version>\t\t<build>33536</build>\t</package>\t<package name="pkgsec">\t\t<pn>500-00021-r01</pn>\t\t<version>01.00.00</version>\t\t<build>0fdc14</build>\t</package>\t<package name="rootfs">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="rootfs-full">\t\t<pn>500-00001-r01</pn>\t\t<version>02.00.00</version>\t\t<build>1211</build>\t</package>\t<package name="security">\t\t<pn>500-00016-r01</pn>\t\t<version>02.00.00</version>\t\t<build>54a6dc</build>\t</package>\t<build_info>\t\t<build_id>-FRA-799-merge-master-enable-prod:pkg-Apr-20-26-03:39:48</build_id>\t\t<build_time_gmt>1776656808</build_time_gmt>\t\t<release_stage>700-GA</release_stage>\t\t<release_ver>02.00.1514</release_ver>\t</build_info></envoy_info>',
     '/info_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/inventory.json?deleted=1': list([
@@ -19907,7 +19677,6 @@
     ]),
     '/inventory.json?deleted=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/ensemble/dry_contacts': dict({
@@ -19932,7 +19701,6 @@
     }),
     '/ivp/ensemble/dry_contacts_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/generator': dict({
@@ -19948,7 +19716,6 @@
     }),
     '/ivp/ensemble/generator_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/inventory': list([
@@ -19990,7 +19757,6 @@
     ]),
     '/ivp/ensemble/inventory_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/ensemble/power': dict({
@@ -19999,12 +19765,10 @@
     }),
     '/ivp/ensemble/power_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/relay_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/ensemble/relay')",
     }),
     '/ivp/ensemble/secctrl': dict({
@@ -20052,7 +19816,6 @@
     }),
     '/ivp/ensemble/secctrl_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ensemble/status': dict({
@@ -20164,12 +19927,10 @@
     }),
     '/ivp/ensemble/status_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/livedata/status_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/livedata/status')",
     }),
     '/ivp/meters': list([
@@ -20408,12 +20169,10 @@
     ]),
     '/ivp/meters/readings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/meters_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/pdm/device_data': dict({
@@ -21722,7 +21481,6 @@
     }),
     '/ivp/pdm/device_data_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.MASKED: 'masked'>,
     }),
     '/ivp/pdm/energy': dict({
@@ -21757,7 +21515,6 @@
     }),
     '/ivp/pdm/energy_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/sc/pvlimit': dict({
@@ -21766,12 +21523,10 @@
     }),
     '/ivp/sc/pvlimit_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/sc/sched_log': dict({
       'code': 0,
-      'duration_seconds': 0.0,
       'error': "ClientConnectionError('Connection refused: GET https://127.0.0.1/ivp/sc/sched')",
     }),
     '/ivp/ss/dry_contact_settings': dict({
@@ -21856,7 +21611,6 @@
     }),
     '/ivp/ss/dry_contact_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_config': dict({
@@ -21876,7 +21630,6 @@
     }),
     '/ivp/ss/gen_config_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_mode': dict({
@@ -21885,7 +21638,6 @@
     }),
     '/ivp/ss/gen_mode_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/gen_schedule': dict({
@@ -21928,7 +21680,6 @@
     }),
     '/ivp/ss/gen_schedule_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/ivp/ss/pel_settings': dict({
@@ -21947,7 +21698,6 @@
     }),
     '/ivp/ss/pel_settings_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production': dict({
@@ -22124,12 +21874,10 @@
     }),
     '/production.json?details=1_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
     '/production_log': dict({
       'code': 200,
-      'duration_seconds': 0.0,
       'mask_state': <MASK_STATE.UNCHANGED: 'unchanged'>,
     }),
   })
