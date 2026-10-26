@@ -1862,8 +1862,8 @@ class Envoy:
             was done, see :py:meth:`Envoy.authenticate`.
         :returns: dict with endpoint data and request status entries for
             successfully collected endpoints. With both `mask_serials` and
-            `stict_masking` enabled, endpoints that failed the masking only
-            have status entries only.
+            `strict_masking` enabled, endpoints that failed the masking only
+            have status entries.
         """
         if self.auth is None:
             raise EnvoyAuthenticationRequired(
