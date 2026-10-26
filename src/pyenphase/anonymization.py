@@ -266,9 +266,9 @@ def anonymize_serials(
                 },
             )
 
-    # Add anonymization errors to returned dict
+    # Add sorted anonymization errors to returned dict
     if len(anonymization_errors) > 0:
         fixtures[ANONYMIZATION_ERROR_KEY] = fixtures.get(
             ANONYMIZATION_ERROR_KEY, []
-        ) + list(anonymization_errors)
+        ) + sorted(anonymization_errors)
     return fixtures

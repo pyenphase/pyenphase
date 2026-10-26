@@ -9,6 +9,8 @@ import aiohttp
 import orjson
 import pytest
 from aioresponses import aioresponses
+from syrupy.assertion import SnapshotAssertion
+from syrupy.filters import props
 
 from pyenphase import Envoy
 from pyenphase.const import (
@@ -29,41 +31,97 @@ from .common import (
     prep_envoy,
     start_7_firmware_mock,
 )
+from .test_anonymization import PATCHED_ENVOY_SERIAL, PATCHED_SERIALS
 
 LOGGER = logging.getLogger(__name__)
 ENSEMBLE_POWER_DEVICE = "devices:"
 
+TEST_FIXTURES = [
+    (
+        "8.3.5169_ACB_inventory",
+        [
+            "/ivp/ensemble/relay",
+            "/admin/lib/acb_config",
+            "/ivp/sc/sched",
+            "/ivp/livedata/status",
+        ],
+    ),
+    (
+        "8.3.5169_with_generator",
+        [
+            "/ivp/ensemble/relay",
+            "/admin/lib/acb_config",
+            "/ivp/sc/sched",
+            "/ivp/livedata/status",
+        ],
+    ),
+    (
+        "8.3.1598_collar",
+        [
+            "/ivp/ensemble/relay",
+            "/admin/lib/acb_config",
+            "/ivp/sc/sched",
+            "/ivp/livedata/status",
+            "/ivp/pdm/energy",
+        ],
+    ),
+]
 
-@patch(
-    "pyenphase.anonymization.TYPE_SERIALS",
-    {
-        "PCU": "101000000001",
-        "ACB": "201000000001",
-        "ENCHARGE": "301000000001",
-        "ENPOWER": "401000000001",
-        "COLLAR": "511000000001",
-        "C6 COMBINER CONTROLLER": "521000000001",
-        "C6 RGM": "531000000001",
-        "NSRB": "611000000001",
-        "ESUB": "621000000001",
-        "ENCH_PCU": "630000000001",
-        "ENCH_BMU": "640000000001",
-        "UNKNOWN": "991000000001",
-    },
+TEST_IDS = [
+    "8.3.5169_ACB_inventory",
+    "8.3.5169_with_generator",
+    "8.3.1598_collar",
+]
+
+
+@patch("pyenphase.anonymization.TYPE_SERIALS", PATCHED_SERIALS)
+@patch("pyenphase.anonymization.ENVOY_SERIAL", PATCHED_ENVOY_SERIAL)
+@pytest.mark.parametrize(
+    ("mode"),
+    ("report", "anonymized", "strict_anonymized"),
 )
-@patch("pyenphase.anonymization.ENVOY_SERIAL", "923456789012")
 @pytest.mark.parametrize(
     ("version", "exclude"),
-    [
-        ("8.3.5169_ACB_inventory", []),
-        ("8.3.5169_with_generator", []),
-        ("8.3.1598_collar", ["/ivp/pdm/device_data", "/inventory.json?deleted=1"]),
-    ],
-    ids=[
-        "8.3.5169_ACB_inventory",
-        "8.3.5169_with_generator",
-        "8.3.1598_collar",
-    ],
+    TEST_FIXTURES,
+    ids=TEST_IDS,
+)
+@pytest.mark.asyncio
+async def test_fixture_collection_snapshots(
+    snapshot: SnapshotAssertion,
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    exclude: list[str],  # exclude from fixture tests
+    mode: str,
+) -> None:
+    """Test fixture file data collection."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    envoy = await get_mock_envoy(test_client_session)
+
+    # verify DEVICE_TYPES values and TYPE_SERIALS keys match
+    assert sorted(set(DEVICE_TYPES.values())) == sorted(TYPE_SERIALS)
+
+    # test fixtures_collection method without serial anonymization
+    fixtures_collection: dict[str, Any] = await envoy.fixture_collection(
+        mask_serials=mode != "report",
+        strict_masking=mode == "strict_anonymized",
+    )
+    assert fixtures_collection
+
+    # track fixture and/or code change impact
+    # ignore report time and duration in <endpoint>_log
+    assert fixtures_collection == snapshot(
+        exclude=props("report_time", "duration_time")
+    )
+
+
+@patch("pyenphase.anonymization.TYPE_SERIALS", PATCHED_SERIALS)
+@patch("pyenphase.anonymization.ENVOY_SERIAL", PATCHED_ENVOY_SERIAL)
+@pytest.mark.parametrize(
+    ("version", "exclude"),
+    TEST_FIXTURES,
+    ids=TEST_IDS,
 )
 @pytest.mark.asyncio
 async def test_fixture_collection(
@@ -91,11 +149,17 @@ async def test_fixture_collection(
         mask_serials=False
     )
     assert fixtures_collection
+
     for fixture in FIXTURE_LIST:
         assert f"{fixture}_log" in fixtures_collection
         assert "code" in fixtures_collection[f"{fixture}_log"]
         assert "report_time" in fixtures_collection[f"{fixture}_log"]
         assert "duration_seconds" in fixtures_collection[f"{fixture}_log"]
+        assert "mask_state" not in fixtures_collection[f"{fixture}_log"]
+
+    # verify if exclude still matches fixture
+    for fixture in exclude:
+        assert fixture not in fixtures_collection
 
     assert "collection_aborted_log" not in fixtures_collection
     assert ANONYMIZATION_ERROR_KEY not in fixtures_collection
@@ -111,6 +175,21 @@ async def test_fixture_collection(
                 string_content = await load_fixture(version, file)
                 string_content = string_content.replace("\n", "")
                 assert fixtures_collection[endpoint] == string_content
+
+    # test with regular anonymization and no errors
+    fixtures_collection = await envoy.fixture_collection(
+        mask_serials=True,
+    )
+    assert fixtures_collection
+    for fixture in FIXTURE_LIST:
+        assert f"{fixture}_log" in fixtures_collection
+        assert "code" in fixtures_collection[f"{fixture}_log"]
+        assert "report_time" in fixtures_collection[f"{fixture}_log"]
+        assert "duration_seconds" in fixtures_collection[f"{fixture}_log"]
+        if fixture not in exclude:
+            assert "mask_state" in fixtures_collection[f"{fixture}_log"]
+
+    assert "collection_aborted_log" not in fixtures_collection
 
     # Verify timeout will end fixture collection
     override_mock(
