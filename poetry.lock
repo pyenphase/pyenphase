@@ -1669,14 +1669,14 @@ filelock = ">=3.15.4"
 
 [[package]]
 name = "python-jsonpath"
-version = "2.2.1"
+version = "2.2.2"
 description = "JSONPath, JSON Pointer and JSON Patch for Python."
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "python_jsonpath-2.2.1-py3-none-any.whl", hash = "sha256:ff3a65df52336fec13e2728612d6e2a76221264762a1b5385fac5dd21ae6f40e"},
-    {file = "python_jsonpath-2.2.1.tar.gz", hash = "sha256:3de7862cbc56566b61c2c25fe5a398bbba9466e972c1069a4c82cb60a8034dc5"},
+    {file = "python_jsonpath-2.2.2-py3-none-any.whl", hash = "sha256:b088251c7b63ee8c8ac14e54cf2eefbfe0cf5f59f0d26609a96bacb444ec40ac"},
+    {file = "python_jsonpath-2.2.2.tar.gz", hash = "sha256:bb1a66e82b8c586fcdd53a1df46df92e1cd5e4164aa57f315b03afa76dd14947"},
 ]
 
 [package.extras]
