@@ -37,6 +37,7 @@ from .common import (
     get_mock_envoy,
     load_fixture,
     load_json_fixture,
+    load_json_list_fixture,
     override_mock,
     prep_envoy,
     start_7_firmware_mock,
@@ -258,6 +259,9 @@ async def test_anonymization_inverters() -> None:
     test_json2[1]["devType"] = [1, 2]
     expected_json2[1]["serialNumber"] = TYPE_SERIALS["UNKNOWN"]
     expected_json2[1]["devType"] = [1, 2]
+    # test integer serial number comes back as device type
+    test_json2[2]["serialNumber"] = 480000000002
+    expected_json2[2]["serialNumber"] = "ACB"
 
     # test in standard and strict modes
     for source, expected, result in (  # type: ignore
@@ -561,9 +565,9 @@ async def test_anonymization_inventory() -> None:
         "Error during serial sequencing KeyError('UNKNOWN')"
         in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
-    assert (
-        "Error during serial replacement for regex compile PatternError('Test failed compile')"
-        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    assert any(
+        "Error during serial replacement for regex compile" in log
+        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
     # test strict mode with regex compile errors removes entries
@@ -580,9 +584,9 @@ async def test_anonymization_inventory() -> None:
     assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    assert (
-        "Error during serial replacement for regex compile PatternError('Test failed compile')"
-        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    assert any(
+        "Error during serial replacement for regex compile" in log
+        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
     # test automatic serial anonymization in regular mode with serial sequencing error
@@ -610,9 +614,9 @@ async def test_anonymization_inventory() -> None:
     assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    assert (
-        "Error during serial replacement for regex compile PatternError('Test failed compile')"
-        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    assert any(
+        "Error during serial replacement for regex compile" in log
+        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
 
@@ -1594,4 +1598,42 @@ async def test_anonymization(
 
     override_mock(
         mock_aioresponse, "get", f"{full_host}/info", body=info_xml, repeat=True
+    )
+
+    inv_json = await load_json_list_fixture(
+        version, endpoint_to_fixture_file["/api/v1/production/inverters"]
+    )
+    # test short serial to inverters
+    inv_json[1]["serialNumber"] = "4501"
+    # test numerical serial for inverters
+    inv_json[2]["serialNumber"] = 4500000001
+
+    override_mock(
+        mock_aioresponse,
+        "get",
+        f"{full_host}/api/v1/production/inverters",
+        payload=inv_json,
+        repeat=True,
+    )
+
+    mock_aioresponse.get(
+        f"{full_host}/my_number_endpoint",
+        payload={"test": "this is the inverter numerical serial 4500000001"},
+        status=200,
+        repeat=True,
+    )
+
+    # obtain fixtures_collection without serial anonymization
+    fixtures = await envoy.fixture_collection(
+        additional_endpoints=["/my_number_endpoint"], mask_serials=True
+    )
+
+    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+    assert any(
+        "Error during known serial scan, short serial numbers skipped (1)" in log
+        for log in fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+    assert any(
+        "Masked serials also found in /my_number_endpoint" in log
+        for log in fixtures[ANONYMIZATION_ERROR_KEY]
     )

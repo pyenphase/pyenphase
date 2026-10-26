@@ -203,7 +203,14 @@ def anonymize_serials(
             add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
 
     # scan for known serials in all endpoints and signal for strict removal if found
-    known_serials = [s for s in serials if isinstance(s, str) and s and len(s) > 6]
+    known_serials = [str(s) for s in serials]
+    short_serials = [s for s in known_serials if len(s) < 7]
+    known_serials = [s for s in known_serials if s not in short_serials]
+    if short_serials:
+        anonymization_errors.add(
+            f"Error during known serial scan, short serial numbers skipped ({len(short_serials)})"
+        )
+
     if known_serials:
         try:
             pattern = re.compile(
