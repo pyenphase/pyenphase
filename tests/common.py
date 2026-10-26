@@ -249,7 +249,7 @@ async def prep_envoy(
     mock_aioresponse.get(
         url_http("/info"),
         status=200,
-        body=await load_fixture(version, "info"),
+        body=info_xml,
         repeat=True,
         content_type="text/xml",
     )
