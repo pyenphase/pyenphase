@@ -203,22 +203,18 @@ def anonymize_serials(
             add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
 
     # scan for known serials in all endpoints and signal for strict removal if found
-    known_serials = [str(s) for s in serials]
-    short_serials = [s for s in known_serials if len(s) < 7]
-    known_serials = [s for s in known_serials if s not in short_serials]
-    if short_serials:
-        anonymization_errors.add(
-            f"Error during known serial scan, short serial numbers skipped ({len(short_serials)})"
-        )
+    all_serials = [str(s) for s in serials]
+    short_serials = [s for s in all_serials if len(s) < 7]
+    known_serials = [s for s in all_serials if s not in short_serials]
 
-    if known_serials:
+    if all_serials:
         try:
             pattern = re.compile(
                 f"(?<![0-9A-Za-z])({'|'.join(map(re.escape, known_serials))})(?![0-9A-Za-z])"
             )
         except re.error as exc:
-            for endpoint in endpoint_processed:
-                if endpoint not in fixtures:
+            for endpoint in list(fixtures):
+                if endpoint.endswith("_log") or not endpoint.startswith("/"):
                     continue
                 add_log(endpoint, fixtures, {"mask_state": MASK_STATE.FAILED})
                 endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
@@ -230,7 +226,8 @@ def anonymize_serials(
                 if not endpoint.endswith("_log") and endpoint.startswith("/"):
                     try:
                         match = re.search(
-                            pattern, orjson.dumps(fixtures[endpoint]).decode()
+                            pattern,
+                            ep_text := orjson.dumps(fixtures[endpoint]).decode(),
                         )
                         if match:
                             endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
@@ -240,6 +237,19 @@ def anonymize_serials(
                             add_log(
                                 endpoint, fixtures, {"mask_state": MASK_STATE.FAILED}
                             )
+                        elif short_serials:
+                            if any(short in ep_text for short in short_serials):
+                                endpoint_status[endpoint] = endpoint_status.get(
+                                    endpoint, 1
+                                )
+                                anonymization_errors.add(
+                                    f"Masked short serials also found in {endpoint}"
+                                )
+                                add_log(
+                                    endpoint,
+                                    fixtures,
+                                    {"mask_state": MASK_STATE.FAILED},
+                                )
 
                     except ANONYMIZATION_EXC as exc:
                         endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)
