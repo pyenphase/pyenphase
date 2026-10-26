@@ -1302,7 +1302,7 @@ async def test_anonymization_ensemble_status() -> None:
         (1, None, MASK_STATE.FAILED),
         ({"hello": "world"}, None, MASK_STATE.FAILED),
         (test_json2, expected_json2, MASK_STATE.FAILED),
-        # (test_json3, expected_json3, MASK_STATE.FAILED),
+        (test_json3, expected_json3, MASK_STATE.FAILED),
         (test_json4, expected_json4, MASK_STATE.FAILED),
     ):
         verify_formats(source, endpoint, expected or source, result)  # type: ignore
@@ -1589,13 +1589,6 @@ async def test_anonymization(
                 == anonymized_fixtures[f"{endpoint}_log"]["mask_state"]
             )
 
-    mock_aioresponse.get(
-        f"{full_host}/my_endpoint_203",
-        payload={"test": "this is the test for status error"},
-        status=203,
-        repeat=True,
-    )
-
     override_mock(
         mock_aioresponse, "get", f"{full_host}/info", body=info_xml, repeat=True
     )
@@ -1623,12 +1616,13 @@ async def test_anonymization(
         repeat=True,
     )
 
-    # obtain fixtures_collection without serial anonymization
+    # obtain fixtures_collection with serial anonymization
     fixtures = await envoy.fixture_collection(
-        additional_endpoints=["/my_number_endpoint"], mask_serials=True
+        additional_endpoints=["/my_number_endpoint"],
+        mask_serials=True,
     )
 
-    assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
+    assert ANONYMIZATION_ERROR_KEY in fixtures
     assert any(
         "Error during known serial scan, short serial numbers skipped (1)" in log
         for log in fixtures[ANONYMIZATION_ERROR_KEY]
