@@ -221,7 +221,7 @@ def anonymize_serials(
         _LOGGER.warning(msg)
         anonymization_errors.add(msg)
 
-    if not serials:
+    if not all_serials:
         anonymization_errors.add("No serial numbers identified, masking not verified")
 
     use_re: bool = False
