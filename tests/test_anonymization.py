@@ -11,7 +11,7 @@ import orjson
 import pytest
 from aioresponses import aioresponses
 
-from pyenphase.anonymization import anonymize_serials
+from pyenphase.anonymization import SHORT_SERIAL, anonymize_serials
 from pyenphase.const import (
     ANONYMIZATION_ERROR_KEY,
     DEVICE_TYPES,
@@ -1677,7 +1677,7 @@ async def test_anonymization(
         for log in fixtures[ANONYMIZATION_ERROR_KEY]
     )
     assert any(
-        "Masked short serials also found in /my_short_number_endpoint" in log
+        f"Skipping scan for serials of {SHORT_SERIAL} characters or less" in log
         for log in fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
@@ -1694,6 +1694,51 @@ async def test_anonymization(
     meter_json = await load_json_list_fixture(
         version, endpoint_to_fixture_file["/ivp/meters/readings"]
     )
+    # meters should be untouched
+    assert fixtures["/ivp/meters/readings"] == meter_json
+    assert fixtures["/ivp/meters/readings"] == meter_json
+    assert (
+        anonymized_fixtures["/ivp/meters/readings_log"]["mask_state"]
+        == MASK_STATE.UNCHANGED
+    )
+
+    # obtain fixtures_collection with strict serial anonymization
+    fixtures = await envoy.fixture_collection(
+        additional_endpoints=[
+            "/my_number_endpoint",
+            "/my_short_number_endpoint",
+            "/my_embedded_long_endpoint",
+            "/my_string_embedded_long_endpoint",
+        ],
+        mask_serials=True,
+        strict_masking=True,
+    )
+
+    assert ANONYMIZATION_ERROR_KEY in fixtures
+    assert any(
+        "Masked serials also found in /my_number_endpoint" in log
+        for log in fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+    assert "/my_number_endpoint" not in fixtures
+
+    assert any(
+        f"Skipping scan for serials of {SHORT_SERIAL} characters or less" in log
+        for log in fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+    assert "/my_short_number_endpoint" in fixtures
+
+    assert not any(
+        "Masked serials also found in /my_embedded_long_endpoint" in log
+        for log in fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+    assert "/my_embedded_long_endpoint" in fixtures
+
+    assert any(
+        "Masked serials also found in /my_string_embedded_long_endpoint" in log
+        for log in fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+    assert "/my_string_embedded_long_endpoint" not in fixtures
+
     # meters should be untouched
     assert fixtures["/ivp/meters/readings"] == meter_json
     assert fixtures["/ivp/meters/readings"] == meter_json

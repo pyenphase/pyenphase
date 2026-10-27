@@ -25,6 +25,8 @@ from .const import (
     TYPE_SERIALS,
 )
 
+SHORT_SERIAL = 4
+
 _LOGGER = logging.getLogger(__name__)
 
 ANONYMIZERS = [
@@ -204,7 +206,7 @@ def anonymize_serials(
 
     # scan for known serials in all endpoints and signal for strict removal if found
     all_serials = [str(s) for s in serials if s not in (None, "")]
-    short_serials = [s for s in all_serials if len(s) < 7]
+    short_serials = [s for s in all_serials if len(s) <= SHORT_SERIAL]
     known_serials = [s for s in all_serials if s not in short_serials]
 
     _LOGGER.debug(
@@ -212,6 +214,10 @@ def anonymize_serials(
         len(known_serials),
         len(short_serials),
     )
+    if short_serials:
+        msg = f"Skipping scan for serials of {SHORT_SERIAL} characters or less, found {len(short_serials)} "
+        _LOGGER.warning(msg)
+        anonymization_errors.add(msg)
 
     use_re: bool = False
     re_msg = ""
@@ -231,11 +237,11 @@ def anonymize_serials(
         for ep in fixtures
         if not ep.endswith("_log") and ep.startswith("/") and all_serials
     ]:
-        msg: str = ""
+        msg = ""
         try:
             ep_text = orjson.dumps(fixtures[endpoint]).decode()
-            if short_serials and any(short in ep_text for short in short_serials):
-                msg = f"Masked short serials also found in {endpoint}"
+            # if short_serials and any(short in ep_text for short in short_serials):
+            #     msg = f"Masked short serials also found in {endpoint}"
 
             if known_serials and use_re and re.search(pattern, ep_text):
                 msg = f"Masked serials also found in {endpoint}"
