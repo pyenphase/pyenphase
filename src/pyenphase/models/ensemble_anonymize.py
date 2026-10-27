@@ -165,6 +165,18 @@ def anonymize_ensemble_inventory(
 
 
 def new_keys(target: dict[str, Any], mask_with: str, serials: dict[str, str]) -> None:
+    """
+    Replace keys of dict.
+
+    Replace dict keys in target with matching entry values in serials.
+    If target key does not exist in serials, use sequentially numbered mask_with value.
+    If matched serials entry value is blank use seuqentially nummbered BLANK literal
+
+    :param target: dict with endpoint data
+    :param mask_with: Use this sequentially numbered string for serial replacement.
+    :param serials: dict with replacement values.
+    :returns: updated target with replaced keys
+    """
     # replace serials in dict keys
     # prevent target entries without serials entry leaking serial, patch with unique string serial
     serial_counts = {k: v for k, v in Counter(serials.values()).items() if v > 1}
