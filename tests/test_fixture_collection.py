@@ -309,3 +309,35 @@ async def test_fixture_collection_unauthorized() -> None:
     with pytest.raises(EnvoyAuthenticationRequired):
         await envoy.fixture_collection()
     await envoy.close()
+
+
+@patch("pyenphase.anonymization.TYPE_SERIALS", PATCHED_SERIALS)
+@patch("pyenphase.anonymization.ENVOY_SERIAL", PATCHED_ENVOY_SERIAL)
+@pytest.mark.parametrize(
+    ("version", "exclude"),
+    TEST_FIXTURES,
+    ids=TEST_IDS,
+)
+@pytest.mark.asyncio
+async def test_fixture_collection_entries_unauthorized(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    exclude: list[str],  # exclude from fixture tests
+) -> None:
+    """Test fixture file data collection."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    envoy = await get_mock_envoy(test_client_session)
+
+    with patch(
+        "pyenphase.Envoy._request",
+        side_effect=EnvoyAuthenticationRequired("Test all failed"),
+    ):
+        fixtures_collection = await envoy.fixture_collection()
+
+    assert "collection_aborted_log" in fixtures_collection
+    assert (
+        "Error getting fixture endpoints, all failed"
+        in fixtures_collection["collection_aborted_log"]
+    )

@@ -1881,6 +1881,7 @@ class Envoy:
                 )
             )
         )
+        target_count = len(targets)
         try:
             # remove multiple entries and maintain order
             for endpoint in targets:
@@ -1902,7 +1903,7 @@ class Envoy:
                     raise
                 except (aiohttp.ClientError, EnvoyAuthenticationRequired) as err:
                     # try next endpoint if request fails on formats and other none timeout errors
-                    # some Envoy endpoints may return 404 while auth has been successful
+                    # some Envoy endpoints may return 401 or 403 while auth has been successful
                     # and show here with EnvoyAuthenticationRequired, continue the loop.
                     request_end = time.monotonic()
                     collection[f"{endpoint}_log"] = {
@@ -1912,6 +1913,7 @@ class Envoy:
                         "duration_seconds": round(request_end - request_start, 1),
                     }
                     _LOGGER.debug("Error getting %s: %s", endpoint, repr(err))
+                    target_count -= 1
                     continue
 
                 request_end = time.monotonic()
@@ -1920,6 +1922,12 @@ class Envoy:
                     "report_time": time.asctime(),
                     "duration_seconds": round(request_end - request_start, 1),
                 }
+
+            if target_count < 1:
+                # all failed, signal as aborted
+                collection["collection_aborted_log"] = (
+                    "Error getting fixture endpoints, all failed."
+                )
 
         # end the report on timeout, authentication and other envoy errors
         except (asyncio.TimeoutError, EnvoyError, EnvoyClientClosedError) as err:
