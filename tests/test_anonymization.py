@@ -87,7 +87,10 @@ def verify_formats(
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == result
     # if expected result is UNCHANGED or MASKED there should not be anynymization errors
     if result in (MASK_STATE.UNCHANGED, MASK_STATE.MASKED):
-        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        assert (ANONYMIZATION_ERROR_KEY not in anonymized_fixtures) or (
+            anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+            == ["No serial numbers identified, masking not verified"]
+        )
     # Otherwise there unexpected data should be flagged
     else:
         assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
@@ -103,7 +106,10 @@ def verify_formats(
     if result in (MASK_STATE.UNCHANGED, MASK_STATE.MASKED):
         assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == result
         assert anonymized_fixtures[endpoint] == expected
-        assert ANONYMIZATION_ERROR_KEY not in anonymized_fixtures
+        assert (ANONYMIZATION_ERROR_KEY not in anonymized_fixtures) or (
+            anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+            == ["No serial numbers identified, masking not verified"]
+        )
     # Otherwise, in strict mode,  data should be removed
     else:
         assert (
