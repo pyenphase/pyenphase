@@ -1,6 +1,50 @@
 # CHANGELOG
 
 
+## v4.3.0 (2026-10-27)
+
+### Chores
+
+- **deps**: Bump aiohttp from 3.14.3 to 3.14.5
+  ([#523](https://github.com/pyenphase/pyenphase/pull/523),
+  [`1aa5aff`](https://github.com/pyenphase/pyenphase/commit/1aa5affd7e17336373e923fe13e8cd3984662291))
+
+- **deps**: Bump orjson from 3.12.0 to 3.13.0
+  ([#522](https://github.com/pyenphase/pyenphase/pull/522),
+  [`6e63df3`](https://github.com/pyenphase/pyenphase/commit/6e63df369bc1e06a50b0dc8eb0184a40c7152c5e))
+
+- **deps**: Bump pyjwt from 2.15.0 to 2.15.1
+  ([#517](https://github.com/pyenphase/pyenphase/pull/517),
+  [`2a14670`](https://github.com/pyenphase/pyenphase/commit/2a1467094b9aee6c5ed6ab8dc84e011ab6abd929))
+
+- **deps**: Bump tenacity from 9.1.4 to 9.2.1
+  ([#521](https://github.com/pyenphase/pyenphase/pull/521),
+  [`3acf9b9`](https://github.com/pyenphase/pyenphase/commit/3acf9b9c0149bd861451b633df5dd9cd1dc9fcb2))
+
+- **deps-dev**: Bump certifi from 2025.1.31 to 2026.10.19
+  ([#524](https://github.com/pyenphase/pyenphase/pull/524),
+  [`aba4188`](https://github.com/pyenphase/pyenphase/commit/aba418883d695dcbe03c5f79b787529deaab4c7d))
+
+- **deps-dev**: Bump python-jsonpath from 2.2.1 to 2.2.2
+  ([#526](https://github.com/pyenphase/pyenphase/pull/526),
+  [`ad61ffe`](https://github.com/pyenphase/pyenphase/commit/ad61ffe8d518ae534a6d3fa517d028a935c84ce8))
+
+- **deps-dev**: Bump virtualenv from 21.7.13 to 21.14.13
+  ([#525](https://github.com/pyenphase/pyenphase/pull/525),
+  [`0cf8fcd`](https://github.com/pyenphase/pyenphase/commit/0cf8fcd692deccdf9475187974bda20467ead84f))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#527](https://github.com/pyenphase/pyenphase/pull/527),
+  [`921a637`](https://github.com/pyenphase/pyenphase/commit/921a63737f3e27adb976eac85cdf8a1e7579c0e7))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#518](https://github.com/pyenphase/pyenphase/pull/518),
+  [`34c531c`](https://github.com/pyenphase/pyenphase/commit/34c531c669e1ed9cd74a198f4213168beee36b23))
+
+### Features
+
+- Add fixture_collection method ([#519](https://github.com/pyenphase/pyenphase/pull/519),
+  [`6a28c22`](https://github.com/pyenphase/pyenphase/commit/6a28c229da32455664145da76f305cee60402c0f))
+
+
 ## v4.2.0 (2026-10-04)
 
 ### Features
