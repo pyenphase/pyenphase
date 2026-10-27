@@ -53,6 +53,8 @@ def anonymize_serials(
     Replacement is on best effort based on current knowledge of Envoy
     local API. Depending on actual Envoy firmware version running in the Envoy
     and its configuration, original serials may still be present upon completion.
+    Serial numbers of 4 characters or less, if any, are only scanned for within
+    delimiters to avoid false matches with real data.
 
     If any error occurs during serial replacement, the data may be returned
     with partial replaced serials. Any error is signalled by the presence of
@@ -72,7 +74,7 @@ def anonymize_serials(
     200 (HTML status) the endpoint data will be considered invalid and excluded
     from masking.
 
-    Generics serial numbers assigned to mask originals:
+    Generic serial numbers assigned to mask originals:
 
     - Envoy: 123456789012.
     - Inverter: 1000000000nn
@@ -215,7 +217,7 @@ def anonymize_serials(
         len(short_serials),
     )
     if short_serials:
-        msg = f"Skipping scan for serials of {SHORT_SERIAL} characters or less, found {len(short_serials)} "
+        msg = f"Short serials of {SHORT_SERIAL} characters or less are only scanned within delimiters, found {len(short_serials)} short serial(s)"
         _LOGGER.warning(msg)
         anonymization_errors.add(msg)
 
@@ -240,8 +242,10 @@ def anonymize_serials(
         msg = ""
         try:
             ep_text = orjson.dumps(fixtures[endpoint]).decode()
-            # if short_serials and any(short in ep_text for short in short_serials):
-            #     msg = f"Masked short serials also found in {endpoint}"
+            if short_serials and any(
+                f'"{short}"' in ep_text for short in short_serials
+            ):
+                msg = f"Masked short serials also found in {endpoint}"
 
             if known_serials and use_re and re.search(pattern, ep_text):
                 msg = f"Masked serials also found in {endpoint}"
