@@ -1872,8 +1872,10 @@ class Envoy:
         collection: dict[str, Any] = {}
         endpoint = ""
         request_start = time.monotonic()
+        # remove multiple entries and maintain order
         targets = list(
             dict.fromkeys(
+                # make sure we have leading /
                 f"/{end_point.lstrip('/')}"
                 for end_point in (
                     (FIXTURE_LIST if not skip_standard else [])
@@ -1883,9 +1885,7 @@ class Envoy:
         )
         target_count = len(targets)
         try:
-            # remove multiple entries and maintain order
             for endpoint in targets:
-                # make sure we have leading /
                 request_start = time.monotonic()
                 try:
                     response: aiohttp.ClientResponse = await self._request(endpoint)
@@ -1923,11 +1923,12 @@ class Envoy:
                     "duration_seconds": round(request_end - request_start, 1),
                 }
 
-            if target_count < 1:
+            if targets and target_count < 1:
                 # all failed, signal as aborted
                 collection["collection_aborted_log"] = (
                     "Error getting fixture endpoints, all failed."
                 )
+                _LOGGER.warning("Error getting fixture endpoints, all failed")
 
         # end the report on timeout, authentication and other envoy errors
         except (asyncio.TimeoutError, EnvoyError, EnvoyClientClosedError) as err:
