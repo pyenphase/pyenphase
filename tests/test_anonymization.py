@@ -1644,9 +1644,30 @@ async def test_anonymization(
         repeat=True,
     )
 
+    mock_aioresponse.get(
+        f"{full_host}/my_embedded_long_endpoint",
+        payload={
+            "test": "this is the embedded 67450000000101 inverter numerical serial"
+        },
+        repeat=True,
+    )
+
+    mock_aioresponse.get(
+        f"{full_host}/my_string_embedded_long_endpoint",
+        payload={
+            "test": "this is the embedded SN4500000001EIM inverter numerical serial"
+        },
+        repeat=True,
+    )
+
     # obtain fixtures_collection with serial anonymization
     fixtures = await envoy.fixture_collection(
-        additional_endpoints=["/my_number_endpoint", "/my_short_number_endpoint"],
+        additional_endpoints=[
+            "/my_number_endpoint",
+            "/my_short_number_endpoint",
+            "/my_embedded_long_endpoint",
+            "/my_string_embedded_long_endpoint",
+        ],
         mask_serials=True,
     )
 
@@ -1657,6 +1678,16 @@ async def test_anonymization(
     )
     assert any(
         "Masked short serials also found in /my_short_number_endpoint" in log
+        for log in fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+
+    assert not any(
+        "Masked serials also found in /my_embedded_long_endpoint" in log
+        for log in fixtures[ANONYMIZATION_ERROR_KEY]
+    )
+
+    assert any(
+        "Masked serials also found in /my_string_embedded_long_endpoint" in log
         for log in fixtures[ANONYMIZATION_ERROR_KEY]
     )
 

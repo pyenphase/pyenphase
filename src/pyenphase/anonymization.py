@@ -218,7 +218,7 @@ def anonymize_serials(
     try:
         if known_serials:
             pattern = re.compile(
-                f"(?<![0-9A-Za-z])({'|'.join(map(re.escape, known_serials))})(?![0-9A-Za-z])"
+                f"(?<![0-9])({'|'.join(map(re.escape, known_serials))})(?![0-9])"
             )
             use_re = True
     except re.error as exc:
