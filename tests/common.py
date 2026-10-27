@@ -79,6 +79,22 @@ async def fixture_files(version: str) -> list[str]:
     return files
 
 
+def endpoint_fixture_file(endpoint: str) -> str:
+    """Map endpoint to fixture file name."""
+    if endpoint == "/production.json":
+        return "production"
+    if endpoint == "/production.json?details=1":
+        return "production.json"
+    return (
+        endpoint[1:]
+        .replace("/", "_")
+        .replace("?", "_")
+        .replace("=", "_")
+        .replace("&", "_")
+        .replace(" ", "_")
+    )
+
+
 def start_7_firmware_mock(mock_aioresponse: aioresponses) -> None:
     """Setup response mocks for Enlighten and Envoy token requests."""
     # Use repeat=True since auth might create its own session
@@ -235,11 +251,13 @@ async def prep_envoy(
         status=200,
         body=info_xml,
         repeat=True,
+        content_type="text/xml",
     )
     mock_aioresponse.get(
         url_https("/info"),
         status=200,
         body=info_xml,
+        content_type="text/xml",
         repeat=True,
     )
     mock_aioresponse.get(url("/info.xml"), status=200, body="", repeat=True)
@@ -532,6 +550,22 @@ async def prep_envoy(
         )
     else:
         mock_aioresponse.get(url("/ivp/pdm/device_data"), status=404, repeat=True)
+
+    for file, endpoint in (
+        ("ivp_ensemble_status", "/ivp/ensemble/status"),
+        ("ivp_sc_pvlimit", "/ivp/sc/pvlimit"),
+        ("ivp_ss_pel_settings", "/ivp/ss/pel_settings"),
+        ("ivp_sc_sched", "/ivp/sc/sched"),
+        ("ivp_pdm_energy", "/ivp/pdm/energy"),
+    ):
+        if file in files:
+            try:
+                json_data = await load_json_fixture(version, file)
+            except json.decoder.JSONDecodeError:
+                json_data = {}
+            mock_aioresponse.get(
+                url(endpoint), status=200, payload=json_data, repeat=True
+            )
 
     return files
 

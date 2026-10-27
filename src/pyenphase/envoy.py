@@ -23,6 +23,7 @@ from tenacity import (
     wait_random_exponential,
 )
 
+from pyenphase.anonymization import anonymize_serials
 from pyenphase.models.dry_contacts import DryContactStatus
 from pyenphase.models.home import EnvoyInterfaceInformation
 
@@ -32,10 +33,12 @@ from .auth import (
     EnvoyTokenAuth,
 )
 from .const import (
+    ANONYMIZATION_ERROR_KEY,
     AUTH_TOKEN_MIN_VERSION,
     DEFAULT_MAX_REQUEST_ATTEMPTS,
     DEFAULT_MAX_REQUEST_DELAY,
     ENDPOINT_URL_HOME,
+    FIXTURE_LIST,
     GENERATOR_EXERCISE_DAYS,
     GENERATOR_MODES,
     GENERATOR_SCHEDULE_SETTINGS,
@@ -1780,3 +1783,180 @@ class Envoy:
             raise EnvoyFeatureNotAvailable(
                 "This feature requires Enphase Encharge or IQ Batteries."
             )
+
+    async def fixture_collection(
+        self,
+        additional_endpoints: list[str] | None = None,
+        mask_serials: bool = False,
+        strict_masking: bool = False,
+        skip_standard: bool = False,
+    ) -> dict[str, Any]:
+        """
+        Collect Envoy endpoints data to use for diagnostics information
+        or test fixtures.
+
+        Returns a dict containing endpoint data and a request status log
+        for successfully collected Envoy endpoints. Failed endpoints with
+        non-2xx HTTP responses keep their body, and callers must check `code`
+        in the `<endpoint>_log` entry.
+
+        Standard used list of endpoints is :any:`FIXTURE_LIST`, it can be
+        appended using the `additional_endpoints` parameter or ignored
+        using the `skip_standard` parameter.
+
+        The endpoint data for each successfully collected endpoint contains
+        the data received from the Envoy and can be JSON or text.
+
+        For each endpoint a matching `<endpoint>_log` dict entry is created that
+        reports the result of the data retrieval. The `<endpoint>_log` entry itself
+        is a dict with multiple keys reporting the request status code, error information
+        if any error occurred, request time and duration and if serial masking
+        was requested, the status of the masking.
+
+        A timeout or Envoy error aborts the data collection and only the partial
+        collected data is returned. This is signalled by the presence of the
+        `collection_aborted_log` key in the returned dict, its value contains the
+        error. Authentication and other client errors errors for an endpoint are
+        logged in the `<endpoint>_log` dict key and collection continues.
+
+        Optional and at best effort, masking or anonymization of serial numbers for the Envoy,
+        inverters and various devices can be used. In the data these serial numbers can be
+        replaced by neutral generic numbers. Depending on Envoy firmware version, original
+        serials may still be present with this option enabled. If any errors occur during serial
+        masking, the data may still contain original serial numbers. Set `strict_masking` True to
+        exclude these error endpoints from the data. When masking is requested, the `<endpoint>_log`
+        will contain a `mask_state` entry reporting the result of the masking as
+        :py:class:`~pyenphase.const.MASK_STATE`. Masking uses
+        :py:meth:`~pyenphase.anonymization.anonymize_serials`.
+
+        For each successfully collected endpoint returns 2 dict entries, failed endpoints
+        may only have the `<endpoint>_log` entry present:
+
+        .. code-block::
+
+            {
+                "endpoint": {request_reply_data},
+                "<endpoint>_log" :
+                    {
+                        "code": int,
+                        "error": str,
+                        "report_time": str,
+                        "duration_seconds": float,
+                        "mask_state": MASK_STATE
+                    }
+            }
+
+        The error key in the `<endpoint>_log` entry is only present when
+        an error occurs during data collection. In that case `code` will be
+        set to 0. The mask_state key is only present if serial masking was
+        requested.
+
+        :param additional_endpoints: List of additional endpoints
+            to append to the standard list.
+        :param mask_serials: if True replaces serials with
+            neutral values, default False.
+        :param strict_masking: If True remove endpoints with failed masking
+            from data, default False.
+        :param skip_standard: If True do not use the standard list, default False
+        :raises EnvoyAuthenticationRequired: if no prior authentication with the Envoy
+            was done, see :py:meth:`Envoy.authenticate`.
+        :returns: dict with endpoint data and request status entries for
+            successfully collected endpoints. With both `mask_serials` and
+            `strict_masking` enabled, endpoints that failed the masking only
+            have status entries.
+        """
+        if self.auth is None:
+            raise EnvoyAuthenticationRequired(
+                "You must authenticate to the Envoy before making requests."
+            )
+        collection: dict[str, Any] = {}
+        endpoint = ""
+        request_start = time.monotonic()
+        # remove multiple entries and maintain order
+        targets = list(
+            dict.fromkeys(
+                # make sure we have leading /
+                f"/{end_point.lstrip('/')}"
+                for end_point in (
+                    (FIXTURE_LIST if not skip_standard else [])
+                    + (additional_endpoints or [])
+                )
+            )
+        )
+        target_count = len(targets)
+        try:
+            for endpoint in targets:
+                request_start = time.monotonic()
+                try:
+                    response: aiohttp.ClientResponse = await self._request(endpoint)
+                    try:
+                        async with response:  # release response on error
+                            collection[endpoint] = json_loads(
+                                endpoint, await response.read()
+                            )  # response.json(loads=orjson.loads)
+                    except (orjson.JSONDecodeError, aiohttp.ContentTypeError):
+                        async with response:  # release response on error
+                            response_text = await response.text(errors="replace")
+                        collection[endpoint] = response_text.replace("\n", "")
+                except asyncio.TimeoutError:
+                    # includes aiohttp ServerTimeoutError subclasses, abort collection
+                    raise
+                except (aiohttp.ClientError, EnvoyAuthenticationRequired) as err:
+                    # try next endpoint if request fails on formats and other none timeout errors
+                    # some Envoy endpoints may return 401 or 403 while auth has been successful
+                    # and show here with EnvoyAuthenticationRequired, continue the loop.
+                    request_end = time.monotonic()
+                    collection[f"{endpoint}_log"] = {
+                        "error": f"{err!r}",
+                        "code": 0,
+                        "report_time": time.asctime(),
+                        "duration_seconds": round(request_end - request_start, 1),
+                    }
+                    _LOGGER.debug("Error getting %s: %s", endpoint, repr(err))
+                    target_count -= 1
+                    continue
+
+                request_end = time.monotonic()
+                collection[f"{endpoint}_log"] = {
+                    "code": response.status,
+                    "report_time": time.asctime(),
+                    "duration_seconds": round(request_end - request_start, 1),
+                }
+
+            if targets and target_count < 1:
+                # all failed, signal as aborted
+                collection["collection_aborted_log"] = (
+                    "Error getting fixture endpoints, all failed."
+                )
+                _LOGGER.warning("Error getting fixture endpoints, all failed")
+
+        # end the report on timeout, authentication and other envoy errors
+        except (asyncio.TimeoutError, EnvoyError, EnvoyClientClosedError) as err:
+            # only return the request log in this case, will be last in result
+            request_end = time.monotonic()
+            collection[f"{endpoint}_log"] = {
+                "error": repr(err),
+                "code": 0,
+                "report_time": time.asctime(),
+                "duration_seconds": round(request_end - request_start, 1),
+            }
+            _LOGGER.warning(
+                "Error getting fixture endpoint %s: %s", endpoint, repr(err)
+            )
+            collection["collection_aborted_log"] = (
+                f"Error getting fixture endpoint: {endpoint} {err!r}"
+            )
+
+        if not mask_serials:
+            return collection
+
+        anonymized_collection = anonymize_serials(
+            collection, self.serial_number, strict=strict_masking
+        )
+        if ANONYMIZATION_ERROR_KEY in anonymized_collection:
+            _LOGGER.warning(
+                "Fixture collection anonymization had errors, verify data %s",
+                anonymized_collection[ANONYMIZATION_ERROR_KEY],
+            )
+
+        return anonymized_collection

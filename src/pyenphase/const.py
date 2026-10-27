@@ -33,7 +33,7 @@ URL_ENSEMBLE_STATUS = "/ivp/ensemble/status"
 URL_ENSEMBLE_SECCTRL = "/ivp/ensemble/secctrl"
 URL_ENCHARGE_BATTERY = "/ivp/ensemble/power"
 URL_GRID_RELAY = "/ivp/ensemble/relay"
-URL_POWER_EXPORT = "/uvp/ss/pel_settings"
+URL_POWER_EXPORT = "/ivp/ss/pel_settings"
 URL_TARIFF = "/admin/lib/tariff"
 URL_ACB_CONFIG = "/admin/lib/acb_config"
 # ?deleted=1 requests that the Envoy include decommissioned devices in the response;
@@ -84,6 +84,41 @@ ENDPOINT_URL_METERS_READINGS = "/ivp/meters/readings"
 ENDPOINT_URL_HOME = "/home"
 
 # Include in docs to here
+
+#: List of endpoints reported by :py:meth:`pyenphase.Envoy.fixture_collection`
+#: see :ref:`endpoint JSON<endpoint-json>` for endpoint data descriptions.
+FIXTURE_LIST = [
+    "/info",
+    URL_PRODUCTION_V1,
+    URL_PRODUCTION_INVERTERS,
+    URL_PRODUCTION_JSON,
+    URL_PRODUCTION,
+    URL_ENCHARGE_BATTERY,
+    URL_ENSEMBLE_INVENTORY,
+    URL_DRY_CONTACT_STATUS,
+    URL_ENSEMBLE_STATUS,
+    URL_ENSEMBLE_SECCTRL,
+    URL_GRID_RELAY,
+    URL_DRY_CONTACT_SETTINGS,
+    URL_TARIFF,
+    URL_GEN_CONFIG,
+    URL_GEN_SCHEDULE,
+    URL_GENERATOR,
+    URL_GEN_MODE,
+    ENDPOINT_URL_METERS,
+    ENDPOINT_URL_METERS_READINGS,
+    URL_DEVICE_DATA,
+    ENDPOINT_URL_HOME,
+    URL_INVENTORY,
+    URL_ACB_CONFIG,
+    # additional not yet used endpoints
+    URL_POWER_EXPORT,
+    "/ivp/sc/pvlimit",
+    "/ivp/sc/sched",
+    "/ivp/livedata/status",
+    "/ivp/pdm/energy",
+]
+
 
 LOCAL_TIMEOUT = aiohttp.ClientTimeout(
     # The envoy can be slow to respond but fast to connect to we
@@ -170,3 +205,64 @@ class PhaseNames(enum.StrEnum):
 #:         print(production[PHASENAMES[phase]])
 #:
 PHASENAMES: list[str] = list(PhaseNames)
+
+# serials used to anonymize fixture report data
+ENVOY_SERIAL = "123456789012"
+
+#: map device names to start of replacement serial number ranges
+#: for use in :py:func:`~pyenphase.anonymization.anonymize_serials`
+TYPE_SERIALS = {
+    "PCU": "100000000001",
+    "ACB": "200000000001",
+    "ENCHARGE": "300000000001",
+    "ENPOWER": "400000000001",
+    "COLLAR": "510000000001",
+    "C6 COMBINER CONTROLLER": "520000000001",
+    "C6 RGM": "530000000001",
+    "NSRB": "610000000001",
+    "ESUB": "620000000001",
+    "ENCH_PCU": "630000000001",
+    "ENCH_BMU": "640000000001",
+    "UNKNOWN": "990000000001",
+}
+
+# for anonymization each value should have entry in type_serials
+#: map devtypes to names in :any:`TYPE_SERIALS`
+#: for use in :py:func:`~pyenphase.anonymization.anonymize_serials`
+DEVICE_TYPES = {
+    1: "PCU",
+    11: "ACB",
+    12: "NSRB",
+    13: "ENCHARGE",
+    14: "ENCH_PCU",
+    16: "ENCH_BMU",
+    17: "ENPOWER",
+    19: "ESUB",
+    20: "ESUB",
+    27: "COLLAR",
+    115: "C6 RGM",
+    125: "C6 COMBINER CONTROLLER",
+    0: "UNKNOWN",
+}
+ANONYMIZATION_EXC = (KeyError, ValueError, IndexError, TypeError, AttributeError)
+ANONYMIZATION_ERROR_KEY = "anonymization_errors_log"
+
+
+class FIXTURE_STATE(enum.Enum):
+    """Result of fixture usability check returned by :py:func:`~pyenphase.utilities.usable_fixture`."""
+
+    UNUSABLE = 0  #: Endpoint is present, is of specified type, <endpoint>_log['code'] is present but not 200
+    USABLE = 1  #: Endpoint is present, is of specified type, <endpoint>_log['code'] == 200 or not present and defaulted to 200
+    TYPE_ERROR = 2  #: Endpoint is present but not of specified type
+    MISSING = 3  #: Endpoint is not present
+
+
+class MASK_STATE(enum.StrEnum):
+    """Result of endpoint anonymization returned by :py:func:`~pyenphase.anonymization.anonymize_serials`."""
+
+    UNCHANGED = "unchanged"  #: Endpoint data was not changed by anonymization
+    MASKED = (
+        "masked"  #: Endpoint data was changed by anonymization and no errors occurred
+    )
+    FAILED = "failed"  #: Endpoint data was changed by anonymization but errors occurred and change may be incomplete
+    REMOVED = "removed"  #: Endpoint is removed from data as failures occurred and strict mode is enabled
