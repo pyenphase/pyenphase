@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v4.4.0 (2026-10-27)
+
+### Features
+
+- Read inverter and AC Battery firmware with Envoy.inventory_scan()
+  ([#515](https://github.com/pyenphase/pyenphase/pull/515),
+  [`b3a1920`](https://github.com/pyenphase/pyenphase/commit/b3a1920031235dbdf699edc05f777c95e8982d40))
+
+
 ## v4.3.0 (2026-10-27)
 
 ### Chores
