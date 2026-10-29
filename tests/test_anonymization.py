@@ -587,7 +587,7 @@ async def test_anonymization_inventory() -> None:
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
-        "Error during serial replacement for regex compile PatternError"
+        f"Error during serial replacement for regex compile {re.error.__name__}"
     ]
 
     # test automatic serial anonymization in regular mode with serial sequencing error
@@ -615,7 +615,7 @@ async def test_anonymization_inventory() -> None:
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
-        "Error during serial replacement for regex compile PatternError"
+        f"Error during serial replacement for regex compile {re.error.__name__}"
     ]
     # test regular mode with sequencing and regex compile errors flags entries as failed
     with (
@@ -632,7 +632,7 @@ async def test_anonymization_inventory() -> None:
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert any(
-        log == "Error during serial replacement for regex compile PatternError"
+        log == f"Error during serial replacement for regex compile {re.error.__name__}"
         for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
     assert any(
