@@ -1902,6 +1902,14 @@ class Envoy:
             )
         collection: dict[str, Any] = {}
         endpoint = ""
+
+        def _safe_error_text(err: BaseException) -> str:
+            """Build safe error text from error"""
+            status = getattr(err, "status", None)
+            if isinstance(status, int) and 100 <= status <= 599:
+                return str(status)
+            return type(err).__name__
+
         request_start = time.monotonic()
         # remove multiple entries and maintain order
         targets = list(
@@ -1937,9 +1945,8 @@ class Envoy:
                     # some Envoy endpoints may return 401 or 403 while auth has been successful
                     # and show here with EnvoyAuthenticationRequired, continue the loop.
                     request_end = time.monotonic()
-                    status = getattr(err, "status", None)
                     collection[f"{endpoint}_log"] = {
-                        "error": f"{status if isinstance(status, int) and 100 <= status <= 599 else type(err).__name__}",
+                        "error": _safe_error_text(err),
                         "code": 0,
                         "report_time": time.asctime(),
                         "duration_seconds": round(request_end - request_start, 1),
@@ -1966,12 +1973,8 @@ class Envoy:
         except (asyncio.TimeoutError, EnvoyError, EnvoyClientClosedError) as err:
             # only return the request log in this case, will be last in result
             request_end = time.monotonic()
-            status = getattr(err, "status", None)
             collection[f"{endpoint}_log"] = {
-                "error": (
-                    msg
-                    := f"{status if isinstance(status, int) and 100 <= status <= 599 else type(err).__name__}"
-                ),
+                "error": _safe_error_text(err),
                 "code": 0,
                 "report_time": time.asctime(),
                 "duration_seconds": round(request_end - request_start, 1),
@@ -1980,7 +1983,7 @@ class Envoy:
                 "Error getting fixture endpoint %s: %s", endpoint, repr(err)
             )
             collection["collection_aborted_log"] = (
-                f"Error getting fixture endpoint: {endpoint} {msg}"
+                f"Error getting fixture endpoint: {endpoint} {_safe_error_text(err)}"
             )
 
         if not mask_serials:
