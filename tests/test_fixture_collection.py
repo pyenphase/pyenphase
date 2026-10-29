@@ -346,7 +346,10 @@ async def test_fixture_collection_entries_unauthorized(
         "Error getting fixture endpoints, all failed"
         in fixtures_collection["collection_aborted_log"]
     )
-    assert fixtures_collection["/info_log"]["error"] == "EnvoyAuthenticationRequired"
+    assert (
+        fixtures_collection["/info_log"]["error"]
+        == "EnvoyAuthenticationRequired: Test all failed"
+    )
     assert fixtures_collection["/info_log"]["code"] == 0
 
 
@@ -400,5 +403,19 @@ async def test_fixture_collection_entries_clienterrors(
         in fixtures_collection["collection_aborted_log"]
     )
     # verify header is not in endpoint_log error text
-    assert fixtures_collection["/info_log"]["error"] == "333"
+    assert fixtures_collection["/info_log"]["error"] == "ClientResponseError: 333"
+    assert fixtures_collection["/info_log"]["code"] == 0
+
+    with patch("pyenphase.Envoy._request", side_effect=aiohttp.ClientConnectionError):
+        fixtures_collection = await envoy.fixture_collection(
+            skip_standard=True, additional_endpoints=["/info"]
+        )
+    # one endpoint only and failing so all failed
+    assert "collection_aborted_log" in fixtures_collection
+    assert (
+        "Error getting fixture endpoints, all failed"
+        in fixtures_collection["collection_aborted_log"]
+    )
+    # verify header is not in endpoint_log error text
+    assert fixtures_collection["/info_log"]["error"] == "ClientConnectionError"
     assert fixtures_collection["/info_log"]["code"] == 0
