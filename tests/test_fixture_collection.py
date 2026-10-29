@@ -346,10 +346,7 @@ async def test_fixture_collection_entries_unauthorized(
         "Error getting fixture endpoints, all failed"
         in fixtures_collection["collection_aborted_log"]
     )
-    assert (
-        fixtures_collection["/info_log"]["error"]
-        == "EnvoyAuthenticationRequired: Test all failed"
-    )
+    assert fixtures_collection["/info_log"]["error"] == "EnvoyAuthenticationRequired"
     assert fixtures_collection["/info_log"]["code"] == 0
 
 

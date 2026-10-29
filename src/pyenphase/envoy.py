@@ -1906,8 +1906,9 @@ class Envoy:
         def _safe_error_text(err: BaseException) -> str:
             """Build safe error text from error"""
             status = getattr(err, "status", None)
-            extra = f": {status}" if status else ""
-            return f"{type(err).__name__}{extra}"
+            if isinstance(status, int) and 100 <= status <= 599:
+                return f"{type(err).__name__}: {status}"
+            return type(err).__name__
 
         request_start = time.monotonic()
         # remove multiple entries and maintain order
