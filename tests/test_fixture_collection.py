@@ -10,8 +10,10 @@ import orjson
 import pytest
 from aiohttp.client import RequestInfo
 from aioresponses import aioresponses
+from multidict import CIMultiDict, CIMultiDictProxy
 from syrupy.assertion import SnapshotAssertion
 from syrupy.filters import props
+from yarl import URL
 
 from pyenphase import Envoy
 from pyenphase.const import (
@@ -204,13 +206,13 @@ async def test_fixture_collection(
     # validate we have an error entry and failed endpoint is not in the list
     assert fixtures_collection
     assert "/api/v1/production" not in fixtures_collection
-    assert ("error", "TimeoutError('Test timeoutexception')") in fixtures_collection[
+    assert ("error", "TimeoutError") in fixtures_collection[
         "/api/v1/production_log"
     ].items()
     assert ("code", 0) in fixtures_collection["/api/v1/production_log"].items()
     # verify collection_aborted_log is in the list
     assert "collection_aborted_log" in fixtures_collection
-    assert "Test timeoutexception" in fixtures_collection["collection_aborted_log"]
+    assert "TimeoutError" in fixtures_collection["collection_aborted_log"]
 
     # Test additional endpoints
     test_json: dict[str, str | int] = {"test": 1, "envoy": "1234"}
@@ -344,7 +346,7 @@ async def test_fixture_collection_entries_unauthorized(
         "Error getting fixture endpoints, all failed"
         in fixtures_collection["collection_aborted_log"]
     )
-    assert fixtures_collection["/info_log"]["error"] == "Test all failed"
+    assert fixtures_collection["/info_log"]["error"] == "EnvoyAuthenticationRequired"
 
 
 @patch("pyenphase.anonymization.TYPE_SERIALS", PATCHED_SERIALS)
@@ -370,17 +372,21 @@ async def test_fixture_collection_entries_clienterrors(
         "pyenphase.Envoy._request",
         side_effect=aiohttp.ClientResponseError(
             RequestInfo(
-                url="http://example.com",
+                url=URL("https://example.com"),
                 method="GET",
-                headers={
-                    "Host": "www.example.com",
-                    "Connection": "keep-alive",
-                    "secret": "very secret secret",
-                },
-                real_url="http://example.com",
+                headers=CIMultiDictProxy(
+                    CIMultiDict(
+                        {
+                            "Host": "www.example.com",
+                            "Connection": "keep-alive",
+                            "secret": "very secret secret",
+                        }
+                    )
+                ),
+                real_url=URL("https://example.com"),
             ),
-            None,
-            status=-27,
+            history=(),
+            status=333,
         ),
     ):
         fixtures_collection = await envoy.fixture_collection(
@@ -393,4 +399,4 @@ async def test_fixture_collection_entries_clienterrors(
         in fixtures_collection["collection_aborted_log"]
     )
     # verify header is not in endpoint_log error text
-    assert fixtures_collection["/info_log"]["error"] == "-27"
+    assert fixtures_collection["/info_log"]["error"] == "333"
