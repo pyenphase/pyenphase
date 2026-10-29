@@ -1938,7 +1938,7 @@ class Envoy:
                     # and show here with EnvoyAuthenticationRequired, continue the loop.
                     request_end = time.monotonic()
                     collection[f"{endpoint}_log"] = {
-                        "error": f"{err!r}",
+                        "error": f"{type(err).__name__ if not hasattr(err, 'status') else err.status}",
                         "code": 0,
                         "report_time": time.asctime(),
                         "duration_seconds": round(request_end - request_start, 1),

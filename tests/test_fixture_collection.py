@@ -8,6 +8,7 @@ from unittest.mock import patch
 import aiohttp
 import orjson
 import pytest
+from aiohttp.client import RequestInfo
 from aioresponses import aioresponses
 from syrupy.assertion import SnapshotAssertion
 from syrupy.filters import props
@@ -273,7 +274,7 @@ async def test_fixture_collection(
         )
     assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert (
-        "Error during serial sequencing KeyError('UNKNOWN')"
+        "Error during serial sequencing KeyError"
         in fixtures_collection[ANONYMIZATION_ERROR_KEY]
     )
     assert "/info" in fixtures_collection
@@ -288,7 +289,7 @@ async def test_fixture_collection(
         )
     assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert (
-        "Error during serial sequencing KeyError('UNKNOWN')"
+        "Error during serial sequencing KeyError"
         in fixtures_collection[ANONYMIZATION_ERROR_KEY]
     )
     assert "/info" not in fixtures_collection
@@ -334,10 +335,62 @@ async def test_fixture_collection_entries_unauthorized(
         "pyenphase.Envoy._request",
         side_effect=EnvoyAuthenticationRequired("Test all failed"),
     ):
-        fixtures_collection = await envoy.fixture_collection()
+        fixtures_collection = await envoy.fixture_collection(
+            skip_standard=True, additional_endpoints=["/info"]
+        )
 
     assert "collection_aborted_log" in fixtures_collection
     assert (
         "Error getting fixture endpoints, all failed"
         in fixtures_collection["collection_aborted_log"]
     )
+    assert fixtures_collection["/info_log"]["error"] == "Test all failed"
+
+
+@patch("pyenphase.anonymization.TYPE_SERIALS", PATCHED_SERIALS)
+@patch("pyenphase.anonymization.ENVOY_SERIAL", PATCHED_ENVOY_SERIAL)
+@pytest.mark.parametrize(
+    ("version", "exclude"),
+    TEST_FIXTURES,
+    ids=TEST_IDS,
+)
+@pytest.mark.asyncio
+async def test_fixture_collection_entries_clienterrors(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    exclude: list[str],  # exclude from fixture tests
+) -> None:
+    """Test fixture file data collection client errors don't leak headers."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    envoy = await get_mock_envoy(test_client_session)
+
+    with patch(
+        "pyenphase.Envoy._request",
+        side_effect=aiohttp.ClientResponseError(
+            RequestInfo(
+                url="http://example.com",
+                method="GET",
+                headers={
+                    "Host": "www.example.com",
+                    "Connection": "keep-alive",
+                    "secret": "very secret secret",
+                },
+                real_url="http://example.com",
+            ),
+            None,
+            status=-27,
+        ),
+    ):
+        fixtures_collection = await envoy.fixture_collection(
+            skip_standard=True, additional_endpoints=["/info"]
+        )
+    # one endpoint only and failing so all failed
+    assert "collection_aborted_log" in fixtures_collection
+    assert (
+        "Error getting fixture endpoints, all failed"
+        in fixtures_collection["collection_aborted_log"]
+    )
+    # verify header is not in endpoint_log error text
+    assert fixtures_collection["/info_log"]["error"] == "-27"
