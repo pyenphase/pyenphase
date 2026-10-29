@@ -347,6 +347,7 @@ async def test_fixture_collection_entries_unauthorized(
         in fixtures_collection["collection_aborted_log"]
     )
     assert fixtures_collection["/info_log"]["error"] == "EnvoyAuthenticationRequired"
+    assert fixtures_collection["/info_log"]["code"] == 0
 
 
 @patch("pyenphase.anonymization.TYPE_SERIALS", PATCHED_SERIALS)
@@ -400,3 +401,4 @@ async def test_fixture_collection_entries_clienterrors(
     )
     # verify header is not in endpoint_log error text
     assert fixtures_collection["/info_log"]["error"] == "333"
+    assert fixtures_collection["/info_log"]["code"] == 0

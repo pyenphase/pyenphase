@@ -1940,9 +1940,7 @@ class Envoy:
                     status = getattr(err, "status", None)
                     collection[f"{endpoint}_log"] = {
                         "error": f"{status if isinstance(status, int) and 100 <= status <= 599 else type(err).__name__}",
-                        "code": status
-                        if isinstance(status, int) and 100 <= status <= 599
-                        else 0,
+                        "code": 0,
                         "report_time": time.asctime(),
                         "duration_seconds": round(request_end - request_start, 1),
                     }
@@ -1974,9 +1972,7 @@ class Envoy:
                     msg
                     := f"{status if isinstance(status, int) and 100 <= status <= 599 else type(err).__name__}"
                 ),
-                "code": status
-                if isinstance(status, int) and 100 <= status <= 599
-                else 0,
+                "code": 0,
                 "report_time": time.asctime(),
                 "duration_seconds": round(request_end - request_start, 1),
             }
