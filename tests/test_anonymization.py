@@ -568,10 +568,9 @@ async def test_anonymization_inventory() -> None:
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     # Sequencing errors in strict mode pops entry before regex compile so only 1 error
-    assert (
+    assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
         "Error during serial sequencing KeyError"
-        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-    )
+    ]
 
     # test strict mode with regex compile errors removes entries
     fixtures = {endpoint: dc(original_json)}
@@ -587,10 +586,9 @@ async def test_anonymization_inventory() -> None:
     assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    assert any(
-        "Error during serial replacement for regex compile" in log
-        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-    )
+    assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
+        "Error during serial replacement for regex compile PatternError"
+    ]
 
     # test automatic serial anonymization in regular mode with serial sequencing error
     fixtures = {endpoint: dc(original_json)}
@@ -601,10 +599,9 @@ async def test_anonymization_inventory() -> None:
     assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    assert (
+    assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
         "Error during serial sequencing KeyError"
-        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-    )
+    ]
 
     # test regular mode with regex compile errors flags entries as failed
     with patch(
@@ -617,10 +614,9 @@ async def test_anonymization_inventory() -> None:
     assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    assert any(
-        "Error during serial replacement for regex compile" in log
-        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-    )
+    assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
+        "Error during serial replacement for regex compile PatternError"
+    ]
     # test regular mode with sequencing and regex compile errors flags entries as failed
     with (
         patch("pyenphase.anonymization.TYPE_SERIALS", {"PCU": "1", "ACB": 2}),
@@ -636,12 +632,12 @@ async def test_anonymization_inventory() -> None:
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert any(
-        "Error during serial replacement for regex compile" in log
+        log == "Error during serial replacement for regex compile PatternError"
         for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
-    assert (
-        "Error during serial sequencing KeyError"
-        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    assert any(
+        log == "Error during serial sequencing KeyError"
+        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
 
