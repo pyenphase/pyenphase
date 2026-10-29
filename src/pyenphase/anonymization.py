@@ -171,7 +171,9 @@ def anonymize_serials(
             "Error when calculating replacement serials %s",
             repr(exc),
         )
-        anonymization_errors.add(f"Error during serial sequencing {type(exc).__name__}")
+        anonymization_errors.add(
+            f"Error during serial sequencing {type(exc).__name__}({exc.args[0]!r})"
+        )
         for endpoint in endpoint_processed:
             if strict:
                 _LOGGER.debug(

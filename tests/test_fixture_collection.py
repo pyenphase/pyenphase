@@ -276,7 +276,7 @@ async def test_fixture_collection(
         )
     assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert (
-        "Error during serial sequencing KeyError"
+        "Error during serial sequencing KeyError('UNKNOWN')"
         in fixtures_collection[ANONYMIZATION_ERROR_KEY]
     )
     assert "/info" in fixtures_collection
@@ -291,7 +291,7 @@ async def test_fixture_collection(
         )
     assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert (
-        "Error during serial sequencing KeyError"
+        "Error during serial sequencing KeyError('UNKNOWN')"
         in fixtures_collection[ANONYMIZATION_ERROR_KEY]
     )
     assert "/info" not in fixtures_collection
