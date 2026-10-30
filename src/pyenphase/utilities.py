@@ -81,5 +81,9 @@ def device_type_name(data: dict[Any, Any], key: str) -> str:
 
 
 def safe_error_description(err: BaseException) -> str:
-    """Build safe error text from error"""
+    """
+    Build safe error text from error.
+
+    Args[0] is included in the text if present and should not contain any serial.
+    """
     return f"{type(err).__name__}({err.args[0] if err.args else ''})"
