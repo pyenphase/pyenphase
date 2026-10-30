@@ -16,6 +16,7 @@ from pyenphase.models.ensemble_anonymize import (
 from pyenphase.models.envoy_anonymize import anonymize_info
 from pyenphase.models.inventory_anonymize import anonymize_inventory
 from pyenphase.models.inverter_anonymize import anonymize_inverters
+from pyenphase.utilities import safe_error_description
 
 from .const import (
     ANONYMIZATION_ERROR_KEY,
@@ -171,7 +172,9 @@ def anonymize_serials(
             "Error when calculating replacement serials %s",
             repr(exc),
         )
-        anonymization_errors.add(f"Error during serial sequencing {exc!r}")
+        anonymization_errors.add(
+            f"Error during serial sequencing {safe_error_description(exc)}"
+        )
         for endpoint in endpoint_processed:
             if strict:
                 _LOGGER.debug(
@@ -234,7 +237,9 @@ def anonymize_serials(
             use_re = True
     except re.error as exc:
         _LOGGER.debug("Regex compile error: %s", repr(exc))
-        re_msg = f"Error during serial replacement for regex compile {exc!r}"
+        re_msg = (
+            f"Error during serial replacement for regex compile {type(exc).__name__}"
+        )
 
     # Scan and mark endpoints
     for endpoint in [
@@ -257,7 +262,10 @@ def anonymize_serials(
                 msg = re_msg
 
         except ANONYMIZATION_EXC as exc:
-            msg = f"Error during serial replacement for {endpoint} {exc!r}"
+            _LOGGER.debug(
+                "Error during final serial scan for %s: %s", endpoint, repr(exc)
+            )
+            msg = f"Error during final serial scan for {endpoint} {type(exc).__name__}"
 
         if msg:
             endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)

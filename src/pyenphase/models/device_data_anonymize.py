@@ -3,7 +3,7 @@
 from typing import Any
 
 from pyenphase.const import ANONYMIZATION_EXC, FIXTURE_STATE
-from pyenphase.utilities import usable_fixture
+from pyenphase.utilities import safe_error_description, usable_fixture
 
 
 def anonymize_device_data(
@@ -57,7 +57,9 @@ def anonymize_device_data(
                     else:
                         device["sn"] = serials.get(device["sn"], "UNKNOWN")
                 except ANONYMIZATION_EXC as exc:
-                    anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+                    anonymization_errors.add(
+                        f"Error on {endpoint} {safe_error_description(exc)}"
+                    )
             else:
                 if name not in (
                     "deviceCount",

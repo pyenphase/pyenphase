@@ -593,7 +593,8 @@ class Envoy:
             )
             raise EnvoyAuthenticationRequired(
                 f"Authentication failed for {url} with status {status_code}, "
-                "please check your username/password or token."
+                "please check your username/password or token.",
+                status_code,
             )
 
         # show all responses centrally when in debug
@@ -1902,6 +1903,17 @@ class Envoy:
             )
         collection: dict[str, Any] = {}
         endpoint = ""
+
+        def _safe_error_text(err: BaseException) -> str:
+            """Build safe error text from error"""
+            status = getattr(err, "status", None)
+            if isinstance(status, int) and 100 <= status <= 599:
+                return f"{type(err).__name__}: {status}"
+            status_code = getattr(err, "status_code", 0)
+            if isinstance(status_code, int) and status_code > 0:
+                return f"{type(err).__name__}: {status_code}"
+            return type(err).__name__
+
         request_start = time.monotonic()
         # remove multiple entries and maintain order
         targets = list(
@@ -1938,7 +1950,7 @@ class Envoy:
                     # and show here with EnvoyAuthenticationRequired, continue the loop.
                     request_end = time.monotonic()
                     collection[f"{endpoint}_log"] = {
-                        "error": f"{err!r}",
+                        "error": _safe_error_text(err),
                         "code": 0,
                         "report_time": time.asctime(),
                         "duration_seconds": round(request_end - request_start, 1),
@@ -1966,7 +1978,7 @@ class Envoy:
             # only return the request log in this case, will be last in result
             request_end = time.monotonic()
             collection[f"{endpoint}_log"] = {
-                "error": repr(err),
+                "error": _safe_error_text(err),
                 "code": 0,
                 "report_time": time.asctime(),
                 "duration_seconds": round(request_end - request_start, 1),
@@ -1975,7 +1987,7 @@ class Envoy:
                 "Error getting fixture endpoint %s: %s", endpoint, repr(err)
             )
             collection["collection_aborted_log"] = (
-                f"Error getting fixture endpoint: {endpoint} {err!r}"
+                f"Error getting fixture endpoint: {endpoint} {_safe_error_text(err)}"
             )
 
         if not mask_serials:

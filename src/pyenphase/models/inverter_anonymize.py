@@ -3,7 +3,7 @@
 from typing import Any
 
 from pyenphase.const import ANONYMIZATION_EXC, FIXTURE_STATE
-from pyenphase.utilities import device_type_name, usable_fixture
+from pyenphase.utilities import device_type_name, safe_error_description, usable_fixture
 
 
 def anonymize_inverters(
@@ -58,7 +58,9 @@ def anonymize_inverters(
                             inverter["serialNumber"], "UNKNOWN"
                         )
                 except ANONYMIZATION_EXC as exc:
-                    anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+                    anonymization_errors.add(
+                        f"Error on {endpoint} {safe_error_description(exc)}"
+                    )
             else:
                 anonymization_errors.add(f"Unexpected data type for {endpoint}")
 

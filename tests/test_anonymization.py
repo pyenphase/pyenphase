@@ -241,7 +241,9 @@ async def test_anonymization_inverters() -> None:
     assert fixtures[endpoint][2]["serialNumber"] == [1, 2]
     # we should have error caused by list as serial
     assert len(result) == 1
-    assert any(f"Error on {endpoint} TypeError" in log for log in result)
+    # use re to handle format changes between py 3.13 and 3.14
+    pattern = re.compile(f"Error on {endpoint} TypeError.*unhashable type: 'list'")
+    assert any(re.search(pattern, log) for log in result)
 
     # test automatic serial anonymization
     test_json = dc(original_json)
@@ -341,7 +343,8 @@ async def test_anonymization_device_data() -> None:
     assert fixtures[endpoint]["123123125"]["sn"] == [1, 2]
     # we should have error caused by list as serial
     assert len(result) == 1
-    assert any(f"Error on {endpoint} TypeError" in log for log in result)
+    pattern = re.compile(f"Error on {endpoint} TypeError.*unhashable type: 'list'")
+    assert any(re.search(pattern, log) for log in result)
 
     # test automatic serial anonymization
     test_json = dc(original_json)
@@ -477,7 +480,10 @@ async def test_anonymization_inventory() -> None:
     assert fixtures[endpoint][3]["devices"][0]["serial_num"] == "6"
     assert fixtures[endpoint][4]["devices"][0]["serial_num"] == "7"
     assert len(result) == 1
-    assert any(f"Error on {endpoint} TypeError" in log for log in result)
+    pattern = re.compile(
+        f"Error on {re.escape(endpoint)} TypeError.*unhashable type: 'list'"
+    )
+    assert any(re.search(pattern, log) for log in result)
 
     # test automatic serial anonymization in strict mode removes failed entries
 
@@ -490,11 +496,10 @@ async def test_anonymization_inventory() -> None:
     assert anonymized_fixtures["/info_log"]["mask_state"] == MASK_STATE.REMOVED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert any(
-        f"Error on {endpoint} TypeError" in log
-        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+        re.search(pattern, log) for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
     assert any(
-        "Unexpected data type for /info" in log
+        log == "Unexpected data type for /info"
         for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
@@ -568,10 +573,9 @@ async def test_anonymization_inventory() -> None:
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     # Sequencing errors in strict mode pops entry before regex compile so only 1 error
-    assert (
-        "Error during serial sequencing KeyError('UNKNOWN')"
-        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-    )
+    assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
+        "Error during serial sequencing KeyError(UNKNOWN)"
+    ]
 
     # test strict mode with regex compile errors removes entries
     fixtures = {endpoint: dc(original_json)}
@@ -587,10 +591,9 @@ async def test_anonymization_inventory() -> None:
     assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    assert any(
-        "Error during serial replacement for regex compile" in log
-        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-    )
+    assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
+        f"Error during serial replacement for regex compile {re.error.__name__}"
+    ]
 
     # test automatic serial anonymization in regular mode with serial sequencing error
     fixtures = {endpoint: dc(original_json)}
@@ -601,10 +604,9 @@ async def test_anonymization_inventory() -> None:
     assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    assert (
-        "Error during serial sequencing KeyError('UNKNOWN')"
-        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-    )
+    assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
+        "Error during serial sequencing KeyError(UNKNOWN)"
+    ]
 
     # test regular mode with regex compile errors flags entries as failed
     with patch(
@@ -617,10 +619,9 @@ async def test_anonymization_inventory() -> None:
     assert "mask_state" in anonymized_fixtures[f"{endpoint}_log"]
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    assert any(
-        "Error during serial replacement for regex compile" in log
-        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
-    )
+    assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
+        f"Error during serial replacement for regex compile {re.error.__name__}"
+    ]
     # test regular mode with sequencing and regex compile errors flags entries as failed
     with (
         patch("pyenphase.anonymization.TYPE_SERIALS", {"PCU": "1", "ACB": 2}),
@@ -636,12 +637,12 @@ async def test_anonymization_inventory() -> None:
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert any(
-        "Error during serial replacement for regex compile" in log
+        log == f"Error during serial replacement for regex compile {re.error.__name__}"
         for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
-    assert (
-        "Error during serial sequencing KeyError('UNKNOWN')"
-        in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    assert any(
+        log == "Error during serial sequencing KeyError(UNKNOWN)"
+        for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
 
@@ -686,7 +687,8 @@ async def test_anonymization_ensemble_power() -> None:
     assert serials[test_json[ENSEMBLE_POWER_DEVICE][1]["serial_num"]] == "ENCHARGE"
     assert serials[test_json[ENSEMBLE_POWER_DEVICE][2]["serial_num"]] == "ENCHARGE"
     assert len(result) == 1
-    assert any(f"Error on {endpoint} TypeError" in log for log in result)
+    pattern = re.compile(f"Error on {endpoint} TypeError.*unhashable type: 'list'")
+    assert any(re.search(pattern, log) for log in result)
 
     # manual serial assignments
     # without serial_num is will return UNKNOWN
@@ -700,7 +702,7 @@ async def test_anonymization_ensemble_power() -> None:
     assert fixtures[endpoint][ENSEMBLE_POWER_DEVICE][1]["serial_num"] == "UNKNOWN"
     assert fixtures[endpoint][ENSEMBLE_POWER_DEVICE][2]["serial_num"] == "ENCHARGE"
     assert len(result) == 1
-    assert any(f"Error on {endpoint} TypeError" in log for log in result)
+    assert any(re.search(pattern, log) for log in result)
 
     # test automatic serial anonymization
 
@@ -838,7 +840,8 @@ async def test_anonymization_ensemble_inventory() -> None:
     assert serials[test_json[3]["devices"][0]["serial_num"]] == "NEW"
 
     assert len(result) == 1
-    assert any(f"Error on {endpoint} TypeError" in log for log in result)
+    pattern = re.compile(f"Error on {endpoint} TypeError.*unhashable type: 'list'")
+    assert any(re.search(pattern, log) for log in result)
 
     # manual serial assignments
     serials[test_json[0]["devices"][0]["serial_num"]] = "1"
@@ -860,7 +863,7 @@ async def test_anonymization_ensemble_inventory() -> None:
     assert fixtures[endpoint][2]["devices"][0]["serial_num"] == "5"
     assert fixtures[endpoint][3]["devices"][0]["serial_num"] == "6"
     assert len(result) == 1
-    assert any(f"Error on {endpoint} TypeError" in log for log in result)
+    assert any(re.search(pattern, log) for log in result)
 
     # test automatic serial anonymization
 
@@ -1582,7 +1585,7 @@ async def test_anonymization(
         strict_anonymized_fixtures = anonymize_serials(fixtures, strict=True)
     assert ANONYMIZATION_ERROR_KEY in strict_anonymized_fixtures
     assert any(
-        "Error during serial replacement for" in log
+        "Error during final serial scan for" in log
         for log in strict_anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 

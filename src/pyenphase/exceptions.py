@@ -61,12 +61,16 @@ class EnvoyAuthenticationRequired(EnvoyError):
 
     - When communication with Envoy was attempted without setting up authentication.
     - When neither token nor username and/or password are specified during authentication.
+    - request returned HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN
 
     :param status: Error status description
+    :param status_code: optional status_code
     """
 
-    def __init__(self, status: str) -> None:
+    def __init__(self, status: str, status_code: int = 0) -> None:
         self.status = status
+        self.status_code = status_code
+        super().__init__(status)
 
 
 class EnvoyHTTPStatusError(EnvoyError):

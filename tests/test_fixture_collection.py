@@ -8,9 +8,12 @@ from unittest.mock import patch
 import aiohttp
 import orjson
 import pytest
+from aiohttp.client import RequestInfo
 from aioresponses import aioresponses
+from multidict import CIMultiDict, CIMultiDictProxy
 from syrupy.assertion import SnapshotAssertion
 from syrupy.filters import props
+from yarl import URL
 
 from pyenphase import Envoy
 from pyenphase.const import (
@@ -203,13 +206,13 @@ async def test_fixture_collection(
     # validate we have an error entry and failed endpoint is not in the list
     assert fixtures_collection
     assert "/api/v1/production" not in fixtures_collection
-    assert ("error", "TimeoutError('Test timeoutexception')") in fixtures_collection[
+    assert ("error", "TimeoutError") in fixtures_collection[
         "/api/v1/production_log"
     ].items()
     assert ("code", 0) in fixtures_collection["/api/v1/production_log"].items()
     # verify collection_aborted_log is in the list
     assert "collection_aborted_log" in fixtures_collection
-    assert "Test timeoutexception" in fixtures_collection["collection_aborted_log"]
+    assert "TimeoutError" in fixtures_collection["collection_aborted_log"]
 
     # Test additional endpoints
     test_json: dict[str, str | int] = {"test": 1, "envoy": "1234"}
@@ -273,7 +276,7 @@ async def test_fixture_collection(
         )
     assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert (
-        "Error during serial sequencing KeyError('UNKNOWN')"
+        "Error during serial sequencing KeyError(UNKNOWN)"
         in fixtures_collection[ANONYMIZATION_ERROR_KEY]
     )
     assert "/info" in fixtures_collection
@@ -288,10 +291,21 @@ async def test_fixture_collection(
         )
     assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert (
-        "Error during serial sequencing KeyError('UNKNOWN')"
+        "Error during serial sequencing KeyError(UNKNOWN)"
         in fixtures_collection[ANONYMIZATION_ERROR_KEY]
     )
     assert "/info" not in fixtures_collection
+
+    with patch("pyenphase.anonymization.enumerate", side_effect=KeyError()):
+        fixtures_collection = await envoy.fixture_collection(
+            mask_serials=True,
+        )
+    assert ANONYMIZATION_ERROR_KEY in fixtures_collection
+    assert (
+        "Error during serial sequencing KeyError()"
+        in fixtures_collection[ANONYMIZATION_ERROR_KEY]
+    )
+    assert "/info" in fixtures_collection
 
     anonymized_fixtures: dict[str, Any] = {ANONYMIZATION_ERROR_KEY: "Yes"}
     with patch("pyenphase.envoy.anonymize_serials", return_value=anonymized_fixtures):
@@ -309,6 +323,7 @@ async def test_fixture_collection_unauthorized() -> None:
     with pytest.raises(EnvoyAuthenticationRequired):
         await envoy.fixture_collection()
     await envoy.close()
+    assert str(EnvoyAuthenticationRequired("msg", 401)) == "msg"
 
 
 @patch("pyenphase.anonymization.TYPE_SERIALS", PATCHED_SERIALS)
@@ -332,12 +347,99 @@ async def test_fixture_collection_entries_unauthorized(
 
     with patch(
         "pyenphase.Envoy._request",
-        side_effect=EnvoyAuthenticationRequired("Test all failed"),
+        side_effect=EnvoyAuthenticationRequired(
+            "Authentication failed for https://secret-host/info with status 401", 401
+        ),
     ):
-        fixtures_collection = await envoy.fixture_collection()
+        fixtures_collection = await envoy.fixture_collection(
+            skip_standard=True, additional_endpoints=["/info"]
+        )
 
     assert "collection_aborted_log" in fixtures_collection
     assert (
         "Error getting fixture endpoints, all failed"
         in fixtures_collection["collection_aborted_log"]
     )
+    assert (
+        fixtures_collection["/info_log"]["error"] == "EnvoyAuthenticationRequired: 401"
+    )
+    assert fixtures_collection["/info_log"]["code"] == 0
+    fixture_text = orjson.dumps(fixtures_collection).decode()
+    assert "EnvoyAuthenticationRequired: 401" in fixture_text
+    assert "secret-host" not in fixture_text
+
+
+@patch("pyenphase.anonymization.TYPE_SERIALS", PATCHED_SERIALS)
+@patch("pyenphase.anonymization.ENVOY_SERIAL", PATCHED_ENVOY_SERIAL)
+@pytest.mark.parametrize(
+    ("version", "exclude"),
+    TEST_FIXTURES,
+    ids=TEST_IDS,
+)
+@pytest.mark.parametrize(
+    ("http_status", "expected_status"), [(0, ""), (333, ": 333"), (600, "")]
+)
+@pytest.mark.asyncio
+async def test_fixture_collection_entries_clienterrors(
+    mock_aioresponse: aioresponses,
+    test_client_session: aiohttp.ClientSession,
+    version: str,
+    exclude: list[str],  # exclude from fixture tests
+    http_status: int,
+    expected_status: str,
+) -> None:
+    """Test fixture file data collection client errors don't leak headers."""
+    start_7_firmware_mock(mock_aioresponse)
+    await prep_envoy(mock_aioresponse, "127.0.0.1", version)
+    envoy = await get_mock_envoy(test_client_session)
+
+    with patch(
+        "pyenphase.Envoy._request",
+        side_effect=aiohttp.ClientResponseError(
+            RequestInfo(
+                url=URL("https://example.com"),
+                method="GET",
+                headers=CIMultiDictProxy(
+                    CIMultiDict(
+                        {
+                            "Host": "www.example.com",
+                            "Connection": "keep-alive",
+                            "secret": "very secret secret",
+                        }
+                    )
+                ),
+                real_url=URL("https://example.com"),
+            ),
+            history=(),
+            status=http_status,
+        ),
+    ):
+        fixtures_collection = await envoy.fixture_collection(
+            skip_standard=True, additional_endpoints=["/info"]
+        )
+    # one endpoint only and failing so all failed
+    assert "collection_aborted_log" in fixtures_collection
+    assert (
+        "Error getting fixture endpoints, all failed"
+        in fixtures_collection["collection_aborted_log"]
+    )
+    # verify header is not in endpoint_log error text
+    assert (
+        fixtures_collection["/info_log"]["error"]
+        == f"ClientResponseError{expected_status}"
+    )
+    assert fixtures_collection["/info_log"]["code"] == 0
+
+    with patch("pyenphase.Envoy._request", side_effect=aiohttp.ClientConnectionError):
+        fixtures_collection = await envoy.fixture_collection(
+            skip_standard=True, additional_endpoints=["/info"]
+        )
+    # one endpoint only and failing so all failed
+    assert "collection_aborted_log" in fixtures_collection
+    assert (
+        "Error getting fixture endpoints, all failed"
+        in fixtures_collection["collection_aborted_log"]
+    )
+    # verify header is not in endpoint_log error text
+    assert fixtures_collection["/info_log"]["error"] == "ClientConnectionError"
+    assert fixtures_collection["/info_log"]["code"] == 0
