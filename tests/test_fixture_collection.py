@@ -375,12 +375,17 @@ async def test_fixture_collection_entries_unauthorized(
     TEST_FIXTURES,
     ids=TEST_IDS,
 )
+@pytest.mark.parametrize(
+    ("http_status", "expected_status"), [(0, ""), (333, ": 333"), (600, "")]
+)
 @pytest.mark.asyncio
 async def test_fixture_collection_entries_clienterrors(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     version: str,
     exclude: list[str],  # exclude from fixture tests
+    http_status: int,
+    expected_status: str,
 ) -> None:
     """Test fixture file data collection client errors don't leak headers."""
     start_7_firmware_mock(mock_aioresponse)
@@ -405,7 +410,7 @@ async def test_fixture_collection_entries_clienterrors(
                 real_url=URL("https://example.com"),
             ),
             history=(),
-            status=333,
+            status=http_status,
         ),
     ):
         fixtures_collection = await envoy.fixture_collection(
@@ -418,7 +423,10 @@ async def test_fixture_collection_entries_clienterrors(
         in fixtures_collection["collection_aborted_log"]
     )
     # verify header is not in endpoint_log error text
-    assert fixtures_collection["/info_log"]["error"] == "ClientResponseError: 333"
+    assert (
+        fixtures_collection["/info_log"]["error"]
+        == f"ClientResponseError{expected_status}"
+    )
     assert fixtures_collection["/info_log"]["code"] == 0
 
     with patch("pyenphase.Envoy._request", side_effect=aiohttp.ClientConnectionError):
