@@ -569,7 +569,7 @@ async def test_anonymization_inventory() -> None:
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     # Sequencing errors in strict mode pops entry before regex compile so only 1 error
     assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
-        "Error during serial sequencing KeyError('UNKNOWN')"
+        "Error during serial sequencing KeyError(UNKNOWN)"
     ]
 
     # test strict mode with regex compile errors removes entries
@@ -600,7 +600,7 @@ async def test_anonymization_inventory() -> None:
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.FAILED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
     assert anonymized_fixtures[ANONYMIZATION_ERROR_KEY] == [
-        "Error during serial sequencing KeyError('UNKNOWN')"
+        "Error during serial sequencing KeyError(UNKNOWN)"
     ]
 
     # test regular mode with regex compile errors flags entries as failed
@@ -636,7 +636,7 @@ async def test_anonymization_inventory() -> None:
         for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
     assert any(
-        log == "Error during serial sequencing KeyError('UNKNOWN')"
+        log == "Error during serial sequencing KeyError(UNKNOWN)"
         for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 

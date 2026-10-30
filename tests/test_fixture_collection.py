@@ -276,7 +276,7 @@ async def test_fixture_collection(
         )
     assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert (
-        "Error during serial sequencing KeyError('UNKNOWN')"
+        "Error during serial sequencing KeyError(UNKNOWN)"
         in fixtures_collection[ANONYMIZATION_ERROR_KEY]
     )
     assert "/info" in fixtures_collection
@@ -291,10 +291,23 @@ async def test_fixture_collection(
         )
     assert ANONYMIZATION_ERROR_KEY in fixtures_collection
     assert (
-        "Error during serial sequencing KeyError('UNKNOWN')"
+        "Error during serial sequencing KeyError(UNKNOWN)"
         in fixtures_collection[ANONYMIZATION_ERROR_KEY]
     )
     assert "/info" not in fixtures_collection
+
+    # Test
+
+    with patch("pyenphase.anonymization.enumerate", side_effect=KeyError()):
+        fixtures_collection = await envoy.fixture_collection(
+            mask_serials=True,
+        )
+    assert ANONYMIZATION_ERROR_KEY in fixtures_collection
+    assert (
+        "Error during serial sequencing KeyError()"
+        in fixtures_collection[ANONYMIZATION_ERROR_KEY]
+    )
+    assert "/info" in fixtures_collection
 
     anonymized_fixtures: dict[str, Any] = {ANONYMIZATION_ERROR_KEY: "Yes"}
     with patch("pyenphase.envoy.anonymize_serials", return_value=anonymized_fixtures):

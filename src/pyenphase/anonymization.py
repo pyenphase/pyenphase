@@ -172,7 +172,7 @@ def anonymize_serials(
             repr(exc),
         )
         anonymization_errors.add(
-            f"Error during serial sequencing {type(exc).__name__}({exc.args[0]!r})"
+            f"Error during serial sequencing {type(exc).__name__}({exc.args[0] if exc.args else ''})"
         )
         for endpoint in endpoint_processed:
             if strict:
