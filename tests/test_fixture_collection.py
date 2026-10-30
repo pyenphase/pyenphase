@@ -347,7 +347,7 @@ async def test_fixture_collection_entries_unauthorized(
     with patch(
         "pyenphase.Envoy._request",
         side_effect=EnvoyAuthenticationRequired(
-            "Authentication failed for https://secret-host/info with status 401"
+            "Authentication failed for https://secret-host/info with status 401", 401
         ),
     ):
         fixtures_collection = await envoy.fixture_collection(
@@ -359,10 +359,12 @@ async def test_fixture_collection_entries_unauthorized(
         "Error getting fixture endpoints, all failed"
         in fixtures_collection["collection_aborted_log"]
     )
-    assert fixtures_collection["/info_log"]["error"] == "EnvoyAuthenticationRequired"
+    assert (
+        fixtures_collection["/info_log"]["error"] == "EnvoyAuthenticationRequired: 401"
+    )
     assert fixtures_collection["/info_log"]["code"] == 0
     fixture_text = orjson.dumps(fixtures_collection).decode()
-    assert "EnvoyAuthenticationRequired" in fixture_text
+    assert "EnvoyAuthenticationRequired: 401" in fixture_text
     assert "secret-host" not in fixture_text
 
 

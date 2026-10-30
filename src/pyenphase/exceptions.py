@@ -65,8 +65,9 @@ class EnvoyAuthenticationRequired(EnvoyError):
     :param status: Error status description
     """
 
-    def __init__(self, status: str) -> None:
+    def __init__(self, status: str, status_code: int = 0) -> None:
         self.status = status
+        self.status_code = status_code
 
 
 class EnvoyHTTPStatusError(EnvoyError):

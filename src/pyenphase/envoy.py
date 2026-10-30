@@ -593,7 +593,8 @@ class Envoy:
             )
             raise EnvoyAuthenticationRequired(
                 f"Authentication failed for {url} with status {status_code}, "
-                "please check your username/password or token."
+                "please check your username/password or token.",
+                status_code,
             )
 
         # show all responses centrally when in debug
@@ -1908,6 +1909,9 @@ class Envoy:
             status = getattr(err, "status", None)
             if isinstance(status, int) and 100 <= status <= 599:
                 return f"{type(err).__name__}: {status}"
+            status_code = getattr(err, "status_code", 0)
+            if isinstance(status_code, int) and status_code > 0:
+                return f"{type(err).__name__}: {status_code}"
             return type(err).__name__
 
         request_start = time.monotonic()
