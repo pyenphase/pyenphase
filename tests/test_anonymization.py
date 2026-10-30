@@ -343,7 +343,6 @@ async def test_anonymization_device_data() -> None:
     assert fixtures[endpoint]["123123125"]["sn"] == [1, 2]
     # we should have error caused by list as serial
     assert len(result) == 1
-    # use re to handle format changes between py 3.13 and 3.14
     pattern = re.compile(f"Error on {endpoint} TypeError.*unhashable type: 'list'")
     assert any(re.search(pattern, log) for log in result)
 
@@ -481,7 +480,6 @@ async def test_anonymization_inventory() -> None:
     assert fixtures[endpoint][3]["devices"][0]["serial_num"] == "6"
     assert fixtures[endpoint][4]["devices"][0]["serial_num"] == "7"
     assert len(result) == 1
-    # use re to use re to handle format changes between py 3.13 and 3.14
     pattern = re.compile(
         f"Error on {re.escape(endpoint)} TypeError.*unhashable type: 'list'"
     )
@@ -497,8 +495,9 @@ async def test_anonymization_inventory() -> None:
     assert anonymized_fixtures[f"{endpoint}_log"]["mask_state"] == MASK_STATE.REMOVED
     assert anonymized_fixtures["/info_log"]["mask_state"] == MASK_STATE.REMOVED
     assert ANONYMIZATION_ERROR_KEY in anonymized_fixtures
-    # use re to use re to handle format changes between py 3.13 and 3.14
-    assert any(re.search(pattern, log) for log in result)
+    assert any(
+        re.search(pattern, log) for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
+    )
     assert any(
         log == "Unexpected data type for /info"
         for log in anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
@@ -688,7 +687,6 @@ async def test_anonymization_ensemble_power() -> None:
     assert serials[test_json[ENSEMBLE_POWER_DEVICE][1]["serial_num"]] == "ENCHARGE"
     assert serials[test_json[ENSEMBLE_POWER_DEVICE][2]["serial_num"]] == "ENCHARGE"
     assert len(result) == 1
-    # use re to use re to handle format changes between py 3.13 and 3.14
     pattern = re.compile(f"Error on {endpoint} TypeError.*unhashable type: 'list'")
     assert any(re.search(pattern, log) for log in result)
 
@@ -704,7 +702,6 @@ async def test_anonymization_ensemble_power() -> None:
     assert fixtures[endpoint][ENSEMBLE_POWER_DEVICE][1]["serial_num"] == "UNKNOWN"
     assert fixtures[endpoint][ENSEMBLE_POWER_DEVICE][2]["serial_num"] == "ENCHARGE"
     assert len(result) == 1
-    # use re to use re to handle format changes between py 3.13 and 3.14
     assert any(re.search(pattern, log) for log in result)
 
     # test automatic serial anonymization
@@ -843,7 +840,6 @@ async def test_anonymization_ensemble_inventory() -> None:
     assert serials[test_json[3]["devices"][0]["serial_num"]] == "NEW"
 
     assert len(result) == 1
-    # use re to use re to handle format changes between py 3.13 and 3.14
     pattern = re.compile(f"Error on {endpoint} TypeError.*unhashable type: 'list'")
     assert any(re.search(pattern, log) for log in result)
 
@@ -867,7 +863,6 @@ async def test_anonymization_ensemble_inventory() -> None:
     assert fixtures[endpoint][2]["devices"][0]["serial_num"] == "5"
     assert fixtures[endpoint][3]["devices"][0]["serial_num"] == "6"
     assert len(result) == 1
-    # use re to use re to handle format changes between py 3.13 and 3.14
     assert any(re.search(pattern, log) for log in result)
 
     # test automatic serial anonymization
