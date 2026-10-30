@@ -4,7 +4,7 @@ from collections import Counter
 from typing import Any
 
 from pyenphase.const import ANONYMIZATION_EXC, FIXTURE_STATE
-from pyenphase.utilities import device_type_name, usable_fixture
+from pyenphase.utilities import device_type_name, safe_error_description, usable_fixture
 
 
 def anonymize_ensemble_power(
@@ -64,7 +64,7 @@ def anonymize_ensemble_power(
                         )
                 except ANONYMIZATION_EXC as exc:
                     anonymization_errors.add(
-                        f"Error on {endpoint} {type(exc).__name__}({exc.args[0] if exc.args else ''}"
+                        f"Error on {endpoint} {safe_error_description(exc)}"
                     )
             else:
                 anonymization_errors.add(f"Unexpected data type for {endpoint}")
@@ -148,7 +148,7 @@ def anonymize_ensemble_inventory(
                                 )
                         except ANONYMIZATION_EXC as exc:
                             anonymization_errors.add(
-                                f"Error on {endpoint} {type(exc).__name__}({exc.args[0] if exc.args else ''}"
+                                f"Error on {endpoint} {safe_error_description(exc)}"
                             )
                     else:
                         anonymization_errors.add(f"Unexpected data type for {endpoint}")
@@ -269,7 +269,7 @@ def anonymize_ensemble_status(
                             )
                 except ANONYMIZATION_EXC as exc:
                     anonymization_errors.add(
-                        f"Error on {endpoint} {type(exc).__name__}({exc.args[0] if exc.args else ''}"
+                        f"Error on {endpoint} {safe_error_description(exc)}"
                     )
 
                 if "submodules" in data and isinstance(
@@ -283,7 +283,7 @@ def anonymize_ensemble_status(
                                     serials |= {sub_serial: dsType}
                             except ANONYMIZATION_EXC as exc:  # pragma: no cover
                                 anonymization_errors.add(
-                                    f"Error on {endpoint} {type(exc).__name__}({exc.args[0] if exc.args else ''}"
+                                    f"Error on {endpoint} {safe_error_description(exc)}"
                                 )
                         elif scan_only:
                             serials |= {sub_serial: "UNKNOWN"}

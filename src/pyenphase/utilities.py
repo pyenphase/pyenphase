@@ -78,3 +78,8 @@ def device_type_name(data: dict[Any, Any], key: str) -> str:
     return DEVICE_TYPES.get(
         (v if isinstance(v := data.get(key), int) else 0), "UNKNOWN"
     )
+
+
+def safe_error_description(err: BaseException) -> str:
+    """Build safe error text from error"""
+    return f"{type(err).__name__}({err.args[0] if err.args else ''})"

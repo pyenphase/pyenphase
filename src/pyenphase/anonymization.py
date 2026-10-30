@@ -16,6 +16,7 @@ from pyenphase.models.ensemble_anonymize import (
 from pyenphase.models.envoy_anonymize import anonymize_info
 from pyenphase.models.inventory_anonymize import anonymize_inventory
 from pyenphase.models.inverter_anonymize import anonymize_inverters
+from pyenphase.utilities import safe_error_description
 
 from .const import (
     ANONYMIZATION_ERROR_KEY,
@@ -172,7 +173,7 @@ def anonymize_serials(
             repr(exc),
         )
         anonymization_errors.add(
-            f"Error during serial sequencing {type(exc).__name__}({exc.args[0] if exc.args else ''})"
+            f"Error during serial sequencing {safe_error_description(exc)}"
         )
         for endpoint in endpoint_processed:
             if strict:

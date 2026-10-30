@@ -3,7 +3,7 @@
 from typing import Any
 
 from pyenphase.const import ANONYMIZATION_EXC, FIXTURE_STATE
-from pyenphase.utilities import usable_fixture
+from pyenphase.utilities import safe_error_description, usable_fixture
 
 
 def anonymize_inventory(
@@ -72,7 +72,7 @@ def anonymize_inventory(
                                 )
                         except ANONYMIZATION_EXC as exc:
                             anonymization_errors.add(
-                                f"Error on {endpoint} {type(exc).__name__}({exc.args[0] if exc.args else ''}"
+                                f"Error on {endpoint} {safe_error_description(exc)}"
                             )
                     else:
                         anonymization_errors.add(f"Unexpected data type for {endpoint}")
