@@ -70,6 +70,7 @@ class EnvoyAuthenticationRequired(EnvoyError):
     def __init__(self, status: str, status_code: int = 0) -> None:
         self.status = status
         self.status_code = status_code
+        super().__init__(status)
 
 
 class EnvoyHTTPStatusError(EnvoyError):

@@ -323,6 +323,7 @@ async def test_fixture_collection_unauthorized() -> None:
     with pytest.raises(EnvoyAuthenticationRequired):
         await envoy.fixture_collection()
     await envoy.close()
+    assert str(EnvoyAuthenticationRequired("msg", 401)) == "msg"
 
 
 @patch("pyenphase.anonymization.TYPE_SERIALS", PATCHED_SERIALS)
