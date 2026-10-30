@@ -296,8 +296,6 @@ async def test_fixture_collection(
     )
     assert "/info" not in fixtures_collection
 
-    # Test
-
     with patch("pyenphase.anonymization.enumerate", side_effect=KeyError()):
         fixtures_collection = await envoy.fixture_collection(
             mask_serials=True,

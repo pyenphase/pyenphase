@@ -71,7 +71,9 @@ def anonymize_inventory(
                                     device["serial_num"], "UNKNOWN"
                                 )
                         except ANONYMIZATION_EXC as exc:
-                            anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+                            anonymization_errors.add(
+                                f"Error on {endpoint} {type(exc).__name__}({exc.args[0] if exc.args else ''}"
+                            )
                     else:
                         anonymization_errors.add(f"Unexpected data type for {endpoint}")
             else:

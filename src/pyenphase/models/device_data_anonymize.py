@@ -57,7 +57,9 @@ def anonymize_device_data(
                     else:
                         device["sn"] = serials.get(device["sn"], "UNKNOWN")
                 except ANONYMIZATION_EXC as exc:
-                    anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+                    anonymization_errors.add(
+                        f"Error on {endpoint} {type(exc).__name__}({exc.args[0] if exc.args else ''}"
+                    )
             else:
                 if name not in (
                     "deviceCount",

@@ -63,7 +63,9 @@ def anonymize_ensemble_power(
                             device["serial_num"], "UNKNOWN"
                         )
                 except ANONYMIZATION_EXC as exc:
-                    anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+                    anonymization_errors.add(
+                        f"Error on {endpoint} {type(exc).__name__}({exc.args[0] if exc.args else ''}"
+                    )
             else:
                 anonymization_errors.add(f"Unexpected data type for {endpoint}")
 
@@ -145,7 +147,9 @@ def anonymize_ensemble_inventory(
                                     device["serial_num"], "UNKNOWN"
                                 )
                         except ANONYMIZATION_EXC as exc:
-                            anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+                            anonymization_errors.add(
+                                f"Error on {endpoint} {type(exc).__name__}({exc.args[0] if exc.args else ''}"
+                            )
                     else:
                         anonymization_errors.add(f"Unexpected data type for {endpoint}")
             else:
@@ -264,7 +268,9 @@ def anonymize_ensemble_status(
                                 data["device_id"], "UNKNOWN"
                             )
                 except ANONYMIZATION_EXC as exc:
-                    anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+                    anonymization_errors.add(
+                        f"Error on {endpoint} {type(exc).__name__}({exc.args[0] if exc.args else ''}"
+                    )
 
                 if "submodules" in data and isinstance(
                     (sub_modules := data["submodules"]), dict
@@ -276,7 +282,9 @@ def anonymize_ensemble_status(
                                 if scan_only:
                                     serials |= {sub_serial: dsType}
                             except ANONYMIZATION_EXC as exc:  # pragma: no cover
-                                anonymization_errors.add(f"Error on {endpoint} {exc!r}")
+                                anonymization_errors.add(
+                                    f"Error on {endpoint} {type(exc).__name__}({exc.args[0] if exc.args else ''}"
+                                )
                         elif scan_only:
                             serials |= {sub_serial: "UNKNOWN"}
                         else:
