@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v4.4.1 (2026-10-30)
+
+### Bug Fixes
+
+- Prevent header or serial leak in fixture_collection
+  ([#528](https://github.com/pyenphase/pyenphase/pull/528),
+  [`def0ae3`](https://github.com/pyenphase/pyenphase/commit/def0ae3940713979c72cef4e71dafa8ef5e8b33d))
+
+- Prevent header or serial leak in fixture_collection endpoint_log
+  ([#528](https://github.com/pyenphase/pyenphase/pull/528),
+  [`def0ae3`](https://github.com/pyenphase/pyenphase/commit/def0ae3940713979c72cef4e71dafa8ef5e8b33d))
+
+
 ## v4.4.0 (2026-10-27)
 
 ### Features
