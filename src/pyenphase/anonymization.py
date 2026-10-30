@@ -261,7 +261,10 @@ def anonymize_serials(
                 msg = re_msg
 
         except ANONYMIZATION_EXC as exc:
-            msg = f"Error during serial replacement for {endpoint} {type(exc).__name__}"
+            _LOGGER.debug(
+                "Error during final serial scan for %s: %s", endpoint, repr(exc)
+            )
+            msg = f"Error during final serial scan for {endpoint} {type(exc).__name__}"
 
         if msg:
             endpoint_status[endpoint] = endpoint_status.get(endpoint, 1)

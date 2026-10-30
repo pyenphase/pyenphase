@@ -1578,7 +1578,7 @@ async def test_anonymization(
         strict_anonymized_fixtures = anonymize_serials(fixtures, strict=True)
     assert ANONYMIZATION_ERROR_KEY in strict_anonymized_fixtures
     assert any(
-        "Error during serial replacement for" in log
+        "Error during final serial scan for" in log
         for log in strict_anonymized_fixtures[ANONYMIZATION_ERROR_KEY]
     )
 
