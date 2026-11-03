@@ -1,6 +1,28 @@
 # CHANGELOG
 
 
+## v5.0.0 (2026-11-03)
+
+### Chores
+
+- **deps-dev**: Bump pytest from 9.1.1 to 9.2.0
+  ([#530](https://github.com/pyenphase/pyenphase/pull/530),
+  [`e2183f3`](https://github.com/pyenphase/pyenphase/commit/e2183f3f0faea0c1e0b1438b06dc950640f30cfd))
+
+- **deps-dev**: Bump pytest-asyncio from 1.4.0 to 1.4.1
+  ([#529](https://github.com/pyenphase/pyenphase/pull/529),
+  [`a62f7f4`](https://github.com/pyenphase/pyenphase/commit/a62f7f446f83c198654446a506ee23bd98595111))
+
+- **pre-commit.ci**: Pre-commit autoupdate ([#531](https://github.com/pyenphase/pyenphase/pull/531),
+  [`ab51cac`](https://github.com/pyenphase/pyenphase/commit/ab51cac54c48a32032f105d033900ae6c90949c9))
+
+### Refactoring
+
+- Remove obsolete ctmeter_production, consumption and storage records
+  ([#532](https://github.com/pyenphase/pyenphase/pull/532),
+  [`a722ffa`](https://github.com/pyenphase/pyenphase/commit/a722ffac25482733ddb73703ad4f441794b5f9a4))
+
+
 ## v4.4.1 (2026-10-30)
 
 ### Bug Fixes
