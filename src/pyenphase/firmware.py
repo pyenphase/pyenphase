@@ -77,7 +77,7 @@ class EnvoyFirmware:
         HTTP status is not verified.
 
         :raises aiohttp.ClientError: on network or protocol errors once retries are exhausted
-        :raises asyncio.TimeoutError: on timeout once retries are exhausted
+        :raises TimeoutError: on timeout once retries are exhausted
         :raises EnvoyClientClosedError: when aiohttp client is closed
         :return: tuple of (status_code, content)
         """

@@ -1,6 +1,5 @@
 """Enphase Envoy class"""
 
-import asyncio
 import logging
 import time
 from collections.abc import Awaitable, Callable
@@ -372,7 +371,7 @@ class Envoy:
         retry=retry_if_exception_type(
             (
                 aiohttp.ClientError,
-                asyncio.TimeoutError,
+                TimeoutError,
             )
         ),
         wait=wait_random_exponential(multiplier=2, max=5),
@@ -431,7 +430,7 @@ class Envoy:
         :raises EnvoyAuthenticationRequired: if no prior authentication
             was completed or HTTP status 401 or 404 is returned
         :raises aiohttp.ClientError: on communication errors once retries are exhausted
-        :raises asyncio.TimeoutError: on timeouts once retries are exhausted
+        :raises TimeoutError: on timeouts once retries are exhausted
         :raises EnvoyClientClosedError: when aiohttp client is closed
         :return: request response.
         """
@@ -448,7 +447,7 @@ class Envoy:
             retry=retry_if_exception_type(
                 (
                     aiohttp.ClientError,
-                    asyncio.TimeoutError,
+                    TimeoutError,
                 )
             ),
             reraise=True,

@@ -116,7 +116,7 @@ async def test_json_request_error_on_request(
     ("error", "match", "expected_exception"),  # error to test
     [
         (
-            asyncio.TimeoutError,
+            TimeoutError,
             r"Timeout \(response.read\)",
             EnvoyCommunicationError,
         ),
