@@ -32,7 +32,7 @@ packages = [
 
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 aiohttp = ">=3.12.8"
 lxml = ">=4.9.2"
 pyjwt = ">=2.7.0"
