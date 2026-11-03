@@ -99,7 +99,7 @@ class EnvoyCommunicationError(EnvoyError):
     Exception raised when the Envoy communication fails.
 
     - aiohttp.ClientError error occurs.
-    - asyncio.TimeoutError error occurs
+    - TimeoutError error occurs
 
     """
 

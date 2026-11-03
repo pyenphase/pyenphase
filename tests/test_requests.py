@@ -33,7 +33,7 @@ LOGGER = logging.getLogger(__name__)
     ("error", "match", "expected_exception", "close_session"),
     [
         (  # test _request error
-            asyncio.TimeoutError("Test _json_request"),
+            TimeoutError("Test _json_request"),
             r"Timeout \(request\) Test _json_request",
             EnvoyCommunicationError,
             False,
@@ -116,7 +116,7 @@ async def test_json_request_error_on_request(
     ("error", "match", "expected_exception"),  # error to test
     [
         (
-            asyncio.TimeoutError,
+            TimeoutError,
             r"Timeout \(response.read\)",
             EnvoyCommunicationError,
         ),

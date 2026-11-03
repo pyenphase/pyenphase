@@ -1,6 +1,5 @@
 """Test tenacity retry functioning."""
 
-import asyncio
 import logging
 from typing import Any
 
@@ -121,10 +120,10 @@ async def test_2_timeout_from_start_with_7_6_175_standard(
     # Mock both HTTPS and HTTP since firmware code falls back to HTTP
     mock_aioresponse.get(
         "https://127.0.0.1/info",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
+        exception=TimeoutError("Test timeoutexception"),
     )
     mock_aioresponse.get(
-        "http://127.0.0.1/info", exception=asyncio.TimeoutError("Test timeoutexception")
+        "http://127.0.0.1/info", exception=TimeoutError("Test timeoutexception")
     )
 
     with pytest.raises(
@@ -186,7 +185,7 @@ async def test_1_timeout_from_start_with_7_6_175_standard(
     # Mock both HTTPS and HTTP since firmware code falls back to HTTP
     mock_aioresponse.get(
         "https://127.0.0.1/info",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
+        exception=TimeoutError("Test timeoutexception"),
     )
     mock_aioresponse.get(
         "http://127.0.0.1/info", status=200, body=await load_fixture(version, "info")
@@ -414,7 +413,7 @@ async def test_noconnection_at_update_with_7_6_175_standard(
         mock_aioresponse,
         "get",
         "https://127.0.0.1/api/v1/production",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
+        exception=TimeoutError("Test timeoutexception"),
         repeat=True,
     )
 
@@ -607,7 +606,7 @@ async def test_retry_policy(
         mock_aioresponse,
         "get",
         "https://127.0.0.1/ivp/meters",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
+        exception=TimeoutError("Test timeoutexception"),
         repeat=True,
     )
     # remove waits between retries
@@ -648,7 +647,7 @@ async def test_retry_policy(
         mock_aioresponse,
         "get",
         "https://127.0.0.2/ivp/meters",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
+        exception=TimeoutError("Test timeoutexception"),
         repeat=True,
     )
     with pytest.raises(EnvoyCommunicationError):
