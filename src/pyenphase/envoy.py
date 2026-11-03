@@ -935,9 +935,9 @@ class Envoy:
         for updater in self._updaters:
             try:
                 await updater.update(data)
-            except aiohttp.ClientError as err:  # noqa: PERF203
+            except aiohttp.ClientError as err:
                 raise EnvoyCommunicationError(f"aiohttp ClientError {err!s}") from err
-            except asyncio.TimeoutError as err:
+            except TimeoutError as err:
                 raise EnvoyCommunicationError(f"Timeout {err!s}") from err
 
         self._validate_update(data)
@@ -984,7 +984,7 @@ class Envoy:
             raise EnvoyCommunicationError(
                 f"aiohttp ClientError ({progress}) {err!s}"
             ) from err
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             _LOGGER.debug(
                 "Request to %s timed out in %s stage: %s", end_point, progress, err
             )
@@ -1941,7 +1941,7 @@ class Envoy:
                         async with response:  # release response on error
                             response_text = await response.text(errors="replace")
                         collection[endpoint] = response_text.replace("\n", "")
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     # includes aiohttp ServerTimeoutError subclasses, abort collection
                     raise
                 except (aiohttp.ClientError, EnvoyAuthenticationRequired) as err:
@@ -1974,7 +1974,7 @@ class Envoy:
                 _LOGGER.warning("Error getting fixture endpoints, all failed")
 
         # end the report on timeout, authentication and other envoy errors
-        except (asyncio.TimeoutError, EnvoyError, EnvoyClientClosedError) as err:
+        except (TimeoutError, EnvoyError, EnvoyClientClosedError) as err:
             # only return the request log in this case, will be last in result
             request_end = time.monotonic()
             collection[f"{endpoint}_log"] = {

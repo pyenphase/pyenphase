@@ -151,7 +151,7 @@ class EnvoyDeviceDataInvertersUpdater(EnvoyUpdater):
             for sn, inverter in filtered_inverters.items():
                 try:
                     inverters[sn] = EnvoyInverter.from_device_data(inverter)
-                except (  # noqa: PERF203
+                except (
                     KeyError,
                     IndexError,
                     TypeError,

@@ -1,6 +1,5 @@
 """Test firmware functions."""
 
-import asyncio
 import logging
 from typing import Any
 
@@ -266,7 +265,7 @@ async def test_firmware_http_client_closed_before_setup(
 
     async def close_and_timeout(url: str, **kwargs: Any) -> None:
         await envoy._client.close()
-        raise asyncio.TimeoutError("Test session closed between https and http")
+        raise TimeoutError("Test session closed between https and http")
 
     mock_aioresponse.get("https://127.0.0.1/info", callback=close_and_timeout)
 
@@ -308,7 +307,7 @@ async def test_firmware_http_client_closed_during_setup(
     # force fallback to http
     mock_aioresponse.get(
         "https://127.0.0.1/info",
-        exception=asyncio.TimeoutError("Test session closed between https and http"),
+        exception=TimeoutError("Test session closed between https and http"),
         repeat=True,
     )
 

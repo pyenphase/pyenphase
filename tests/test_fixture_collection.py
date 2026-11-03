@@ -1,6 +1,5 @@
 """Test envoy fixture set collection"""
 
-import asyncio
 import logging
 from typing import Any
 from unittest.mock import patch
@@ -199,7 +198,7 @@ async def test_fixture_collection(
         mock_aioresponse,
         "get",
         f"{full_host}/api/v1/production",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
+        exception=TimeoutError("Test timeoutexception"),
     )
     fixtures_collection = await envoy.fixture_collection()
 

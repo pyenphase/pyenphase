@@ -1,6 +1,5 @@
 """Test envoy home endpoint"""
 
-import asyncio
 import logging
 
 import aiohttp
@@ -185,7 +184,7 @@ async def test_home_endpoint_errors_with_7_6_175(
 
     mock_aioresponse.get(
         "https://127.0.0.1/home",
-        exception=asyncio.TimeoutError("Test timeoutexception"),
+        exception=TimeoutError("Test timeoutexception"),
     )
     await envoy.interface_settings()
     assert "Failure getting interface information" in caplog.text

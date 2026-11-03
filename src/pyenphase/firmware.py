@@ -1,6 +1,5 @@
 """Envoy Firmware detection"""
 
-import asyncio
 import logging
 import time
 
@@ -89,7 +88,7 @@ class EnvoyFirmware:
             with translate_client_closed(self._client):
                 resp = await self._client.get(self._url, timeout=LOCAL_TIMEOUT)
                 return resp.status, await resp.read()
-        except (aiohttp.ClientConnectorError, asyncio.TimeoutError):
+        except (aiohttp.ClientConnectorError, TimeoutError):
             # Firmware < 7.0.0 does not support HTTPS so we need to try HTTP
             # as a fallback, worse sometimes http will redirect to https://localhost
             # which is not helpful
@@ -135,7 +134,7 @@ class EnvoyFirmware:
             request_start = time.monotonic()
         try:
             status_code, content = await self._get_info()
-        except asyncio.TimeoutError as ex:
+        except TimeoutError as ex:
             raise EnvoyFirmwareFatalCheckError(
                 500, "Timeout connecting to Envoy"
             ) from ex
