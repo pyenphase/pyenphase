@@ -139,10 +139,6 @@ class EnvoyMetersUpdater(EnvoyUpdater):
         If more than one phase is active, store per-phase data in ctmeters_phases. Match data
         in ivp/meters and ivp/meters/reading using the eid field in both datasets.
 
-        For backward compatibility, ctmeter_production/ctmeter_consumption/ctmeter_storage
-        and their phase equivalents are still set to reference the corresponding entries in
-        ctmeters[CtType] and ctmeters_phases[CtType].
-
         Envoy firmware D8.3.6xxx, /ivp/meters/readings for split, 2 phase storage CT
         intermittently reports zero values on one phase. Aggregated data then
         drops to the other phase values resulting in incorrect storage data.
@@ -210,31 +206,6 @@ class EnvoyMetersUpdater(EnvoyUpdater):
                     # Return None for aggregate and L1 phase
                     envoy_data.ctmeters[CtType.STORAGE] = None
                     envoy_data.ctmeters_phases[CtType.STORAGE][zero_phase] = None
-
-                # Next part is for backward compatibility
-                # May plan to remove in some future breaking change version
-                if meter_type == CtType.PRODUCTION:
-                    envoy_data.ctmeter_production = envoy_data.ctmeters[meter_type]
-                    if phase_data:
-                        envoy_data.ctmeter_production_phases = (
-                            envoy_data.ctmeters_phases[meter_type]
-                        )
-                elif meter_type in (
-                    CtType.NET_CONSUMPTION,
-                    CtType.TOTAL_CONSUMPTION,
-                ):
-                    envoy_data.ctmeter_consumption = envoy_data.ctmeters[meter_type]
-                    if phase_data:
-                        envoy_data.ctmeter_consumption_phases = (
-                            envoy_data.ctmeters_phases[meter_type]
-                        )
-                elif meter_type == CtType.STORAGE:
-                    envoy_data.ctmeter_storage = envoy_data.ctmeters[meter_type]
-                    if phase_data:
-                        envoy_data.ctmeter_storage_phases = envoy_data.ctmeters_phases[
-                            meter_type
-                        ]
-                # End of backward compatibility
 
 
 def _meter_data_for_phases(

@@ -6,7 +6,7 @@ Upon completion of the [probe](usage_intro.md#data-collection) call, the phase s
 
 Phase names are enumerated as `L1`, `L2`, and `L3` by {py:class}`pyenphase.const.PhaseNames`. Phase modes are enumerated as `single`, `split`, and `three` by {py:class}`pyenphase.models.meters.EnvoyPhaseMode`. CT meter types are enumerated as `production`, `storage`, `net-consumption`, and `total-consumption` by {py:class}`pyenphase.models.meters.CtType`.
 
-Be aware that `phase_count` and `phase_mode` apply for all configured CTs. The metered Envoy can, however, be configured with only 1, 2, or all 3 CT types. In this case, the unused CT data in `system_production_phases`, `system_consumption_phases`, or `ctmeter_storage_phases` will be `None`.
+Be aware that `phase_count` and `phase_mode` apply for all configured CTs. The metered Envoy can, however, be configured with only 1, 2, or all 3 CT types. In this case, the unused CT data in `system_production_phases` and `system_consumption_phases` will be `None`. `ctmeters_phases` has no entries for unused CT types, so read it for example with `ctmeters_phases.get(CtType.STORAGE)`.
 
 The Envoy property {py:attr}`pyenphase.Envoy.active_phase_count` returns how many phases report non-zero data in the production/consumption reports. This is 0 for `single` configurations.
 
