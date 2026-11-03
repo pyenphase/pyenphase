@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v6.0.0 (2026-11-03)
+
+### Refactoring
+
+- Set minimum python to 3.11 to match ci runs
+  ([#533](https://github.com/pyenphase/pyenphase/pull/533),
+  [`0e153ae`](https://github.com/pyenphase/pyenphase/commit/0e153ae639c4aa24886302081debbee4e7ff9756))
+
+
 ## v5.0.0 (2026-11-03)
 
 ### Chores
