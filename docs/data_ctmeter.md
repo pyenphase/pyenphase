@@ -8,14 +8,6 @@ Depending on how many and which CT are installed, data is available in:
 
 - {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:class}`~pyenphase.models.meters.CtType`]
 
-Legacy per‑type attributes remain for compatibility:
-
-- {py:attr}`pyenphase.EnvoyData.ctmeter_production`
-- {py:attr}`pyenphase.EnvoyData.ctmeter_consumption`
-- {py:attr}`pyenphase.EnvoyData.ctmeter_storage`
-
-These map to their counterparts {py:attr}`pyenphase.EnvoyData.ctmeters`[{py:class}`~pyenphase.models.meters.CtType`]. In some future version these may be deprecated.
-
 There are multiple CT types that can be installed. The CT meter types are enumerated as `production`, `storage`, `net-consumption`, `total-consumption`, `backfeed`, `load`, `evse` and `pv3p` by {py:class}`pyenphase.models.meters.CtType`. One or more of these can be installed and enabled. For multi-phase configurations, there will be one per phase.
 
 ```python
@@ -134,12 +126,6 @@ A single increasing/decreasing total of import and export is reported by the [`/
 For [metered Envoy with multi‑phase installations](./phase_data.md#phase-data), CT phase data is available in:
 
 - {py:attr}`pyenphase.EnvoyData.ctmeters_phases`[{py:class}`~pyenphase.models.meters.CtType`][{py:class}`~pyenphase.const.PhaseNames`]
-
-Legacy per‑type attributes remain for compatibility:
-
-- {py:attr}`pyenphase.EnvoyData.ctmeter_production_phases`
-- {py:attr}`pyenphase.EnvoyData.ctmeter_consumption_phases`
-- {py:attr}`pyenphase.EnvoyData.ctmeter_storage_phases`
 
 Phase data is only populated if CTs are installed on more than 1 phase for production and/or consumption phases.
 
