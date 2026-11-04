@@ -17,7 +17,7 @@ from awesomeversion import AwesomeVersion
 from lxml import etree as et  # nosec
 
 from pyenphase import AUTH_TOKEN_MIN_VERSION, Envoy
-from pyenphase.envoy import SupportedFeatures
+from pyenphase.envoy import EnvoyOptions, SupportedFeatures
 from pyenphase.updaters.base import EnvoyUpdater
 
 
@@ -139,10 +139,16 @@ async def get_mock_envoy(
     client_session: aiohttp.ClientSession | None,
     update: bool = True,
     v2_acb_mode: bool = True,
+    envoy_options: EnvoyOptions = EnvoyOptions(0),
 ) -> Envoy:
     """Return a mock Envoy."""
     host = "127.0.0.1"
-    envoy = Envoy(host, client=client_session, v2_acb_mode=v2_acb_mode)
+    envoy = Envoy(
+        host,
+        client=client_session,
+        v2_acb_mode=v2_acb_mode,
+        envoy_options=envoy_options,
+    )
     await envoy.setup()
     await envoy.authenticate("username", "password")
     if update:

@@ -11,7 +11,7 @@ from awesomeversion import AwesomeVersion
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase.const import URL_INVENTORY, URL_PRODUCTION_INVERTERS
-from pyenphase.envoy import SupportedFeatures
+from pyenphase.envoy import EnvoyOptions, SupportedFeatures
 from pyenphase.exceptions import EnvoyAuthenticationRequired, EnvoyHTTPStatusError
 from pyenphase.models.acb import ACBChargeStatus, ACBSleepState, EnvoyACB
 from pyenphase.models.common import CommonProperties
@@ -205,6 +205,7 @@ async def test_with_4_2_27_firmware(
         "battery_aggregate",
         "acb_power",
         "v2_mode",
+        "envoy_options",
         "inverter_count",
     ),
     [
@@ -222,6 +223,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             19,
         ),
         (
@@ -235,6 +237,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             12,
         ),
         (
@@ -249,6 +252,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             15,
         ),
         (
@@ -265,6 +269,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             22,
         ),
         (
@@ -281,6 +286,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             22,
         ),
         (
@@ -299,6 +305,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             13,
         ),
         (
@@ -314,6 +321,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             7,
         ),
         (
@@ -330,6 +338,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             7,
         ),
         (
@@ -346,6 +355,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             7,
         ),
         (
@@ -362,6 +372,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             5,
         ),
         (
@@ -377,6 +388,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             44,
         ),
         (
@@ -395,6 +407,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             5,
         ),
         (
@@ -414,6 +427,7 @@ async def test_with_4_2_27_firmware(
             {},
             {},
             None,
+            EnvoyOptions(0),
             26,
         ),
         (
@@ -441,6 +455,7 @@ async def test_with_4_2_27_firmware(
                 "batteries": 3,
             },
             None,
+            EnvoyOptions(0),
             20,
         ),
         (
@@ -468,6 +483,7 @@ async def test_with_4_2_27_firmware(
                 "batteries": 3,
             },
             False,
+            EnvoyOptions(0),
             17,
         ),
         (
@@ -495,6 +511,7 @@ async def test_with_4_2_27_firmware(
                 "batteries": 3,
             },
             True,
+            EnvoyOptions(0),
             20,
         ),
         (
@@ -518,29 +535,7 @@ async def test_with_4_2_27_firmware(
                 "batteries": 2,
             },
             None,
-            3,
-        ),
-        (
-            "8.3.5169_ACB_inventory",
-            SupportedFeatures.INVERTERS
-            | SupportedFeatures.METERING
-            | SupportedFeatures.TOTAL_CONSUMPTION
-            | SupportedFeatures.NET_CONSUMPTION
-            | SupportedFeatures.PRODUCTION
-            | SupportedFeatures.ENCHARGE
-            | SupportedFeatures.TARIFF
-            | SupportedFeatures.CTMETERS
-            | SupportedFeatures.ACB,
-            2,
-            {},
-            {
-                "power": -2,
-                "charge_wh": 25,
-                "state_of_charge": 1,
-                "state": "idle",
-                "batteries": 2,
-            },
-            True,
+            EnvoyOptions(0),
             3,
         ),
         (
@@ -564,6 +559,47 @@ async def test_with_4_2_27_firmware(
                 "batteries": 2,
             },
             False,
+            EnvoyOptions.V2_ACB_MODE,
+            3,
+        ),
+        (
+            "8.3.5169_ACB_inventory",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.PRODUCTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS
+            | SupportedFeatures.ACB,
+            2,
+            {},
+            {
+                "power": -2,
+                "charge_wh": 25,
+                "state_of_charge": 1,
+                "state": "idle",
+                "batteries": 2,
+            },
+            False,
+            EnvoyOptions(0),
+            3,
+        ),
+        (
+            "8.3.5169_ACB_inventory",
+            SupportedFeatures.INVERTERS
+            | SupportedFeatures.METERING
+            | SupportedFeatures.TOTAL_CONSUMPTION
+            | SupportedFeatures.NET_CONSUMPTION
+            | SupportedFeatures.ENCHARGE
+            | SupportedFeatures.TARIFF
+            | SupportedFeatures.CTMETERS,
+            0,  # acb_count comes from /producion which is disabled in nosolar
+            {},
+            {},
+            False,
+            EnvoyOptions.NO_SOLAR,
             3,
         ),
     ],
@@ -587,6 +623,7 @@ async def test_with_4_2_27_firmware(
         "8.3.5169_ACB_inventory",
         "8.3.5169_ACB_inventory_v2",
         "8.3.5169_ACB_inventory_v3",
+        "8.3.5169_ACB_inventory_v3_no_solar",
     ],
 )
 @pytest.mark.asyncio
@@ -601,6 +638,7 @@ async def test_with_7_x_firmware(
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
     v2_mode: bool | None,
+    envoy_options: EnvoyOptions,
     inverter_count: int,
 ) -> None:
     """
@@ -616,8 +654,12 @@ async def test_with_7_x_firmware(
 
     envoy = (
         await get_mock_envoy(test_client_session)
-        if v2_mode is None
-        else await get_mock_envoy(test_client_session, v2_acb_mode=v2_mode)
+        if v2_mode is None and envoy_options == EnvoyOptions(0)
+        else await get_mock_envoy(
+            test_client_session,
+            v2_acb_mode=v2_mode,  # type: ignore
+            envoy_options=envoy_options,
+        )
     )
     full_host = endpoint_path(version, envoy.host)
     data = envoy.data
@@ -653,10 +695,15 @@ async def test_with_7_x_firmware(
 
     # test for code coverage if no storage section is available
     # use fixtures with METERING in supported_features:
-    production_data = data.raw["/production.json?details=1"]
+    if EnvoyOptions.NO_SOLAR in envoy_options:
+        assert data
+        assert envoy.acb_count == 0
+        assert "/production.json?details=1" not in data.raw
+    else:
+        production_data = data.raw["/production.json?details=1"]
 
-    acb_data = production_data["storage"][0]
-    assert acb_data["activeCount"] == acb_count
+        acb_data = production_data["storage"][0]
+        assert acb_data["activeCount"] == acb_count
 
     # test with missing storage section
     prod_json = await load_json_fixture(version, "production.json")

@@ -53,6 +53,7 @@ from .const import (
     URL_GRID_RELAY,
     URL_INVENTORY,
     URL_TARIFF,
+    EnvoyOptions,
     SupportedFeatures,
 )
 from .exceptions import (
@@ -159,6 +160,7 @@ class Envoy:
         client: aiohttp.ClientSession | None = None,
         timeout: float | aiohttp.ClientTimeout | None = None,
         v2_acb_mode: bool = True,
+        envoy_options: EnvoyOptions = EnvoyOptions(0),
     ) -> None:
         """
         Class for communicating with an envoy.
@@ -193,7 +195,10 @@ class Envoy:
         :param v2_acb_mode: in v3 acb data is not included in inverter data as it
             is (incorrectly) in v2. This may break applications. Use this mode to
             include acb battery data in inverter data. In v3 this defaults to True.
-            In a future version this default will be set to False.
+            Use the envoy_option :py:attr:`~pyenphase.const.EnvoyOptions.V2_ACB_MODE` to select
+            v2 ACB mode instead. In a future version this parameter will be removed and
+            the default will be False if not set in envoy_options.
+        :param envoy_options: Options to enable or disable for Envoy data collection.
         """
         # We use our own aiohttp client session so we can disable SSL verification (Envoys use self-signed SSL certs)
         self._timeout = timeout or LOCAL_TIMEOUT
@@ -213,7 +218,9 @@ class Envoy:
         self._request_last_attempts: int = 0
         self._request_last_elapsed: float = 0.0
         self._request_last_endpoint: str = ""
-        self._v2_acb_mode: bool = v2_acb_mode
+        self._envoy_options: EnvoyOptions = envoy_options
+        if v2_acb_mode:
+            self._envoy_options |= EnvoyOptions.V2_ACB_MODE
 
     async def setup(self) -> None:
         """
@@ -853,12 +860,12 @@ class Envoy:
         updaters: list[EnvoyUpdater] = []
         version = self._firmware.version
         metered = self.is_metered
-        v2_acb_mode = self._v2_acb_mode
+        envoy_options = self._envoy_options
         self._endpoint_cache.clear()
         cached_probe = partial(self._make_cached_request, self.probe_request)
         cached_request = partial(self._make_cached_request, self.request)
         self._common_properties.reset_probe_properties(
-            is_metered=metered, v2_acb_mode=v2_acb_mode
+            is_metered=metered, envoy_options=envoy_options
         )
 
         for updater in get_updaters():

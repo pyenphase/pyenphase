@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 
+from ..const import EnvoyOptions
 from ..models.meters import EnvoyPhaseMode
 
 
@@ -39,12 +40,12 @@ class CommonProperties:
     #: The Ensemble updater should only report combined ACB and Encharge if production reported data
     acb_batteries_reported: int = 0
 
-    #: run in v2 compatibility mode including ACB in inverters list
-    v2_acb_mode: bool = False
-
     #: imeter flag from /info. If true envoy is metered type
     #: used to detect metered without actual CT installed to enable picking correct data
     imeter_info: bool = False
+
+    #: run in no solar mode not collecting production data if no inverters are present
+    envoy_options: EnvoyOptions = EnvoyOptions(0)  # noqa: RUF009
 
     # other properties from here, reset by originator
 
@@ -61,7 +62,9 @@ class CommonProperties:
     active_phase_count: int = 0
 
     def reset_probe_properties(
-        self, is_metered: bool = False, v2_acb_mode: bool = False
+        self,
+        is_metered: bool = False,
+        envoy_options: EnvoyOptions = EnvoyOptions(0),
     ) -> None:
         """
         Reset common properties at start of probe.
@@ -77,6 +80,7 @@ class CommonProperties:
             - production_fallback_list shared amongst production updaters
             - ACB_batteries_reported shared between production and Ensemble
             - imeter_info setting from /info indicating envoy is metered type
+            - envoy_options from setup signalling options to enable or disable
 
         :return: None
         """
@@ -87,5 +91,5 @@ class CommonProperties:
         # shared between production and ensemble
         self.acb_batteries_reported = 0
 
-        # pass v2 acb compatibility mode to updaters
-        self.v2_acb_mode = v2_acb_mode
+        # pass envoy_options to all updaters
+        self.envoy_options = envoy_options

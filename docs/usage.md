@@ -20,6 +20,7 @@ await envoy.close()
 
 usage_intro
 usage_authentication
+envoy_options
 requests
 client
 advanced

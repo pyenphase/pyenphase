@@ -22,6 +22,7 @@ model_autodoc
 :caption: Project Info
 :maxdepth: 2
 
+deprecations
 license
 changelog
 contributing
