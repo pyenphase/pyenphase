@@ -678,15 +678,10 @@ async def test_with_7_x_firmware(
 
     # test for code coverage if no storage section is available
     # use fixtures with METERING in supported_features:
-    if EnvoyOptions.NO_SOLAR in envoy_options:
-        assert data
-        assert envoy.acb_count == 0
-        assert "/production.json?details=1" not in data.raw
-    else:
-        production_data = data.raw["/production.json?details=1"]
+    production_data = data.raw["/production.json?details=1"]
 
-        acb_data = production_data["storage"][0]
-        assert acb_data["activeCount"] == acb_count
+    acb_data = production_data["storage"][0]
+    assert acb_data["activeCount"] == acb_count
 
     # test with missing storage section
     prod_json = await load_json_fixture(version, "production.json")
