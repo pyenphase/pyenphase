@@ -6,7 +6,7 @@
 
 As of pyenphase v3, acb data is not included in inverter data when the `v2_acb_mode` parameter of {py:class}`~pyenphase.envoy.Envoy` is set to False and {py:attr}`~pyenphase.const.EnvoyOptions.V2_ACB_MODE` is not set in the `envoy_options` parameter. For backward compatibility the `v2_acb_mode` parameter defaults to True, so acb battery data remains included in inverter data by default.
 
-In a future version the v2_acb_mode parameter will be deprecated and the default setting of True will change to False. To be in control of this setting, start using {py:attr}`~pyenphase.const.EnvoyOptions.V2_ACB_MODE` in the `envoy_options` parameter to select v2 ACB mode and replace current any use of `v2_acb_mode` parameter by the use of the `envoy_options` parameter of {py:class}`~pyenphase.envoy.Envoy`.
+In a future version the v2_acb_mode parameter will be deprecated and the default setting of True will change to False. To be in control of this setting, start using {py:attr}`~pyenphase.const.EnvoyOptions.V2_ACB_MODE` in the `envoy_options` parameter to select v2 ACB mode and replace any current use of `v2_acb_mode` parameter by the use of the `envoy_options` parameter of {py:class}`~pyenphase.envoy.Envoy`.
 
 ## Deprecated
 
