@@ -266,3 +266,30 @@ class MASK_STATE(enum.StrEnum):
     )
     FAILED = "failed"  #: Endpoint data was changed by anonymization but errors occurred and change may be incomplete
     REMOVED = "removed"  #: Endpoint is removed from data as failures occurred and strict mode is enabled
+
+
+class EnvoyOptions(enum.IntFlag):
+    """
+    Options to enable or disable for Envoy data collection
+
+    EnvoyOptions allow selection of :py:class:`~pyenphase.Envoy`
+    non-standard operation or features that are not automatically
+    detected and enabled or disabled.
+
+    """
+
+    #: Envoy is not equipped with solar inverters.
+    #: This will disable collection of the /production endpoints
+    #: as these hang and timeout without inverters installed.
+    #: Production is reported from /api/v1/production. Its meaning is unclear.
+    #: Consumption data is not reported. Use the CT data instead.
+    #: Do NOT enable if ACB batteries are installed as
+    #: these report through /production as well
+    NO_SOLAR = enum.auto()
+
+    #: As of pyenphase v3, acb data is not included in inverter data as it
+    #: is (incorrectly) in v2. This may break applications. Use this mode to
+    #: include acb battery data in inverter data. This option is a future
+    #: replacement of the v2_acb_mode parameter which will be removed in a
+    #: future version. Currently either of the 2 enable methods can be used.
+    V2_ACB_MODE = enum.auto()

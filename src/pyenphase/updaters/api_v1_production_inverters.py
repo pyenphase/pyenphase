@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from ..const import URL_PRODUCTION_INVERTERS, SupportedFeatures
+from ..const import URL_PRODUCTION_INVERTERS, EnvoyOptions, SupportedFeatures
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
 from ..models.envoy import EnvoyData
 from ..models.inverter import EnvoyInverter
@@ -49,5 +49,6 @@ class EnvoyApiV1ProductionInvertersUpdater(EnvoyUpdater):
         envoy_data.inverters = {
             inverter["serialNumber"]: EnvoyInverter.from_v1_api(inverter)
             for inverter in inverters_data
-            if inverter.get("devType", 1) == 1 or self._common_properties.v2_acb_mode
+            if inverter.get("devType", 1) == 1
+            or (EnvoyOptions.V2_ACB_MODE in self._common_properties.envoy_options)
         }

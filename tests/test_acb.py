@@ -11,7 +11,7 @@ from awesomeversion import AwesomeVersion
 from syrupy.assertion import SnapshotAssertion
 
 from pyenphase.const import URL_INVENTORY, URL_PRODUCTION_INVERTERS
-from pyenphase.envoy import SupportedFeatures
+from pyenphase.envoy import EnvoyOptions, SupportedFeatures
 from pyenphase.exceptions import EnvoyAuthenticationRequired, EnvoyHTTPStatusError
 from pyenphase.models.acb import ACBChargeStatus, ACBSleepState, EnvoyACB
 from pyenphase.models.common import CommonProperties
@@ -204,7 +204,7 @@ async def test_with_4_2_27_firmware(
         "acb_count",
         "battery_aggregate",
         "acb_power",
-        "v2_mode",
+        "envoy_params",
         "inverter_count",
     ),
     [
@@ -221,7 +221,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             19,
         ),
         (
@@ -234,7 +234,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             12,
         ),
         (
@@ -248,7 +248,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             15,
         ),
         (
@@ -264,7 +264,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             22,
         ),
         (
@@ -280,7 +280,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             22,
         ),
         (
@@ -298,7 +298,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             13,
         ),
         (
@@ -313,7 +313,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             7,
         ),
         (
@@ -329,7 +329,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             7,
         ),
         (
@@ -345,7 +345,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             7,
         ),
         (
@@ -361,7 +361,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             5,
         ),
         (
@@ -376,7 +376,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             44,
         ),
         (
@@ -394,7 +394,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             5,
         ),
         (
@@ -413,7 +413,7 @@ async def test_with_4_2_27_firmware(
             0,
             {},
             {},
-            None,
+            {},
             26,
         ),
         (
@@ -440,7 +440,7 @@ async def test_with_4_2_27_firmware(
                 "state": "discharging",
                 "batteries": 3,
             },
-            None,
+            {},
             20,
         ),
         (
@@ -467,7 +467,7 @@ async def test_with_4_2_27_firmware(
                 "state": "discharging",
                 "batteries": 3,
             },
-            False,
+            {"v2_acb_mode": False},
             17,
         ),
         (
@@ -494,7 +494,7 @@ async def test_with_4_2_27_firmware(
                 "state": "discharging",
                 "batteries": 3,
             },
-            True,
+            {"v2_acb_mode": True},
             20,
         ),
         (
@@ -517,7 +517,7 @@ async def test_with_4_2_27_firmware(
                 "state": "idle",
                 "batteries": 2,
             },
-            None,
+            {},
             3,
         ),
         (
@@ -540,7 +540,7 @@ async def test_with_4_2_27_firmware(
                 "state": "idle",
                 "batteries": 2,
             },
-            True,
+            {"v2_acb_mode": False, "envoy_options": EnvoyOptions.V2_ACB_MODE},
             3,
         ),
         (
@@ -563,7 +563,7 @@ async def test_with_4_2_27_firmware(
                 "state": "idle",
                 "batteries": 2,
             },
-            False,
+            {"v2_acb_mode": False},
             3,
         ),
     ],
@@ -600,7 +600,7 @@ async def test_with_7_x_firmware(
     acb_power: dict[str, dict[str, Any]],
     mock_aioresponse: aioresponses,
     test_client_session: aiohttp.ClientSession,
-    v2_mode: bool | None,
+    envoy_params: dict[str, Any],
     inverter_count: int,
 ) -> None:
     """
@@ -614,10 +614,9 @@ async def test_with_7_x_firmware(
 
     caplog.set_level(logging.DEBUG)
 
-    envoy = (
-        await get_mock_envoy(test_client_session)
-        if v2_mode is None
-        else await get_mock_envoy(test_client_session, v2_acb_mode=v2_mode)
+    envoy = await get_mock_envoy(
+        test_client_session,
+        **envoy_params,
     )
     full_host = endpoint_path(version, envoy.host)
     data = envoy.data

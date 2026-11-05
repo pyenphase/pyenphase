@@ -8,6 +8,7 @@ from ..const import (
     PRODUCTION_TOTAL_IS_NET_CONSUMPTION,
     URL_PRODUCTION,
     URL_PRODUCTION_JSON,
+    EnvoyOptions,
     SupportedFeatures,
 )
 from ..exceptions import ENDPOINT_PROBE_EXCEPTIONS, EnvoyAuthenticationRequired
@@ -49,6 +50,13 @@ class EnvoyProductionUpdater(EnvoyUpdater):
 
         # check if prior updaters reported supporting ACB
         discovered_acb_storage = SupportedFeatures.ACB in discovered_features
+
+        if EnvoyOptions.NO_SOLAR in self._common_properties.envoy_options:
+            # For Envoy without installed inverters, all /production...
+            # endpoint requests will hang till timeout.
+            # return None if NO_SOLAR mode is enabled.
+            _LOGGER.debug("production updater skipped in NO_SOLAR mode.")
+            return None
 
         # obtain any registered production endpoints that replied back from the common list
         # when in allow_inverters_fallback mode we can use the first one that worked
