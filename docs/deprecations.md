@@ -16,7 +16,7 @@ Support for Python 3.10 is dropped as of V6.0
 
 ### ctmeter_production, ctmeter_consumption and ctmeter_storage records
 
-In v5.0 has:
+In v5.0, the following EnvoyData fields have been removed:
 
 - ctmeter_production: EnvoyMeterData | None = None
 - ctmeter_consumption: EnvoyMeterData | None = None
@@ -25,9 +25,7 @@ In v5.0 has:
 - ctmeter_consumption_phases: dict[str, EnvoyMeterData | None] | None = None
 - ctmeter_storage_phases: dict[str, EnvoyMeterData | None] | None = None
 
-Removed.
-
-These were marked for deprecation in v2.4.0 and replaced by:
+In version v2.4.0 these were replaced by below fields, left in place for backward compatibility and marked for future deprecation.
 
 - {py:attr}`pyenphase.EnvoyData.ctmeters`
 - {py:attr}`pyenphase.EnvoyData.ctmeters_phases`
