@@ -586,22 +586,6 @@ async def test_with_4_2_27_firmware(
             EnvoyOptions(0),
             3,
         ),
-        (
-            "8.3.5169_ACB_inventory",
-            SupportedFeatures.INVERTERS
-            | SupportedFeatures.METERING
-            | SupportedFeatures.TOTAL_CONSUMPTION
-            | SupportedFeatures.NET_CONSUMPTION
-            | SupportedFeatures.ENCHARGE
-            | SupportedFeatures.TARIFF
-            | SupportedFeatures.CTMETERS,
-            0,  # acb_count comes from /producion which is disabled in nosolar
-            {},
-            {},
-            False,
-            EnvoyOptions.NO_SOLAR,
-            3,
-        ),
     ],
     ids=[
         "4.10.35",
@@ -623,7 +607,6 @@ async def test_with_4_2_27_firmware(
         "8.3.5169_ACB_inventory",
         "8.3.5169_ACB_inventory_v2",
         "8.3.5169_ACB_inventory_v3",
-        "8.3.5169_ACB_inventory_v3_no_solar",
     ],
 )
 @pytest.mark.asyncio

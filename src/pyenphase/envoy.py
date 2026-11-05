@@ -876,7 +876,11 @@ class Envoy:
                 supported_features |= updater_features
                 updaters.append(klass)
 
-        if not supported_features & SupportedFeatures.PRODUCTION:
+        # in NO_SOLAR mode we run without solar production e.g. only with batteries
+        if (
+            not supported_features & SupportedFeatures.PRODUCTION
+            and EnvoyOptions.NO_SOLAR not in envoy_options
+        ):
             raise EnvoyProbeFailed("Unable to determine production endpoint")
 
         self._updaters = updaters
