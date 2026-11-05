@@ -44,7 +44,7 @@ class CommonProperties:
     #: used to detect metered without actual CT installed to enable picking correct data
     imeter_info: bool = False
 
-    #: run in no solar mode not collecting production data if no inverters are present
+    #: envoy_options from Envoy init, shared with all updaters
     envoy_options: EnvoyOptions = EnvoyOptions(0)  # noqa: RUF009
 
     # other properties from here, reset by originator
