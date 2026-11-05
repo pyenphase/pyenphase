@@ -1,6 +1,24 @@
 # CHANGELOG
 
 
+## v6.1.0 (2026-11-05)
+
+### Chores
+
+- **deps-dev**: Bump filelock from 3.32.7 to 4.2.1
+  ([#534](https://github.com/pyenphase/pyenphase/pull/534),
+  [`00c9d4c`](https://github.com/pyenphase/pyenphase/commit/00c9d4c7dc5eb31eac96a403c96ad7572332d91c))
+
+### Features
+
+- Add option to run in NO SOLAR mode. ([#535](https://github.com/pyenphase/pyenphase/pull/535),
+  [`c784731`](https://github.com/pyenphase/pyenphase/commit/c7847313fcdda4fc8e2996ba4b10210e2b033bdd))
+
+- Force release for #535 - add option to run in NO SOLAR mode.
+  ([#536](https://github.com/pyenphase/pyenphase/pull/536),
+  [`d0fb9f1`](https://github.com/pyenphase/pyenphase/commit/d0fb9f18475f3f33715b3f56337ea874b45679d8))
+
+
 ## v6.0.0 (2026-11-03)
 
 ### Refactoring
