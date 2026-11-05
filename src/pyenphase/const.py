@@ -281,8 +281,8 @@ class EnvoyOptions(enum.IntFlag):
     #: Envoy is not equipped with solar inverters.
     #: This will disable collection of the /production endpoints
     #: as these hang and timeout without inverters installed.
-    #: No production or consumption will be reported.
-    #: Use the CT data instead.
+    #: Production is reported from /api/v1/production. Its meaning is unclear.
+    #: Consumption data is not reported. Use the CT data instead.
     #: Do NOT enable if ACB batteries are installed as
     #: these report through /production as well
     NO_SOLAR = enum.auto()

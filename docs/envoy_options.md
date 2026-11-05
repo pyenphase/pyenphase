@@ -18,6 +18,6 @@ The reports show that the production endpoints don't respond at all and will tim
 
 On this first release of the option, it has to be set by the caller. In a future version it may become an automatic enablement based on the presence of inverters in the probed data. Currently there is not enough data to warrant a flawless automatic mechanism.
 
-Production data will report data from [/api/v1/production](endpoint_json.md#apiv1production). What these values represent is unclear.
+Production data will report data from [/api/v1/production](endpoint_json.md#apiv1production). What these values represent is unclear. Consumption data is not reported. Use CT data is these are installed.
 
 Do NOT enable this option if ACB batteries are installed, these report through /production as well.
